@@ -17,7 +17,7 @@ A saved copy of everything a Game Source sent during one game, which can be repl
 _Avoid_: Log, trace, capture (when meaning the saved file)
 
 **Tournament Game**:
-A game that counts for the official DCSS tournament: played on the tournament's Crawl Version, on an official server, within the tournament's dates. The Advisor gives only Information in a Tournament Game.
+A game that counts for the official DCSS tournament: played on the tournament's own Crawl Version, on an official server, within the tournament's dates. Games on other versions during those dates are not Tournament Games. The Advisor gives only Information in a Tournament Game.
 _Avoid_: Tourney game, competitive game
 
 ### Game situation
