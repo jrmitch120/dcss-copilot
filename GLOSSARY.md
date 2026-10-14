@@ -19,11 +19,11 @@ Everything the Advisor knows when it reasons about a moment in a game: Visible S
 _Avoid_: Context, game state (when meaning the whole)
 
 **Visible State**:
-What the game currently reports to the player: map in view, monsters, stats, inventory, statuses, messages.
+What the game currently reports to the player: map in view, monsters, stats, inventory, statuses, messages, and any screen the player has open (overview, skills, spells, character dump).
 _Avoid_: Screen, snapshot
 
 **Accumulated State**:
-What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen and uniques encountered.
+What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, and what it read from screens the player opened.
 _Avoid_: History, memory, cache
 
 **Game Knowledge**:
