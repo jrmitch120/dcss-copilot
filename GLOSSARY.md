@@ -30,7 +30,25 @@ _Avoid_: History, memory, cache
 Static facts about DCSS itself for a specific game version: monster, spell, item, god and species data.
 _Avoid_: Wiki data, database
 
+### Analysis
+
+**Fact Sheet**:
+Everything the Advisor has computed about one moment of a Game Situation, such as Threat Level, Ways Out, item comparisons, failure rates and which inputs are missing. Every number the Advisor shows or says comes from it.
+_Avoid_: Situation, snapshot, context, prompt data
+
+**Threat Level**:
+How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit.
+_Avoid_: Danger score, threat score
+
+**Way Out**:
+An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
+_Avoid_: Escape (when meaning the whole list), panic button
+
 ### Advice
+
+**Alert**:
+Advice the Advisor raises on its own, without being asked, because something meaningful happened in the game.
+_Avoid_: Notification, ping
 
 **Tactical Advice**:
 Guidance about the immediate situation: threat assessment, retreat, which consumable or ability to use.
