@@ -1,6 +1,8 @@
 <!doctype html>
 <!--
-  PROTOTYPE, throwaway. "In-game secondary surfaces" (wayfinder ticket #21), round 1.
+  PROTOTYPE, throwaway. "In-game secondary surfaces" (wayfinder ticket #21), round 2.
+  Round 2: ask box drawer covers only the focus area; no "sentence removed" notice; D toggles answer details
+  (the Settings option); lookup state shows engine-only lookups from the ask box in Hints/Coach.
   Builds on round3.html (prototype/visual-direction) and round2.html (prototype/setup-settings).
   Six scenarios, each with its own variants (structurally different) and states:
     S  cycles scenario:  join · gaps · ask · pill · modes · spectate
@@ -103,7 +105,7 @@
   .hl .unk, .hl .stale { background: rgba(255,178,107,.15); border-radius: 4px; padding: 0 3px; outline: 1px solid rgba(255,178,107,.4); }
 
   /* footer / ask */
-  .ft { display: flex; gap: 6px; align-items: center; padding: 8px 14px 12px; border-top: 1px solid rgba(255,255,255,.06); }
+  .ft { position: relative; display: flex; gap: 6px; align-items: center; padding: 8px 14px 12px; border-top: 1px solid rgba(255,255,255,.06); }
   .ft input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 7px 10px; outline: none; font-size: 13px; }
   .ft input.deep { border-color: rgba(162,155,254,.7); box-shadow: 0 0 0 3px rgba(162,155,254,.15); }
   .deepbtn { font-size: 11px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: #9aa0b2; white-space: nowrap; }
@@ -128,7 +130,8 @@
   @keyframes breathe { 50% { opacity: .4; } }
   @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
   .rise { animation: rise .35s ease-out both; }
-  .drawer { position: absolute; left: 0; right: 0; bottom: 0; top: 64px; background: #10131b; border-top: 1px solid rgba(255,255,255,.12); border-radius: 16px 16px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,.6); display: flex; flex-direction: column; animation: rise .3s ease-out both; z-index: 5; }
+  .mid { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+  .drawer { position: absolute; inset: 6px 0 0 0; background: #10131b; border-top: 1px solid rgba(255,255,255,.12); border-radius: 16px 16px 0 0; box-shadow: 0 -12px 30px rgba(0,0,0,.5); display: flex; flex-direction: column; animation: rise .3s ease-out both; z-index: 5; }
   .drawer .dh { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 12px; color: #9aa0b2; }
   .drawer .db { flex: 1; overflow: auto; padding: 12px 14px; }
   .tabs { display: flex; gap: 2px; }
@@ -232,8 +235,8 @@ function header({ dot = '', who = '<b>Kesh</b> · MiFi XL 13 · Orc:2', chips = 
   return `<div class="hd"><span class="dot ${dot}"></span><span class="who">${who}</span><span class="sp"></span>${chips}${right}<button class="ic" title="Collapse to pill" data-go="pill">⤡</button><button class="ic" title="Settings">⚙</button>${pop}</div>`;
 }
 const nowPill = (lab, line, sub, cls = '') => `<div class="now ${cls}"><div class="lab">${lab}</div><div class="line">${line}<small>${sub}</small></div></div>`;
-function footer({ ph = 'Ask about your run…', meter = `<button class="meter" title="Opens Settings → Budget and cost">$0.31 of $1.00</button>`, deep = true, deepOn = false } = {}) {
-  return `<div class="ft"><input class="${deepOn ? 'deep' : ''}" placeholder="${ph}">${deep ? `<button class="deepbtn ${deepOn ? 'on' : ''}" data-deep title="Use the Deep Model for this question">${deepOn ? '◆ Think deeper · ~$0.03' : '◇ Think deeper'}</button>` : ''}${meter}</div>`;
+function footer({ ph = 'Ask about your run…', meter = `<button class="meter" title="Opens Settings → Budget and cost">$0.31 of $1.00</button>`, deep = true, deepOn = false, val = '', drop = '' } = {}) {
+  return `<div class="ft">${drop}<input class="${deepOn ? 'deep' : ''}" placeholder="${ph}" value="${val}">${deep ? `<button class="deepbtn ${deepOn ? 'on' : ''}" data-deep title="Use the Deep Model for this question">${deepOn ? '◆ Think deeper · ~$0.03' : '◇ Think deeper'}</button>` : ''}${meter}</div>`;
 }
 function rail({ unknown = false, inline = false, mark = false } = {}) {
   const sk = unknown
@@ -343,56 +346,47 @@ const GAPSC = {
 };
 
 /* ---------- 3. ASK BOX ---------- */
-let deepOn = false;
+let deepOn = false, details = true;
+const meta = s => details ? `<div class="meta">${s}</div>` : '';
 function thread(st) {
   const h = `
     <div class="q">Is Spider before Snake a good idea here?</div>
     <div class="a">Probably not yet. Spider:4's wolf spiders and jumping spiders hit EV-light characters hard, and you have 8 EV. Snake:1–3 is fine for you now; Snake:4 waits on rPois either way.
-      <div class="meta"><span>Quick · $0.003</span><span>looked up 2 things</span></div></div>
+      ${meta('<span>Quick · $0.003</span><span>looked up 2 things</span>')}</div>
     <div class="q">What's the most dangerous thing I've seen this game?</div>
     <div class="a">The ogre on D:7 came closest: it hit you to 19 HP at T 9,812. Of uniques you've seen, Saint Roka (Orc:2, killed) was the biggest threat.
       <div class="notice cut">Cut short: hit the lookup limit for one question. Ask a narrower question to go further.</div>
-      <div class="meta"><span>Quick · $0.006</span><span>8 lookups</span></div></div>
+      ${meta('<span>Quick · $0.006</span><span>8 lookups</span>')}</div>
     <div class="q">Plan my next five floors<small>◆ Think deeper</small></div>
     <div class="a">Do D:12–15 now at a steady pace; you out-level them. Then Snake:1–3, staying near stairs on each floor. Keep Shields training until 13, then switch everything to Axes for the broad axe. If you find rPois, Snake:4 is next; if not, go to Vaults:1–4 first.
-      <div class="notice rm">1 sentence removed: it named something I couldn't check against the game.</div>
-      <div class="meta"><b>Deep · $0.041</b><span>5 lookups · simulated 2 fights</span></div></div>`;
+      ${meta('<b>Deep · $0.041</b><span>5 lookups · simulated 2 fights</span>')}</div>`;
   const live = st === 1 ? `<div class="q">Can I take the two nagas on Snake:2 in melee?</div>
-    <div class="a"><div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen (T 25,410)</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div><button class="btn">Stop</button></div>` : '';
-  return h + live;
+    <div class="a">${details ? `<div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen (T 25,410)</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div>` : `<div class="muted small"><span class="spin"></span> Thinking…</div>`}<button class="btn" style="margin-top:4px">Stop</button></div>` : '';
+  const look = st === 2 ? `<div class="q">naga</div>
+    <div class="card rise" style="padding:10px 12px"><div style="display:flex;gap:10px;align-items:center">${mt('naga', 32)}<div><b>naga</b><div class="tiny muted">monster · Snake, Lair · XL 13 threat: moderate</div></div></div>
+      <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:8px"><span>HP ~30</span><span>AC 6 · EV 10</span><span>Bite 7, constrict</span><span>Spits poison (4–14)</span><span>Sees invisible</span><span>rPois</span></div>
+      <div class="small" style="margin-top:6px;color:#b9bdc9"><b>vs you:</b> you kill it in ~3 hits; it needs ~11 to kill you. Poison stacks: you have no rPois.</div>
+      ${details ? `<div class="meta" style="font-size:10.5px;color:#6f7588;margin-top:6px">Information · Game Knowledge 0.34.1 · no LLM · $0</div>` : ''}
+      <div class="acts"><button class="btn link">Ask the Advisor about nagas</button></div></div>` : '';
+  return h + live + look;
 }
+const lookDrop = `<div class="pop rise" style="top:auto;bottom:calc(100% + 4px);left:14px;right:14px;width:auto;gap:2px;padding:6px">
+  <div class="tiny muted" style="padding:2px 6px">Look up · instant, no LLM</div>
+  ${[['naga', 'monster'], ['naga warrior', 'monster'], ['naga mage', 'monster'], ['nagaraja', 'monster']].map(([n, t], i) => `<div style="display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:7px;${i ? '' : 'background:rgba(255,255,255,.07)'}">${mt('naga', 20)}<span>${n}</span><span class="sp"></span><span class="tiny muted">${t}</span></div>`).join('')}
+  <div style="border-top:1px solid rgba(255,255,255,.08);margin-top:4px;padding:6px 6px 2px" class="small">↵ on a name looks it up · <b>Ask the Advisor</b> “nag…” <span class="muted">(Quick · ~$0.003)</span></div></div>`;
 const ASK = {
-  name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'danger mid-conversation'],
+  name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'lookup (no LLM)', 'danger mid-conversation'],
   variants: [
-    ['A', 'Drawer', 'the conversation slides up over the focus card; the now pill stays above it', st => {
-      const lethal = st === 2;
+    ['A', 'Drawer', 'the conversation covers only the focus area; Run Plan and ask box stay put. D toggles answer details', st => {
+      const lethal = st === 3;
+      const drawer = `<div class="drawer"><div class="dh"><span>Conversation · this game</span><span class="sp"></span><button class="btn link" data-details title="Settings → Ask box → Show answer details">Details: ${details ? 'on' : 'off'}</button><button class="btn link">Clear</button><button class="ic" title="Close">▾</button></div><div class="db"><div class="thread">${thread(st)}</div></div></div>`;
       return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!', 'The orc knight hits you! <span style="color:#ff5f5f">(17)</span>'] : ['You kill Saint Roka!'] }),
-        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '' })}<div class="body">
+        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '' })}
+          <div class="mid"><div class="body">
           ${lethal ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + calmCard()}
           ${lethal ? `<div class="card small muted rise">Conversation tucked away while you fight. <a data-c>Open it</a></div>` : ''}</div>
-          ${lethal ? rail() : `<div class="drawer" style="top:62px"><div class="dh"><span>Conversation · this game</span><span class="sp"></span><button class="btn link">Clear</button><button class="ic" title="Close">▾</button></div><div class="db"><div class="thread">${thread(st)}</div></div></div>`}
-          ${footer({ deepOn })}</div>` };
-    }],
-    ['B', 'Answer as the focus card', 'the latest answer takes the focus card; history is one tap away', st => {
-      const lethal = st === 2;
-      const last = st === 1 ? `<div class="moment"><div class="lbl" style="margin:0">You asked</div><h4>Can I take the two nagas on Snake:2 in melee?</h4>
-          <div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div><button class="btn">Stop</button></div>`
-        : `<div class="moment"><div class="lbl" style="margin:0">You asked <em>◆ Think deeper</em></div><h4>Plan my next five floors</h4>
-          <div class="small" style="color:#dfe2ea">Do D:12–15 now; you out-level them. Then Snake:1–3, staying near stairs. Keep Shields training until 13, then Axes for the broad axe. If you find rPois, Snake:4 is next; if not, Vaults:1–4 first.</div>
-          <div class="notice rm">1 sentence removed: it named something I couldn't check against the game.</div>
-          <div class="acts"><span class="tiny" style="color:#a29bfe">Deep · $0.041</span><span class="sp"></span><button class="btn link">Earlier (2)</button><button class="btn">Done</button></div></div>`;
-      return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!'] : ['You kill Saint Roka!'] }),
-        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '' })}<div class="body">
-          ${lethal ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() + `<div class="card small muted">Your answer about the next five floors is waiting. <a>Show</a></div>`
-            : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + last + `<div class="tiny muted" style="text-align:center">The route Decision Point is waiting on the Run Plan rail.</div>`}</div>
-          ${rail()}${footer({ deepOn })}</div>` };
-    }],
-    ['C', 'Advisor / Chat tabs', 'a Chat tab swaps the whole panel; a thin status strip keeps the threat visible', st => {
-      const lethal = st === 2;
-      return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!'] : ['You kill Saint Roka!'] }),
-        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '', who: '<div class="tabs"><button>Advisor</button><button class="on">Chat</button></div>' })}
-          <div class="strip ${lethal ? 'lethal' : ''}">${lethal ? '<b>LETHAL</b> Get to the corridor east, then haste. <span class="sp"></span><button class="btn pri">Back to Advisor</button>' : '<b class="ok">CALM</b> Orc:2 cleared. <span class="sp"></span><span class="muted">1 decision waiting</span>'}</div>
-          <div class="body"><div class="thread">${thread(st === 2 ? 0 : st)}</div></div>${footer({ deepOn })}</div>` };
+          ${lethal ? '' : drawer}</div>
+          ${rail()}${footer({ deepOn, val: st === 2 ? 'nag' : '', drop: st === 2 ? lookDrop : '' })}</div>` };
     }],
   ],
 };
@@ -513,13 +507,14 @@ const step = d => { const n = SCENS[scen].variants.length; vi = (vi + d + n) % n
 const cyc = () => { sti = (sti + 1) % SCENS[scen].states.length; render(); };
 const nextScen = () => { scen = KEYS[(KEYS.indexOf(scen) + 1) % KEYS.length]; vi = 0; sti = 0; render(); };
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-step],[data-scen],[data-c],[data-tiles],[data-level],[data-deep],[data-go]');
+  const el = e.target.closest('[data-step],[data-scen],[data-c],[data-tiles],[data-level],[data-deep],[data-go],[data-details]');
   if (!el) return;
   if (el.dataset.step) return step(+el.dataset.step);
   if ('scen' in el.dataset) return nextScen();
   if ('c' in el.dataset) return cyc();
   if ('tiles' in el.dataset) { tiles = !tiles; return render(); }
   if ('deep' in el.dataset) { deepOn = !deepOn; return render(); }
+  if ('details' in el.dataset) { details = !details; return render(); }
   if (el.dataset.go) { scen = el.dataset.go; vi = 0; sti = 0; return render(); }
   if (el.dataset.level) { level = el.dataset.level; render(); }
 });
@@ -530,6 +525,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 's' || e.key === 'S') nextScen();
   if (e.key === 'c' || e.key === 'C') cyc();
   if (e.key === 'g' || e.key === 'G') { tiles = !tiles; render(); }
+  if (e.key === 'd' || e.key === 'D') { details = !details; render(); }
 });
 render();
 </script>
