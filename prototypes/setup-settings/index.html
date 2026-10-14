@@ -1,0 +1,628 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. "Setup and settings screens" (wayfinder ticket #20).
+  Builds on the round3.html reference mock (prototype/visual-direction).
+
+  Two axes:
+    ?v=A|B|C     how first run and settings are shaped (keys: ← / →)
+                 A  Panel-native: onboarding is a card stack inside the docked panel; settings is a drill-down sheet
+                 B  Setup window: a centred wizard window with a step checklist; settings is a two-pane preferences window
+                 C  Play first:   one screen to get going, everything else asked in context later; settings is one searchable page
+    ?s=          which screen (key: S)   download | onboard | connect | settings
+    ?c=          connection state (key: C, only on s=connect), shared by every variant
+  Game data and prices are illustrative.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · DCSS Copilot · setup and settings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #05060a; color: #e6e8ee; font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input, select { font: inherit; color: inherit; }
+  a { color: #74b9ff; text-decoration: none; }
+  .wrap { display: grid; grid-template-columns: minmax(0,1fr) 450px; height: 100%; }
+  .wrap.solo { grid-template-columns: minmax(0,1fr); }
+
+  /* fake browser */
+  .br { display: flex; flex-direction: column; min-height: 0; background: #1b1d22; position: relative; }
+  .br .tabs { display: flex; gap: 2px; padding: 8px 10px 0; background: #121317; }
+  .br .tab { padding: 6px 14px; border-radius: 8px 8px 0 0; font-size: 12px; color: #9aa0b2; background: #1b1d22; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .br .bar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #000; }
+  .br .url { flex: 1; background: #0e0f12; border-radius: 999px; padding: 5px 14px; font-size: 12.5px; color: #c9cdd8; }
+  .br .url b { color: #fff; font-weight: 500; }
+  .br .ext { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: rgba(255,255,255,.06); position: relative; font-weight: 800; font-size: 12px; color: #ffd166; }
+  .br .ext.on { background: rgba(255,209,102,.18); box-shadow: 0 0 0 1px rgba(255,209,102,.5); }
+  .br .ext .badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #ff3b5c; border: 2px solid #1b1d22; }
+  .br .page { flex: 1; min-height: 0; overflow: auto; position: relative; }
+
+  .game { background: #000; color: #bbb; font: 15px/1.15 ui-monospace, Menlo, monospace; padding: 20px 24px; height: 100%; display: flex; flex-direction: column; gap: 18px; }
+  .game .map { white-space: pre; letter-spacing: 2px; font-size: 18px; line-height: 1.12; flex: 1; display: flex; align-items: center; }
+  .game .msgs { font-size: 13px; color: #aaa; border-top: 1px solid #222; padding: 8px 0 60px; }
+  .lobby { background: #f4f1ea; color: #222; height: 100%; padding: 24px 32px; font: 13px/1.5 Georgia, serif; }
+  .lobby h2 { font-size: 20px; margin-bottom: 10px; }
+  .lobby table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 12px; }
+  .lobby td, .lobby th { border-bottom: 1px solid #ddd; padding: 3px 6px; text-align: left; }
+  .lobby .play { display: inline-block; margin: 4px 8px 0 0; padding: 4px 10px; background: #e5dfd0; border: 1px solid #bbb; border-radius: 4px; }
+
+  /* extension popup */
+  .popup { position: absolute; top: 76px; right: 10px; width: 300px; z-index: 20; background: #161922; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,.6); padding: 14px; }
+  .popup h5 { font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .popup h5 i { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,209,102,.18); color: #ffd166; font: 800 11px system-ui; display: grid; place-items: center; font-style: normal; }
+  .popup .st { font-size: 12px; color: #9aa0b2; margin-bottom: 10px; }
+  .popup .st b { color: #e6e8ee; font-weight: 600; }
+
+  /* app panel (from round3) */
+  .P { height: 100%; min-height: 0; display: flex; flex-direction: column; background: radial-gradient(600px 400px at 100% 0%, #1a1530 0%, transparent 60%), #0c0e14; border-left: 1px solid rgba(255,255,255,.08); position: relative; overflow: hidden; }
+  .hd { padding: 12px 16px 10px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .hd .dot { width: 8px; height: 8px; border-radius: 50%; background: #555b6c; }
+  .hd .dot.g { background: #2ed573; box-shadow: 0 0 8px #2ed573; } .hd .dot.y { background: #ffd166; box-shadow: 0 0 8px #ffd166; } .hd .dot.r { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; }
+  .hd .who { font-size: 12.5px; color: #9aa0b2; } .hd .who b { color: #fff; }
+  .hd .sp { flex: 1; }
+  .hd .ic { width: 26px; height: 26px; border-radius: 7px; color: #8a90a3; font-size: 15px; } .hd .ic:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .body { flex: 1; overflow: auto; padding: 14px 14px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 12px 14px; }
+  .card.warn { border-color: rgba(255,209,102,.45); background: linear-gradient(180deg, rgba(255,209,102,.1), rgba(255,255,255,.02)); }
+  .card.bad { border-color: rgba(255,59,92,.45); background: linear-gradient(180deg, rgba(255,59,92,.1), rgba(255,255,255,.02)); }
+  .card.good { border-color: rgba(46,213,115,.4); background: linear-gradient(180deg, rgba(46,213,115,.08), rgba(255,255,255,.02)); }
+  .card h4 { font-size: 15px; margin-bottom: 4px; }
+  .lbl { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .lbl em { font-style: normal; letter-spacing: .05em; text-transform: none; color: #555b6c; font-weight: 400; }
+  .muted { color: #8a90a3; } .small { font-size: 12px; } .tiny { font-size: 11px; }
+  .ok { color: #2ed573; } .no { color: #ff6b84; } .am { color: #ffd166; }
+  .acts { display: flex; gap: 6px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { font-size: 12px; padding: 5px 11px; border-radius: 8px; background: rgba(255,255,255,.07); color: #c9cdd8; white-space: nowrap; }
+  .btn:hover { background: rgba(255,255,255,.12); }
+  .btn.pri { background: rgba(255,255,255,.92); color: #111; font-weight: 600; } .btn.pri:hover { background: #fff; }
+  .btn.big { font-size: 13.5px; padding: 9px 16px; border-radius: 10px; }
+  .btn.dz { color: #ff8da1; background: rgba(255,59,92,.1); }
+  .btn.link { background: none; color: #8a90a3; padding: 5px 4px; } .btn.link:hover { color: #fff; }
+  .fld { width: 100%; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 9px; padding: 8px 11px; outline: none; font-size: 13px; }
+  .fld:focus { border-color: rgba(116,185,255,.6); }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
+  .rise { animation: rise .35s cubic-bezier(.2,1.2,.4,1) both; }
+  .pulse { animation: pu 1.8s infinite; } @keyframes pu { 50% { opacity: .45; } }
+
+  /* choice tiles */
+  .choices { display: grid; gap: 6px; }
+  .choice { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: start; text-align: left; padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); }
+  .choice:hover { background: rgba(255,255,255,.05); }
+  .choice.on { border-color: rgba(116,185,255,.7); background: rgba(116,185,255,.08); }
+  .choice .rd { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #555b6c; margin-top: 2px; }
+  .choice.on .rd { border-color: #74b9ff; background: radial-gradient(circle, #74b9ff 40%, transparent 45%); }
+  .choice b { font-weight: 600; } .choice small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .tagx { font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; background: rgba(255,255,255,.07); color: #9aa0b2; align-self: center; }
+  .tagx.rec { background: rgba(46,213,115,.15); color: #2ed573; } .tagx.exp { background: rgba(255,209,102,.15); color: #ffd166; } .tagx.free { background: rgba(116,185,255,.15); color: #74b9ff; }
+
+  .lvls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .lvl { text-align: left; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); }
+  .lvl.on { border-color: rgba(255,255,255,.8); background: rgba(255,255,255,.07); }
+  .lvl b { display: block; font-size: 13px; } .lvl small { color: #8a90a3; font-size: 11px; display: block; margin-top: 2px; }
+  .lvl .eg { margin-top: 8px; font-size: 11px; color: #c9cdd8; background: rgba(0,0,0,.35); border-radius: 7px; padding: 6px 7px; min-height: 58px; }
+
+  .leaves { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
+  .leaves .lv { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
+  .leaves .lv > i { font-style: normal; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: rgba(255,255,255,.06); font-size: 12px; }
+  .leaves .lv b { display: block; font-size: 13px; }
+  .never { margin-top: 4px; padding: 8px 10px; border-radius: 9px; background: rgba(46,213,115,.07); border: 1px solid rgba(46,213,115,.2); font-size: 12px; color: #b7e8c9; }
+
+  .dots { display: flex; gap: 5px; } .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.18); } .dots i.on { background: #fff; width: 16px; border-radius: 4px; } .dots i.done { background: #74b9ff; }
+
+  /* settings rows */
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid rgba(255,255,255,.05); }
+  .row:first-of-type { border-top: 0; }
+  .row b { font-weight: 500; font-size: 13px; display: block; } .row small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .tg { width: 34px; height: 20px; border-radius: 999px; background: rgba(255,255,255,.15); position: relative; flex: none; }
+  .tg::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .tg.on { background: #2ed573; } .tg.on::after { left: 16px; }
+  .sel { background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 4px 8px; font-size: 12px; color: #e6e8ee; }
+  .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 8px; padding: 2px; }
+  .seg button { padding: 3px 9px; border-radius: 6px; font-size: 11.5px; color: #8a90a3; }
+  .seg button.on { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .keyrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.25); margin-top: 6px; }
+  .keyrow .mono { color: #c9cdd8; }
+  .slot { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); margin-top: 6px; }
+  .slot .sh { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } .slot .sh b { font-size: 13px; }
+  .slot .grid { display: grid; grid-template-columns: 70px 1fr; gap: 6px 10px; font-size: 12px; align-items: center; } .slot .grid span { color: #8a90a3; }
+  .meter { height: 8px; border-radius: 6px; background: rgba(255,255,255,.07); position: relative; overflow: hidden; margin: 6px 0 4px; }
+  .meter i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #2ed573, #ffd166); border-radius: 6px; }
+  .meter b { position: absolute; top: 0; bottom: 0; width: 2px; background: #ffd166; }
+  .tot { display: flex; gap: 6px; } .tot div { flex: 1; background: rgba(0,0,0,.3); border-radius: 8px; padding: 6px 9px; font-size: 11px; color: #8a90a3; } .tot b { display: block; color: #fff; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .warnline { font-size: 11.5px; color: #ffd166; margin-top: 6px; }
+
+  /* A: sheet + drilldown */
+  .sheet { position: absolute; inset: 0; background: #0c0e14; display: flex; flex-direction: column; z-index: 5; animation: rise .3s both; }
+  .grp { border-radius: 14px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06); overflow: hidden; }
+  .grp button.it { display: grid; grid-template-columns: 26px 1fr auto 12px; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 10px 12px; border-top: 1px solid rgba(255,255,255,.05); }
+  .grp button.it:first-child { border-top: 0; } .grp button.it:hover { background: rgba(255,255,255,.04); }
+  .grp .it i { font-style: normal; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; }
+  .grp .it small { color: #8a90a3; font-size: 11.5px; } .grp .it .chev { color: #555b6c; }
+
+  /* B: big window */
+  .desk { position: relative; height: 100%; background: radial-gradient(900px 600px at 70% 20%, #1a1d2b, #05060a); display: grid; place-items: center; }
+  .desk .ghost { position: absolute; inset: 0; opacity: .25; filter: blur(2px); pointer-events: none; }
+  .win { width: 880px; height: 600px; max-width: 94vw; max-height: 88vh; border-radius: 14px; background: #0f1118; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 40px 120px rgba(0,0,0,.7); display: grid; grid-template-rows: 34px 1fr; overflow: hidden; position: relative; z-index: 2; }
+  .win .tb { display: flex; align-items: center; gap: 7px; padding: 0 12px; background: #161922; font-size: 12px; color: #8a90a3; }
+  .win .tb i { width: 11px; height: 11px; border-radius: 50%; background: #3a3e4a; } .win .tb span { flex: 1; text-align: center; margin-right: 50px; }
+  .win .in { display: grid; grid-template-columns: 230px 1fr; min-height: 0; }
+  .side { background: rgba(255,255,255,.025); border-right: 1px solid rgba(255,255,255,.06); padding: 18px 12px; display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+  .side .brand { font-weight: 700; font-size: 14px; padding: 0 8px 14px; display: flex; gap: 8px; align-items: center; }
+  .side .brand i { font-style: normal; width: 24px; height: 24px; border-radius: 7px; background: linear-gradient(135deg, #ffd166, #ff8f5a); color: #111; display: grid; place-items: center; font-size: 13px; font-weight: 900; }
+  .side button { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; text-align: left; padding: 7px 8px; border-radius: 8px; font-size: 13px; color: #b9bdc9; }
+  .side button:hover { background: rgba(255,255,255,.04); } .side button.on { background: rgba(255,255,255,.08); color: #fff; }
+  .side button .ck { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #3a3e4a; display: grid; place-items: center; font-size: 11px; color: #111; }
+  .side button.done .ck { background: #2ed573; border-color: #2ed573; } .side button.on .ck { border-color: #fff; }
+  .side button small { display: block; font-size: 11px; color: #6f7588; }
+  .side .grow { flex: 1; } .side .sep { height: 1px; background: rgba(255,255,255,.06); margin: 8px; } .side .gh { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #555b6c; padding: 10px 8px 4px; font-weight: 600; }
+  .main { padding: 26px 30px; overflow: auto; display: flex; flex-direction: column; gap: 14px; }
+  .main h2 { font-size: 22px; letter-spacing: -.01em; } .main h3 { font-size: 13px; color: #9aa0b2; font-weight: 600; margin-top: 6px; }
+  .main .lede { color: #9aa0b2; font-size: 13.5px; max-width: 560px; }
+  .main .foot { margin-top: auto; display: flex; gap: 8px; justify-content: flex-end; padding-top: 10px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* C: single page */
+  .search { position: sticky; top: 0; z-index: 3; background: #0c0e14; padding: 0 0 8px; }
+  .jump { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; } .jump button { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.06); color: #9aa0b2; }
+  .sect { scroll-margin-top: 90px; } .sect h3 { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; margin: 6px 0 2px; }
+  mark { background: rgba(255,209,102,.35); color: inherit; border-radius: 2px; }
+  .hint { position: relative; padding: 10px 12px; border-radius: 12px; background: #1d2333; border: 1px solid rgba(116,185,255,.4); font-size: 12.5px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .hint::before { content: ""; position: absolute; top: -6px; right: 52px; width: 10px; height: 10px; background: #1d2333; border-left: 1px solid rgba(116,185,255,.4); border-top: 1px solid rgba(116,185,255,.4); transform: rotate(45deg); }
+
+  /* download page */
+  .dl { background: radial-gradient(900px 500px at 50% -10%, #2a1d10, transparent 70%), #0a0b0f; min-height: 100%; padding: 50px 40px; display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+  .dl h1 { font-size: 34px; letter-spacing: -.02em; } .dl h1 span { color: #ffd166; }
+  .dl .sub { color: #9aa0b2; max-width: 520px; font-size: 15px; }
+  .dl .hero { width: 560px; max-width: 100%; text-align: left; padding: 18px; border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+  .dl .cmd { display: flex; gap: 8px; align-items: center; background: #000; border-radius: 10px; padding: 10px 12px; margin: 10px 0 6px; border: 1px solid rgba(255,255,255,.1); }
+  .dl .cmd code { flex: 1; font: 13px ui-monospace, Menlo, monospace; color: #e6e8ee; }
+  .dl .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 760px; max-width: 100%; text-align: left; }
+  .dl .steps3 div { padding: 12px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); font-size: 12.5px; color: #9aa0b2; }
+  .dl .steps3 b { display: block; color: #fff; font-size: 13px; margin-bottom: 2px; } .dl .steps3 i { font-style: normal; color: #ffd166; font-weight: 800; margin-right: 6px; }
+  .dl .other { font-size: 12px; color: #6f7588; } .dl .other a { margin: 0 6px; }
+  .osbar { display: flex; gap: 4px; background: rgba(255,255,255,.05); border-radius: 999px; padding: 3px; }
+  .osbar button { padding: 4px 12px; border-radius: 999px; font-size: 12px; color: #8a90a3; } .osbar button.on { background: #fff; color: #111; font-weight: 600; }
+
+  /* toast inside panel */
+  .toast { margin: 0 14px 10px; padding: 9px 12px; border-radius: 12px; display: flex; gap: 10px; align-items: center; font-size: 12.5px; background: #1a1f2c; border: 1px solid rgba(116,185,255,.35); }
+  .toast .sp { flex: 1; }
+
+  #switcher { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 4px; background: #fff; color: #111; border-radius: 999px; padding: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 0 2px #ff00aa; font: 600 13px system-ui; }
+  #switcher button { min-width: 30px; height: 30px; border-radius: 999px; font-size: 15px; color: #111; padding: 0 8px; }
+  #switcher button:hover { background: #eee; }
+  #switcher .label { padding: 0 10px; min-width: 200px; text-align: center; }
+  #switcher .label small { display: block; font-weight: 400; font-size: 10px; color: #888; }
+  #switcher .scen { font-size: 12px; background: #111; color: #fff; } #switcher .scen:hover { background: #333; }
+  #switcher .cst { font-size: 12px; background: #ff00aa; color: #fff; } #switcher .cst:hover { background: #d0008a; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="switcher"></div>
+<script>
+const VARIANTS = { A: 'Panel-native', B: 'Setup window', C: 'Play first' };
+const SCREENS = ['download', 'onboard', 'connect', 'settings'];
+const SCREEN_NAMES = { download: 'Download page', onboard: 'First run', connect: 'Connecting', settings: 'Settings' };
+const CONN = ['noext', 'allow', 'idle', 'unlisted', 'joining', 'lost', 'overflow', 'oldext', 'oldapp', 'update', 'noapp'];
+const CONN_NAMES = {
+  noext: 'App open, no browser yet', allow: 'Allow this browser?', idle: 'Connected, no game', unlisted: 'Unlisted server',
+  joining: 'Game found', lost: 'Stream lost', overflow: 'Buffer overflowed', oldext: 'Extension too old',
+  oldapp: 'App too old', update: 'Restart to update', noapp: 'App not installed',
+};
+
+const P = new URLSearchParams(location.search);
+const S = {
+  v: VARIANTS[P.get('v')] ? P.get('v') : 'A',
+  s: SCREENS.includes(P.get('s')) ? P.get('s') : 'onboard',
+  c: CONN.includes(P.get('c')) ? P.get('c') : 'noext',
+  step: 0, os: 'mac', provider: 'anthropic', key: '', keyState: 'empty', keychain: true, unenc: false,
+  level: 'hints', sec: null, q: '', allowed: false, budget: 1, autoUpd: true, rec: false, prune: true, envKey: false,
+  login: false, cOnboardDone: false, alerts: true,
+};
+const sync = () => { const u = new URL(location); u.searchParams.set('v', S.v); u.searchParams.set('s', S.s); if (S.s === 'connect') u.searchParams.set('c', S.c); else u.searchParams.delete('c'); history.replaceState(null, '', u); };
+const set = (patch) => { Object.assign(S, patch); sync(); render(); };
+window.set = set;
+
+/* ---------- shared bits ---------- */
+const PROVIDERS = [
+  { id: 'anthropic', name: 'Anthropic', sub: 'Claude Haiku 5.5 for everyday advice, Sonnet 5.5 for “Think deeper”', tag: ['rec', 'Recommended'], key: true, est: '≈ $0.40 per long game' },
+  { id: 'openai', name: 'OpenAI', sub: 'Any chat model your key can use', key: true, est: 'cost varies by model' },
+  { id: 'openrouter', name: 'OpenRouter', sub: 'One key, many providers', key: true, est: 'cost varies by model' },
+  { id: 'ollama', name: 'Ollama on this computer', sub: 'Runs locally. Slower (5–12 s), quality varies', tag: ['exp', 'Experimental · $0'], key: false, est: '$0' },
+  { id: 'none', name: 'No LLM for now', sub: 'Info only: computed facts, Ways Out, Threat Level. Nothing is sent anywhere', tag: ['free', '$0'], key: false, est: '$0' },
+];
+const prov = () => PROVIDERS.find(p => p.id === S.provider);
+
+function providerChoices(compact) {
+  return `<div class="choices">${PROVIDERS.filter(p => !compact || p.id !== 'openrouter').map(p => `
+    <button class="choice ${S.provider === p.id ? 'on' : ''}" onclick="set({provider:'${p.id}', keyState:'empty', key:''})">
+      <span class="rd"></span><span><b>${p.name}</b><small>${p.sub}</small></span>${p.tag ? `<span class="tagx ${p.tag[0]}">${p.tag[1]}</span>` : '<span></span>'}
+    </button>`).join('')}</div>`;
+}
+
+function keyEntry() {
+  const p = prov();
+  if (S.provider === 'none') return `<div class="card small muted">You can add a key any time from the panel or Settings. The Advisor runs fully without one; it just won't give nudges or verdicts, and the ask box answers from facts only.</div>`;
+  if (S.provider === 'ollama') return `<div class="card small">
+      <div class="lbl">Local model <em>Ollama at localhost:11434</em></div>
+      <div class="row"><span><b>Ollama is running</b><small class="ok">✓ Found qwen3:8b, llama3.2:3b</small></span><select class="sel"><option>qwen3:8b</option><option>llama3.2:3b</option></select></div>
+      <div class="tiny muted" style="margin-top:6px">Context is set to 16k for you (Ollama's 4k default cuts prompts off). Local advice is experimental: slow answers are dropped once the game has moved on.</div></div>`;
+  const ks = S.keyState;
+  return `<div class="card">
+    <div class="lbl">${p.name} API key <em><a href="#" onclick="return false">Where do I get one?</a></em></div>
+    ${S.envKey && ks === 'empty' ? `<div class="keyrow"><span class="small">Found <span class="mono">ANTHROPIC_API_KEY</span> in your environment</span><button class="btn pri" onclick="set({keyState:'ok', key:'env'})">Use it</button></div><div class="tiny muted" style="margin:6px 0">or paste a different key</div>` : ''}
+    ${ks === 'ok' ? `<div class="keyrow"><span><span class="mono">sk-ant-…a1b2</span> <span class="ok small">✓ Works · Haiku answered in 0.9 s</span></span><button class="btn" onclick="set({keyState:'empty'})">Replace</button></div>`
+      : `<div style="display:flex;gap:6px"><input class="fld mono" placeholder="sk-ant-…" value="${S.key}" oninput="S.key=this.value"><button class="btn pri" onclick="set({keyState: S.key ? 'testing' : 'empty'}); setTimeout(()=>set({keyState: S.key.length > 6 ? 'ok' : 'bad'}), 900)">${ks === 'testing' ? '<span class="spin"></span>' : 'Test'}</button></div>`}
+    ${ks === 'bad' ? `<div class="no small" style="margin-top:6px">✕ ${p.name} rejected that key (401). Check it was copied in full.</div>` : ''}
+    <div class="tiny muted" style="margin-top:8px">${S.keychain
+      ? '🔒 Stored in your system keychain. Never written to logs, Recordings or crash files.'
+      : `<span class="am">⚠ No system keychain found.</span> The key is kept in memory for this session and asked for again next launch.
+         <label style="display:flex;gap:6px;align-items:center;margin-top:6px;color:#c9cdd8"><input type="checkbox" ${S.unenc ? 'checked' : ''} onchange="set({unenc:this.checked})"> Store unencrypted on this computer</label>
+         ${S.unenc ? '<div class="warnline">Saved to a file only your user can read. Anyone with access to your account can read the key.</div>' : ''}`}
+    </div>
+    <div class="tiny muted" style="margin-top:4px">Estimated cost on default settings: ${p.est}. You set a per-game budget next.</div>
+  </div>`;
+}
+
+function leavesList(provName) {
+  const pn = provName || (S.provider === 'none' ? 'your LLM provider' : prov().name);
+  return `<div class="leaves">
+    <div class="lv"><i>✦</i><span><b>Advice requests → ${pn}</b>A summary of your game (stats, monsters, items, map facts; no chat, no names) goes to ${pn} using your key, plus anything you type in the ask box, as typed. Their privacy terms apply. Info only sends nothing.</span></div>
+    <div class="lv"><i>↻</i><span><b>Update checks → GitHub</b>On launch and every 6 hours. GitHub sees your IP address and app version. You can turn this off.</span></div>
+    <div class="lv"><i>⧉</i><span><b>Extension updates → your browser's store</b>Handled by the browser, not by us.</span></div>
+    <div class="lv"><i>👁</i><span><b>Spectating</b>The same summary of the game you're watching goes to ${pn}. It isn't saved.</span></div>
+  </div>
+  <div class="never">Nothing else. No telemetry, no crash reports, no usage stats, ever. Recordings and history stay on this computer unless you export them. The extension only relays game messages, only to this app.</div>`;
+}
+
+const LVLS = [
+  ['info', 'Info only', 'Facts, no LLM', 'Ogre: 2 hits to kill you. Ways Out: ✓ stairs (3), ✓ blink 4%.'],
+  ['hints', 'Hints', 'Facts plus a nudge', '“Back up to the corridor first.” Plus all of Info.'],
+  ['coach', 'Coach', 'A verdict and why', '“Fight it in the corridor: 1-on-1 you win 97% and the yaks can’t flank.”'],
+];
+function levelTiles() {
+  return `<div class="lvls">${LVLS.map(([id, n, s, eg]) => `<button class="lvl ${S.level === id ? 'on' : ''}" onclick="set({level:'${id}'})"><b>${n}</b><small>${s}</small><div class="eg">${eg}</div></button>`).join('')}</div>
+  <div class="tiny muted" style="margin-top:6px">You can switch any time from the panel header. Tournament games default to Info only.</div>`;
+}
+
+function budgetPicker() {
+  return `<div class="row" style="border:0"><span><b>Game Budget</b><small>Most to spend on advice per game. At 80% you get a warning; at 100% the Advisor Steps Down instead of going quiet. You can top up mid-run.</small></span>
+    <div class="seg">${[0.5, 1, 2, 5].map(b => `<button class="${S.budget === b ? 'on' : ''}" onclick="set({budget:${b}})">$${b}</button>`).join('')}</div></div>`;
+}
+
+function extStatus(compact) {
+  if (S.allowed) return `<div class="card good small"><b class="ok">✓ Chrome is connected</b> <span class="muted">· extension 1.2.0 · relay protocol v3</span></div>`;
+  return `<div class="card">
+    <div class="lbl">Browser extension <em class="pulse">waiting for a browser…</em></div>
+    <div class="small muted" style="margin-bottom:8px">The extension reads the webtiles game in your browser and passes it to this app. It never presses keys.</div>
+    <div class="acts" style="margin-top:0"><button class="btn">Chrome Web Store</button><button class="btn">Firefox Add-ons</button><button class="btn">Edge Add-ons</button></div>
+    <button class="btn link tiny" style="margin-top:6px" onclick="set({c:'allow'}); ${compact ? '' : ''} demoAllow()">(prototype: simulate the extension connecting)</button>
+  </div>`;
+}
+window.demoAllow = () => { S._askAllow = true; render(); };
+function allowCard() {
+  return `<div class="card warn rise">
+    <div class="lbl">New connection</div>
+    <h4>Allow this browser?</h4>
+    <div class="small muted">The DCSS Copilot extension in <b style="color:#fff">Chrome</b> (profile “Jeff”) wants to send game data to this app. Only allow browsers you use yourself.</div>
+    <div class="acts"><button class="btn pri" onclick="S._askAllow=false; set({allowed:true})">Allow</button><button class="btn" onclick="S._askAllow=false; render()">Don't allow</button></div>
+  </div>`;
+}
+
+/* ---------- browser pane ---------- */
+function browser({ url, title, page, popup, extOn, badge }) {
+  return `<div class="br">
+    <div class="tabs"><div class="tab">${title}</div><div class="tab" style="background:none">+</div></div>
+    <div class="bar"><span class="muted">←  →  ↻</span><div class="url">${url}</div><div class="ext ${extOn ? 'on' : ''}" title="DCSS Copilot">DC${badge ? '<span class="badge"></span>' : ''}</div></div>
+    <div class="page">${page}</div>${popup || ''}
+  </div>`;
+}
+const MAP = `
+        #########
+        #.......#      ####
+   ######...@...######..g#
+   #........k......+....##
+   ###.#####.......#####
+     #.#   #...>...#
+     #.#   #########
+     #.#
+     #<#`;
+const gamePage = () => `<div class="game"><div class="map">${MAP}</div><div class="msgs">You see here a +0 short sword.<br>A kobold comes into view.</div></div>`;
+const lobbyPage = (host) => `<div class="lobby"><h2>${host}: Dungeon Crawl Stone Soup</h2>Logged in as <b>jrmitch</b>.
+  <div><span class="play">Play 0.34</span><span class="play">Play trunk</span><span class="play">Play Sprint</span></div>
+  <table><tr><th>Player</th><th>Game</th><th>XL</th><th>Character</th><th>Place</th><th>Idle</th></tr>
+  <tr><td>Snoopy</td><td>0.34</td><td>14</td><td>MiFi</td><td>Lair:3</td><td>0:02</td></tr>
+  <tr><td>wizzle</td><td>trunk</td><td>22</td><td>DsCj</td><td>Zot:2</td><td>0:00</td></tr></table></div>`;
+
+function downloadPage() {
+  const os = S.os;
+  const hero = {
+    mac: `<div class="lbl">macOS · Apple Silicon detected</div><div class="small">Paste this into Terminal. It installs DCSS Copilot to Applications and opens it.</div>
+      <div class="cmd"><code>curl -fsSL https://dcss-copilot.app/install.sh | sh</code><button class="btn pri">Copy</button></div>
+      <div class="tiny muted">Why a script? We don't pay Apple for notarization, and this way macOS won't block the app. <a href="#">Read the script</a> · <a href="#">Prefer a .dmg?</a> (needs one extra click in System Settings)</div>`,
+    win: `<div class="lbl">Windows 11 detected</div><div class="small">Installs for your user only, no admin needed.</div>
+      <div class="acts"><button class="btn pri big">Download DCSS-Copilot-Setup.exe</button><span class="tiny muted">12 MB · signed by SignPath Foundation</span></div>`,
+    linux: `<div class="lbl">Linux detected</div><div class="acts"><button class="btn pri big">Download AppImage</button><button class="btn big">Download .deb</button></div>
+      <div class="tiny muted" style="margin-top:6px">The AppImage updates itself. The .deb doesn't: you'll need to grab new versions from this page.</div>`,
+  }[os];
+  return downloadShell(hero, os);
+}
+function downloadShell(hero, os) {
+  return `<div class="dl">
+    <div class="osbar">${['mac', 'win', 'linux'].map(o => `<button class="${os === o ? 'on' : ''}" onclick="set({os:'${o}'})">${{ mac: 'macOS', win: 'Windows', linux: 'Linux' }[o]}</button>`).join('')}</div>
+    <h1>A second pair of eyes for <span>Crawl</span>.</h1>
+    <div class="sub">DCSS Copilot watches your webtiles game and tells you what's dangerous, what's worth picking up, and what to do next. It never presses a key. Free and open source.</div>
+    <div class="hero">${hero}</div>
+    <div class="steps3">
+      <div><b><i>1</i>Install the app</b>It runs on your computer and does all the thinking.</div>
+      <div><b><i>2</i>Add the browser extension</b><a href="#">Chrome</a> · <a href="#">Firefox</a> · <a href="#">Edge</a>. It passes the game to the app.</div>
+      <div><b><i>3</i>Play</b>Open a game on any webtiles server. The panel appears beside it.</div>
+    </div>
+    <div class="other">Other downloads: <a href="#">macOS .dmg</a><a href="#">Windows .exe</a><a href="#">AppImage</a><a href="#">.deb</a><a href="#">Source</a> · <a href="#">What leaves your computer</a></div>
+  </div>`;
+}
+
+/* ---------- onboarding ---------- */
+const OB_STEPS = [
+  { id: 'browser', t: 'Connect your browser', s: 'Extension and approval' },
+  { id: 'model', t: 'Choose an AI model', s: 'Or play without one' },
+  { id: 'privacy', t: 'What leaves your computer', s: 'Read once' },
+  { id: 'level', t: 'How much help', s: 'Assistance and budget' },
+  { id: 'done', t: 'Ready', s: 'Open a game' },
+];
+function obContent(id, wide) {
+  switch (id) {
+    case 'browser': return `${S._askAllow ? allowCard() : extStatus()}
+      <div class="small muted">Already in a game? You can finish setup later; the Advisor starts in Info only until a model is chosen.</div>`;
+    case 'model': return `${providerChoices(!wide)}${keyEntry()}
+      <button class="btn link tiny" onclick="set({keychain: !S.keychain})">(prototype: toggle “no keychain” Linux case)</button>
+      <button class="btn link tiny" onclick="set({envKey: !S.envKey, keyState:'empty'})">(prototype: toggle “env var found”)</button>`;
+    case 'privacy': return leavesList();
+    case 'level': return `${levelTiles()}${S.provider === 'none' ? '' : `<div class="card">${budgetPicker()}</div>`}`;
+    case 'done': return `<div class="card good"><h4>You're set.</h4><div class="small muted">Open a game in ${S.allowed ? 'Chrome' : 'your browser'}. This panel docks beside it when a game starts, and hides to the tray when you're done.</div></div>
+      <div class="card"><div class="row" style="border:0"><span><b>Start DCSS Copilot when I log in</b><small>Otherwise the extension's Open Copilot button starts it.</small></span><button class="tg ${S.login ? 'on' : ''}" onclick="set({login:!S.login})"></button></div></div>
+      <div class="small muted">On a server we don't know (a private or local one)? Click the extension icon there and choose <b style="color:#fff">Enable on this site</b>.</div>`;
+  }
+}
+
+function onboardA() {
+  const st = OB_STEPS[S.step];
+  const panel = `<div class="P">
+    <div class="hd"><span class="dot ${S.allowed ? 'g' : ''}"></span><span class="who"><b>DCSS Copilot</b> · setup</span><span class="sp"></span><div class="dots">${OB_STEPS.map((_, i) => `<i class="${i === S.step ? 'on' : i < S.step ? 'done' : ''}"></i>`).join('')}</div></div>
+    <div class="body rise" key="${S.step}">
+      <div><div class="lbl">Step ${S.step + 1} of ${OB_STEPS.length}</div><h4 style="font-size:18px">${st.t}</h4></div>
+      ${obContent(st.id)}
+    </div>
+    <div style="display:flex;gap:8px;padding:10px 14px 16px;border-top:1px solid rgba(255,255,255,.06)">
+      ${S.step > 0 ? `<button class="btn" onclick="set({step:S.step-1})">Back</button>` : ''}<span style="flex:1"></span>
+      ${S.step === 0 && !S.allowed ? `<button class="btn link" onclick="set({step:1})">Skip for now</button>` : ''}
+      ${S.step < OB_STEPS.length - 1 ? `<button class="btn pri" onclick="set({step:S.step+1})">Continue</button>` : `<button class="btn pri" onclick="set({s:'connect', c: S.allowed ? 'idle' : 'noext'})">Done</button>`}
+    </div></div>`;
+  return `<div class="wrap">${browser({ url: '<b>dcss-copilot.app</b>/welcome', title: 'Welcome · DCSS Copilot', page: downloadShell(`<div class="lbl">Installed</div><div class="small">The app is open beside this window. Next, add the extension →</div>`, S.os) })}${panel}</div>`;
+}
+
+function onboardB() {
+  const st = OB_STEPS[S.step];
+  const done = (i) => (i === 0 && S.allowed) || (i === 1 && (S.keyState === 'ok' || ['none', 'ollama'].includes(S.provider))) || (i > 1 && i < S.step);
+  return `<div class="desk"><div class="ghost">${browser({ url: 'crawl.akrasiac.org:8080', title: 'CAO', page: lobbyPage('CAO') })}</div>
+    <div class="win"><div class="tb"><i></i><i></i><i></i><span>Set up DCSS Copilot</span></div>
+    <div class="in">
+      <div class="side"><div class="brand"><i>D</i>DCSS Copilot</div>
+        ${OB_STEPS.map((x, i) => `<button class="${i === S.step ? 'on' : ''} ${done(i) ? 'done' : ''}" onclick="set({step:${i}})"><span class="ck">${done(i) ? '✓' : ''}</span><span>${x.t}<small>${x.s}</small></span></button>`).join('')}
+        <div class="grow"></div><div class="tiny muted" style="padding:8px">Every step can be changed later in Settings.</div>
+      </div>
+      <div class="main rise" key="${S.step}">
+        <h2>${st.t}</h2>
+        <div class="lede">${{ browser: 'Install the extension in the browser you play in, then approve it here.', model: 'Advice comes from an AI model using your own key. You pay the provider directly; we never see the key or the bill.', privacy: 'Here is everything that leaves this computer, and where it goes.', level: 'Pick a starting level. It shows in the panel header, so you can change it mid-game.', done: 'Open a game and the Advisor appears beside it.' }[st.id]}</div>
+        ${st.id === 'model' ? `<div class="two"><div>${providerChoices(false)}</div><div>${keyEntry()}<button class="btn link tiny" onclick="set({keychain: !S.keychain})">(prototype: toggle no keychain)</button><button class="btn link tiny" onclick="set({envKey: !S.envKey, keyState:'empty'})">(prototype: toggle env var)</button></div></div>` : obContent(st.id, true)}
+        <div class="foot">${S.step > 0 ? `<button class="btn big" onclick="set({step:S.step-1})">Back</button>` : ''}
+          ${S.step < OB_STEPS.length - 1 ? `<button class="btn pri big" onclick="set({step:S.step+1})">Continue</button>` : `<button class="btn pri big" onclick="set({s:'connect', c: S.allowed ? 'idle' : 'noext'})">Finish</button>`}</div>
+      </div>
+    </div></div></div>`;
+}
+
+function onboardC() {
+  // One screen. Privacy is folded into the model choice. Assistance level and budget are asked at the first game.
+  if (S.cOnboardDone) return firstGameC();
+  const ready = S.allowed && (S.keyState === 'ok' || ['none', 'ollama'].includes(S.provider));
+  return `<div class="wrap">${browser({ url: '<b>crawl.akrasiac.org</b>:8080', title: 'CAO', page: lobbyPage('CAO'), extOn: S.allowed })}
+    <div class="P"><div class="hd"><span class="dot ${S.allowed ? 'g' : 'y'}"></span><span class="who"><b>DCSS Copilot</b></span><span class="sp"></span><button class="ic">⚙</button></div>
+    <div class="body">
+      <div style="padding:6px 2px 4px"><h4 style="font-size:20px;letter-spacing:-.01em">Two things and you're playing.</h4><div class="small muted">Everything else has a sensible default and can wait.</div></div>
+      <div class="lbl" style="margin:4px 0 -2px">1 · Browser</div>
+      ${S._askAllow ? allowCard() : extStatus(true)}
+      <div class="lbl" style="margin:4px 0 -2px">2 · AI model</div>
+      ${providerChoices(true)}${keyEntry()}
+      ${S.provider !== 'none' ? `<details class="card small"><summary style="cursor:pointer"><b>What gets sent to ${prov().name}?</b> <span class="muted">A game summary and your questions. Nothing else leaves this computer.</span></summary><div style="margin-top:10px">${leavesList()}</div></details>` : ''}
+      <button class="btn link tiny" onclick="set({keychain: !S.keychain})">(prototype: toggle no keychain)</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:10px 14px 16px;border-top:1px solid rgba(255,255,255,.06);align-items:center">
+      <span class="tiny muted" style="flex:1">${ready ? 'Ready. Open a game in your browser.' : 'Waiting on the steps above'}</span>
+      <button class="btn pri" onclick="set({cOnboardDone:true})">${ready ? 'Done' : 'Skip'}</button></div></div></div>`;
+}
+function firstGameC() {
+  return `<div class="wrap">${browser({ url: '<b>crawl.akrasiac.org</b>:8080/#play-dcss-0.34', title: 'CAO · jrmitch', page: gamePage(), extOn: true })}
+    <div class="P"><div class="hd"><span class="dot g"></span><span class="who"><b>Jrmitch</b> the MiFi · D:1</span><span class="sp"></span>
+      <div class="seg">${['Info', 'Hints', 'Coach'].map(l => `<button class="${S.level === l.toLowerCase() ? 'on' : ''}" onclick="set({level:'${l.toLowerCase()}'})">${l}</button>`).join('')}</div><button class="ic">⚙</button></div>
+    <div class="body">
+      <div class="hint rise"><b>First game: how much help do you want?</b><div class="muted small" style="margin:4px 0 8px">This toggle is always up here. Hints is a good start.</div>${levelTiles()}
+        ${S.provider === 'none' ? '' : `<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.08)">${budgetPicker()}</div>`}
+        <div class="acts"><button class="btn pri" onclick="set({cOnboardDone:false, s:'connect', c:'idle'})">Got it</button></div></div>
+      <div class="card" style="opacity:.55"><div class="lbl">Now</div><div>CALM · a kobold (k) is approaching. Easy.</div></div>
+    </div></div></div>`;
+}
+
+/* ---------- connection states (shared) ---------- */
+function connect() {
+  const c = S.c;
+  const host = c === 'unlisted' ? '<b>crawl.mydomain.net</b>' : '<b>crawl.akrasiac.org</b>:8080';
+  const inGame = ['joining', 'lost', 'overflow', 'oldext', 'oldapp', 'unlisted'].includes(c);
+  let popup = '', badge = false, panel = '', solo = false;
+  const hd = (dot, who, extra = '') => `<div class="hd"><span class="dot ${dot}"></span><span class="who">${who}</span><span class="sp"></span>${extra}<button class="ic" onclick="set({s:'settings'})">⚙</button></div>`;
+  const ghostPanel = `<div class="card" style="opacity:.35"><div class="lbl">Now</div>CALM · Lair:2, nothing in view.</div><div class="card" style="opacity:.25;height:160px"></div>`;
+
+  switch (c) {
+    case 'noext': panel = `${hd('', '<b>DCSS Copilot</b>')}<div class="body">${extStatus()}<div class="small muted">Waiting for a browser. You can close this window; DCSS Copilot stays in the tray and pops up when a game starts.</div></div>`; break;
+    case 'allow': panel = `${hd('y', '<b>DCSS Copilot</b>')}<div class="body">${allowCard()}<div class="tiny muted">Approved browsers are listed in Settings → Connection, where you can remove them.</div></div>`; break;
+    case 'idle': panel = `${hd('g', '<b>DCSS Copilot</b> · Chrome connected')}<div class="body">
+        <div class="card"><div class="lbl">Ready <em>waiting for a game</em></div><div class="small">Start or resume a game in Chrome and the panel takes over. To watch someone, open their game as a spectator.</div></div>
+        <div class="card"><div class="lbl">Recent games</div>
+          <div class="row"><span><b>Jrmitch the MiFi</b><small>CAO · 0.34.1 · Lair:2 · T 18,402 · 2 h ago</small></span><button class="btn">Resume on CAO ↗</button></div>
+          <div class="row"><span><b>Jrmitch the DsCj</b><small>CBRO · trunk · died on D:9 · yesterday</small></span><span class="tiny muted">ended</span></div></div>
+        <div class="tiny muted">Game Knowledge: 0.34.1 ✓ · 0.33.2 ✓ · trunk (fetched on first trunk game)</div></div>`; break;
+    case 'joining': panel = `${hd('y', '<b>Jrmitch</b> the MiFi · Lair:2')}<div class="body">
+        <div class="card rise"><div class="lbl">Joining <em><span class="spin"></span></em></div>
+          <div class="small" style="display:grid;gap:4px">
+            <div class="ok">✓ CAO · webtiles · you're playing (not spectating)</div>
+            <div class="ok">✓ Crawl 0.34.1 · Game Knowledge exact match</div>
+            <div class="ok">✓ Resumed: game from 2 h ago (T 18,402 → 18,405)</div>
+            <div class="pulse">… reading the map and inventory</div></div></div>
+        <div class="tiny muted">The join card asking for <span class="mono">?#</span> and the Gaps chip are designed in “In-game secondary surfaces”.</div>${ghostPanel}</div>`; break;
+    case 'lost': panel = `${hd('y', '<b>Jrmitch</b> the MiFi · Lair:2', '<span class="tagx exp">reconnecting</span>')}<div class="body">
+        <div class="card warn"><div class="lbl">Lost the game stream <em><span class="spin"></span> retrying</em></div><div class="small">The game tab closed or the connection dropped. Everything below is from <b>T 18,511</b> and frozen until the game comes back.</div>
+          <div class="acts"><button class="btn">Show the game tab</button><button class="btn link">This game is over</button></div></div>${ghostPanel}</div>`; break;
+    case 'overflow': panel = `${hd('y', '<b>Jrmitch</b> the MiFi · Lair:2')}<div class="body">
+        <div class="card warn"><div class="lbl">Missed part of the game</div><div class="small">The app was away long enough that the browser dropped some messages. Reload the game page (F5) to resync. Crawl saves and restores your game; nothing is lost.</div>
+          <div class="acts"><button class="btn pri">Reload the game page</button></div><div class="tiny muted" style="margin-top:6px">This button asks the extension to reload the tab. It never sends keys to the game.</div></div>${ghostPanel}</div>`; break;
+    case 'oldext': panel = `${hd('y', '<b>Jrmitch</b> the MiFi · Lair:2')}<div class="body">
+        <div class="card warn"><div class="lbl">Update the extension</div><div class="small">Your extension (1.0.4, relay v1) is older than this app understands (v2–v3). Browsers usually update it within a few hours.</div>
+          <div class="acts"><button class="btn pri">Open chrome://extensions</button><button class="btn link">How to update now</button></div></div>${ghostPanel}</div>`; break;
+    case 'oldapp': badge = true; popup = `<div class="popup rise"><h5><i>DC</i>DCSS Copilot</h5><div class="st">This extension is newer than your app. <b>Update the app</b> to keep advice running.</div><button class="btn pri" style="width:100%">Update the app</button></div>`;
+      panel = `${hd('y', '<b>Jrmitch</b> the MiFi · Lair:2')}<div class="body">
+        <div class="card warn"><div class="lbl">Update the app <em><span class="spin"></span> downloading 62%</em></div><div class="small">Your extension speaks a newer relay protocol (v4). The update downloads now; restart once you're out of this game.</div>
+          <div class="meter"><i style="width:62%"></i></div><div class="acts"><button class="btn">Restart now (saves your game first)</button></div></div>${ghostPanel}</div>`; break;
+    case 'update': panel = `${hd('g', '<b>DCSS Copilot</b> · Chrome connected')}<div class="body">
+        <div class="card"><div class="lbl">Ready <em>waiting for a game</em></div><div class="small muted">Start or resume a game in Chrome.</div></div></div>
+        <div class="toast rise"><span>⬆</span><span><b>Version 1.3 is ready.</b><span class="muted small"> Better Ways Out for Lair.</span></span><span class="sp"></span><button class="btn pri">Restart to update</button><button class="btn link">Later</button></div>`; break;
+    case 'unlisted': badge = true; popup = `<div class="popup rise"><h5><i>DC</i>DCSS Copilot</h5><div class="st"><b>crawl.mydomain.net</b> isn't a server we know. Let the extension read webtiles games on this site?</div>
+        <button class="btn pri" style="width:100%">Enable on this site</button><div class="tiny muted" style="margin-top:8px">Your browser will ask to confirm. Only the game connection is read.</div></div>`;
+      panel = `${hd('g', '<b>DCSS Copilot</b> · Chrome connected')}<div class="body"><div class="card"><div class="lbl">Ready <em>waiting for a game</em></div><div class="small muted">Playing on a private or local server? Click the extension icon and choose Enable on this site.</div></div></div>`; break;
+    case 'noapp': solo = true; badge = false;
+      popup = `<div class="popup rise"><h5><i>DC</i>DCSS Copilot</h5><div class="st">Couldn't reach the DCSS Copilot app on this computer.</div>
+        <button class="btn pri" style="width:100%">Get DCSS Copilot</button><button class="btn link tiny" style="width:100%;margin-top:4px">It's installed: try again</button></div>`; break;
+  }
+  if (c !== 'noapp' && !popup && ['idle', 'joining', 'lost'].includes(c) === false && c !== 'update') { }
+  const br = browser({ url: host + (inGame ? '/#play-dcss-0.34' : ''), title: inGame ? 'CAO · jrmitch' : 'CAO', page: c === 'lost' ? lobbyPage('CAO') : inGame ? gamePage() : lobbyPage('CAO'), popup, extOn: !['noext', 'noapp'].includes(c), badge });
+  if (solo) return `<div class="wrap solo">${br}</div>`;
+  return `<div class="wrap">${br}<div class="P">${panel}</div></div>`;
+}
+
+/* ---------- settings content (shared data, three presentations) ---------- */
+const tg = (k) => `<button class="tg ${S[k] ? 'on' : ''}" onclick="set({${k}:!S.${k}})"></button>`;
+const SECTIONS = [
+  { id: 'assist', icon: '◐', col: '#a29bfe', t: 'Assistance', sum: () => ({ info: 'Info only', hints: 'Hints', coach: 'Coach' })[S.level], body: () => `
+      <div class="row"><span><b>Starting level</b><small>The panel toggle overrides this per game.</small></span><div class="seg">${LVLS.map(([id, n]) => `<button class="${S.level === id ? 'on' : ''}" onclick="set({level:'${id}'})">${n.replace(' only', '')}</button>`).join('')}</div></div>
+      <div class="row"><span><b>Tournament games</b><small>Games on a tournament account during the tournament.</small></span><select class="sel"><option>Info only</option><option>Ask each time</option><option>No change</option></select></div>
+      <div class="row"><span><b>Proactive Alerts</b><small>Tactical warnings when danger rises. Info-level facts always show.</small></span>${tg('alerts')}</div>` },
+  { id: 'models', icon: '✦', col: '#74b9ff', t: 'Models and keys', sum: () => 'Anthropic · Haiku / Sonnet', body: () => `
+      <div class="slot"><div class="sh"><b>Quick Model</b><span class="tiny muted">everyday advice and questions</span></div><div class="grid">
+        <span>Provider</span><select class="sel"><option>Anthropic</option><option>OpenAI</option><option>OpenRouter</option><option>Ollama (experimental)</option><option>llama-server (experimental)</option><option>Other OpenAI-compatible…</option></select>
+        <span>Model</span><select class="sel"><option>claude-haiku-5-5</option></select>
+        <span>Thinking</span><div class="seg"><button class="on">Off</button><button>Adaptive</button></div></div></div>
+      <div class="slot"><div class="sh"><b>Deep Model</b><span class="tiny muted">only when you tick “Think deeper”</span></div><div class="grid">
+        <span>Provider</span><select class="sel"><option>Anthropic</option></select>
+        <span>Model</span><select class="sel"><option>claude-sonnet-5-5</option></select>
+        <span>Thinking</span><div class="seg"><button>Off</button><button class="on">Adaptive · medium</button></div></div></div>
+      <div class="lbl" style="margin-top:14px">API keys</div>
+      <div class="keyrow"><span><b class="small">Anthropic</b> <span class="mono">sk-ant-…a1b2</span> <span class="tiny muted">keychain</span></span><span style="display:flex;gap:4px"><button class="btn">Test</button><button class="btn">Replace</button><button class="btn dz">Remove</button></span></div>
+      <div class="keyrow"><span><b class="small">OpenAI</b> <span class="tiny muted">from OPENAI_API_KEY in your environment</span></span><span><button class="btn">Test</button></span></div>
+      <div class="keyrow"><span><b class="small">Ollama</b> <span class="tiny muted">no key needed · localhost:11434</span></span><span><button class="btn">Test</button></span></div>
+      <div class="acts"><button class="btn">+ Add provider</button></div>` },
+  { id: 'cost', icon: '$', col: '#2ed573', t: 'Budget and cost', sum: () => `$${S.budget.toFixed(2)} per game · $3.12 this month`, body: () => `
+      <div class="tot"><div><b>$0.63</b>this game<div class="meter" style="margin:4px 0 0"><i style="width:63%"></i><b style="left:80%"></b></div></div><div><b>$0.71</b>today</div><div><b>$3.12</b>October</div></div>
+      ${budgetPicker()}
+      <div class="row"><span><b>Top up this game</b><small>Adds one more budget. You're at $0.63 of $1.00.</small></span><button class="btn">+ $${S.budget.toFixed(2)}</button></div>
+      <div class="row"><span><b>Monthly cap</b><small>Hard stop across all games. Off by default.</small></span><span style="display:flex;gap:6px;align-items:center"><input class="fld" style="width:70px;padding:4px 8px" placeholder="$ off"></span></div>
+      <div class="row"><span><b>Prices</b><small>From the bundled price table (updated Oct 9). Override if your rates differ.</small></span><button class="btn">Edit prices</button></div>` },
+  { id: 'data', icon: '▤', col: '#ffd166', t: 'History and Recordings', sum: () => `${S.prune ? 'Prune after 90 days' : 'Keep forever'} · Recording ${S.rec ? 'on' : 'off'}`, body: () => `
+      <div class="row"><span><b>Remove finished games after</b><small>214 games stored · 38 MB</small></span><span style="display:flex;gap:6px;align-items:center"><select class="sel" ${S.prune ? '' : 'disabled'}><option>90 days</option><option>30 days</option><option>1 year</option></select>${tg('prune')}</span></div>
+      <div class="row"><span><b>Clear history</b><small>Deletes every stored game and Run Plan. Keeps settings and keys.</small></span><button class="btn dz">Clear history…</button></div>
+      <div class="row"><span><b>Record my games</b><small>Saves the raw game stream to replay a problem. Stays on this computer.</small></span>${tg('rec')}</div>
+      <div class="row"><span><b>Export this game</b><small>A scrubbed file (no chat, no names, no keys) to attach to a bug report.</small></span><button class="btn">Export…</button></div>
+      <div class="row"><span><b>Report a problem</b><small>Bundles the export and any local crash file, then opens a GitHub issue for you to attach them to.</small></span><button class="btn">Report…</button></div>` },
+  { id: 'conn', icon: '⇄', col: '#fd79a8', t: 'Connection and window', sum: () => 'Chrome · docked right', body: () => `
+      <div class="row"><span><b>Chrome</b> <small>profile “Jeff” · extension 1.2.0 · approved Oct 2</small></span><button class="btn dz">Remove</button></div>
+      <div class="row"><span><b>Firefox</b> <small>extension 1.2.0 · approved Oct 5</small></span><button class="btn dz">Remove</button></div>
+      <div class="row"><span><b>Dock side</b></span><div class="seg"><button>Left</button><button class="on">Right</button></div></div>
+      <div class="row"><span><b>Make room</b><small>Shrink the browser so the panel doesn't cover the game.</small></span><button class="tg"></button></div>
+      <div class="row"><span><b>Start at login</b></span>${tg('login')}</div>` },
+  { id: 'upd', icon: '↻', col: '#9aa0b2', t: 'Updates', sum: () => S.autoUpd ? 'Automatic · up to date' : 'Manual', body: () => `
+      <div class="row"><span><b>Check for updates automatically</b><small>App and game data, on launch and every 6 hours. GitHub sees your IP and app version.</small></span>${tg('autoUpd')}</div>
+      <div class="row"><span><b>App 1.2.0</b> <small>${S.autoUpd ? 'Checked 2 h ago · up to date' : 'Automatic checks are off'}</small></span><button class="btn">Check now</button></div>
+      <div class="row"><span><b>Game data</b><small>0.34.1, 0.33.2, trunk @ a8f3c1e · community stats Oct 12 · data is 2 days old</small></span><span></span></div>` },
+  { id: 'privacy', icon: '◎', col: '#2ed573', t: 'Privacy', sum: () => 'What leaves your computer', body: () => `${leavesList('Anthropic')}
+      <div class="row" style="margin-top:10px"><span><b>Delete all local data</b><small>History, Recordings, crash files, approved browsers, settings and stored keys. Like a fresh install.</small></span><button class="btn dz">Delete everything…</button></div>` },
+  { id: 'about', icon: 'i', col: '#6f7588', t: 'About', sum: () => '1.2.0 · GPL-3.0', body: () => `
+      <div class="small">DCSS Copilot 1.2.0 · GPL-3.0-or-later. Monster, spell and item text and several formulas come from Dungeon Crawl Stone Soup, © the DCSS devteam (GPLv2+).</div>
+      <div class="acts"><button class="btn">Source on GitHub</button><button class="btn">Licences</button><button class="btn">Report a problem</button></div>` },
+];
+
+function settingsA() {
+  const sec = SECTIONS.find(x => x.id === S.sec);
+  const sheet = sec
+    ? `<div class="sheet"><div class="hd"><button class="btn link" onclick="set({sec:null})">‹ Settings</button><span class="sp"></span><b style="font-size:13px">${sec.t}</b><span class="sp"></span><span style="width:70px"></span></div><div class="body rise">${sec.body()}</div></div>`
+    : `<div class="sheet"><div class="hd"><b style="font-size:14px">Settings</b><span class="sp"></span><button class="btn link" onclick="set({s:'connect', c:'idle'})">Done</button></div><div class="body">
+        ${[['assist', 'models', 'cost'], ['data', 'conn', 'upd'], ['privacy', 'about']].map(g => `<div class="grp">${g.map(id => { const x = SECTIONS.find(s => s.id === id); return `<button class="it" onclick="set({sec:'${id}'})"><i style="background:${x.col}22;color:${x.col}">${x.icon}</i><span>${x.t}<br><small>${x.sum()}</small></span><span></span><span class="chev">›</span></button>`; }).join('')}</div>`).join('')}
+      </div></div>`;
+  return `<div class="wrap">${browser({ url: '<b>crawl.akrasiac.org</b>:8080/#play-dcss-0.34', title: 'CAO · jrmitch', page: gamePage(), extOn: true })}<div class="P">${sheet}</div></div>`;
+}
+function settingsB() {
+  const sec = SECTIONS.find(x => x.id === (S.sec || 'assist'));
+  return `<div class="desk"><div class="ghost">${browser({ url: 'crawl.akrasiac.org:8080', title: 'CAO', page: gamePage() })}</div>
+    <div class="win"><div class="tb"><i></i><i></i><i></i><span>DCSS Copilot Settings</span></div><div class="in">
+      <div class="side"><div class="brand"><i>D</i>Settings</div>
+        <div class="gh">Advice</div>${['assist', 'models', 'cost'].map(sb).join('')}
+        <div class="gh">This computer</div>${['data', 'conn', 'upd'].map(sb).join('')}
+        <div class="gh">Trust</div>${['privacy', 'about'].map(sb).join('')}
+      </div>
+      <div class="main rise" key="${sec.id}"><h2>${sec.t}</h2><div style="max-width:600px">${sec.body()}</div></div>
+    </div></div></div>`;
+  function sb(id) { const x = SECTIONS.find(s => s.id === id); return `<button class="${x.id === sec.id ? 'on' : ''}" onclick="set({sec:'${id}'})"><span style="color:${x.col}">${x.icon}</span><span>${x.t}</span></button>`; }
+}
+function settingsC() {
+  const q = S.q.trim().toLowerCase();
+  const hit = (x) => !q || (x.t + ' ' + x.body().replace(/<[^>]+>/g, ' ')).toLowerCase().includes(q);
+  const hl = (html) => q ? html.replace(/>([^<]+)</g, (m, t) => '>' + t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>') + '<') : html;
+  const shown = SECTIONS.filter(hit);
+  return `<div class="wrap">${browser({ url: '<b>crawl.akrasiac.org</b>:8080/#play-dcss-0.34', title: 'CAO · jrmitch', page: gamePage(), extOn: true })}
+    <div class="P"><div class="hd"><button class="btn link" onclick="set({s:'connect', c:'idle'})">‹ Back to game</button><span class="sp"></span><b style="font-size:13px">Settings</b></div>
+    <div class="body" id="cbody">
+      <div class="search"><input class="fld" id="q" placeholder="Search settings: “key”, “budget”, “delete”…" value="${S.q}" oninput="S.q=this.value; render(); const e=document.getElementById('q'); e.focus(); e.setSelectionRange(e.value.length,e.value.length)">
+        <div class="jump">${shown.map(x => `<button onclick="document.getElementById('sec-${x.id}').scrollIntoView({behavior:'smooth'})">${x.t}</button>`).join('')}</div></div>
+      ${shown.map(x => `<div class="sect card" id="sec-${x.id}"><h3>${x.t}</h3>${hl(x.body())}</div>`).join('') || '<div class="muted small">Nothing matches.</div>'}
+      <div class="tiny muted">Shortcut: click the cost meter in the panel footer to land on Budget, or a provider chip to land on Models.</div>
+    </div></div></div>`;
+}
+
+/* ---------- render ---------- */
+function render() {
+  const root = document.getElementById('root');
+  const sc = S.s === 'connect' ? connect()
+    : S.s === 'download' ? `<div class="wrap solo">${browser({ url: '<b>dcss-copilot.app</b>', title: 'DCSS Copilot · download', page: downloadPage() })}</div>`
+    : S.s === 'onboard' ? ({ A: onboardA, B: onboardB, C: onboardC })[S.v]()
+    : ({ A: settingsA, B: settingsB, C: settingsC })[S.v]();
+  root.innerHTML = sc;
+  const shared = S.s === 'download' || S.s === 'connect';
+  document.getElementById('switcher').innerHTML = `
+    <button onclick="cycle(-1)">←</button>
+    <div class="label">${S.v} · ${VARIANTS[S.v]}${shared ? ' <span style="color:#aaa">(same in all)</span>' : ''}<small>${SCREEN_NAMES[S.s]}${S.s === 'connect' ? ' · ' + CONN_NAMES[S.c] : ''}</small></div>
+    <button onclick="cycle(1)">→</button>
+    <button class="scen" onclick="nextScreen()">S · ${SCREEN_NAMES[S.s]}</button>
+    ${S.s === 'connect' ? `<button class="cst" onclick="nextConn()">C · next state</button>` : ''}`;
+}
+window.cycle = (d) => { const k = Object.keys(VARIANTS); set({ v: k[(k.indexOf(S.v) + d + k.length) % k.length], sec: S.v === 'A' ? null : S.sec }); };
+window.nextScreen = () => set({ s: SCREENS[(SCREENS.indexOf(S.s) + 1) % SCREENS.length], step: 0, cOnboardDone: false });
+window.nextConn = () => set({ c: CONN[(CONN.indexOf(S.c) + 1) % CONN.length] });
+document.addEventListener('keydown', (e) => {
+  if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+  if (e.key === 'ArrowLeft') cycle(-1); else if (e.key === 'ArrowRight') cycle(1);
+  else if (e.key === 's' || e.key === 'S') nextScreen(); else if ((e.key === 'c' || e.key === 'C') && S.s === 'connect') nextConn();
+});
+sync(); render();
+</script>
+</body>
+</html>
