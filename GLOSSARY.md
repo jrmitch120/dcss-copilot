@@ -56,6 +56,14 @@ _Avoid_: Option, move, choice
 The Candidate Action the Advisor's own rules pick for a dangerous moment, shown before (and without) any LLM judgment.
 _Avoid_: Default action, rule pick
 
+**Encounter**:
+A stretch of danger, from the moment a hostile comes into view or the Threat Level leaves CALM until the player is All Clear. The Advisor raises each Tactical Alert at most once per Encounter for the same cause.
+_Avoid_: Fight, combat, engagement
+
+**All Clear**:
+The player has stayed out of danger for a few actions in a row: the Threat Level is CALM, no hostile is in view, and no dangerous status is active. It ends an Encounter and releases held Strategic Advice.
+_Avoid_: Calm (which is a Threat Level), safe, lull
+
 ### Advice
 
 **Alert**:
