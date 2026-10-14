@@ -44,6 +44,14 @@ _Avoid_: Danger score, threat score
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
 _Avoid_: Escape (when meaning the whole list), panic button
 
+**Candidate Action**:
+Something the player could legally do right now, such as attacking, fleeing to a staircase or using a Way Out, together with its facts from the Fact Sheet. The Advisor only ever recommends a Candidate Action.
+_Avoid_: Option, move, choice
+
+**Suggested Action**:
+The Candidate Action the Advisor's own rules pick for a dangerous moment, shown before (and without) any LLM judgment.
+_Avoid_: Default action, rule pick
+
 ### Advice
 
 **Alert**:
