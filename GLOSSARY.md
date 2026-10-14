@@ -12,6 +12,10 @@ _Avoid_: Bot, assistant, autopilot
 A place a live game's state can be read from, such as a webtiles server or local webtiles.
 _Avoid_: Integration, connector, backend
 
+**Recording**:
+A saved copy of everything a Game Source sent during one game, which can be replayed to reproduce what the Advisor saw. The player can opt in to recording and export a game to report a problem.
+_Avoid_: Log, trace, capture (when meaning the saved file)
+
 ### Game situation
 
 **Game Situation**:
