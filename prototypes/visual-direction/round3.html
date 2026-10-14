@@ -1,0 +1,307 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Round 3 of "Visual direction".
+  Settled: the Moment + Run Plan rail layout (round 2, variant C). Open questions in this round:
+    1. What replaces the "Up next" list for queued Decision Points?  ?variant=A|B|C
+    2. What does a Great Find callout look like?                     ?s=calm|find|fight
+  Keys: ← / → variant, S cycles scenario. Game data is illustrative, not real DCSS numbers.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · DCSS Copilot · round 3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #000; color: #e6e8ee; font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  .wrap { display: grid; grid-template-columns: minmax(0,1fr) 450px; grid-template-rows: minmax(0,1fr); height: 100%; }
+
+  .game { background: #000; color: #bbb; font: 15px/1.15 ui-monospace, Menlo, monospace; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; min-height: 0; overflow: hidden; position: relative; }
+  .game .map { white-space: pre; letter-spacing: 2px; font-size: 19px; line-height: 1.12; flex: 1; display: flex; align-items: center; }
+  .game .msgs { font-size: 13px; line-height: 1.45; color: #aaa; border-top: 1px solid #222; padding: 8px 0 60px; }
+  .game .tag { position: absolute; left: 24px; top: 14px; font: 11px system-ui; color: #444; letter-spacing: .05em; text-transform: uppercase; }
+
+  .P { height: 100%; min-height: 0; display: flex; flex-direction: column; background: radial-gradient(600px 400px at 100% 0%, #24101c 0%, transparent 60%), #0c0e14; border-left: 1px solid rgba(255,255,255,.08); position: relative; }
+  .find .P, .P.find { background: radial-gradient(600px 420px at 100% 0%, #2b2208 0%, transparent 60%), #0c0e14; }
+  .hd { padding: 12px 16px 10px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .hd .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ed573; box-shadow: 0 0 8px #2ed573; }
+  .fight .hd .dot { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; }
+  .find .hd .dot { background: #ffd166; box-shadow: 0 0 8px #ffd166; }
+  .hd .who { font-size: 12.5px; color: #9aa0b2; } .hd .who b { color: #fff; }
+  .hd .sp { flex: 1; }
+  .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 8px; padding: 2px; }
+  .seg button { padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #8a90a3; }
+  .seg button.on { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .body { flex: 1; overflow: auto; padding: 12px 14px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 12px 14px; }
+  .lbl { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .lbl em { font-style: normal; letter-spacing: .05em; text-transform: none; color: #555b6c; font-weight: 400; }
+  .muted { color: #8a90a3; } .small { font-size: 12px; }
+  .why { font-size: 12.5px; color: #b9bdc9; margin-top: 6px; }
+
+  .now { display: flex; align-items: center; gap: 12px; border-radius: 16px; padding: 10px 14px; background: rgba(46,213,115,.08); border: 1px solid rgba(46,213,115,.25); position: relative; }
+  .now .lab { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #2ed573; flex: none; }
+  .now .line { font-size: 14px; flex: 1; }
+  .now .line small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .fight .now { background: linear-gradient(90deg, rgba(255,59,92,.22), rgba(255,59,92,.05)); border-color: rgba(255,59,92,.5); }
+  .fight .now .lab { color: #ff3b5c; }
+  .find .now { background: linear-gradient(90deg, rgba(255,209,102,.22), rgba(255,209,102,.04)); border-color: rgba(255,209,102,.55); }
+  .find .now .lab { color: #ffd166; }
+
+  .ty { font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; }
+  .ty.gear { background: rgba(255,209,102,.15); color: #ffd166; }
+  .ty.skills { background: rgba(116,185,255,.15); color: #74b9ff; }
+  .ty.route { background: rgba(162,155,254,.18); color: #a29bfe; }
+  .ty.spells { background: rgba(253,121,168,.15); color: #fd79a8; }
+  .ty.tactic { background: rgba(255,59,92,.2); color: #ff6b84; }
+
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  .cmp th { text-align: right; font-weight: 600; color: #9aa0b2; padding: 3px 4px; font-size: 11.5px; }
+  .cmp th:first-child, .cmp td:first-child { text-align: left; color: #8a90a3; }
+  .cmp td { text-align: right; padding: 3px 4px; border-top: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+  .up { color: #2ed573; } .dn { color: #ff6b84; }
+  .sk { display: grid; grid-template-columns: 82px 1fr 64px; gap: 8px; align-items: center; font-size: 12.5px; margin: 4px 0; }
+  .sk .bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.07); position: relative; }
+  .sk .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: #74b9ff; }
+  .sk .bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; }
+  .sk span:last-child { text-align: right; color: #9aa0b2; }
+  .route { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12.5px; }
+  .route .st { padding: 3px 8px; border-radius: 7px; background: rgba(255,255,255,.06); }
+  .route .st.done { color: #6f7588; text-decoration: line-through; background: none; }
+  .route .st.next { background: #a29bfe; color: #111; font-weight: 700; }
+  .route .st.unlocked { background: #ffd166; color: #111; font-weight: 700; animation: pop .6s .4s cubic-bezier(.2,1.6,.4,1) both; }
+  .route .ar { color: #555b6c; }
+  .stat { display: flex; gap: 6px; margin-top: 8px; }
+  .stat div { flex: 1; background: rgba(0,0,0,.3); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #8a90a3; }
+  .stat b { display: block; color: #fff; font-size: 14px; }
+  .acts { display: flex; gap: 6px; margin-top: 10px; align-items: center; }
+  .acts button { font-size: 11.5px; padding: 3px 9px; border-radius: 7px; background: rgba(255,255,255,.06); color: #c9cdd8; }
+  .acts button.pri { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .ask { display: flex; gap: 8px; padding: 10px 14px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+  .ask input { flex: 1; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 8px 11px; outline: none; font-size: 13px; }
+  .mons { display: flex; flex-direction: column; gap: 4px; }
+  .mon { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; font-size: 12.5px; align-items: center; }
+  .mon i { font: 700 15px ui-monospace, Menlo, monospace; font-style: normal; }
+  .opt { font-size: 12.5px; line-height: 1.7; } .ok { color: #2ed573; } .no { color: #ff6b84; }
+  .steps { padding-left: 18px; font-size: 13px; } .steps li { margin-bottom: 4px; } .steps li::marker { color: #ff6b84; font-weight: 700; }
+
+  .moment { border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); }
+  .fight .moment { background: linear-gradient(180deg, rgba(255,59,92,.12), rgba(255,255,255,.02)); border-color: rgba(255,59,92,.45); }
+  .moment h4 { font-size: 15px; margin: 6px 0 4px; }
+  .mtop { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  /* A: pager */
+  .pager { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #8a90a3; }
+  .pager button { width: 22px; height: 22px; border-radius: 6px; background: rgba(255,255,255,.06); }
+  .pager .dots { display: flex; gap: 4px; }
+  .pager .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.18); }
+  .pager .dots i.on { background: #fff; }
+
+  /* rail */
+  .rail { border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.35); padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .rail .r { display: grid; grid-template-columns: 56px 1fr 14px; gap: 8px; align-items: center; font-size: 12px; border-radius: 8px; padding: 3px 6px; margin: 0 -6px; }
+  .rail .r > span:first-child { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #6f7588; font-weight: 600; }
+  .rail .r.has { cursor: pointer; } .rail .r.has:hover { background: rgba(255,255,255,.05); }
+  .rail .r.sel { background: rgba(255,255,255,.08); }
+  .rail .pip { width: 8px; height: 8px; border-radius: 50%; background: #ffd166; box-shadow: 0 0 8px #ffd166; animation: breathe 2s infinite; justify-self: end; }
+  @keyframes breathe { 50% { opacity: .35; } }
+  .mini { display: flex; gap: 10px; flex-wrap: wrap; color: #c9cdd8; } .mini b { color: #74b9ff; font-weight: 600; }
+  .mini .met { color: #2ed573; text-decoration: line-through; animation: pop .6s .2s both; }
+  .mini .met::before { content: "✓ "; text-decoration: none; display: inline-block; }
+
+  /* C: inbox chip */
+  .chip { flex: none; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #ffd166; color: #111; position: relative; }
+  .pop { position: absolute; top: calc(100% + 6px); right: 0; width: 300px; z-index: 10; background: #161922; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.6); padding: 6px; }
+  .pop button { display: flex; gap: 8px; align-items: center; width: 100%; text-align: left; padding: 7px 8px; border-radius: 8px; font-size: 12.5px; }
+  .pop button:hover { background: rgba(255,255,255,.06); }
+
+  /* Great Find */
+  .gf { position: relative; overflow: hidden; border-radius: 18px; padding: 16px; border: 1px solid rgba(255,209,102,.6);
+        background: radial-gradient(400px 200px at 20% 0%, rgba(255,209,102,.28), transparent 70%), linear-gradient(180deg, #1d1708, #12100a);
+        box-shadow: 0 0 0 1px rgba(255,209,102,.15), 0 0 40px rgba(255,209,102,.18); animation: rise .7s cubic-bezier(.2,1.3,.4,1) both; }
+  .gf::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,240,200,.35) 45%, transparent 60%); transform: translateX(-100%); animation: shine 2.2s .5s ease-in-out 2; pointer-events: none; }
+  @keyframes shine { to { transform: translateX(100%); } }
+  @keyframes rise { from { transform: translateY(10px) scale(.97); opacity: 0; } }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+  .tier { display: flex; gap: 4px; align-items: center; }
+  .tier span { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; color: rgba(255,209,102,.35); border: 1px solid rgba(255,209,102,.15); }
+  .tier span.on { color: #111; background: linear-gradient(90deg, #ffe08a, #ffb84d); border-color: transparent; box-shadow: 0 0 14px rgba(255,209,102,.6); }
+  .gf .item { display: flex; gap: 12px; align-items: center; margin: 12px 0 8px; }
+  .gf .glyph { width: 46px; height: 46px; border-radius: 12px; background: #000; display: grid; place-items: center; font: 700 26px ui-monospace, Menlo, monospace; color: #ffd166; border: 1px solid rgba(255,209,102,.4); box-shadow: 0 0 18px rgba(255,209,102,.35); animation: pop .6s .15s cubic-bezier(.2,1.6,.4,1) both; }
+  .gf h4 { font-size: 17px; color: #fff3cf; } .gf h4 small { display: block; font-size: 12px; color: #c9b27a; font-weight: 500; }
+  .gf .hook { font-size: 14px; font-weight: 600; color: #ffe8a8; margin-bottom: 8px; }
+  .gf .unl { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #e9dcb6; }
+  .gf .unl div::before { content: "◆"; color: #ffd166; margin-right: 8px; font-size: 10px; }
+  .sparks { position: absolute; inset: 0; pointer-events: none; }
+  .sparks i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffe08a; opacity: 0; animation: spark 1.6s ease-out both; }
+  @keyframes spark { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(.3); } }
+
+  #switcher { position: fixed; left: calc(50% - 225px); bottom: 14px; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 4px; background: #fff; color: #111; border-radius: 999px; padding: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 0 2px #ff00aa; font: 600 13px system-ui; }
+  #switcher button { min-width: 30px; height: 30px; border-radius: 999px; font-size: 15px; color: #111; padding: 0 8px; }
+  #switcher button:hover { background: #eee; }
+  #switcher .label { padding: 0 10px; min-width: 220px; text-align: center; }
+  #switcher .label small { display: block; font-weight: 400; font-size: 10px; color: #888; }
+  #switcher .scen { font-size: 12px; background: #111; color: #fff; }
+  #switcher .scen:hover { background: #333; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="switcher"></div>
+<script>
+const CH = { name: 'Kesh', abbr: 'MiFi', xl: 13 };
+const BASE_MAP = [
+  '###############################', '#.......#######################', '#..<....#######################',
+  '#.......#....................##', '####.####.....)..............##', '####.####....................##',
+  '####.####.........@............', '####.................##########', '#########.......[....##########',
+  '#########...........>##########', '###############################'];
+const SC = {
+  calm: { place: 'Orc:2', turn: '25,940', hp: '126/126', label: 'CALM', lead: 'Orc:2 cleared.', sub: 'No hostiles in view', map: BASE_MAP,
+    msgs: ['You kill Saint Roka!', 'You have reached level 13!', 'You see here a <span style="color:#ff8a5c">+2 broad axe of flaming</span>.'] },
+  find: { place: 'Orc:2', turn: '25,961', hp: '126/126', label: 'GREAT FIND', lead: 'Ring of Poison Resistance.', sub: 'Fills the biggest gap in your Run Plan', map: BASE_MAP,
+    msgs: ['You kill Saint Roka!', 'You have reached level 13!', 'Things that are here: a <span style="color:#ffd166">ring of poison resistance</span>.', 'You put on the ring of poison resistance.', 'You feel healthy.'] },
+  fight: { place: 'Orc:2', turn: '24,817', hp: '47/126', label: 'LETHAL', lead: 'Get to the corridor east, then haste.', sub: 'Death next turn 9% · worst hit 58',
+    map: ['###############################', '#.......#######################', '#..<....#######################', '#.......#....w.......##########',
+      '####.####.........R..##########', '####.####...w....K.w.##########', '####.####.........@............', '####.................##########',
+      '#########.......P....##########', '#########............##########', '###############################'],
+    msgs: ['Saint Roka shouts a battlecry!', 'The orc knight hits you with a broad axe! <span style="color:#ff5f5f">(17)</span>', 'The orc high priest calls down the wrath of Beogh upon you! <span style="color:#ff5f5f">(13)</span>'] },
+};
+const MON = [['#ff5fd7', 'Saint Roka', 'extreme · 12–40'], ['#5fd75f', 'orc high priest', 'smites · 7–17'], ['#5fd7ff', 'orc knight', 'adjacent · 8–30'], ['#ffd75f', '3× orc warrior', '5–20']];
+const OPTS = [[1, 'Corridor 3 tiles east'], [1, 'Potion of haste ×1'], [1, 'Scroll of teleportation ×2'], [1, 'Heal wounds ×2'], [0, 'Upstairs (2 orcs in the way)']];
+const STEPS = ['Step 3 tiles east so only one orc can reach you.', 'Quaff haste there; the Battlecry makes them hit much harder.', 'Kill the high priest first; smiting ignores AC.', 'Below 35 HP, read teleportation.'];
+
+// Decision Points, each attached to the Run Plan row it would change
+const DP = [
+  { type: 'gear', row: 'gear', when: 'standing on it', title: 'Swap to the +2 broad axe of flaming?', info: 'Item comparison: broad axe of flaming',
+    verdict: 'Yes, once Axes reaches 18. Until then it swings too slowly to beat your war axe.',
+    body: () => `<table class="cmp"><tr><th></th><th>war axe +4</th><th>broad axe +2</th></tr>
+      <tr><td>Damage / hit</td><td>15.1</td><td class="up">19.4</td></tr><tr><td>Attack delay</td><td>0.9</td><td class="dn">1.2 → 1.0 @ Axes 18</td></tr>
+      <tr><td>Dmg / turn vs orcs</td><td>11.8</td><td class="up">13.9</td></tr></table>`,
+    why: 'Flaming adds about 25% against most of Snake and Vaults.' },
+  { type: 'skills', row: 'skills', when: 'XL 13 reached', title: 'Push Axes to 18, then Shields', info: 'Skills',
+    body: () => [['Axes', 16.2, 18], ['Fighting', 14.0, 15], ['Shields', 9.8, 13], ['Armour', 11.5, 12]].map(([n, c, t]) => `<div class="sk"><span>${n}</span><div class="bar"><i style="width:${c / 27 * 100}%"></i>${level !== 'info' ? `<b style="left:${t / 27 * 100}%"></b>` : ''}</div><span>${c.toFixed(1)}${level !== 'info' ? ` → ${t}` : ''}</span></div>`).join(''),
+    why: 'Axes 18 unlocks the broad axe. Shields 13 removes the attack-delay penalty from your kite shield.' },
+  { type: 'route', row: 'route', when: 'Orc:2 cleared', title: 'Next: D:12–15, then Snake:1–3', info: 'Branches found',
+    body: () => `<div class="stat"><div><b>3.1%</b>Snake:4 deaths*</div><div><b>1.8%</b>Spider:4 deaths*</div><div><b>4.6%</b>MiFi win rate*</div></div>`,
+    why: 'Hold off on Snake:4 until you have rPois. Nagas’ poison spit is the top killer of MiFi at XL 13–15 there.' },
+  { type: 'spells', row: 'skills', when: 'found Book of Fire', title: 'Skip the Book of Fire', info: 'Book of Fire: spell failure rates',
+    verdict: 'Not worth it at Int 8 in heavy armour.', body: () => `<div class="small muted">Sticky Flame 89% · Fireball 100% · Ignition 100% failure</div>`,
+    why: 'Spend the XP on Axes and Shields instead.' },
+];
+
+let level = 'coach', scen = 'calm', idx = 0, popOpen = false;
+const S = () => SC[scen];
+const findMode = () => scen === 'find';
+
+function game(sc) {
+  const G = { R: '#ff5fd7', P: '#5fd75f', K: '#5fd7ff', w: '#ffd75f' };
+  const map = sc.map.map(r => [...r].map(ch => G[ch] ? `<span style="color:${G[ch]};font-weight:700">o</span>`
+    : ch === '@' ? '<b style="color:#fff">@</b>' : ch === ')' ? '<span style="color:#ff8a5c">)</span>' : ch === '[' ? '<span style="color:#74b9ff">[</span>'
+    : ch === '<' || ch === '>' ? `<span style="color:#eee">${ch === '<' ? '&lt;' : '&gt;'}</span>` : ch === '#' ? '<span style="color:#666">#</span>' : '<span style="color:#333">.</span>').join('')).join('\n');
+  return `<div class="game"><div class="tag">webtiles · browser (fake) · HP ${sc.hp} · ${sc.place} · T${sc.turn}</div><div class="map"><div>${map}</div></div><div class="msgs">${sc.msgs.map(m => `<div>${m}</div>`).join('')}</div></div>`;
+}
+const lvlSeg = () => `<div class="seg">${[['info', 'Info'], ['hints', 'Hints'], ['coach', 'Coach']].map(([k, l]) => `<button data-level="${k}" class="${level === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const header = () => `<div class="hd"><div class="dot"></div><div class="who"><b>${CH.name}</b> · ${CH.abbr} XL ${CH.xl} · ${S().place}</div><div class="sp"></div>${lvlSeg()}</div>`;
+const askBar = () => level === 'info' ? '' : `<div class="ask"><input placeholder="Ask about your run…"></div>`;
+const tactical = () => `<div class="lbl" style="margin-top:10px">Threats</div><div class="mons">${MON.map(([c, n, d]) => `<div class="mon"><i style="color:${c}">o</i><span>${n}</span><span class="muted small">${d}</span></div>`).join('')}</div>
+  ${level === 'coach' ? `<div class="lbl" style="margin-top:10px">Plan <em>LLM</em></div><ol class="steps">${STEPS.map(s => `<li>${s}</li>`).join('')}</ol>` : ''}
+  <div class="lbl" style="margin-top:10px">Ways out <em>computed</em></div><div class="opt">${OPTS.map(([ok, n]) => `<span class="${ok ? 'ok' : 'no'}">●</span> ${n}`).join('<br>')}</div>`;
+
+function dpCard(d, extraTop = '') {
+  const title = level === 'info' ? d.info : d.title;
+  return `<div class="moment"><div class="mtop"><span class="ty ${d.type}">${d.type}</span>${extraTop || `<span class="muted small">${d.when}</span>`}</div>
+    <h4>${title}</h4>${level === 'coach' && d.verdict ? `<div style="font-weight:600;margin-bottom:4px">${d.verdict}</div>` : ''}${d.body()}
+    ${level === 'coach' ? `<div class="why">${d.why}</div>` : level === 'hints' ? '<div class="why muted">Hint: think about what Snake:4 will throw at you.</div>' : ''}
+    <div class="acts">${level !== 'info' ? '<button class="pri">Why?</button>' : ''}<button data-done>Got it</button></div></div>`;
+}
+
+function greatFind() {
+  const sp = Array.from({ length: 14 }, (_, i) => { const a = i / 14 * Math.PI * 2; return `<i style="left:38px;top:76px;--x:${Math.cos(a) * 90}px;--y:${Math.sin(a) * 60}px;animation-delay:${.2 + (i % 3) * .08}s"></i>`; }).join('');
+  return `<div class="gf"><div class="sparks">${sp}</div>
+    <div class="mtop"><div class="tier"><span>Nice</span><span>Great</span><span class="on">Run-changing</span></div><span class="small" style="color:#c9b27a">just picked up</span></div>
+    <div class="item"><div class="glyph">=</div><h4>Ring of Poison Resistance<small>rPois+ · the gap your Run Plan flagged</small></h4></div>
+    ${level === 'info' ? `<div class="unl"><div>Fills a missing resistance: rPois</div><div>Snake:4 naga poison damage −66%</div></div>`
+      : `<div class="hook">${level === 'coach' ? 'This is the piece you were missing. Snake:4 just opened up.' : 'This fills a gap. Check your route.'}</div>
+         <div class="unl"><div>Snake:4 moves into your route: the naga spit that kills MiFi most often there is mostly neutralised</div><div>Poison from Spider’s wolf spiders and from Swamp no longer stacks up</div><div>Frees your second ring slot to stay on Str+3</div></div>`}
+    <div class="acts"><button class="pri" data-done>Nice!</button>${level !== 'info' ? '<button>Why does this matter?</button>' : ''}</div></div>`;
+}
+
+function rail(variantB) {
+  const pend = r => variantB && !findMode() && scen !== 'fight' && DP.some(d => d.row === r);
+  const sel = r => variantB && DP[idx] && DP[idx].row === r && scen === 'calm';
+  const row = (key, label, content) => `<div class="r ${pend(key) ? 'has' : ''} ${sel(key) ? 'sel' : ''}" ${pend(key) ? `data-row="${key}"` : ''}><span>${label}</span><div>${content}</div>${pend(key) ? '<i class="pip"></i>' : '<span></span>'}</div>`;
+  const f = findMode();
+  const route = [['Orc', 'done'], ['D:12–15', 'next'], ['Snake:1–3', ''], f ? ['Snake:4', 'unlocked'] : ['Vaults:1–4', ''], f ? ['Vaults:1–4', ''] : ['Spider', '']];
+  return `<div class="rail"><div class="lbl" style="margin:0">Run Plan <em>${f ? 'just updated' : level === 'info' ? 'facts only' : 'updated at XL 13'}</em></div>
+    ${row('route', 'Route', `<div class="route">${route.map(([n, s], i) => `${i ? '<span class="ar">›</span>' : ''}<span class="st ${level === 'info' && s === 'next' ? '' : s}">${n}</span>`).join('')}</div>`)}
+    ${row('skills', 'Skills', `<div class="mini"><span>Axes 16${level !== 'info' ? ' → <b>18</b>' : ''}</span><span>Fighting 14${level !== 'info' ? ' → <b>15</b>' : ''}</span><span>Shields 10${level !== 'info' ? ' → <b>13</b>' : ''}</span></div>`)}
+    ${row('gear', 'Gear', `<div class="mini"><span>+4 war axe</span><span>+2 scale mail</span><span>+1 kite shield</span></div>`)}
+    ${row('needs', 'Needs', `<div class="mini">${f ? '<span class="met">rPois</span>' : '<span class="dn">rPois</span>'}<span class="dn">SInv</span><span>cloak</span><span>amulet</span></div>`)}
+    ${level === 'coach' ? row('goal', 'Goal', '<div class="mini">3 runes → Zot. Pure melee Okawaru tank.</div>') : ''}
+  </div>`;
+}
+
+function nowPill(chip = '') {
+  return `<div class="now"><div class="lab">${S().label}</div><div class="line">${S().lead}<small>${S().sub}</small></div>${chip}</div>`;
+}
+function focus(extraTop) {
+  if (scen === 'fight') return `<div class="moment"><span class="ty tactic">tactical</span><h4>${S().lead}</h4>${tactical()}</div>`;
+  if (findMode()) return greatFind();
+  return DP[idx] ? dpCard(DP[idx], extraTop) : `<div class="card muted small">No decisions waiting. Your Run Plan is up to date.</div>`;
+}
+
+// A: pager on the focus card
+function VariantA() {
+  const pager = `<div class="pager"><button data-pg="-1">‹</button><span class="dots">${DP.map((_, i) => `<i class="${i === idx ? 'on' : ''}"></i>`).join('')}</span><button data-pg="1">›</button></div>`;
+  return `<div class="P ${scen}">${header()}<div class="body">${nowPill()}${focus(scen === 'calm' ? pager : '')}</div>${rail(false)}${askBar()}</div>`;
+}
+// B: pending Decision Points glow on the Run Plan row they'd change; click the row to focus it
+function VariantB() {
+  return `<div class="P ${scen}">${header()}<div class="body">${nowPill()}${focus()}${scen === 'calm' ? '<div class="muted small" style="text-align:center">Glowing rows in the Run Plan have a decision waiting. Click one.</div>' : ''}</div>${rail(true)}${askBar()}</div>`;
+}
+// C: a quiet count chip in the now-pill; the list only exists when you open it
+function VariantC() {
+  const rest = DP.filter((_, i) => i !== idx);
+  const chip = scen === 'calm' && rest.length ? `<button class="chip" data-pop>+${rest.length}${popOpen ? `<div class="pop">${DP.map((d, i) => i === idx ? '' : `<button data-pick="${i}"><span class="ty ${d.type}">${d.type}</span>${level === 'info' ? d.info : d.title}</button>`).join('')}</div>` : ''}</button>` : '';
+  return `<div class="P ${scen}">${header()}<div class="body">${nowPill(chip)}${focus()}</div>${rail(false)}${askBar()}</div>`;
+}
+
+const VARIANTS = [['A', 'Pager', '‹ 1 of 4 › on the focus card', VariantA], ['B', 'Plan-attached', 'decisions glow on the Run Plan row they change', VariantB], ['C', 'Count chip', '+3 chip opens a list when you want it', VariantC]];
+const SCENS = ['calm', 'find', 'fight'], SLABEL = { calm: '☾ Calm', find: '✦ Great find', fight: '⚔ Fight' };
+const q = new URLSearchParams(location.search);
+let cur = Math.max(0, VARIANTS.findIndex(v => v[0] === (q.get('variant') || 'A').toUpperCase()));
+if (SCENS.includes(q.get('s'))) scen = q.get('s');
+
+function render() {
+  const [k, n, sub, fn] = VARIANTS[cur];
+  document.getElementById('root').innerHTML = `<div class="wrap ${scen}">${game(S())}${fn()}</div>`;
+  document.getElementById('switcher').innerHTML = `<button data-step="-1">←</button><div class="label">${k} (${n})<small>${sub}</small></div><button data-step="1">→</button><button class="scen" data-scen>${SLABEL[scen]} · S</button>`;
+  try { history.replaceState(null, '', `?variant=${k}&s=${scen}`); } catch (e) {}
+}
+const step = d => { cur = (cur + d + VARIANTS.length) % VARIANTS.length; popOpen = false; render(); };
+const flip = () => { scen = SCENS[(SCENS.indexOf(scen) + 1) % SCENS.length]; idx = 0; popOpen = false; render(); };
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-step],[data-level],[data-scen],[data-pg],[data-row],[data-pop],[data-pick],[data-done]');
+  if (!el) { if (popOpen) { popOpen = false; render(); } return; }
+  if (el.dataset.step) return step(+el.dataset.step);
+  if ('scen' in el.dataset) return flip();
+  if (el.dataset.level) level = el.dataset.level;
+  if (el.dataset.pg) idx = (idx + +el.dataset.pg + DP.length) % DP.length;
+  if (el.dataset.row) idx = DP.findIndex(d => d.row === el.dataset.row);
+  if (el.dataset.pick) { idx = +el.dataset.pick; popOpen = false; }
+  else if ('pop' in el.dataset) popOpen = !popOpen;
+  if ('done' in el.dataset) { if (findMode()) { scen = 'calm'; idx = 0; } else idx = (idx + 1) % DP.length; }
+  render();
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 's' || e.key === 'S') flip();
+});
+render();
+</script>
+</body>
+</html>
