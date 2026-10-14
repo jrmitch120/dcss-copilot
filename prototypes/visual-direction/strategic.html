@@ -1,0 +1,342 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Round 2 of "Visual direction": where does Strategic Advice live?
+  Settled in round 1: docked panel beside the browser (collapses to a pill), modern dark styling with
+  DCSS glyph colours, a threat label plus a one-line lead, and an assistance-level toggle that's always visible.
+  Three structurally different placements for Strategic Advice: ?variant=A|B|C, and ?s=calm|fight.
+  Keys: ← / → switch variant, S switches scenario. Game data is illustrative, not real DCSS numbers.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · DCSS Copilot · strategic advice placement</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #000; color: #e6e8ee; font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  .wrap { display: grid; grid-template-columns: minmax(0,1fr) 450px; grid-template-rows: minmax(0,1fr); height: 100%; }
+
+  /* fake webtiles game */
+  .game { background: #000; color: #bbb; font: 15px/1.15 ui-monospace, Menlo, monospace; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; min-height: 0; overflow: hidden; position: relative; }
+  .game .map { white-space: pre; letter-spacing: 2px; font-size: 19px; line-height: 1.12; flex: 1; display: flex; align-items: center; }
+  .game .msgs { font-size: 13px; line-height: 1.45; color: #aaa; border-top: 1px solid #222; padding: 8px 0 60px; }
+  .game .tag { position: absolute; left: 24px; top: 14px; font: 11px system-ui; color: #444; letter-spacing: .05em; text-transform: uppercase; }
+
+  /* panel shell (settled direction) */
+  .P { height: 100%; min-height: 0; display: flex; flex-direction: column; background: radial-gradient(600px 400px at 100% 0%, #24101c 0%, transparent 60%), #0c0e14; border-left: 1px solid rgba(255,255,255,.08); }
+  .hd { padding: 12px 16px 10px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .hd .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ed573; box-shadow: 0 0 8px #2ed573; }
+  .fight .hd .dot { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; }
+  .hd .who { font-size: 12.5px; color: #9aa0b2; } .hd .who b { color: #fff; }
+  .hd .sp { flex: 1; }
+  .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 8px; padding: 2px; }
+  .seg button { padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #8a90a3; }
+  .seg button.on { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .icon { color: #6f7588; font-size: 13px; padding: 0 4px; }
+  .body { flex: 1; overflow: auto; padding: 12px 14px 80px; display: flex; flex-direction: column; gap: 10px; }
+  .card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 12px 14px; }
+  .lbl { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .lbl em { font-style: normal; letter-spacing: .05em; text-transform: none; color: #555b6c; font-weight: 400; }
+  .muted { color: #8a90a3; } .small { font-size: 12px; }
+  .why { font-size: 12.5px; color: #b9bdc9; margin-top: 6px; }
+
+  /* "now" pill: threat label + lead line */
+  .now { display: flex; align-items: center; gap: 12px; border-radius: 16px; padding: 10px 14px; background: rgba(46,213,115,.08); border: 1px solid rgba(46,213,115,.25); }
+  .now .lab { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #2ed573; flex: none; }
+  .now .line { font-size: 14px; }
+  .now .line small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .fight .now { background: linear-gradient(90deg, rgba(255,59,92,.22), rgba(255,59,92,.05)); border-color: rgba(255,59,92,.5); }
+  .fight .now .lab { color: #ff3b5c; }
+
+  /* type chips */
+  .ty { font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; }
+  .ty.gear { background: rgba(255,209,102,.15); color: #ffd166; }
+  .ty.skills { background: rgba(116,185,255,.15); color: #74b9ff; }
+  .ty.route { background: rgba(162,155,254,.18); color: #a29bfe; }
+  .ty.spells { background: rgba(253,121,168,.15); color: #fd79a8; }
+  .ty.tactic { background: rgba(255,59,92,.2); color: #ff6b84; }
+  .ty.info { background: rgba(255,255,255,.08); color: #9aa0b2; }
+
+  /* comparison table */
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  .cmp th { text-align: right; font-weight: 600; color: #9aa0b2; padding: 3px 4px; font-size: 11.5px; }
+  .cmp th:first-child, .cmp td:first-child { text-align: left; color: #8a90a3; }
+  .cmp td { text-align: right; padding: 3px 4px; border-top: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+  .up { color: #2ed573; } .dn { color: #ff6b84; }
+
+  /* skill bars */
+  .sk { display: grid; grid-template-columns: 82px 1fr 64px; gap: 8px; align-items: center; font-size: 12.5px; margin: 4px 0; }
+  .sk .bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.07); position: relative; }
+  .sk .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: #74b9ff; }
+  .sk .bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; border-radius: 1px; }
+  .sk span:last-child { text-align: right; color: #9aa0b2; font-variant-numeric: tabular-nums; }
+
+  /* route */
+  .route { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12.5px; }
+  .route .st { padding: 3px 8px; border-radius: 7px; background: rgba(255,255,255,.06); }
+  .route .st.done { color: #6f7588; text-decoration: line-through; background: none; }
+  .route .st.next { background: #a29bfe; color: #111; font-weight: 700; }
+  .route .ar { color: #555b6c; }
+  .stat { display: flex; gap: 6px; margin-top: 8px; }
+  .stat div { flex: 1; background: rgba(0,0,0,.3); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #8a90a3; }
+  .stat b { display: block; color: #fff; font-size: 14px; }
+
+  .acts { display: flex; gap: 6px; margin-top: 10px; }
+  .acts button { font-size: 11.5px; padding: 3px 9px; border-radius: 7px; background: rgba(255,255,255,.06); color: #c9cdd8; }
+  .acts button.pri { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .ask { display: flex; gap: 8px; padding: 10px 14px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+  .ask input { flex: 1; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 8px 11px; outline: none; font-size: 13px; }
+
+  /* monsters & options (tactical) */
+  .mons { display: flex; flex-direction: column; gap: 4px; }
+  .mon { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; font-size: 12.5px; align-items: center; }
+  .mon i { font: 700 15px ui-monospace, Menlo, monospace; font-style: normal; }
+  .opt { font-size: 12.5px; line-height: 1.7; } .ok { color: #2ed573; } .no { color: #ff6b84; }
+  .steps { padding-left: 18px; font-size: 13px; } .steps li { margin-bottom: 4px; } .steps li::marker { color: #ff6b84; font-weight: 700; }
+
+  /* A: tabs */
+  .tabs { display: flex; gap: 2px; padding: 8px 14px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .tabs button { padding: 7px 12px; font-size: 12.5px; color: #8a90a3; border-bottom: 2px solid transparent; position: relative; }
+  .tabs button.on { color: #fff; border-color: #fff; }
+  .tabs .badge { position: absolute; top: 2px; right: -2px; min-width: 16px; height: 16px; border-radius: 8px; background: #ffd166; color: #111; font-size: 10px; font-weight: 800; display: grid; place-items: center; padding: 0 4px; }
+  .slot { display: grid; grid-template-columns: 70px 1fr auto; gap: 8px; font-size: 12.5px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.05); }
+  .slot:first-of-type { border-top: 0; }
+  .slot .k { color: #6f7588; } .slot .u { color: #ffd166; font-size: 11.5px; }
+
+  /* B: feed */
+  .feed { display: flex; flex-direction: column; gap: 10px; }
+  .fc { position: relative; }
+  .fc .top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .fc .top .t { font-size: 11px; color: #555b6c; margin-left: auto; }
+  .fc h4 { font-size: 14px; font-weight: 600; }
+  .fc.folded { padding: 8px 14px; opacity: .55; }
+  .fc.folded h4 { font-size: 12.5px; font-weight: 500; }
+  .fc.pinned { border-color: rgba(255,59,92,.5); }
+  .fc.new::after { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: #ffd166; }
+
+  /* C: moment + run plan rail */
+  .moment { border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(255,209,102,.08), rgba(255,255,255,.02)); border: 1px solid rgba(255,209,102,.3); }
+  .fight .moment { background: linear-gradient(180deg, rgba(255,59,92,.12), rgba(255,255,255,.02)); border-color: rgba(255,59,92,.45); }
+  .moment h4 { font-size: 15px; margin: 6px 0 4px; }
+  .queue { display: flex; flex-direction: column; gap: 4px; }
+  .queue button { display: flex; align-items: center; gap: 8px; text-align: left; font-size: 12.5px; padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,.03); }
+  .queue button:hover { background: rgba(255,255,255,.07); }
+  .rail { border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.35); padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .rail .r { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: center; font-size: 12px; }
+  .rail .r > span:first-child { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #6f7588; font-weight: 600; }
+  .mini { display: flex; gap: 10px; flex-wrap: wrap; color: #c9cdd8; } .mini b { color: #74b9ff; font-weight: 600; }
+
+  /* switcher (not part of the design) */
+  #switcher { position: fixed; left: calc(50% - 225px); bottom: 14px; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 4px; background: #fff; color: #111; border-radius: 999px; padding: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 0 2px #ff00aa; font: 600 13px system-ui; }
+  #switcher button { min-width: 30px; height: 30px; border-radius: 999px; font-size: 15px; color: #111; padding: 0 8px; }
+  #switcher button:hover { background: #eee; }
+  #switcher .label { padding: 0 10px; min-width: 200px; text-align: center; }
+  #switcher .label small { display: block; font-weight: 400; font-size: 10px; color: #888; }
+  #switcher .scen { font-size: 12px; background: #111; color: #fff; }
+  #switcher .scen:hover { background: #333; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="switcher"></div>
+<script>
+// ---------------- illustrative data ----------------
+const CH = { name: 'Kesh', abbr: 'MiFi', xl: 13, god: 'Okawaru' };
+
+const CALM = {
+  place: 'Orc:2', turn: '25,940', hp: '126/126',
+  label: 'CALM', lead: 'Orc:2 cleared. 4 decisions are waiting.', sub: 'No hostiles in view · Mines rune not here (it’s in Vaults)',
+  map: [
+    '###############################',
+    '#.......#######################',
+    '#..<....#######################',
+    '#.......#....................##',
+    '####.####.....)..............##',
+    '####.####....................##',
+    '####.####.........@............',
+    '####.................##########',
+    '#########.......[....##########',
+    '#########...........>##########',
+    '###############################',
+  ],
+  msgs: ['You kill Saint Roka!', 'You feel a surge of divine favour.', 'You have reached level 13!', 'Okawaru is very pleased with you.', 'You see here a <span style="color:#ff8a5c">+2 broad axe of flaming</span>.'],
+};
+const FIGHT = {
+  place: 'Orc:2', turn: '24,817', hp: '47/126',
+  label: 'LETHAL', lead: 'Get to the corridor east, then haste.', sub: 'Death next turn 9% · worst hit 58 · Saint Roka + 5 orcs',
+  map: [
+    '###############################',
+    '#.......#######################',
+    '#..<....#######################',
+    '#.......#....w.......##########',
+    '####.####.........R..##########',
+    '####.####...w....K.w.##########',
+    '####.####.........@............',
+    '####.................##########',
+    '#########.......P....##########',
+    '#########............##########',
+    '###############################',
+  ],
+  msgs: ['Saint Roka shouts a battlecry!', 'The orc knight hits you with a broad axe! <span style="color:#ff5f5f">(17)</span>', 'The orc high priest calls down the wrath of Beogh upon you! <span style="color:#ff5f5f">(13)</span>'],
+};
+const MON = [
+  ['#ff5fd7', 'Saint Roka', 'extreme · 12–40'], ['#5fd75f', 'orc high priest', 'smites · 7–17'],
+  ['#5fd7ff', 'orc knight', 'adjacent · 8–30'], ['#ffd75f', '3× orc warrior', '5–20'],
+];
+const OPTS = [[1, 'Corridor 3 tiles east'], [1, 'Potion of haste ×1'], [1, 'Scroll of teleportation ×2'], [1, 'Heal wounds ×2'], [0, 'Upstairs (2 orcs in the way)']];
+const STEPS = ['Step 3 tiles east so only one orc can reach you.', 'Quaff haste there; the Battlecry makes them hit much harder.', 'Kill the high priest first; smiting ignores AC.', 'Below 35 HP, read teleportation.'];
+
+// Strategic decisions, written as they'd be raised at their moment
+const GEAR = {
+  type: 'gear', when: 'just now · standing on it', title: 'Swap to the +2 broad axe of flaming?',
+  verdict: 'Yes, once Axes reaches 18. Until then it swings too slowly to beat your war axe.',
+  table: [
+    ['', 'war axe +4', 'broad axe +2 ⚑', ''],
+    ['Damage / hit', '15.1', '19.4', 'up'],
+    ['Attack delay', '0.9', '1.2 → 1.0 @ Axes 18', 'dn'],
+    ['Dmg / turn vs orcs', '11.8', '13.9', 'up'],
+    ['vs fire-resistant', '11.8', '12.1', ''],
+  ],
+  why: 'Flaming adds about 25% against most of Snake and Vaults. Axes 16.2 → 18 costs about 2,100 XP (roughly 1 XL).',
+};
+const SKILLS = {
+  type: 'skills', when: 'XL 13 reached', title: 'Push Axes to 18, then Shields',
+  rows: [['Axes', 16.2, 18, 27], ['Fighting', 14.0, 15, 27], ['Shields', 9.8, 13, 27], ['Armour', 11.5, 12, 27], ['Invocations', 5.0, 5, 27]],
+  why: 'Axes 18 unlocks the broad axe. Shields 13 removes the attack-delay penalty from your kite shield. Leave Invocations alone: Heroism already works at 5.',
+};
+const ROUTE = {
+  type: 'route', when: 'Orc:2 cleared', title: 'Next: D:12–15, then Snake:1–3',
+  path: [['Lair', 'done'], ['Orc', 'done'], ['D:12–15', 'next'], ['Snake:1–3', ''], ['Vaults:1–4', ''], ['Spider', ''], ['Snake:4', '']],
+  why: 'Hold off on Snake:4 until you have rPois. Nagas’ poison spit is the top killer of MiFi at XL 13–15 there. Spider is the softer rune for melee, but you don’t have rN or see-invisible yet.',
+  stats: [['Snake:4 deaths*', '3.1%'], ['Spider:4 deaths*', '1.8%'], ['MiFi win rate*', '4.6%']],
+};
+const SPELLS = {
+  type: 'spells', when: 'found Book of Fire', title: 'Skip the Book of Fire',
+  verdict: 'Not worth it. Int 8, plate-weight armour and no Spellcasting put Sticky Flame at 89% failure.',
+  why: 'Okawaru gifts are better value. Spend the XP on Axes and Shields instead.',
+};
+const STRAT = [GEAR, SKILLS, ROUTE, SPELLS];
+
+let level = 'coach', scen = 'calm', tabA = null, momentC = 0;
+
+// ---------------- shared bits ----------------
+function game(sc) {
+  const G = { R: '#ff5fd7', P: '#5fd75f', K: '#5fd7ff', w: '#ffd75f' };
+  const map = sc.map.map(r => [...r].map(ch => G[ch] ? `<span style="color:${G[ch]};font-weight:700">o</span>`
+    : ch === '@' ? '<b style="color:#fff">@</b>' : ch === ')' ? '<span style="color:#ff8a5c">)</span>' : ch === '[' ? '<span style="color:#74b9ff">[</span>'
+    : ch === '<' || ch === '>' ? `<span style="color:#eee">${ch === '<' ? '&lt;' : '&gt;'}</span>` : ch === '#' ? '<span style="color:#666">#</span>' : '<span style="color:#333">.</span>').join('')).join('\n');
+  return `<div class="game"><div class="tag">webtiles · browser (fake) · HP ${sc.hp} · ${sc.place} · T${sc.turn}</div><div class="map"><div>${map}</div></div><div class="msgs">${sc.msgs.map(m => `<div>${m}</div>`).join('')}</div></div>`;
+}
+const S = () => scen === 'calm' ? CALM : FIGHT;
+const lvlSeg = () => `<div class="seg">${[['info', 'Info'], ['hints', 'Hints'], ['coach', 'Coach']].map(([k, l]) => `<button data-level="${k}" class="${level === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const header = () => `<div class="hd"><div class="dot"></div><div class="who"><b>${CH.name}</b> · ${CH.abbr} XL ${CH.xl} · ${S().place}</div><div class="sp"></div>${lvlSeg()}<button class="icon" title="collapse to pill">⤡</button></div>`;
+const nowPill = () => `<div class="now"><div class="lab">${S().label}</div><div class="line">${level === 'info' && scen === 'fight' ? '6 hostiles · expected 31 dmg / turn' : S().lead}<small>${S().sub}</small></div></div>`;
+const askBar = (ph) => level === 'info' ? '' : `<div class="ask"><input placeholder="${ph}"></div>`;
+const tactical = () => `
+  <div class="card"><div class="lbl">Threats</div><div class="mons">${MON.map(([c, n, d]) => `<div class="mon"><i style="color:${c}">o</i><span>${n}</span><span class="muted small">${d}</span></div>`).join('')}</div></div>
+  ${level === 'coach' ? `<div class="card"><div class="lbl">Plan <em>LLM</em></div><ol class="steps">${STEPS.map(s => `<li>${s}</li>`).join('')}</ol></div>` : ''}
+  <div class="card"><div class="lbl">Ways out <em>computed</em></div><div class="opt">${OPTS.map(([ok, n]) => `<span class="${ok ? 'ok' : 'no'}">●</span> ${n}`).join('<br>')}</div></div>`;
+
+// facts are always shown; the verdict / why lines are LLM and depend on assistance level
+function verdict(txt) { return level === 'coach' ? `<div style="margin:6px 0 4px;font-weight:600">${txt}</div>` : ''; }
+function why(txt) { return level === 'coach' ? `<div class="why">${txt}</div>` : level === 'hints' ? `<div class="why muted">Hint: compare the attack delays.</div>` : ''; }
+
+function stratBody(d) {
+  if (d.type === 'gear') return `${verdict(d.verdict)}<table class="cmp">${d.table.map((r, i) => i === 0 ? `<tr>${r.slice(0, 3).map(c => `<th>${c}</th>`).join('')}</tr>` : `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="${r[3]}">${r[2]}</td></tr>`).join('')}</table>${why(d.why)}`;
+  if (d.type === 'skills') return `${d.rows.map(([n, cur, tgt, max]) => `<div class="sk"><span>${n}</span><div class="bar"><i style="width:${cur / max * 100}%"></i>${level !== 'info' ? `<b style="left:${tgt / max * 100}%"></b>` : ''}</div><span>${cur.toFixed(1)}${level !== 'info' && tgt > cur ? ` → ${tgt}` : ''}</span></div>`).join('')}${why(d.why)}`;
+  if (d.type === 'route') return `<div class="route">${d.path.map(([n, s], i) => `${i ? '<span class="ar">›</span>' : ''}<span class="st ${level === 'info' && s === 'next' ? '' : s}">${n}</span>`).join('')}</div>
+      <div class="stat">${d.stats.map(([k, v]) => `<div><b>${v}</b>${k}</div>`).join('')}</div>${why(d.why)}<div class="muted" style="font-size:10.5px;margin-top:6px">* community logfiles, illustrative</div>`;
+  if (d.type === 'spells') return `${verdict(d.verdict)}<div class="small muted">Sticky Flame 89% · Fireball 100% · Ignition 100% failure</div>${why(d.why)}`;
+}
+const stratTitle = d => level === 'info' ? { gear: 'Item comparison: broad axe of flaming', skills: 'Skills', route: 'Branches found', spells: 'Book of Fire: spell failure rates' }[d.type] : d.title;
+
+// ---------------- Variant A: Now / Plan / Character tabs ----------------
+function VariantA() {
+  const tab = tabA || (scen === 'fight' ? 'now' : 'plan');
+  const plan = `
+    <div class="card"><div class="lbl"><span>Waiting on you</span><em>2 new</em></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><span class="ty gear">gear</span> <b style="margin-left:4px">${stratTitle(GEAR)}</b>${stratBody(GEAR)}</div>
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px"><span class="ty spells">spells</span> <b style="margin-left:4px">${stratTitle(SPELLS)}</b>${stratBody(SPELLS)}</div>
+      </div></div>
+    <div class="card"><div class="lbl">Route <span class="ty route">route</span></div><b>${stratTitle(ROUTE)}</b><div style="margin-top:8px">${stratBody(ROUTE)}</div></div>
+    <div class="card"><div class="lbl">Skills <span class="ty skills">skills</span></div><b>${stratTitle(SKILLS)}</b><div style="margin-top:6px">${stratBody(SKILLS)}</div></div>`;
+  const character = `
+    <div class="card"><div class="lbl">Equipment</div>
+      ${[['Weapon', '+4 war axe', '⚑ upgrade on floor'], ['Shield', '+1 kite shield', ''], ['Body', '+2 scale mail', ''], ['Helmet', '+1 horns (innate)', ''], ['Cloak', '—', 'empty slot'], ['Amulet', '—', 'empty slot'], ['Rings', 'Str+3, —', '']].map(([k, v, u]) => `<div class="slot"><span class="k">${k}</span><span>${v}</span><span class="u">${u}</span></div>`).join('')}
+    </div>
+    <div class="card"><div class="lbl">Resistances <em>needed next</em></div><div class="small">rF+ · rC – · <span class="dn">rPois –</span> · <span class="dn">rN –</span> · <span class="dn">SInv –</span></div><div class="why muted">Snake:4 wants rPois. Vaults and Depths want SInv.</div></div>`;
+  const content = tab === 'now' ? (scen === 'fight' ? tactical() : `<div class="card muted small">Nothing tactical right now. The Advisor raises this tab by itself when danger appears.</div>`) : tab === 'plan' ? plan : character;
+  return `<div class="P ${scen}">${header()}<div style="padding:10px 14px 0">${nowPill()}</div>
+    <div class="tabs">${[['now', 'Now', scen === 'fight' ? '!' : ''], ['plan', 'Plan', '2'], ['char', 'Character', '']].map(([k, l, b]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${b ? `<span class="badge" style="${b === '!' ? 'background:#ff3b5c;color:#fff' : ''}">${b}</span>` : ''}</button>`).join('')}</div>
+    <div class="body">${content}</div>${askBar(tab === 'plan' ? 'Ask about your build… e.g. Spider or Snake first?' : 'Ask…')}</div>`;
+}
+
+// ---------------- Variant B: one feed, newest first ----------------
+function VariantB() {
+  const fight = scen === 'fight';
+  const cards = STRAT.map((d, i) => fight
+    ? `<div class="card fc folded"><div class="top"><span class="ty ${d.type}">${d.type}</span><span class="t">${d.when}</span></div><h4>${stratTitle(d)}</h4></div>`
+    : `<div class="card fc ${i < 2 ? 'new' : ''}"><div class="top"><span class="ty ${d.type}">${d.type}</span><span class="t">${d.when}</span></div><h4>${stratTitle(d)}</h4>${stratBody(d)}
+        <div class="acts">${level !== 'info' ? '<button class="pri">Why?</button>' : ''}<button>Pin</button><button>Dismiss</button></div></div>`).join('');
+  const fightCard = fight ? `<div class="card fc pinned"><div class="top"><span class="ty tactic">tactical</span><span class="t">now</span></div>${tactical().replace(/class="card"/g, 'style="margin-top:8px"')}</div>` : '';
+  const older = `<div class="card fc folded"><div class="top"><span class="ty info">info</span><span class="t">T 22,410</span></div><h4>Altar of Okawaru found on Lair:2 (already worshipping)</h4></div>`;
+  return `<div class="P ${scen}">${header()}<div class="body">${nowPill()}${fightCard}${fight ? '<div class="lbl" style="margin:4px 0 -2px">Strategy · paused during fight</div>' : ''}<div class="feed">${cards}${older}</div></div>${askBar('Ask anything…')}</div>`;
+}
+
+// ---------------- Variant C: one Moment card + persistent Run plan rail ----------------
+function VariantC() {
+  const fight = scen === 'fight';
+  const d = STRAT[momentC];
+  const moment = fight
+    ? `<div class="moment"><span class="ty tactic">tactical</span><h4>${level === 'info' ? 'Saint Roka + 5 orcs' : FIGHT.lead}</h4>${tactical().replace(/class="card"/g, 'style="margin-top:10px"')}</div>`
+    : `<div class="moment"><div style="display:flex;justify-content:space-between"><span class="ty ${d.type}">${d.type}</span><span class="muted small">${d.when}</span></div><h4>${stratTitle(d)}</h4>${stratBody(d)}
+        <div class="acts">${level !== 'info' ? '<button class="pri">Why?</button>' : ''}<button data-next>Next decision →</button></div></div>
+       <div class="card"><div class="lbl">Up next <em>${STRAT.length - 1} more</em></div><div class="queue">${STRAT.map((x, i) => i === momentC ? '' : `<button data-moment="${i}"><span class="ty ${x.type}">${x.type}</span>${stratTitle(x)}</button>`).join('')}</div></div>`;
+  const rail = `<div class="rail">
+      <div class="lbl" style="margin:0">Run plan <em>${level === 'info' ? 'facts only' : 'updated at XL 13'}</em></div>
+      <div class="r"><span>Route</span><div class="route">${ROUTE.path.slice(1, 6).map(([n, s], i) => `${i ? '<span class="ar">›</span>' : ''}<span class="st ${level === 'info' && s === 'next' ? '' : s}">${n}</span>`).join('')}</div></div>
+      <div class="r"><span>Skills</span><div class="mini">${SKILLS.rows.slice(0, 3).map(([n, c, t]) => `<span>${n} ${c.toFixed(0)}${level !== 'info' && t > c ? ` → <b>${t}</b>` : ''}</span>`).join('')}</div></div>
+      <div class="r"><span>Needs</span><div class="mini"><span class="dn">rPois</span><span class="dn">SInv</span><span>cloak</span><span>amulet</span></div></div>
+      ${level === 'coach' ? '<div class="r"><span>Goal</span><div class="mini">3 runes → Zot. Stay a pure melee Okawaru tank.</div></div>' : ''}
+    </div>`;
+  return `<div class="P ${scen}">${header()}<div class="body">${nowPill()}${moment}</div>${rail}${askBar(fight ? 'Ask…' : 'Ask about your run…')}</div>`;
+}
+
+// ---------------- switcher ----------------
+const VARIANTS = [['A', 'Tabs', 'Now / Plan / Character', VariantA], ['B', 'Feed', 'one stream, newest first', VariantB], ['C', 'Moment + Plan rail', 'one focus card, plan always pinned', VariantC]];
+const q = new URLSearchParams(location.search);
+let cur = Math.max(0, VARIANTS.findIndex(v => v[0] === (q.get('variant') || 'A').toUpperCase()));
+if (q.get('s') === 'fight') scen = 'fight';
+
+function render() {
+  const [k, n, sub, fn] = VARIANTS[cur];
+  document.getElementById('root').innerHTML = `<div class="wrap">${game(S())}${fn()}</div>`;
+  document.getElementById('switcher').innerHTML = `<button data-step="-1">←</button><div class="label">${k} (${n})<small>${sub}</small></div><button data-step="1">→</button><button class="scen" data-scen>${scen === 'calm' ? '☾ Calm' : '⚔ Fight'} · S</button>`;
+  try { history.replaceState(null, '', `?variant=${k}&s=${scen}`); } catch (e) {}
+}
+const step = d => { cur = (cur + d + VARIANTS.length) % VARIANTS.length; tabA = null; render(); };
+const flip = () => { scen = scen === 'calm' ? 'fight' : 'calm'; tabA = null; render(); };
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-step],[data-level],[data-scen],[data-tab],[data-moment],[data-next]');
+  if (!el) return;
+  if (el.dataset.step) return step(+el.dataset.step);
+  if ('scen' in el.dataset) return flip();
+  if (el.dataset.level) level = el.dataset.level;
+  if (el.dataset.tab) tabA = el.dataset.tab;
+  if (el.dataset.moment) momentC = +el.dataset.moment;
+  if ('next' in el.dataset) momentC = (momentC + 1) % STRAT.length;
+  render();
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 's' || e.key === 'S') flip();
+});
+render();
+</script>
+</body>
+</html>
