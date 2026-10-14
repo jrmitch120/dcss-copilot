@@ -27,7 +27,7 @@ What the game currently reports to the player: map in view, monsters, stats, inv
 _Avoid_: Screen, snapshot
 
 **Accumulated State**:
-What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, and what it read from screens the player opened.
+What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache
 
 **Game Knowledge**:
@@ -47,6 +47,10 @@ _Avoid_: Danger score, threat score
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
 _Avoid_: Escape (when meaning the whole list), panic button
+
+**Gap**:
+A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it.
+_Avoid_: Unknown, missing data
 
 **Candidate Action**:
 Something the player could legally do right now, such as attacking, fleeing to a staircase or using a Way Out, together with its facts from the Fact Sheet. The Advisor only ever recommends a Candidate Action.
