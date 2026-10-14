@@ -1,0 +1,455 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Answers "Visual direction: what should DCSS Copilot look like?"
+  Three structurally different directions for the Advisor window, switchable via ?variant=A|B|C
+  (or ← / → keys, or the floating bar). Each is shown in its intended window shape next to a
+  fake webtiles game. Game data is illustrative, not real DCSS numbers.
+  Open by double-clicking, or: python3 -m http.server -d prototypes/visual-direction
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · DCSS Copilot visual direction</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #07080b; color: #e6e8ee; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  #root { height: 100%; }
+
+  /* ---------- fake webtiles game (shared backdrop) ---------- */
+  .game { background: #000; color: #bbb; font: 15px/1.15 ui-monospace, Menlo, "DejaVu Sans Mono", monospace; display: grid; grid-template-columns: auto 260px; grid-template-rows: 1fr 150px; gap: 0 22px; padding: 18px 22px; height: 100%; position: relative; }
+  .game .map { white-space: pre; letter-spacing: 2px; font-size: 19px; line-height: 1.12; align-self: center; }
+  .game .stats { font-size: 13px; line-height: 1.5; white-space: pre; color: #ccc; }
+  .game .msgs { grid-column: 1 / -1; font-size: 13px; line-height: 1.45; color: #aaa; border-top: 1px solid #222; padding-top: 8px; overflow: hidden; }
+  .game .tag { position: absolute; right: 10px; bottom: 8px; font: 11px system-ui; color: #444; letter-spacing: .05em; text-transform: uppercase; }
+  .c-wall { color: #6b6b6b; } .c-floor { color: #3a3a3a; } .c-you { color: #fff; font-weight: 700; } .c-stairs { color: #e8e8e8; }
+
+  /* ---------- switcher bar (not part of the design) ---------- */
+  #switcher { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 4px; background: #fff; color: #111; border-radius: 999px; padding: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 0 2px #ff00aa; font: 600 13px system-ui; }
+  #switcher button { width: 30px; height: 30px; border-radius: 50%; font-size: 16px; color: #111; }
+  #switcher button:hover { background: #eee; }
+  #switcher .label { padding: 0 12px; min-width: 210px; text-align: center; }
+  #switcher .label small { display: block; font-weight: 400; font-size: 10px; color: #888; }
+
+  /* ================= VARIANT A — War Room ================= */
+  .A { height: 100%; background: radial-gradient(1200px 700px at 15% -10%, #2a1020 0%, transparent 60%), radial-gradient(900px 600px at 110% 110%, #0d2233 0%, transparent 60%), #0b0d13; padding: 18px 22px 70px; display: grid; grid-template-columns: 1.15fr 1fr 1fr; grid-template-rows: auto auto minmax(0,1fr) minmax(0,auto) auto; gap: 14px; font-family: "Inter", system-ui, sans-serif; }
+  .A .panel { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px 18px; backdrop-filter: blur(8px); box-shadow: 0 10px 40px rgba(0,0,0,.35); min-height: 0; }
+  .A h3 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #8a90a3; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .A .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+  .A .brand { font-weight: 700; letter-spacing: .02em; margin-right: 8px; display: flex; align-items: center; gap: 8px; }
+  .A .brand i { width: 10px; height: 10px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c; }
+  .A .chip { padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); font-size: 12.5px; color: #c9cdd8; }
+  .A .chip b { color: #fff; font-weight: 600; }
+  .A .spacer { flex: 1; }
+  .A .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 10px; padding: 3px; border: 1px solid rgba(255,255,255,.08); }
+  .A .seg button { padding: 5px 12px; border-radius: 8px; font-size: 12.5px; color: #9aa0b2; }
+  .A .seg button.on { background: #fff; color: #111; font-weight: 600; }
+  .A .alert { grid-column: 1 / -1; display: flex; gap: 14px; align-items: center; padding: 12px 18px; border-radius: 14px; background: linear-gradient(90deg, rgba(255,59,92,.22), rgba(255,59,92,.04)); border: 1px solid rgba(255,59,92,.45); }
+  .A .alert .pulse { width: 12px; height: 12px; border-radius: 50%; background: #ff3b5c; animation: pulse 1.4s infinite; flex: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,59,92,.7);} 70% { box-shadow: 0 0 0 14px rgba(255,59,92,0);} 100% { box-shadow: 0 0 0 0 rgba(255,59,92,0);} }
+  .A .alert b { font-size: 15px; } .A .alert span { color: #f0b9c3; }
+  .A .threat { display: flex; flex-direction: column; }
+  .A .gauge { display: flex; justify-content: center; margin: 2px 0 6px; position: relative; }
+  .A .gauge .val { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; }
+  .A .gauge .val b { font-size: 44px; font-weight: 800; letter-spacing: -.02em; display: block; line-height: 1; }
+  .A .gauge .val span { font-size: 12px; letter-spacing: .25em; color: #ff6b84; font-weight: 700; }
+  .A .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .A .kv div { background: rgba(0,0,0,.25); border-radius: 10px; padding: 8px 10px; }
+  .A .kv small { display: block; color: #8a90a3; font-size: 11px; }
+  .A .kv b { font-size: 18px; font-weight: 700; }
+  .A .kv b.red { color: #ff6b84; }
+  .A .hpbar { height: 8px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 12px; position: relative; }
+  .A .hpbar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #ff3b5c, #ff8a5c); border-radius: 6px; }
+  .A .hpbar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; opacity: .8; }
+  .A .hplegend { display: flex; justify-content: space-between; font-size: 11px; color: #8a90a3; margin-top: 5px; }
+  .A .monsters { grid-row: span 2; display: flex; flex-direction: column; overflow: hidden; }
+  .A .mcards { display: flex; flex-direction: column; gap: 9px; overflow: auto; }
+  .A .mcard { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 10px 12px; }
+  .A .mcard.extreme { border-color: rgba(255,59,92,.5); background: linear-gradient(90deg, rgba(255,59,92,.12), rgba(0,0,0,.25)); }
+  .A .glyph { width: 44px; height: 44px; border-radius: 10px; background: #000; display: grid; place-items: center; font: 700 24px ui-monospace, Menlo, monospace; border: 1px solid rgba(255,255,255,.1); }
+  .A .mname { font-weight: 600; } .A .mname small { color: #8a90a3; font-weight: 400; margin-left: 6px; }
+  .A .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+  .A .tags span { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: rgba(255,255,255,.07); color: #c9cdd8; }
+  .A .mdmg { text-align: right; } .A .mdmg b { display: block; font-size: 16px; } .A .mdmg small { color: #8a90a3; font-size: 11px; }
+  .A .pill { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+  .p-extreme { background: #ff3b5c; color: #fff; } .p-high { background: #ff9f43; color: #1a1000; } .p-moderate { background: #ffd166; color: #1a1400; }
+  .A .coach { display: flex; flex-direction: column; grid-row: span 2; overflow: auto; }
+  .A .advice { font-size: 15px; line-height: 1.6; color: #eef0f5; }
+  .A .advice ol { padding-left: 20px; margin-top: 8px; } .A .advice li { margin-bottom: 6px; } .A .advice li::marker { color: #ff6b84; font-weight: 700; }
+  .A .meta { font-size: 11px; color: #6f7588; margin-top: 10px; }
+  .A .ask { margin-top: auto; display: flex; gap: 8px; padding-top: 14px; }
+  .A .ask input { flex: 1; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; outline: none; }
+  .A .ask input:focus { border-color: #ff6b84; }
+  .A .ask button { background: #fff; color: #111; font-weight: 600; border-radius: 10px; padding: 0 14px; }
+  .A .opts { display: flex; flex-direction: column; gap: 6px; }
+  .A .opt { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 7px 10px; border-radius: 10px; background: rgba(0,0,0,.22); }
+  .A .opt .ic { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .A .opt.ok .ic { background: rgba(46,213,115,.18); color: #2ed573; } .A .opt.no .ic { background: rgba(255,59,92,.18); color: #ff6b84; }
+  .A .opt.no { opacity: .65; } .A .opt small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .A .run { grid-column: 1 / -1; display: flex; align-items: center; gap: 0; padding: 12px 18px; }
+  .A .run h3 { margin: 0 18px 0 0; }
+  .A .tl { display: flex; flex: 1; align-items: center; }
+  .A .tl div { flex: 1; position: relative; font-size: 11.5px; color: #9aa0b2; padding-top: 16px; }
+  .A .tl div::before { content: ""; position: absolute; top: 4px; left: 0; right: 0; height: 2px; background: rgba(255,255,255,.1); }
+  .A .tl div::after { content: ""; position: absolute; top: 0; left: 0; width: 10px; height: 10px; border-radius: 50%; background: #3d4354; }
+  .A .tl div.k::after { background: #2ed573; } .A .tl div.now::after { background: #ff3b5c; box-shadow: 0 0 10px #ff3b5c; } .A .tl div.now { color: #fff; font-weight: 600; }
+  .A .empty { color: #6f7588; font-size: 13px; border: 1px dashed rgba(255,255,255,.12); border-radius: 12px; padding: 14px; text-align: center; }
+
+  /* ================= VARIANT B — Codex (DCSS-native sidebar) ================= */
+  .Bwrap { display: grid; grid-template-columns: minmax(0,1fr) 430px; grid-template-rows: minmax(0,1fr); height: 100%; }
+  .Bwrap .game, .Cwrap .game { min-height: 0; overflow: hidden; }
+  .B { background: #050505; border-left: 3px double #5a4a32; font: 13px/1.5 ui-monospace, "SF Mono", Menlo, "DejaVu Sans Mono", monospace; color: #c0c0c0; display: flex; flex-direction: column; height: 100%; min-height: 0; padding-bottom: 60px; box-shadow: inset 12px 0 30px rgba(0,0,0,.8); }
+  .B .hdr { padding: 12px 16px 10px; border-bottom: 1px solid #2b2418; background: linear-gradient(180deg, #17120a, #050505); }
+  .B .title { color: #e0b45c; letter-spacing: .12em; font-weight: 700; display: flex; justify-content: space-between; }
+  .B .title span { color: #6b5d43; font-weight: 400; letter-spacing: 0; }
+  .B .who { color: #9a9a9a; margin-top: 2px; } .B .who b { color: #fff; font-weight: 400; }
+  .B .lvl { display: flex; gap: 0; margin-top: 8px; }
+  .B .lvl button { padding: 1px 8px; color: #6b6b6b; border: 1px solid #2b2418; }
+  .B .lvl button.on { color: #000; background: #e0b45c; border-color: #e0b45c; }
+  .B .body { flex: 1; overflow: auto; padding: 4px 16px 10px; }
+  .B .sec { color: #5f87af; margin: 12px 0 4px; white-space: pre; overflow: hidden; }
+  .B .danger { border: 1px solid #870000; background: #1a0000; padding: 8px 10px; margin-top: 10px; }
+  .B .danger .h { color: #ff5f5f; font-weight: 700; } .B .danger .bar { color: #ff5f5f; letter-spacing: -1px; }
+  .B .danger .bar span { color: #3a0000; }
+  .B .row { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; padding: 1px 0; }
+  .B .row .g { font-weight: 700; }
+  .B .row .d { color: #808080; }
+  .B .row .x-extreme { color: #ff5f5f; } .B .row .x-high { color: #ffaf5f; } .B .row .x-moderate { color: #d7d75f; }
+  .B .sub { color: #6b6b6b; padding-left: 24px; font-size: 12px; margin-bottom: 3px; }
+  .B .o { display: grid; grid-template-columns: 18px 1fr; gap: 6px; }
+  .B .o .k { color: #e0b45c; } .B .o.no, .B .o.no .k { color: #5a5a5a; text-decoration: line-through; }
+  .B .o small { color: #6b6b6b; font-size: 12px; text-decoration: none; display: inline; }
+  .B .scroll { margin-top: 10px; background: #12100a; border: 1px solid #3d3322; padding: 10px 12px; color: #d8d0bc; position: relative; }
+  .B .scroll::before { content: "?"; position: absolute; top: -9px; left: 10px; background: #050505; color: #e0b45c; padding: 0 5px; font-weight: 700; }
+  .B .scroll .say { color: #e0b45c; }
+  .B .scroll p + p { margin-top: 6px; }
+  .B .scroll .meta { color: #5a5a5a; font-size: 11px; margin-top: 6px; }
+  .B .prompt { border-top: 1px solid #2b2418; padding: 10px 16px; display: flex; gap: 8px; align-items: center; color: #e0b45c; }
+  .B .prompt input { flex: 1; background: none; border: 0; outline: none; color: #fff; caret-color: #e0b45c; }
+  .B .keys { color: #4a4a4a; font-size: 11px; padding: 0 16px 6px; }
+  .B .keys b { color: #8a7a5a; font-weight: 400; }
+
+  /* ================= VARIANT C — Whisper (minimal HUD) ================= */
+  .Cwrap { position: relative; height: 100%; }
+  .C { position: absolute; top: 18px; right: 310px; width: 380px; font-family: system-ui, sans-serif; z-index: 5; }
+  .C .hud { background: rgba(14,16,22,.94); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid rgba(255,255,255,.1); border-radius: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.6); overflow: hidden; transition: all .25s; }
+  .C .line { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; cursor: pointer; }
+  .C .ring { position: relative; width: 52px; height: 52px; flex: none; }
+  .C .ring b { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 16px; }
+  .C .say { flex: 1; font-size: 14px; line-height: 1.35; }
+  .C .say small { display: block; color: #8a90a3; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-bottom: 1px; }
+  .C .say small em { color: #ff6b84; font-style: normal; }
+  .C .chev { color: #6f7588; font-size: 12px; transition: transform .2s; }
+  .C.open .chev { transform: rotate(180deg); }
+  .C .more { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .C.open .more { max-height: 600px; }
+  .C .inner { padding: 4px 16px 14px; border-top: 1px solid rgba(255,255,255,.07); }
+  .C .lbl { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; font-weight: 600; margin: 12px 0 6px; }
+  .C .mons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .C .mon { display: flex; align-items: center; gap: 6px; padding: 4px 9px 4px 5px; border-radius: 999px; background: rgba(255,255,255,.06); font-size: 12.5px; }
+  .C .mon i { font: 700 13px ui-monospace, Menlo, monospace; background: #000; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; }
+  .C .mon.extreme { background: rgba(255,59,92,.18); box-shadow: inset 0 0 0 1px rgba(255,59,92,.5); }
+  .C .steps { counter-reset: s; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+  .C .steps div { counter-increment: s; display: flex; gap: 10px; }
+  .C .steps div::before { content: counter(s); width: 20px; height: 20px; border-radius: 50%; background: #ff3b5c; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; flex: none; margin-top: 1px; }
+  .C .nums { display: flex; gap: 6px; }
+  .C .nums div { flex: 1; background: rgba(0,0,0,.3); border-radius: 10px; padding: 6px 8px; font-size: 11px; color: #8a90a3; }
+  .C .nums b { display: block; color: #fff; font-size: 15px; }
+  .C .ask { margin-top: 12px; display: flex; background: rgba(0,0,0,.35); border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
+  .C .ask input { flex: 1; background: none; border: 0; outline: none; padding: 9px 12px; }
+  .C .ask kbd { align-self: center; margin-right: 8px; font: 11px ui-monospace, monospace; color: #6f7588; border: 1px solid #333; border-radius: 4px; padding: 0 4px; }
+  .C .lvl { display: flex; gap: 4px; margin-top: 12px; font-size: 11.5px; }
+  .C .lvl button { flex: 1; padding: 4px; border-radius: 8px; color: #8a90a3; background: rgba(255,255,255,.04); }
+  .C .lvl button.on { background: rgba(255,255,255,.14); color: #fff; }
+  .C .toast { margin-top: 10px; background: linear-gradient(90deg, #e8264a, #a3134d); border-radius: 16px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(255,59,92,.35); animation: drop .5s cubic-bezier(.2,1.4,.4,1) both; display: flex; gap: 10px; align-items: flex-start; }
+  .C .toast b { display: block; } .C .toast button { margin-left: auto; opacity: .7; }
+  @keyframes drop { from { transform: translateY(-14px); opacity: 0; } }
+  .C .hint { text-align: right; font-size: 11px; color: #555; margin-top: 6px; }
+  .C .ok { color: #2ed573; } .C .no { color: #ff6b84; text-decoration: line-through; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="switcher"></div>
+
+<script>
+// ---------------- illustrative Game Situation: a dangerous mid-game fight ----------------
+const S = {
+  char: { name: 'Kesh', combo: 'Minotaur Fighter', abbr: 'MiFi', xl: 13, hp: 47, mhp: 126, mp: 6, mmp: 9, ac: 24, ev: 8, sh: 18, str: 24, int: 8, dex: 13, god: 'Okawaru', piety: '****', place: 'Orcish Mines 2', short: 'Orc:2', turn: '24,817', weapon: '+4 war axe' },
+  threat: { score: 87, label: 'LETHAL', exp: 31, worst: 58, pdeath: '9%', ttl: '1–2' },
+  monsters: [
+    { g: 'o', col: '#ff5fd7', name: 'Saint Roka', unique: true, n: 1, dist: 2, hp: 'unhurt', dmg: '12–40', tags: ['Battlecry', 'Unique', 'Heavy armour'], t: 'extreme', note: 'Battlecry: nearby orcs hit harder' },
+    { g: 'o', col: '#5fd75f', name: 'orc high priest', n: 1, dist: 3, hp: 'unhurt', dmg: '7–17', tags: ['Smiting', 'Summons demons', 'Heals allies'], t: 'high', note: 'Smiting ignores AC' },
+    { g: 'o', col: '#5fd7ff', name: 'orc knight', n: 1, dist: 1, hp: 'lightly wounded', dmg: '8–30', tags: ['Heavy armour'], t: 'high', note: 'Adjacent' },
+    { g: 'o', col: '#ffd75f', name: 'orc warrior', n: 3, dist: '4–6', hp: 'unhurt', dmg: '5–20', tags: ['Melee'], t: 'moderate', note: 'Two are between you and the stairs' },
+  ],
+  options: [
+    { k: 'move', name: 'Corridor 3 tiles east', ok: true, d: 'Only one orc can reach you at a time' },
+    { k: 'q', name: 'Potion of haste ×1', ok: true, d: 'Double speed ~20 turns' },
+    { k: 'r', name: 'Scroll of teleportation ×2', ok: true, d: 'Kicks in after 3–5 turns, random spot' },
+    { k: 'q', name: 'Potion of heal wounds ×2', ok: true, d: 'About +35 HP each' },
+    { k: 'a', name: 'Okawaru: Heroism', ok: true, d: 'Boosts combat skills · costs piety' },
+    { k: 'r', name: 'Scroll of blinking ×1', ok: true, d: 'Short controlled hop' },
+    { k: '<', name: 'Upstairs, 9 tiles NW', ok: false, d: '2 orc warriors in the way' },
+  ],
+  alert: { title: 'Saint Roka and his warband', body: '6 orcs including a unique. The most dangerous fight of this run so far.' },
+  advice: {
+    headline: 'Get to the corridor east, then haste.',
+    steps: [
+      'Step 3 tiles east into the corridor so only one orc can reach you at a time.',
+      'Quaff haste there. Saint Roka’s Battlecry makes the warband hit much harder, so you need the extra actions.',
+      'Kill the high priest first if it comes into reach. Its smiting ignores your AC 24.',
+      'If HP falls below 35, read teleportation (you have 2) and leave this fight.',
+    ],
+    hint: 'Your position is the problem, not your gear. Check the map to your east.',
+    meta: 'claude-haiku · 1.1 s · $0.0006 · this game $0.31',
+  },
+  run: [
+    { t: 'D:1–9', k: 1 }, { t: 'Okawaru joined', k: 1 }, { t: 'Lair cleared', k: 1 }, { t: 'Sigmund killed', k: 1 },
+    { t: 'Grinder killed', k: 1 }, { t: 'Orc:1 explored', k: 1 }, { t: 'Orc:2 · now', now: 1 }, { t: 'Vaults / Snake?', k: 0 },
+  ],
+  messages: [
+    'You hear the shouts of battle.',
+    '<span style="color:#ff5fd7">Saint Roka</span> comes into view. Saint Roka shouts a battlecry!',
+    'The orc warriors seem to be filled with rage!',
+    '<span style="color:#5fd7ff">The orc knight</span> hits you with a broad axe! <span style="color:#ff5f5f">(17)</span>',
+    'You hit the orc knight.',
+    '<span style="color:#5fd75f">The orc high priest</span> calls down the wrath of Beogh upon you! <span style="color:#ff5f5f">(13)</span>',
+  ],
+};
+
+const MAP = [
+  '###############################',
+  '#.......#######################',
+  '#..<....#######################',
+  '#.......#....w.......##########',
+  '####.####.........R..##########',
+  '####.####...w....K.w.##########',
+  '####.####.........@............',
+  '####.................##########',
+  '#########.......P....##########',
+  '#########............##########',
+  '###############################',
+];
+const GLYPH = { R: ['o', '#ff5fd7'], P: ['o', '#5fd75f'], K: ['o', '#5fd7ff'], w: ['o', '#ffd75f'] };
+
+let level = 'coach';    // assistance level: info | hints | coach
+let cOpen = false;      // variant C expanded?
+let cToast = true;
+
+// ---------------- shared pieces ----------------
+function gameHTML() {
+  const map = MAP.map(r => [...r].map(ch => {
+    if (GLYPH[ch]) return `<span style="color:${GLYPH[ch][1]};font-weight:700">${GLYPH[ch][0]}</span>`;
+    if (ch === '@') return '<span class="c-you">@</span>';
+    if (ch === '<') return '<span class="c-stairs">&lt;</span>';
+    if (ch === '#') return '<span class="c-wall">#</span>';
+    return '<span class="c-floor">.</span>';
+  }).join('')).join('\n');
+  const c = S.char;
+  const hpCol = c.hp / c.mhp < .4 ? '#ff5f5f' : '#5fd75f';
+  const stats =
+`<span style="color:#ffd75f">${c.name} the Skirmisher</span>
+${c.combo}
+<span style="color:#ffd75f">Okawaru</span> ${c.piety}
+
+HP: <span style="color:${hpCol}">${c.hp}</span>/${c.mhp}  <span style="color:${hpCol}">${'='.repeat(6)}</span><span style="color:#400">${'-'.repeat(10)}</span>
+MP: ${c.mp}/${c.mmp}
+AC: ${c.ac}   Str: ${c.str}
+EV: ${c.ev}    Int: ${c.int}
+SH: ${c.sh}   Dex: ${c.dex}
+XL: ${c.xl}   Place: ${c.short}
+Turn: ${c.turn}
+a) ${c.weapon}`;
+  return `<div class="game"><div class="map">${map}</div><div class="stats">${stats}</div>
+    <div class="msgs">${S.messages.map(m => `<div>${m}</div>`).join('')}</div>
+    <div class="tag">webtiles · browser (fake)</div></div>`;
+}
+
+function arcGauge(score, size = 220) {
+  const r = size / 2 - 14, cx = size / 2, cy = size / 2;
+  const len = Math.PI * r, f = score / 100;
+  return `<svg width="${size}" height="${size / 2 + 12}" viewBox="0 0 ${size} ${size / 2 + 12}">
+    <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#ffd166"/><stop offset=".55" stop-color="#ff8a5c"/><stop offset="1" stop-color="#ff3b5c"/></linearGradient></defs>
+    <path d="M14 ${cy} A ${r} ${r} 0 0 1 ${size - 14} ${cy}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="14" stroke-linecap="round"/>
+    <path d="M14 ${cy} A ${r} ${r} 0 0 1 ${size - 14} ${cy}" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${len * f} ${len}" style="filter:drop-shadow(0 0 8px rgba(255,59,92,.6))"/>
+  </svg>`;
+}
+
+function ring(score, size = 52) {
+  const r = size / 2 - 5, c = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#ff3b5c" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c * score / 100} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})" style="filter:drop-shadow(0 0 6px #ff3b5c)"/></svg>`;
+}
+
+const LEVELS = [['info', 'Info only'], ['hints', 'Hints'], ['coach', 'Full coach']];
+const levelButtons = () => LEVELS.map(([k, l]) => `<button data-level="${k}" class="${level === k ? 'on' : ''}">${l}</button>`).join('');
+
+// ---------------- Variant A: War Room — wide dashboard, second monitor ----------------
+function VariantA() {
+  const c = S.char, t = S.threat;
+  const coach = level === 'info'
+    ? `<div class="empty">Info only: no advice is generated. Everything else on this screen is computed locally, with no LLM.</div>`
+    : level === 'hints'
+      ? `<div class="advice">${S.advice.hint}</div><div class="meta">${S.advice.meta}</div>`
+      : `<div class="advice"><b>${S.advice.headline}</b><ol>${S.advice.steps.map(s => `<li>${s}</li>`).join('')}</ol></div><div class="meta">${S.advice.meta}</div>`;
+  return `<div class="A">
+    <div class="top">
+      <div class="brand"><i></i>DCSS Copilot</div>
+      <div class="chip"><b>${c.name}</b> · ${c.abbr} XL ${c.xl}</div>
+      <div class="chip">${c.place}</div>
+      <div class="chip">Turn <b>${c.turn}</b></div>
+      <div class="chip">${c.god} ${c.piety}</div>
+      <div class="spacer"></div>
+      <div class="seg">${levelButtons()}</div>
+    </div>
+    <div class="alert"><div class="pulse"></div><b>${S.alert.title}</b><span>${S.alert.body}</span></div>
+
+    <div class="panel threat">
+      <h3>Threat <span>deterministic</span></h3>
+      <div class="gauge">${arcGauge(t.score)}<div class="val"><b>${t.score}</b><span>${t.label}</span></div></div>
+      <div class="hpbar"><i style="width:${c.hp / c.mhp * 100}%"></i><em style="left:${t.exp / c.mhp * 100}%"></em></div>
+      <div class="hplegend"><span>HP ${c.hp}/${c.mhp}</span><span>| expected hit next turn</span></div>
+      <div class="kv">
+        <div><small>Expected dmg / turn</small><b>${t.exp}</b></div>
+        <div><small>Worst case / turn</small><b class="red">${t.worst}</b></div>
+        <div><small>Chance of death next turn</small><b class="red">${t.pdeath}</b></div>
+        <div><small>Turns to live if you stay</small><b>${t.ttl}</b></div>
+      </div>
+    </div>
+
+    <div class="panel monsters">
+      <h3>In view · ${S.monsters.reduce((a, m) => a + m.n, 0)} hostiles</h3>
+      <div class="mcards">${S.monsters.map(m => `
+        <div class="mcard ${m.t}">
+          <div class="glyph" style="color:${m.col}">${m.g}</div>
+          <div><div class="mname">${m.n > 1 ? m.n + '× ' : ''}${m.name}<small>${m.hp} · ${m.dist} away</small></div>
+            <div class="tags"><span class="pill p-${m.t}">${m.t}</span>${m.tags.map(x => `<span>${x}</span>`).join('')}</div></div>
+          <div class="mdmg"><b>${m.dmg}</b><small>dmg / hit</small></div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel coach">
+      <h3>Coach <span>${level === 'info' ? 'off' : 'LLM'}</span></h3>
+      ${coach}
+      <h3 style="margin-top:18px">Your options</h3>
+      <div class="opts">${S.options.map(o => `<div class="opt ${o.ok ? 'ok' : 'no'}"><div class="ic">${o.ok ? '✓' : '✕'}</div><div>${o.name}<small>${o.d}</small></div></div>`).join('')}</div>
+      ${level === 'info' ? '' : `<div class="ask"><input placeholder="Ask anything… e.g. should I use Heroism now?"><button>Ask</button></div>`}
+    </div>
+
+    <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+      <h3>Character</h3>
+      <div class="kv" style="margin:0">
+        <div><small>AC / EV / SH</small><b>${c.ac} / ${c.ev} / ${c.sh}</b></div>
+        <div><small>Str / Int / Dex</small><b>${c.str} / ${c.int} / ${c.dex}</b></div>
+        <div><small>Weapon</small><b style="font-size:14px">${c.weapon}</b></div>
+        <div><small>MP</small><b>${c.mp}/${c.mmp}</b></div>
+      </div>
+    </div>
+
+    <div class="panel run"><h3>This run</h3><div class="tl">${S.run.map(r => `<div class="${r.now ? 'now' : r.k ? 'k' : ''}">${r.t}</div>`).join('')}</div></div>
+  </div>`;
+}
+
+// ---------------- Variant B: Codex — narrow DCSS-native sidebar next to the browser ----------------
+function VariantB() {
+  const c = S.char, t = S.threat;
+  const filled = Math.round(t.score / 5);
+  const advice = level === 'info' ? '' : `
+    <div class="sec">─── Counsel ──────────────────────────</div>
+    <div class="scroll">${level === 'hints'
+      ? `<p><span class="say">Hint:</span> ${S.advice.hint}</p>`
+      : `<p class="say">${S.advice.headline}</p>${S.advice.steps.map((s, i) => `<p>${i + 1}. ${s}</p>`).join('')}`}
+      <div class="meta">${S.advice.meta}</div></div>`;
+  return `<div class="Bwrap">${gameHTML()}<div class="B">
+    <div class="hdr">
+      <div class="title">DCSS COPILOT <span>${c.short} · T${c.turn}</span></div>
+      <div class="who"><b>${c.name}</b> the ${c.combo}, XL ${c.xl}, of ${c.god}</div>
+      <div class="lvl">${levelButtons()}</div>
+    </div>
+    <div class="body">
+      <div class="danger">
+        <div class="h">!! ${S.alert.title} !!</div>
+        <div>${S.alert.body}</div>
+        <div style="margin-top:6px">Threat <span class="bar">${'█'.repeat(filled)}<span>${'█'.repeat(20 - filled)}</span></span> ${t.label}</div>
+        <div class="d" style="color:#aa6a6a">Expected ${t.exp}/turn · worst ${t.worst} · death next turn ${t.pdeath}</div>
+      </div>
+      <div class="sec">─── Monsters in view ─────────────────</div>
+      ${S.monsters.map(m => `
+        <div class="row"><span class="g" style="color:${m.col}">${m.g}</span><span>${m.n > 1 ? m.n + ' ' + m.name + 's' : m.name}</span><span class="x-${m.t}">${m.t === 'extreme' ? 'extremely dangerous' : m.t === 'high' ? 'very dangerous' : 'dangerous'}</span></div>
+        <div class="sub">${m.dmg} per hit · ${m.hp} · ${m.note}</div>`).join('')}
+      <div class="sec">─── Ways out ──────────────────────────</div>
+      ${S.options.map(o => `<div class="o ${o.ok ? '' : 'no'}"><span class="k">${o.k === 'move' ? '→' : o.k}</span><span>${o.name} <small>· ${o.d}</small></span></div>`).join('')}
+      ${advice}
+      <div class="sec">─── This run ─────────────────────────</div>
+      <div style="color:#808080">${S.run.filter(r => r.k || r.now).map(r => r.now ? `<span style="color:#fff">${r.t}</span>` : r.t).join(' · ')}</div>
+    </div>
+    ${level === 'info' ? '' : `<div class="prompt">Ask&gt; <input placeholder="what kills me here?"></div>`}
+    <div class="keys"><b>Alt-A</b> ask · <b>Alt-1/2/3</b> assistance · <b>Alt-M</b> monster detail</div>
+  </div></div>`;
+}
+
+// ---------------- Variant C: Whisper — tiny always-on-top HUD over the game ----------------
+function VariantC() {
+  const t = S.threat;
+  const line = level === 'info' ? `${S.monsters.reduce((a, m) => a + m.n, 0)} hostiles · expected ${t.exp} dmg/turn · worst ${t.worst}`
+    : level === 'hints' ? S.advice.hint : S.advice.headline;
+  return `<div class="Cwrap">${gameHTML()}
+  <div class="C ${cOpen ? 'open' : ''}">
+    <div class="hud">
+      <div class="line" data-toggle>
+        <div class="ring">${ring(t.score)}<b>${t.score}</b></div>
+        <div class="say"><small><em>${t.label}</em> · death next turn ${t.pdeath}</small>${line}</div>
+        <div class="chev">▼</div>
+      </div>
+      <div class="more"><div class="inner">
+        <div class="nums"><div><b>${t.exp}</b>expected/turn</div><div><b style="color:#ff6b84">${t.worst}</b>worst/turn</div><div><b>${S.char.hp}</b>HP left</div></div>
+        <div class="lbl">Threats</div>
+        <div class="mons">${S.monsters.map(m => `<div class="mon ${m.t}"><i style="color:${m.col}">${m.g}</i>${m.n > 1 ? m.n + '× ' : ''}${m.name}</div>`).join('')}</div>
+        ${level === 'coach' ? `<div class="lbl">Plan</div><div class="steps">${S.advice.steps.map(s => `<div>${s}</div>`).join('')}</div>` : ''}
+        <div class="lbl">Ready</div>
+        <div style="font-size:12.5px;line-height:1.7">${S.options.map(o => `<span class="${o.ok ? 'ok' : 'no'}">●</span> ${o.name}`).join('<br>')}</div>
+        ${level === 'info' ? '' : `<div class="ask"><input placeholder="Ask…"><kbd>⌥ Space</kbd></div>`}
+        <div class="lvl">${levelButtons()}</div>
+      </div></div>
+    </div>
+    ${cToast ? `<div class="toast"><span>⚠</span><div><b>${S.alert.title}</b>${S.alert.body}</div><button data-dismiss>✕</button></div>` : ''}
+    <div class="hint">click the pill to ${cOpen ? 'collapse' : 'expand'}</div>
+  </div></div>`;
+}
+
+// ---------------- switcher ----------------
+const VARIANTS = [['A', 'War Room', 'wide dashboard · second monitor', VariantA], ['B', 'Codex', 'DCSS-native sidebar beside the game', VariantB], ['C', 'Whisper', 'minimal HUD floating over the game', VariantC]];
+const params = new URLSearchParams(location.search);
+let cur = Math.max(0, VARIANTS.findIndex(v => v[0] === (params.get('variant') || 'A').toUpperCase()));
+
+function render() {
+  const [key, name, sub, fn] = VARIANTS[cur];
+  document.getElementById('root').innerHTML = fn();
+  document.getElementById('switcher').innerHTML = `<button data-step="-1">←</button><div class="label">${key} (${name})<small>${sub}</small></div><button data-step="1">→</button>`;
+  try { history.replaceState(null, '', '?variant=' + key); } catch (e) {}
+}
+function step(d) { cur = (cur + d + VARIANTS.length) % VARIANTS.length; render(); }
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-step],[data-level],[data-toggle],[data-dismiss]');
+  if (!el) return;
+  if (el.dataset.step) step(+el.dataset.step);
+  else if (el.dataset.level) level = el.dataset.level;
+  else if ('toggle' in el.dataset) cOpen = !cOpen;
+  else if ('dismiss' in el.dataset) cToast = false;
+  render();
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+});
+render();
+</script>
+</body>
+</html>
