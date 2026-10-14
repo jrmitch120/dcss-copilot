@@ -46,6 +46,10 @@ _Avoid_: Trigger, event (when meaning this)
 The Advisor's current plan for one game: intended route, skill targets, outstanding needs and overall goal. The Advisor keeps it updated and the player can steer it.
 _Avoid_: Build, strategy (when meaning this artifact)
 
+**Great Find**:
+An item, spell or upgrade that is exceptionally valuable to this particular game, judged against its Run Plan rather than general rarity. Tiered as Nice, Great or Run-changing. Ones seen but not yet obtained (on the floor, in a shop) are Spotted.
+_Avoid_: Loot alert, rare drop
+
 **Information**:
 Factual lookups the player asks for or that are surfaced alongside play, such as monster details or a resistance breakdown. Not a recommendation.
 _Avoid_: Advice (when no recommendation is made)
