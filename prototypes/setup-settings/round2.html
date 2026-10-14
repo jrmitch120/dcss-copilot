@@ -216,7 +216,7 @@ const CONN_NAMES = {
 
 const P = new URLSearchParams(location.search);
 const S = {
-  v: VARIANTS[P.get('v')] ? P.get('v') : 'A',
+  v: VARIANTS[P.get('v')] ? P.get('v') : 'B',
   s: SCREENS.includes(P.get('s')) ? P.get('s') : 'onboard',
   c: CONN.includes(P.get('c')) ? P.get('c') : 'noext',
   step: 0, os: 'mac', provider: 'anthropic', key: '', keyState: 'empty', keychain: true, unenc: false,
