@@ -1,0 +1,19 @@
+DCSS Copilot
+Copyright (c) 2026 Jeff Mitchell
+
+Licensed under the GNU General Public License, version 3 or (at your option)
+any later version. See LICENSE.
+
+Source: https://github.com/jrmitch120/dcss-copilot
+
+This product includes material from Dungeon Crawl Stone Soup
+(https://github.com/crawl/crawl), copyright the DCSS devteam and contributors,
+licensed under the GNU General Public License, version 2 or later:
+
+  - Game Knowledge extracted from crawl source (monster, spell, item, god and
+    species data, and description text). Each Game Knowledge bundle records
+    the crawl tag or commit it was extracted from.
+  - Combat, spell and related formulas ported from crawl source.
+
+DCSS tile art, where used, is from crawl's rltiles. It is mostly CC0; any
+tiles under other licenses are credited individually.
