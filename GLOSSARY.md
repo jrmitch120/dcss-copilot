@@ -79,3 +79,21 @@ _Avoid_: Loot alert, rare drop
 **Information**:
 Factual lookups the player asks for or that are surfaced alongside play, such as monster details or a resistance breakdown. Not a recommendation.
 _Avoid_: Advice (when no recommendation is made)
+
+### Cost
+
+**Quick Model**:
+The model the player has chosen for everyday advice: Alerts, Decision Point nudges, Coach advice and ordinary questions.
+_Avoid_: Fast model, default model, cheap model
+
+**Deep Model**:
+The model the player has chosen for questions they explicitly ask the Advisor to think harder about.
+_Avoid_: Smart model, big model
+
+**Game Budget**:
+The most the player is willing to spend on LLM advice in one game. The player can top it up during a run.
+_Avoid_: Run budget, quota, cap
+
+**Step Down**:
+What the Advisor does when the Game Budget runs out: it drops to a lower assistance level rather than going quiet.
+_Avoid_: Throttle, cut off
