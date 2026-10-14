@@ -1,0 +1,537 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. "In-game secondary surfaces" (wayfinder ticket #21), round 1.
+  Builds on round3.html (prototype/visual-direction) and round2.html (prototype/setup-settings).
+  Six scenarios, each with its own variants (structurally different) and states:
+    S  cycles scenario:  join · gaps · ask · pill · modes · spectate
+    ← / →  cycles the scenario's variants (?variant=)
+    C  cycles the scenario's states (what happens next)
+    G  toggles monsters/items as Tiles or Glyphs (the setting from Setup and settings)
+  Tiles are real crawl tiles (RLTiles, public domain; see tiles/license.txt). Game data is illustrative.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE · DCSS Copilot · in-game secondary surfaces</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #000; color: #e6e8ee; font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  a { color: #74b9ff; text-decoration: none; cursor: pointer; }
+  .wrap { display: grid; grid-template-columns: minmax(0,1fr) 450px; grid-template-rows: minmax(0,1fr); height: 100%; }
+  .wrap.solo { grid-template-columns: minmax(0,1fr); }
+  img.t { image-rendering: pixelated; vertical-align: middle; }
+
+  /* fake webtiles game */
+  .game { background: #000; color: #bbb; padding: 34px 20px 20px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; position: relative; }
+  .game .tag { position: absolute; left: 20px; top: 10px; font: 11px system-ui; color: #555; letter-spacing: .05em; text-transform: uppercase; }
+  .game .map { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .grid { display: grid; gap: 0; }
+  .grid div { width: 26px; height: 26px; position: relative; }
+  .grid div img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .grid.glyph div { font: 700 18px/26px ui-monospace, Menlo, monospace; text-align: center; }
+  .game .msgs { font: 13px/1.45 ui-monospace, Menlo, monospace; color: #aaa; border-top: 1px solid #222; padding: 8px 0 54px; }
+  .game .scroller { position: absolute; inset: 40px 40px 70px; background: #0b0b0b; border: 1px solid #333; font: 12px/1.4 ui-monospace, Menlo, monospace; color: #ccc; padding: 16px; white-space: pre; overflow: hidden; }
+
+  /* panel */
+  .P { height: 100%; min-height: 0; display: flex; flex-direction: column; background: radial-gradient(600px 400px at 100% 0%, #10182a 0%, transparent 60%), #0c0e14; border-left: 1px solid rgba(255,255,255,.08); position: relative; }
+  .P.lethal { background: radial-gradient(600px 400px at 100% 0%, #2a0d16 0%, transparent 60%), #0c0e14; }
+  .P.spec { background: radial-gradient(600px 400px at 100% 0%, #1a1530 0%, transparent 60%), #0c0e14; }
+  .hd { padding: 11px 14px 9px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid rgba(255,255,255,.06); position: relative; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ed573; box-shadow: 0 0 8px #2ed573; flex: none; }
+  .dot.r { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; } .dot.y { background: #ffd166; box-shadow: 0 0 8px #ffd166; } .dot.v { background: #a29bfe; box-shadow: 0 0 8px #a29bfe; }
+  .who { font-size: 12.5px; color: #9aa0b2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .who b { color: #fff; }
+  .sp { flex: 1; }
+  .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 8px; padding: 2px; flex: none; }
+  .seg button { padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #8a90a3; }
+  .seg button.on { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .seg button.off { opacity: .35; cursor: not-allowed; }
+  .seg button.was { text-decoration: line-through; color: #ffd166; }
+  .ic { width: 24px; height: 24px; border-radius: 6px; color: #8a90a3; flex: none; } .ic:hover { background: rgba(255,255,255,.07); }
+  .tagx { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.07); color: #c9cdd8; white-space: nowrap; flex: none; }
+  .tagx.gold { background: rgba(255,209,102,.16); color: #ffd166; }
+  .tagx.red { background: rgba(255,59,92,.16); color: #ff8a9e; }
+  .tagx.vio { background: rgba(162,155,254,.18); color: #c3bdff; }
+  .tagx.amber { background: rgba(255,159,67,.18); color: #ffb26b; }
+  .tagx.blink { animation: breathe 1.6s infinite; }
+  .body { flex: 1; overflow: auto; padding: 12px 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
+  .card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 12px 14px; }
+  .card.warn { border-color: rgba(255,209,102,.4); background: linear-gradient(180deg, rgba(255,209,102,.09), rgba(255,255,255,.02)); }
+  .card.vio { border-color: rgba(162,155,254,.45); background: linear-gradient(180deg, rgba(162,155,254,.1), rgba(255,255,255,.02)); }
+  .card.red { border-color: rgba(255,59,92,.45); background: linear-gradient(180deg, rgba(255,59,92,.12), rgba(255,255,255,.02)); }
+  .lbl { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #6f7588; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .lbl em { font-style: normal; letter-spacing: .05em; text-transform: none; color: #555b6c; font-weight: 400; }
+  .muted { color: #8a90a3; } .small { font-size: 12px; } .tiny { font-size: 11px; }
+  .ok { color: #2ed573; } .no { color: #ff6b84; } .am { color: #ffb26b; }
+  kbd { font: 600 11.5px ui-monospace, Menlo, monospace; background: #f1f1f1; color: #111; border-radius: 5px; padding: 1px 6px; box-shadow: 0 2px 0 #888; margin: 0 1px; }
+  .acts { display: flex; gap: 6px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { font-size: 11.5px; padding: 3px 9px; border-radius: 7px; background: rgba(255,255,255,.07); color: #c9cdd8; white-space: nowrap; }
+  .btn.pri { background: rgba(255,255,255,.9); color: #111; font-weight: 600; }
+  .btn.link { background: none; color: #74b9ff; padding: 3px 2px; }
+  .ghost { opacity: .35; filter: saturate(.3); pointer-events: none; }
+
+  .now { display: flex; align-items: center; gap: 12px; border-radius: 16px; padding: 10px 14px; background: rgba(46,213,115,.08); border: 1px solid rgba(46,213,115,.25); }
+  .now .lab { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #2ed573; flex: none; }
+  .now .line { font-size: 14px; flex: 1; } .now .line small { display: block; color: #8a90a3; font-size: 11.5px; }
+  .now.lethal { background: linear-gradient(90deg, rgba(255,59,92,.22), rgba(255,59,92,.05)); border-color: rgba(255,59,92,.5); } .now.lethal .lab { color: #ff3b5c; }
+  .now.unk { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); } .now.unk .lab { color: #9aa0b2; }
+
+  .moment { border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); }
+  .moment.lethal { background: linear-gradient(180deg, rgba(255,59,92,.12), rgba(255,255,255,.02)); border-color: rgba(255,59,92,.45); }
+  .moment h4 { font-size: 15px; margin: 6px 0 4px; }
+  .ty { font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; }
+  .ty.tactic { background: rgba(255,59,92,.2); color: #ff6b84; } .ty.route { background: rgba(162,155,254,.18); color: #a29bfe; } .ty.gear { background: rgba(255,209,102,.15); color: #ffd166; }
+  .mons { display: flex; flex-direction: column; gap: 5px; }
+  .mon { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; font-size: 12.5px; align-items: center; }
+  .mon .g { font: 700 16px ui-monospace, Menlo, monospace; text-align: center; }
+  .opt { font-size: 12.5px; line-height: 1.7; }
+  .steps { padding-left: 18px; font-size: 13px; } .steps li { margin-bottom: 3px; } .steps li::marker { color: #ff6b84; font-weight: 700; }
+  .rule { font-size: 12.5px; background: rgba(0,0,0,.3); border-radius: 8px; padding: 6px 9px; margin-top: 8px; }
+
+  /* rail */
+  .rail { border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.35); padding: 9px 14px 10px; display: flex; flex-direction: column; gap: 5px; }
+  .rail .r { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: center; font-size: 12px; }
+  .rail .r > span:first-child { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #6f7588; font-weight: 600; }
+  .mini { display: flex; gap: 10px; flex-wrap: wrap; color: #c9cdd8; } .mini b { color: #74b9ff; font-weight: 600; }
+  .route { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
+  .route .st { padding: 2px 7px; border-radius: 7px; background: rgba(255,255,255,.06); } .route .st.done { color: #6f7588; text-decoration: line-through; background: none; } .route .st.next { background: #a29bfe; color: #111; font-weight: 700; }
+  .route .ar { color: #555b6c; }
+  .unk { color: #9aa0b2; border-bottom: 1px dotted #9aa0b2; cursor: help; }
+  .stale { color: #ffb26b; border-bottom: 1px dotted #ffb26b; cursor: help; }
+  .hl .unk, .hl .stale { background: rgba(255,178,107,.15); border-radius: 4px; padding: 0 3px; outline: 1px solid rgba(255,178,107,.4); }
+
+  /* footer / ask */
+  .ft { display: flex; gap: 6px; align-items: center; padding: 8px 14px 12px; border-top: 1px solid rgba(255,255,255,.06); }
+  .ft input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 7px 10px; outline: none; font-size: 13px; }
+  .ft input.deep { border-color: rgba(162,155,254,.7); box-shadow: 0 0 0 3px rgba(162,155,254,.15); }
+  .deepbtn { font-size: 11px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: #9aa0b2; white-space: nowrap; }
+  .deepbtn.on { background: rgba(162,155,254,.25); color: #d6d2ff; }
+  .meter { font-size: 11px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: #9aa0b2; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .meter.warn { background: rgba(255,159,67,.18); color: #ffb26b; }
+  .meter.off { color: #ff8a9e; background: rgba(255,59,92,.12); }
+
+  /* conversation */
+  .thread { display: flex; flex-direction: column; gap: 10px; }
+  .q { align-self: flex-end; max-width: 85%; background: rgba(116,185,255,.14); border: 1px solid rgba(116,185,255,.25); border-radius: 14px 14px 4px 14px; padding: 7px 11px; font-size: 13px; }
+  .q small { display: block; font-size: 10.5px; color: #8fb8e6; margin-top: 2px; }
+  .a { max-width: 95%; font-size: 13px; color: #dfe2ea; }
+  .a .meta { font-size: 10.5px; color: #6f7588; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .a .meta b { color: #a29bfe; font-weight: 600; }
+  .tools { font-size: 11.5px; color: #8a90a3; border-left: 2px solid rgba(255,255,255,.1); padding: 2px 0 2px 8px; margin: 4px 0 6px; display: grid; gap: 2px; }
+  .notice { font-size: 11.5px; border-radius: 8px; padding: 5px 8px; margin-top: 6px; }
+  .notice.cut { background: rgba(255,159,67,.12); color: #ffb26b; }
+  .notice.rm { background: rgba(255,255,255,.05); color: #9aa0b2; }
+  .spin { display: inline-block; width: 10px; height: 10px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: rot .8s linear infinite; vertical-align: -1px; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+  @keyframes breathe { 50% { opacity: .4; } }
+  @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
+  .rise { animation: rise .35s ease-out both; }
+  .drawer { position: absolute; left: 0; right: 0; bottom: 0; top: 64px; background: #10131b; border-top: 1px solid rgba(255,255,255,.12); border-radius: 16px 16px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,.6); display: flex; flex-direction: column; animation: rise .3s ease-out both; z-index: 5; }
+  .drawer .dh { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 12px; color: #9aa0b2; }
+  .drawer .db { flex: 1; overflow: auto; padding: 12px 14px; }
+  .tabs { display: flex; gap: 2px; }
+  .tabs button { font-size: 12px; padding: 4px 10px; border-radius: 7px; color: #8a90a3; } .tabs button.on { background: rgba(255,255,255,.1); color: #fff; }
+  .strip { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; background: rgba(46,213,115,.07); border-bottom: 1px solid rgba(255,255,255,.06); }
+  .strip.lethal { background: rgba(255,59,92,.25); color: #fff; }
+
+  /* popover */
+  .pop { position: absolute; top: calc(100% + 4px); right: 14px; width: 330px; z-index: 20; background: #161922; border: 1px solid rgba(255,255,255,.14); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.6); padding: 10px; display: grid; gap: 8px; }
+  .gaprow { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12.5px; }
+  .gaprow small { grid-column: 1; color: #8a90a3; font-size: 11.5px; }
+  .gaprow .k { grid-row: 1 / 3; grid-column: 2; align-self: center; }
+
+  /* collapsed pill (over the game) */
+  .floaty { position: absolute; right: 18px; bottom: 70px; z-index: 30; }
+  .pillA { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 12px; border-radius: 999px; background: rgba(16,19,27,.92); border: 1px solid rgba(46,213,115,.4); box-shadow: 0 10px 30px rgba(0,0,0,.6); backdrop-filter: blur(8px); font-size: 13px; max-width: 420px; cursor: pointer; }
+  .pillA .lab { font-size: 10.5px; font-weight: 800; letter-spacing: .14em; color: #2ed573; }
+  .pillA.lethal { border-color: #ff3b5c; box-shadow: 0 0 0 4px rgba(255,59,92,.18), 0 10px 30px rgba(0,0,0,.6); animation: thrum 1.2s infinite; } .pillA.lethal .lab { color: #ff3b5c; }
+  .pillA.find { border-color: #ffd166; box-shadow: 0 0 22px rgba(255,209,102,.35); } .pillA.find .lab { color: #ffd166; }
+  @keyframes thrum { 50% { box-shadow: 0 0 0 8px rgba(255,59,92,.06), 0 10px 30px rgba(0,0,0,.6); } }
+  .badge { min-width: 18px; height: 18px; border-radius: 9px; background: #ffd166; color: #111; font: 700 11px/18px system-ui; text-align: center; padding: 0 5px; }
+  .pillB { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 8px 12px; border-radius: 16px; background: rgba(16,19,27,.94); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(0,0,0,.6); width: 330px; cursor: pointer; }
+  .pillB.lethal { border-color: #ff3b5c; } .pillB.find { border-color: #ffd166; }
+  .hpbar { grid-column: 1 / 4; height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; } .hpbar i { display: block; height: 100%; background: #2ed573; }
+  .pillB.lethal .hpbar i { background: #ff3b5c; }
+  .tabC { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 34px; border-radius: 12px 0 0 12px; background: rgba(16,19,27,.95); border: 1px solid rgba(255,255,255,.14); border-right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0; z-index: 30; cursor: pointer; }
+  .tabC .bar { width: 4px; height: 44px; border-radius: 2px; background: #2ed573; }
+  .tabC.lethal .bar { background: #ff3b5c; animation: breathe 1s infinite; } .tabC.find .bar { background: #ffd166; }
+  .peek { position: absolute; right: 44px; top: 50%; transform: translateY(-50%); width: 300px; z-index: 30; }
+  .explain { position: absolute; left: 20px; top: 34px; max-width: 520px; background: rgba(255,255,255,.95); color: #111; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; z-index: 40; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+  .explain b { color: #000; }
+
+  #switcher { position: fixed; left: calc(50% - 225px); bottom: 14px; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 4px; background: #fff; color: #111; border-radius: 999px; padding: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.5), 0 0 0 2px #ff00aa; font: 600 13px system-ui; }
+  #switcher button { min-width: 30px; height: 30px; border-radius: 999px; font-size: 14px; color: #111; padding: 0 9px; white-space: nowrap; }
+  #switcher button:hover { background: #eee; }
+  #switcher .label { padding: 0 8px; min-width: 210px; text-align: center; }
+  #switcher .label small { display: block; font-weight: 400; font-size: 10px; color: #888; }
+  #switcher .dk { font-size: 12px; background: #111; color: #fff; }
+  #switcher .dk:hover { background: #333; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="switcher"></div>
+<script>
+/* ---------- data ---------- */
+const T = n => `tiles/${n}.png`;
+const MONS = {
+  roka:   { tile: 'saint_roka', g: 'o', c: '#ff5fd7', n: 'Saint Roka', d: 'unique · 12–40' },
+  priest: { tile: 'orc_high_priest', g: 'o', c: '#5fd75f', n: 'orc high priest', d: 'smites · 7–17' },
+  knight: { tile: 'orc_knight', g: 'o', c: '#5fd7ff', n: 'orc knight', d: 'adjacent · 8–30' },
+  warrior:{ tile: 'orc_warrior', g: 'o', c: '#ffd75f', n: '3× orc warrior', d: '5–20' },
+  ogre:   { tile: 'ogre', g: 'O', c: '#c8a165', n: 'ogre', d: '2 hits to kill you' },
+  naga:   { tile: 'naga', g: 'N', c: '#5fd75f', n: 'naga', d: 'poison spit · 4–14' },
+};
+const ITEMS = { ring: { tile: 'gold_green', g: '=', c: '#ffd166' }, axe: { tile: 'broad_axe1', g: ')', c: '#ff8a5c' }, haste: { tile: 'i-haste', g: '!', c: '#ff5fd7' }, heal: { tile: 'i-heal-wounds', g: '!', c: '#ff5f5f' }, tele: { tile: 'scroll-blue', g: '?', c: '#74b9ff' } };
+const CALM_MAP = [
+  '###############################', '#.......#######################', '#..<....#######################',
+  '#.......#....................##', '####.####.....)..............##', '####.####....................##',
+  '####.####.........@............', '####.................##########', '#########.......[....##########',
+  '#########...........>##########', '###############################'];
+const FIGHT_MAP = [
+  '###############################', '#.......#######################', '#..<....#######################', '#.......#....w.......##########',
+  '####.####.........R..##########', '####.####...w....K.w.##########', '####.####.........@............', '####.................##########',
+  '#########.......P....##########', '#########............##########', '###############################'];
+const MAPMON = { R: 'roka', P: 'priest', K: 'knight', w: 'warrior', O: 'ogre', N: 'naga' };
+
+let tiles = true;
+const mt = (k, sz = 24) => { const m = MONS[k]; return tiles ? `<img class="t" src="${T(m.tile)}" width="${sz}" height="${sz}" alt="">` : `<span class="g" style="color:${m.c};font:700 ${Math.round(sz * .7)}px ui-monospace,Menlo,monospace">${m.g}</span>`; };
+const it = (k, sz = 22) => { const m = ITEMS[k]; return tiles ? `<img class="t" src="${T(m.tile)}" width="${sz}" height="${sz}" alt="">` : `<b style="color:${m.c};font:700 ${Math.round(sz * .7)}px ui-monospace,Menlo,monospace">${m.g}</b>`; };
+
+function gameView({ fight = false, msgs = [], who = 'jrmitch · Kesh the MiFi', hp = '126/126', scroller = '', note = '' } = {}) {
+  const map = fight ? FIGHT_MAP : CALM_MAP;
+  const cells = map.map(r => [...r].map(ch => {
+    if (tiles) {
+      const fl = `<img src="${T('grey_dirt0')}">`;
+      if (ch === '#') return `<div><img src="${T('brick_dark_1_0')}"></div>`;
+      if (MAPMON[ch]) return `<div>${fl}<img src="${T(MONS[MAPMON[ch]].tile)}"></div>`;
+      if (ch === '@') return `<div>${fl}<img src="${T('human2_m')}"></div>`;
+      if (ch === '<') return `<div><img src="${T('stone_stairs_up')}"></div>`;
+      if (ch === '>') return `<div><img src="${T('stone_stairs_down')}"></div>`;
+      if (ch === ')') return `<div>${fl}<img src="${T('broad_axe1')}"></div>`;
+      if (ch === '[') return `<div>${fl}<img src="${T('gold_green')}"></div>`;
+      return `<div>${fl}</div>`;
+    }
+    if (MAPMON[ch]) return `<div style="color:${MONS[MAPMON[ch]].c}">${MONS[MAPMON[ch]].g}</div>`;
+    const c = { '#': '#666', '.': '#333', '@': '#fff', '<': '#eee', '>': '#eee', ')': '#ff8a5c', '[': '#74b9ff' }[ch];
+    return `<div style="color:${c}">${ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch}</div>`;
+  }).join('')).join('');
+  return `<div class="game"><div class="tag">webtiles (fake) · ${who} · HP ${hp} · Orc:2</div>
+    <div class="map"><div class="grid ${tiles ? '' : 'glyph'}" style="grid-template-columns:repeat(31,26px)">${cells}</div></div>
+    <div class="msgs">${msgs.map(m => `<div>${m}</div>`).join('')}</div>${scroller ? `<div class="scroller">${scroller}</div>` : ''}${note}</div>`;
+}
+
+/* ---------- shared panel pieces ---------- */
+let level = 'coach';
+const seg = (opts = {}) => `<div class="seg">${[['info', 'Info'], ['hints', 'Hints'], ['coach', 'Coach']].map(([k, l]) => {
+  const cls = opts.disabled?.includes(k) ? 'off' : (opts.was === k ? 'was' : (opts.force || level) === k ? 'on' : '');
+  return `<button class="${cls}" ${opts.disabled?.includes(k) ? `title="${opts.why || ''}"` : `data-level="${k}"`}>${l}</button>`; }).join('')}</div>`;
+function header({ dot = '', who = '<b>Kesh</b> · MiFi XL 13 · Orc:2', chips = '', right = seg(), pop = '' } = {}) {
+  return `<div class="hd"><span class="dot ${dot}"></span><span class="who">${who}</span><span class="sp"></span>${chips}${right}<button class="ic" title="Collapse to pill" data-go="pill">⤡</button><button class="ic" title="Settings">⚙</button>${pop}</div>`;
+}
+const nowPill = (lab, line, sub, cls = '') => `<div class="now ${cls}"><div class="lab">${lab}</div><div class="line">${line}<small>${sub}</small></div></div>`;
+function footer({ ph = 'Ask about your run…', meter = `<button class="meter" title="Opens Settings → Budget and cost">$0.31 of $1.00</button>`, deep = true, deepOn = false } = {}) {
+  return `<div class="ft"><input class="${deepOn ? 'deep' : ''}" placeholder="${ph}">${deep ? `<button class="deepbtn ${deepOn ? 'on' : ''}" data-deep title="Use the Deep Model for this question">${deepOn ? '◆ Think deeper · ~$0.03' : '◇ Think deeper'}</button>` : ''}${meter}</div>`;
+}
+function rail({ unknown = false, inline = false, mark = false } = {}) {
+  const sk = unknown
+    ? `<span class="unk" title="Skills not read yet. Press ? then # (or m)">${inline ? 'unknown · <kbd>?</kbd><kbd>#</kbd>' : 'unknown'}</span>`
+    : `<span>Axes ${mark ? '<span class="stale" title="Stale: you were drained at T 25,610. Press m to refresh">~16</span>' : '16'} → <b>18</b></span><span>Fighting 14 → <b>15</b></span><span>Shields 10 → <b>13</b></span>`;
+  const route = unknown
+    ? `<span class="unk" title="Other levels not read. Press ? then # (or Ctrl-O)">${inline ? 'needs the dungeon overview · <kbd>Ctrl</kbd><kbd>O</kbd>' : 'unknown'}</span>`
+    : `<div class="route"><span class="st done">Orc</span><span class="ar">›</span><span class="st next">D:12–15</span><span class="ar">›</span><span class="st">Snake:1–3</span><span class="ar">›</span><span class="st">Vaults:1–4</span></div>`;
+  return `<div class="rail ${mark ? 'hl' : ''}"><div class="lbl" style="margin:0">Run Plan <em>${unknown ? 'planned at the first All Clear' : 'updated at XL 13'}</em></div>
+    <div class="r"><span>Route</span><div>${route}</div></div>
+    <div class="r"><span>Skills</span><div class="mini">${sk}</div></div>
+    <div class="r"><span>Gear</span><div class="mini"><span>+4 war axe</span><span>+2 scale mail</span><span>+1 kite shield</span></div></div>
+    <div class="r"><span>Needs</span><div class="mini"><span class="no">rPois</span><span class="no">SInv</span><span>cloak</span></div></div></div>`;
+}
+const threats = () => `<div class="lbl" style="margin-top:10px">Threats</div><div class="mons">${['roka', 'priest', 'knight', 'warrior'].map(k => `<div class="mon">${mt(k)}<span>${MONS[k].n}</span><span class="muted small">${MONS[k].d}</span></div>`).join('')}</div>`;
+const waysOut = (blinkUnknown = false) => `<div class="lbl" style="margin-top:10px">Ways out <em>computed</em></div><div class="opt">
+  <span class="ok">●</span> Corridor 3 tiles east<br><span class="ok">●</span> ${it('haste', 16)} Potion of haste ×1<br><span class="ok">●</span> ${it('tele', 16)} Scroll of teleportation ×2<br>
+  ${blinkUnknown ? `<span class="muted">●</span> Blink: <span class="unk" title="Spells not read. Press I">failure rate unknown</span><br>` : ''}<span class="no">●</span> Upstairs (2 orcs in the way)</div>`;
+function fightCard({ plan = true, prose = true, ruleOnly = false, blinkUnknown = false } = {}) {
+  return `<div class="moment lethal"><span class="ty tactic">tactical</span><h4>Get to the corridor east, then haste.</h4>${threats()}
+    ${ruleOnly ? `<div class="rule"><b>Suggested:</b> corridor 3 east, then quaff haste. <span class="muted">Rule: LETHAL with a chokepoint in reach.</span></div>` : ''}
+    ${plan && !ruleOnly ? `<div class="lbl" style="margin-top:10px">Plan <em>LLM</em></div><ol class="steps"><li>Step 3 tiles east so only one orc can reach you.</li><li>Quaff haste there.</li><li>Kill the high priest first; smiting ignores AC.</li><li>Below 35 HP, read teleportation.</li></ol>` : ''}
+    ${waysOut(blinkUnknown)}</div>`;
+}
+const calmCard = () => `<div class="moment"><div style="display:flex;justify-content:space-between"><span class="ty route">route</span><span class="muted small">Orc:2 cleared</span></div><h4>Next: D:12–15, then Snake:1–3</h4><div class="small" style="color:#b9bdc9">Hold off on Snake:4 until you have rPois.</div><div class="acts"><button class="btn pri">Why?</button><button class="btn">Got it</button></div></div>`;
+
+/* ---------- 1. JOIN ---------- */
+const DUMP = ` Kesh the Shield-Bearer (Minotaur Fighter)       Turns: 25940, Time: 4:11:02
+
+ HP 126/126        AC 23     Str 21    XL: 13   Next: 41%
+ MP  11/11         EV  8     Int  8    God: Okawaru [******]
+ Gold 612          SH 14     Dex 11    Spells: 0/9 levels left
+
+  Skills:
+ + Level 14.0 Fighting
+ + Level 16.2 Axes
+ - Level 11.5 Armour
+ + Level  9.8 Shields
+ ...
+ Dungeon Overview and Level Annotations
+ Branches: Dungeon (1/15) Temple (D:4) Orcish Mines (D:9) Lair (D:10)
+           Snake (Lair:3) Spider (Lair:4)`;
+const JOIN = {
+  name: 'Join mid-game', states: ['asking', 'reading', 'caught up'],
+  variants: [
+    ['A', 'Join card', 'a card in the focus slot; rail ghosted until it\'s read', st => {
+      const done = st === 2;
+      const card = st === 0 ? `<div class="card vio rise"><div class="lbl">Joined mid-game <em>T 25,940</em></div>
+          <div class="small">I can see the map, stats and inventory. I <b>can't</b> see your skills, spells, mutations or the other levels yet.</div>
+          <div style="margin:10px 0;font-size:14px">In the game, press <kbd>?</kbd> then <kbd>#</kbd></div>
+          <div class="tiny muted">That opens your character dump; press <kbd>Esc</kbd> to close it. Nothing is sent to the game by DCSS Copilot.</div>
+          <div class="acts"><button class="btn link">Use Ctrl-O instead (levels only)</button><span class="sp"></span><button class="btn">Not now</button></div></div>`
+        : st === 1 ? `<div class="card vio"><div class="lbl">Reading your character dump <em><span class="spin"></span></em></div>
+          <div class="small" style="display:grid;gap:3px"><div class="ok">✓ Skills (12, with decimals)</div><div class="ok">✓ Spells: none memorised</div><div class="ok">✓ Mutations (3)</div><div class="ok">✓ Dungeon overview: 6 branches, 2 altars, 3 shops</div><div class="muted">… notes</div></div>
+          <div class="tiny muted" style="margin-top:6px">You can close the dump now.</div></div>`
+        : `<div class="card rise"><div class="lbl">Caught up <em>from your dump</em></div><div class="small">Run Plan made from your skills and route so far. Spells and mutations are current.</div><div class="acts"><button class="btn">OK</button></div></div>`;
+      return { game: gameView({ msgs: ['Welcome back, Kesh the Minotaur.', 'You see here a <span style="color:#ff8a5c">+2 broad axe of flaming</span>.'], scroller: st === 1 ? DUMP : '' }),
+        panel: `<div class="P">${header({ dot: done ? '' : 'v', chips: done ? '' : '<span class="tagx vio">joining</span>' })}<div class="body">
+          ${nowPill('CALM', 'Orc:2, nothing in view.', 'Threat Level is computed from what\'s visible, even before the dump')}${card}</div>
+          <div class="${done ? '' : 'ghost'}">${rail({ unknown: !done })}</div>${footer()}</div>` };
+    }],
+    ['B', 'Inline unknowns', 'no card; each unknown says which key fills it, where it sits', st => {
+      const done = st === 2;
+      return { game: gameView({ msgs: ['Welcome back, Kesh the Minotaur.'], scroller: st === 1 ? DUMP : '' }),
+        panel: `<div class="P">${header({ chips: done ? '' : `<span class="tagx vio ${st === 0 ? 'blink' : ''}">${st === 1 ? '<span class="spin"></span> reading' : 'Joined · 3 unknowns'}</span>` })}<div class="body">
+          ${nowPill('CALM', 'Orc:2, nothing in view.', st === 0 ? 'Press ? # in the game and I\'ll fill in the rest' : st === 1 ? 'Reading your dump…' : 'Caught up from your dump')}
+          ${calmCard()}</div>${rail({ unknown: !done, inline: true })}${footer()}</div>` };
+    }],
+    ['C', 'Takeover', 'the whole panel is the join screen until read or skipped', st => {
+      if (st === 2) return JOIN.variants[0][3](2);
+      return { game: gameView({ msgs: ['Welcome back, Kesh the Minotaur.'], scroller: st === 1 ? DUMP : '' }),
+        panel: `<div class="P">${header({ dot: 'v' })}<div class="body" style="justify-content:center;gap:16px;padding:28px">
+          <div style="text-align:center"><div class="tiny muted" style="letter-spacing:.14em;text-transform:uppercase">Joined mid-game</div>
+          <div style="font-size:18px;margin:8px 0">Kesh the MiFi · XL 13 · Orc:2</div>
+          <div class="small muted">CAO · 0.34.1 · Game Knowledge exact · new to this app (no saved history)</div></div>
+          <div class="card" style="text-align:center"><div style="font-size:15px;margin-bottom:6px">${st === 0 ? 'Press <kbd>?</kbd> then <kbd>#</kbd> in the game' : '<span class="spin"></span> Reading your dump'}</div>
+            <div class="small muted">One screen tells me your skills, spells, mutations and every level you've seen.</div></div>
+          <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
+            <span class="ok">✓ Map in view</span><span class="${st === 1 ? 'ok' : 'muted'}">${st === 1 ? '✓' : '○'} Skills</span>
+            <span class="ok">✓ Stats, inventory</span><span class="${st === 1 ? 'ok' : 'muted'}">${st === 1 ? '✓' : '○'} Spells</span>
+            <span class="ok">✓ Threat Level</span><span class="muted">○ Mutations</span>
+            <span class="ok">✓ Ways Out (partial)</span><span class="muted">○ Other levels</span></div>
+          <div style="text-align:center"><button class="btn link">Skip: advise with what's visible</button></div></div>${footer()}</div>` };
+    }],
+  ],
+};
+
+/* ---------- 2. GAPS ---------- */
+const GAPS = [['Spells', 'not read · Blink failure rate unknown', ['I']], ['Skills', '~ stale since you were drained (T 25,610)', ['m']], ['Mutations', 'not read · rPois may already be met', ['A']]];
+const gapList = () => GAPS.map(([n, s, k]) => `<div class="gaprow"><b>${n}</b><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span><small>${s}</small></div>`).join('');
+const promptCard = () => `<div class="card warn rise"><div class="lbl">One screen would sharpen advice <em>All Clear</em></div>
+  <div class="small">Your spells haven't been read, so Blink's failure rate is unknown, and Blink is one of your Ways Out. Press <kbd>I</kbd> in the game.</div>
+  <div class="acts"><button class="btn">OK</button><button class="btn link">Don't ask about spells again this game</button></div></div>`;
+const GAPSC = {
+  name: 'Gaps', states: ['chip', 'chip open', 'prompt card (first All Clear)'],
+  variants: [
+    ['A', 'Chip + list', 'header chip; click for a list of screens to open', st => ({
+      game: gameView({ msgs: ['You feel drained.', 'You kill the orc warrior!'] }),
+      panel: `<div class="P">${header({ chips: `<button class="tagx amber" data-c>Gaps 3</button>`, pop: st === 1 ? `<div class="pop rise"><div class="lbl" style="margin:0">Gaps <em>open a screen to fill one</em></div>${gapList()}<div class="tiny muted">Or <kbd>?</kbd><kbd>#</kbd> fills all three.</div></div>` : '' })}
+        <div class="body">${nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view')}${st === 2 ? promptCard() : ''}${calmCard()}</div>${rail()}${footer()}</div>` })],
+    ['B', 'Marked in place', 'chip counts; unknown and ~stale values are marked where they appear', st => ({
+      game: gameView({ fight: st !== 2, hp: '61/126', msgs: ['You feel drained.', 'Saint Roka shouts a battlecry!'] }),
+      panel: `<div class="P ${st !== 2 ? 'lethal' : ''}">${header({ dot: st !== 2 ? 'r' : '', chips: `<button class="tagx amber" data-c title="Highlight what's missing">Gaps 3</button>` })}
+        <div class="body ${st === 1 ? 'hl' : ''}">${st !== 2 ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard({ blinkUnknown: true }) : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + promptCard() + calmCard()}</div>
+        ${rail({ mark: true })}${footer()}</div>` })],
+  ],
+};
+
+/* ---------- 3. ASK BOX ---------- */
+let deepOn = false;
+function thread(st) {
+  const h = `
+    <div class="q">Is Spider before Snake a good idea here?</div>
+    <div class="a">Probably not yet. Spider:4's wolf spiders and jumping spiders hit EV-light characters hard, and you have 8 EV. Snake:1–3 is fine for you now; Snake:4 waits on rPois either way.
+      <div class="meta"><span>Quick · $0.003</span><span>looked up 2 things</span></div></div>
+    <div class="q">What's the most dangerous thing I've seen this game?</div>
+    <div class="a">The ogre on D:7 came closest: it hit you to 19 HP at T 9,812. Of uniques you've seen, Saint Roka (Orc:2, killed) was the biggest threat.
+      <div class="notice cut">Cut short: hit the lookup limit for one question. Ask a narrower question to go further.</div>
+      <div class="meta"><span>Quick · $0.006</span><span>8 lookups</span></div></div>
+    <div class="q">Plan my next five floors<small>◆ Think deeper</small></div>
+    <div class="a">Do D:12–15 now at a steady pace; you out-level them. Then Snake:1–3, staying near stairs on each floor. Keep Shields training until 13, then switch everything to Axes for the broad axe. If you find rPois, Snake:4 is next; if not, go to Vaults:1–4 first.
+      <div class="notice rm">1 sentence removed: it named something I couldn't check against the game.</div>
+      <div class="meta"><b>Deep · $0.041</b><span>5 lookups · simulated 2 fights</span></div></div>`;
+  const live = st === 1 ? `<div class="q">Can I take the two nagas on Snake:2 in melee?</div>
+    <div class="a"><div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen (T 25,410)</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div><button class="btn">Stop</button></div>` : '';
+  return h + live;
+}
+const ASK = {
+  name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'danger mid-conversation'],
+  variants: [
+    ['A', 'Drawer', 'the conversation slides up over the focus card; the now pill stays above it', st => {
+      const lethal = st === 2;
+      return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!', 'The orc knight hits you! <span style="color:#ff5f5f">(17)</span>'] : ['You kill Saint Roka!'] }),
+        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '' })}<div class="body">
+          ${lethal ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + calmCard()}
+          ${lethal ? `<div class="card small muted rise">Conversation tucked away while you fight. <a data-c>Open it</a></div>` : ''}</div>
+          ${lethal ? rail() : `<div class="drawer" style="top:62px"><div class="dh"><span>Conversation · this game</span><span class="sp"></span><button class="btn link">Clear</button><button class="ic" title="Close">▾</button></div><div class="db"><div class="thread">${thread(st)}</div></div></div>`}
+          ${footer({ deepOn })}</div>` };
+    }],
+    ['B', 'Answer as the focus card', 'the latest answer takes the focus card; history is one tap away', st => {
+      const lethal = st === 2;
+      const last = st === 1 ? `<div class="moment"><div class="lbl" style="margin:0">You asked</div><h4>Can I take the two nagas on Snake:2 in melee?</h4>
+          <div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div><button class="btn">Stop</button></div>`
+        : `<div class="moment"><div class="lbl" style="margin:0">You asked <em>◆ Think deeper</em></div><h4>Plan my next five floors</h4>
+          <div class="small" style="color:#dfe2ea">Do D:12–15 now; you out-level them. Then Snake:1–3, staying near stairs. Keep Shields training until 13, then Axes for the broad axe. If you find rPois, Snake:4 is next; if not, Vaults:1–4 first.</div>
+          <div class="notice rm">1 sentence removed: it named something I couldn't check against the game.</div>
+          <div class="acts"><span class="tiny" style="color:#a29bfe">Deep · $0.041</span><span class="sp"></span><button class="btn link">Earlier (2)</button><button class="btn">Done</button></div></div>`;
+      return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!'] : ['You kill Saint Roka!'] }),
+        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '' })}<div class="body">
+          ${lethal ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() + `<div class="card small muted">Your answer about the next five floors is waiting. <a>Show</a></div>`
+            : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + last + `<div class="tiny muted" style="text-align:center">The route Decision Point is waiting on the Run Plan rail.</div>`}</div>
+          ${rail()}${footer({ deepOn })}</div>` };
+    }],
+    ['C', 'Advisor / Chat tabs', 'a Chat tab swaps the whole panel; a thin status strip keeps the threat visible', st => {
+      const lethal = st === 2;
+      return { game: gameView({ fight: lethal, hp: lethal ? '47/126' : '126/126', msgs: lethal ? ['Saint Roka shouts a battlecry!'] : ['You kill Saint Roka!'] }),
+        panel: `<div class="P ${lethal ? 'lethal' : ''}">${header({ dot: lethal ? 'r' : '', who: '<div class="tabs"><button>Advisor</button><button class="on">Chat</button></div>' })}
+          <div class="strip ${lethal ? 'lethal' : ''}">${lethal ? '<b>LETHAL</b> Get to the corridor east, then haste. <span class="sp"></span><button class="btn pri">Back to Advisor</button>' : '<b class="ok">CALM</b> Orc:2 cleared. <span class="sp"></span><span class="muted">1 decision waiting</span>'}</div>
+          <div class="body"><div class="thread">${thread(st === 2 ? 0 : st)}</div></div>${footer({ deepOn })}</div>` };
+    }],
+  ],
+};
+
+/* ---------- 4. PILL ---------- */
+const PS = [
+  { k: 'calm', lab: 'CALM', line: 'Orc:2 cleared.', sub: 'nothing in view', hp: 100 },
+  { k: 'decision', lab: 'CALM', line: 'Orc:2 cleared.', sub: '3 decisions waiting', hp: 100, n: 3 },
+  { k: 'lethal', lab: 'LETHAL', line: 'Corridor east, then haste.', sub: 'death next turn 9%', hp: 37 },
+  { k: 'find', lab: 'GREAT FIND', line: 'Ring of Poison Resistance', sub: 'Run-changing', hp: 100 },
+];
+const pillRules = `<div class="explain"><b>Proposed expand rule</b> (react to this): the pill never expands on its own except for a <b>LETHAL</b> moment with no Way Out the engine trusts, or a <b>Run-changing</b> Great Find. Everything else only changes the pill. Click the pill to expand; the panel collapses back when you click ⤡ again.</div>`;
+const PILL = {
+  name: 'Collapsed pill', states: ['calm', 'decisions waiting', 'lethal', 'great find'],
+  variants: [
+    ['A', 'Label pill', 'threat label + one line + a count', st => {
+      const p = PS[st];
+      return { solo: true, game: gameView({ fight: p.k === 'lethal', hp: p.k === 'lethal' ? '47/126' : '126/126', msgs: ['You kill Saint Roka!'],
+        note: `${pillRules}<div class="floaty"><div class="pillA ${p.k}"><span class="lab">${p.lab}</span>${p.k === 'find' ? it('ring', 20) : ''}<span>${p.line}</span>${p.n ? `<span class="badge">${p.n}</span>` : ''}<span class="muted small">⤢</span></div></div>` }) };
+    }],
+    ['B', 'Threat strip', 'label, HP bar and the tiles of what can hurt you', st => {
+      const p = PS[st];
+      const who = p.k === 'lethal' ? ['roka', 'priest', 'knight', 'warrior'].map(k => mt(k, 22)).join('') : p.k === 'find' ? it('ring', 22) : '<span class="muted small">nothing in view</span>';
+      const lc = p.k === 'lethal' ? '#ff3b5c' : p.k === 'find' ? '#ffd166' : '#2ed573';
+      return { solo: true, game: gameView({ fight: p.k === 'lethal', hp: p.k === 'lethal' ? '47/126' : '126/126', msgs: ['You kill Saint Roka!'],
+        note: `${pillRules}<div class="floaty"><div class="pillB ${p.k}"><b style="font-size:10.5px;letter-spacing:.14em;color:${lc}">${p.lab}</b><span style="display:flex;gap:2px;align-items:center">${who}</span><span>${p.n ? `<span class="badge">${p.n}</span>` : ''}</span>
+          <span style="grid-column:1/4;font-size:12.5px">${p.line} <span class="muted">· ${p.sub}</span></span><div class="hpbar"><i style="width:${p.hp}%"></i></div></div></div>` }) };
+    }],
+    ['C', 'Edge tab', 'a slim tab on the panel edge; a peek card opens beside it when it matters', st => {
+      const p = PS[st];
+      const peek = p.k === 'lethal' ? `<div class="peek">${fightCard({ plan: false })}</div>` : p.k === 'find' ? `<div class="peek"><div class="card warn"><div class="lbl">Run-changing find</div><div style="display:flex;gap:10px;align-items:center">${it('ring', 36)}<b>Ring of Poison Resistance</b></div><div class="small" style="margin-top:6px">Snake:4 opens up.</div></div></div>` : '';
+      return { solo: true, game: gameView({ fight: p.k === 'lethal', hp: p.k === 'lethal' ? '47/126' : '126/126', msgs: ['You kill Saint Roka!'],
+        note: `${pillRules}<div class="tabC ${p.k}"><div class="bar"></div>${p.n ? `<span class="badge">${p.n}</span>` : ''}${p.k === 'lethal' ? mt('roka', 20) : ''}<span class="muted small">⤢</span></div>${peek}` }) };
+    }],
+  ],
+};
+
+/* ---------- 5. MODES ---------- */
+const MODES = {
+  name: 'Info-only, tournament, Step Down, offline', states: ['Info only', 'Tournament', 'Budget 80%', 'Stepped Down', 'LLM offline', 'No LLM'],
+  variants: [
+    ['A', 'States', 'one design; C cycles through the six states', st => {
+      const fight = st === 4 || st === 0;
+      const g = gameView({ fight, hp: fight ? '47/126' : '126/126', msgs: fight ? ['Saint Roka shouts a battlecry!'] : ['You kill Saint Roka!'] });
+      const lookup = 'Look up a monster, item or spell…';
+      let hd, body, ft;
+      const lethalNow = nowPill('LETHAL', 'Corridor 3 east is the nearest chokepoint.', 'Death next turn 9% · worst hit 58', 'lethal');
+      switch (st) {
+        case 0: hd = header({ dot: 'r', right: seg({ force: 'info' }) });
+          body = lethalNow + `<div class="moment lethal"><span class="ty tactic">facts</span>${threats()}${waysOut()}</div>`;
+          ft = footer({ ph: lookup, deep: false, meter: `<span class="meter" title="Info makes no LLM calls">Info · $0</span>` }); break;
+        case 1: hd = header({ right: `<span class="tagx gold" title="Recognized tournament game">🏆 Tournament · Info only</span>` });
+          body = `<div class="card warn rise"><div class="lbl">0.34 tournament game <em>shown once</em></div><div class="small">This game counts for the 0.34 tournament, so the Advisor shows <b>facts only</b>: Threat Level, Ways Out, lookups. No nudges, no verdicts, no LLM calls.</div><div class="acts"><button class="btn">OK</button></div></div>`
+            + nowPill('CALM', 'Orc:2, nothing in view.', 'Facts only') + `<div class="card"><div class="lbl">Item comparison <em>facts</em></div><div class="small">+2 broad axe of flaming vs +4 war axe: 19.4 vs 15.1 damage per hit · delay 1.2 vs 0.9</div></div>`;
+          ft = footer({ ph: lookup, deep: false, meter: `<span class="meter">Info only</span>` }); break;
+        case 2: hd = header();
+          body = nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + `<div class="card warn rise"><div class="lbl">80% of this game's budget <em>$0.80 of $1.00</em></div><div class="small">At $1.00 the Advisor Steps Down: Coach answers like Hints, and each question asks before it spends.</div><div class="acts"><button class="btn pri">Top up $1.00</button><button class="btn">OK</button></div></div>` + calmCard();
+          ft = footer({ meter: `<button class="meter warn">$0.80 of $1.00</button>` }); break;
+        case 3: hd = header({ chips: `<span class="tagx amber" title="Budget used up; top up to go back to Coach">stepped down</span>`, right: seg({ force: 'hints', was: 'coach' }) });
+          body = nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + `<div class="moment"><span class="ty route">route</span><h4>Next: D:12–15, then Snake:1–3</h4><div class="small muted">Hint: think about what Snake:4 will throw at you.</div><div class="acts"><button class="btn">Got it</button></div></div>`
+            + `<div class="card small">Budget used up, so you're on Hints until you top up. <a>Top up $1.00</a></div>`;
+          ft = footer({ ph: 'Ask (asks before spending ~$0.003)…', meter: `<button class="meter off">$1.00 of $1.00</button>` }); break;
+        case 4: hd = header({ dot: 'r', chips: `<span class="tagx red" title="Anthropic returned 529 overloaded. Retrying with backoff.">LLM offline · engine only</span>` });
+          body = lethalNow + fightCard({ ruleOnly: true }) + `<div class="tiny muted">Retrying in 20 s. Facts and the Suggested Action don't need the LLM.</div>`;
+          ft = footer({ meter: `<button class="meter">$0.31 of $1.00</button>` }); break;
+        case 5: hd = header({ right: seg({ force: 'info', disabled: ['hints', 'coach'], why: 'Needs a model. Add one in Settings → Models' }) });
+          body = nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + `<div class="card"><div class="lbl">Branches found <em>facts</em></div><div class="small">Snake (Lair:3) · Spider (Lair:4) · Vaults (D:13?) not found yet</div></div>`;
+          ft = footer({ ph: lookup, deep: false, meter: `<button class="meter" title="Opens Settings → Models">No LLM</button>` }); break;
+      }
+      return { game: g, panel: `<div class="P ${[0, 4].includes(st) ? 'lethal' : ''}">${hd}<div class="body">${body}</div>${rail()}${ft}</div>` };
+    }],
+  ],
+};
+
+/* ---------- 6. SPECTATE ---------- */
+const SPEC = {
+  name: 'Spectating', states: ['calm', 'danger'],
+  variants: [
+    ['A', 'Same panel, labelled', 'everything as if playing, with a Watching ribbon', st => {
+      const d = st === 1;
+      return { game: gameView({ fight: d, who: 'spectating Mdog the MiFi', hp: d ? '47/126' : '126/126', msgs: ['<span style="color:#888">Mdog: lol orc mines again</span>', d ? 'Saint Roka shouts a battlecry!' : 'You kill Saint Roka!'] }),
+        panel: `<div class="P spec">${header({ dot: d ? 'r' : 'v', who: '👁 <b>Watching Mdog</b> · MiFi XL 13 · Orc:2' })}
+          <div class="strip" style="background:rgba(162,155,254,.12)">👁 Spectating on CAO · not saved · advice is for you, Mdog can't see it</div>
+          <div class="body">${d ? nowPill('LETHAL', 'Corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + calmCard()}</div>
+          ${rail()}${footer({ ph: 'Ask about this game…' })}</div>` };
+    }],
+    ['B', 'Commentator', 'framed as "what I\'d do" vs what they did; no Run Plan steering', st => {
+      const d = st === 1;
+      return { game: gameView({ fight: d, who: 'spectating Mdog the MiFi', hp: d ? '47/126' : '126/126', msgs: [d ? 'Saint Roka shouts a battlecry!' : 'You kill Saint Roka!'] }),
+        panel: `<div class="P spec">${header({ dot: d ? 'r' : 'v', who: '👁 <b>Watching Mdog</b> · MiFi XL 13', right: seg() })}<div class="body">
+          ${d ? nowPill('LETHAL', 'I\'d head for the corridor east and haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard({ plan: false })
+              : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view')}
+          <div class="card"><div class="lbl">What they did vs what I'd suggest <em>last 3</em></div><div class="small" style="display:grid;gap:4px">
+            <div><span class="ok">✓</span> Took the corridor before engaging</div><div><span class="am">≠</span> Skipped the broad axe; I'd have kept it for Axes 18</div><div><span class="ok">✓</span> Quaffed haste at 52 HP</div></div></div>
+          <div class="card"><div class="lbl">Their likely plan <em>guessed from the game</em></div><div class="small">Orc → D:12–15 → Snake. Okawaru melee.</div></div></div>${footer({ ph: 'Ask about this game…' })}</div>` };
+    }],
+  ],
+};
+
+/* ---------- switching ---------- */
+const SCENS = { join: JOIN, gaps: GAPSC, ask: ASK, pill: PILL, modes: MODES, spectate: SPEC };
+const KEYS = Object.keys(SCENS);
+const q = new URLSearchParams(location.search);
+let scen = KEYS.includes(q.get('s')) ? q.get('s') : 'join';
+let vi = 0, sti = 0;
+{ const v = (q.get('variant') || '').toUpperCase(); const i = SCENS[scen].variants.findIndex(x => x[0] === v); if (i >= 0) vi = i; const s = +q.get('st'); if (s >= 0 && s < SCENS[scen].states.length) sti = s; }
+if (q.get('tiles') === '0') tiles = false;
+
+function render() {
+  const S = SCENS[scen], [k, n, sub, fn] = S.variants[vi];
+  const out = fn(sti);
+  document.getElementById('root').innerHTML = `<div class="wrap ${out.solo ? 'solo' : ''}">${out.game}${out.panel || ''}</div>`;
+  document.getElementById('switcher').innerHTML = `<button class="dk" data-scen>${S.name} · S</button><button data-step="-1">←</button><div class="label">${k} (${n})<small>${sub}</small></div><button data-step="1">→</button>
+    <button class="dk" data-c>${S.states[sti]} · C</button><button class="dk" data-tiles>${tiles ? 'Tiles' : 'Glyphs'} · G</button>`;
+  try { history.replaceState(null, '', `?s=${scen}&variant=${k}&st=${sti}${tiles ? '' : '&tiles=0'}`); } catch (e) {}
+}
+const step = d => { const n = SCENS[scen].variants.length; vi = (vi + d + n) % n; render(); };
+const cyc = () => { sti = (sti + 1) % SCENS[scen].states.length; render(); };
+const nextScen = () => { scen = KEYS[(KEYS.indexOf(scen) + 1) % KEYS.length]; vi = 0; sti = 0; render(); };
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-step],[data-scen],[data-c],[data-tiles],[data-level],[data-deep],[data-go]');
+  if (!el) return;
+  if (el.dataset.step) return step(+el.dataset.step);
+  if ('scen' in el.dataset) return nextScen();
+  if ('c' in el.dataset) return cyc();
+  if ('tiles' in el.dataset) { tiles = !tiles; return render(); }
+  if ('deep' in el.dataset) { deepOn = !deepOn; return render(); }
+  if (el.dataset.go) { scen = el.dataset.go; vi = 0; sti = 0; return render(); }
+  if (el.dataset.level) { level = el.dataset.level; render(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 's' || e.key === 'S') nextScen();
+  if (e.key === 'c' || e.key === 'C') cyc();
+  if (e.key === 'g' || e.key === 'G') { tiles = !tiles; render(); }
+});
+render();
+</script>
+</body>
+</html>
