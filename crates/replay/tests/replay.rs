@@ -14,6 +14,7 @@ const NO_GAME_KNOWLEDGE: &[u8] =
     include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
 const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
 const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
+const WATCHED_SCREENS: &[u8] = include_bytes!("recordings/screens-watched-mid-menu.dcssrec");
 const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
@@ -201,6 +202,14 @@ fn the_character_dump_gives_the_same_resistances_as_the_overview() {
     let from_dump = resistances_on(Screen::CharacterDump);
     assert!(from_dump.is_some());
     assert_eq!(from_dump, resistances_on(Screen::CharacterOverview));
+}
+
+#[test]
+fn a_spectator_sees_the_screens_already_open_and_a_redrawn_menu_closes_once() {
+    let replay = replay(WATCHED_SCREENS).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+    assert_eq!(replay.visible.screen, None);
 }
 
 #[test]

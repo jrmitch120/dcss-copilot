@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use copilot_core::{Screen, ScreenRead};
 use serde_json::Value;
 
-use crate::json::{int, string};
+use crate::json::{flag, int, string};
 use crate::markup::{plain, plain_html};
 
 /// The `txt` text area crawl draws console-style screens into, such as the skills screen.
@@ -54,7 +54,13 @@ impl Screens {
     /// Merges a message, if it is one about screens.
     pub fn merge(&mut self, msg: &Value) {
         match msg.get("msg").and_then(Value::as_str) {
-            Some("menu") => self.stack.push(menu(msg)),
+            Some("menu") => {
+                // Crawl redraws an open menu in place by sending it again to replace the top one.
+                if msg.get("replace").is_some_and(flag) {
+                    self.stack.pop();
+                }
+                self.stack.push(menu(msg));
+            }
             Some("update_menu") => {
                 if let (Some(Frame::Menu { title, .. }), Some(text)) =
                     (self.stack.last_mut(), title_text(msg))
