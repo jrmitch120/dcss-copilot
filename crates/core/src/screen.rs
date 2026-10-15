@@ -111,6 +111,43 @@ impl ScreenRead {
     }
 }
 
+impl ScreenRead {
+    /// The inventory letters of the items the character has equipped and not melded, when this
+    /// is the character overview or the character dump.
+    ///
+    /// The overview draws them beside the resistances, one per line as `a - +0 mace`
+    /// (`_print_overview_screen_equip` in crawl's `output.cc`), and its block ends at the first
+    /// empty line; in a dump, the inventory listed later is not this.
+    #[must_use]
+    pub fn equipped(&self) -> Option<Vec<char>> {
+        if !matches!(
+            self.screen,
+            Screen::CharacterOverview | Screen::CharacterDump
+        ) {
+            return None;
+        }
+        let overview = self
+            .lines
+            .iter()
+            .skip_while(|line| !line.starts_with("rFire"))
+            .take_while(|line| !line.trim().is_empty());
+        Some(overview.filter_map(|line| equipped_letter(line)).collect())
+    }
+}
+
+/// The inventory letter of the equipped item a line of the overview names, as `a - +0 mace`,
+/// unless it is melded.
+fn equipped_letter(line: &str) -> Option<char> {
+    let bytes = line.as_bytes();
+    (0..bytes.len()).find_map(|at| {
+        let letter = char::from(*bytes.get(at)?);
+        let starts_word = at == 0 || bytes.get(at - 1) == Some(&b' ');
+        let rest = line.get(at + 1..)?.strip_prefix(" - ")?;
+        (letter.is_ascii_alphabetic() && starts_word && !rest.starts_with("melded "))
+            .then_some(letter)
+    })
+}
+
 /// The resistance `desc_resist` draws at the start of `text`: pips `+`, `.` and `x`, single
 /// spaced when there are few, or `∞` (`inf` in ASCII) for immunity.
 fn resistance(text: &str) -> Option<Resistance> {

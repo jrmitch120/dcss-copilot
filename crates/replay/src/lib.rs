@@ -15,6 +15,7 @@ pub use replayer::{Applied, Moment, Replayer};
 use std::io::Read;
 
 use copilot_core::{GameIdentity, ViewModel, VisibleState};
+use copilot_gk::BundleError;
 
 /// What the core made of a replayed Recording.
 #[derive(Debug, Clone)]
@@ -31,12 +32,23 @@ pub struct Replay {
     pub truncated: bool,
 }
 
+/// Why a Recording couldn't be replayed.
+#[derive(Debug, thiserror::Error)]
+pub enum ReplayError {
+    /// The Recording couldn't be read.
+    #[error(transparent)]
+    Recording(#[from] RecordingError),
+    /// The Game Knowledge the app ships couldn't be read.
+    #[error(transparent)]
+    GameKnowledge(#[from] BundleError),
+}
+
 /// Replays a whole Recording in process, one envelope at a time.
 ///
 /// # Errors
-/// If the Recording can't be read.
-pub fn replay(recording: impl Read) -> Result<Replay, RecordingError> {
-    let mut replayer = Replayer::new(Recording::read(recording)?);
+/// If the Recording or the Game Knowledge the app ships can't be read.
+pub fn replay(recording: impl Read) -> Result<Replay, ReplayError> {
+    let mut replayer = Replayer::new(Recording::read(recording)?)?;
     let mut view_models: Vec<ViewModel> = Vec::new();
     while !replayer.at_end() {
         replayer.step();

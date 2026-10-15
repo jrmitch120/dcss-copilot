@@ -1,11 +1,14 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
+use std::collections::HashMap;
+
 use copilot_gk::{Bundle, Library};
 
+use crate::accumulated_state::AccumulatedState;
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment};
 use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
-    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail,
+    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail, TileName,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -16,7 +19,31 @@ pub struct Advisor {
     knowledge: Library,
     identity: Option<GameIdentity>,
     visible: VisibleState,
+    /// What is remembered of each game followed so far, by its game key.
+    remembered: HashMap<GameKey, AccumulatedState>,
     fact_sheet: FactSheet,
+}
+
+/// What tells one game apart from every other, for as long as it is played: the spec's game key.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct GameKey {
+    server: String,
+    account: Option<String>,
+    character: String,
+    species: String,
+    first_seen_ms: u64,
+}
+
+impl GameKey {
+    fn of(identity: &GameIdentity) -> Self {
+        Self {
+            server: identity.server.clone(),
+            account: identity.account.clone(),
+            character: identity.character.clone(),
+            species: identity.species.clone(),
+            first_seen_ms: identity.first_seen_ms,
+        }
+    }
 }
 
 impl Advisor {
@@ -25,29 +52,59 @@ impl Advisor {
     pub fn new(knowledge: Library) -> Self {
         let visible = VisibleState::default();
         Self {
-            fact_sheet: FactSheet::compute(&visible, None),
+            fact_sheet: FactSheet::compute(&visible, None, None),
             knowledge,
             identity: None,
             visible,
+            remembered: HashMap::new(),
         }
     }
 
     /// Takes in what the Game Source learned.
     pub fn apply(&mut self, event: SourceEvent) {
         match event {
-            SourceEvent::Identified(identity) => self.identity = Some(identity),
-            SourceEvent::Visible(visible) => self.visible = *visible,
-            // The open screen is in Visible State too. Remembering what screens said, and what a
-            // game's sessions mean for what is remembered of it, is Accumulated State's job.
-            SourceEvent::ScreenRead(_) | SourceEvent::Session(_) => return,
+            SourceEvent::Identified(identity) => {
+                self.remembered.entry(GameKey::of(&identity)).or_default();
+                self.identity = Some(identity);
+            }
+            SourceEvent::Visible(visible) => {
+                if let Some(remembered) = self
+                    .followed_key()
+                    .and_then(|key| self.remembered.get_mut(&key))
+                {
+                    remembered.update(&self.visible, &visible);
+                }
+                self.visible = *visible;
+            }
+            SourceEvent::ScreenRead(read) => {
+                if let Some(remembered) = self
+                    .followed_key()
+                    .and_then(|key| self.remembered.get_mut(&key))
+                {
+                    remembered.read(&read, &self.visible);
+                }
+            }
+            // A game's sessions don't change what is remembered of it: a resynced game is the
+            // same game, and a new game has its own game key.
+            SourceEvent::Session(_) => return,
         }
-        self.fact_sheet = FactSheet::compute(&self.visible, self.game_knowledge());
+        self.fact_sheet =
+            FactSheet::compute(&self.visible, self.accumulated(), self.game_knowledge());
+    }
+
+    /// What is remembered of the followed game, once a Game Source has identified it.
+    #[must_use]
+    pub fn accumulated(&self) -> Option<&AccumulatedState> {
+        self.remembered.get(&self.followed_key()?)
+    }
+
+    fn followed_key(&self) -> Option<GameKey> {
+        self.identity.as_ref().map(GameKey::of)
     }
 
     /// The Game Knowledge for the followed game's Crawl Version, if the Advisor has it.
     fn game_knowledge(&self) -> Option<&Bundle> {
-        let version = self.identity.as_ref()?.crawl_version.as_ref()?;
-        self.knowledge.for_version(&version.0)
+        self.identity.as_ref()?.knowledge(&self.knowledge)
     }
 
     /// What the engine computed about this moment.
@@ -85,11 +142,12 @@ impl Advisor {
             },
             now: now_pill(&self.fact_sheet.threat),
             focus: FocusCard::InView {
-                monsters: self
-                    .visible
-                    .monsters
-                    .as_ref()
-                    .map(|monsters| monsters.iter().map(listing).collect()),
+                monsters: self.visible.monsters.as_ref().map(|monsters| {
+                    monsters
+                        .iter()
+                        .map(|monster| listing(monster, self.game_knowledge()))
+                        .collect()
+                }),
             },
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
@@ -153,12 +211,16 @@ fn capitalised(name: &str) -> String {
     })
 }
 
-/// A monster's row in the panel. Tiles aren't named yet, so the panel draws its glyph.
-fn listing(monster: &VisibleMonster) -> Listing {
+/// A monster's row in the panel, with its tile when `knowledge` names one.
+fn listing(monster: &VisibleMonster, knowledge: Option<&Bundle>) -> Listing {
+    let tile = monster
+        .id
+        .as_ref()
+        .and_then(|id| knowledge?.monster_by_id(id)?.tile.clone());
     Listing {
         depiction: Depiction {
             glyph: monster.glyph.clone(),
-            tile: None,
+            tile: tile.map(TileName),
         },
         name: monster.name.clone(),
         detail: None,

@@ -7,6 +7,7 @@ use copilot_gk::Bundle;
 use serde::Serialize;
 use specta::Type;
 
+use crate::accumulated_state::AccumulatedState;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 
@@ -144,6 +145,10 @@ pub enum NotModelled {
     Paths,
     /// Monsters are assumed awake and hunting the player.
     Awareness,
+    /// The player's shield is assumed to block at most one attack before their next action, as
+    /// without a shield, because the Advisor doesn't know which shield is worn. The character
+    /// overview (`%`) tells it.
+    WornShield,
 }
 
 /// What the melee simulation leaves out, whatever is in view.
@@ -178,12 +183,16 @@ pub enum Gap {
 }
 
 impl FactSheet {
-    /// What the engine makes of `visible`, with `knowledge` for the game's Crawl Version if the
-    /// Advisor has it.
+    /// What the engine makes of `visible` and what the Advisor remembers of the game, with
+    /// `knowledge` for the game's Crawl Version if the Advisor has it.
     #[must_use]
-    pub fn compute(visible: &VisibleState, knowledge: Option<&Bundle>) -> Self {
+    pub fn compute(
+        visible: &VisibleState,
+        remembered: Option<&AccumulatedState>,
+        knowledge: Option<&Bundle>,
+    ) -> Self {
         Self {
-            threat: threat(visible, knowledge),
+            threat: threat(visible, remembered, knowledge),
         }
     }
 }
@@ -194,7 +203,11 @@ fn attacks_player(attitude: Attitude) -> bool {
     matches!(attitude, Attitude::Hostile | Attitude::Neutral)
 }
 
-fn threat(visible: &VisibleState, knowledge: Option<&Bundle>) -> Threat {
+fn threat(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    knowledge: Option<&Bundle>,
+) -> Threat {
     let mut gaps = BTreeSet::new();
     let hp = visible.stats.hp;
     if hp.is_none() {
@@ -265,6 +278,18 @@ fn threat(visible: &VisibleState, knowledge: Option<&Bundle>) -> Threat {
     };
 
     let formulas = bundle.formulas;
+    let worn_shield = remembered.and_then(|state| state.worn_shield.known().copied());
+    let mut not_modelled = MELEE_NOT_MODELLED.to_vec();
+    if sh > 0 && worn_shield.is_none() {
+        not_modelled.push(NotModelled::WornShield);
+    }
+    let defender = Defender {
+        hp,
+        ac,
+        ev,
+        sh,
+        shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
+    };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
     let acting: Vec<(&VisibleMonster, Attacker<'_>)> = hostile
         .into_iter()
@@ -285,7 +310,7 @@ fn threat(visible: &VisibleState, knowledge: Option<&Bundle>) -> Threat {
             worst_hit: 0,
         }
     } else {
-        threat::simulate(formulas, Defender { hp, ac, ev, sh }, &attackers)
+        threat::simulate(formulas, defender, &attackers)
     };
     let death = Chance {
         times: outcome.deaths,
@@ -305,7 +330,7 @@ fn threat(visible: &VisibleState, knowledge: Option<&Bundle>) -> Threat {
                 distance: attacker.distance,
             })
             .collect(),
-        not_modelled: MELEE_NOT_MODELLED.to_vec(),
+        not_modelled,
     }))
 }
 

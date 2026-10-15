@@ -1,5 +1,6 @@
 <script lang="ts">
 import { commands, type KeyView } from "$lib/bindings";
+import { failure } from "$lib/command";
 
 let { key }: { key: KeyView } = $props();
 
@@ -12,26 +13,23 @@ const entering = $derived(key.key.state === "missing" || replacing);
 const ownKey = $derived(key.key.state === "stored" && key.key.place.place !== "environment");
 
 async function save() {
-  const result = await commands.saveKey(provider.id, pasted);
+  const saved = failure(await commands.saveKey(provider.id, pasted));
   // The paste is never kept once it has been handed over.
   pasted = "";
-  if (result.status === "error") {
-    error = result.error;
+  error = saved;
+  if (saved !== null) {
     return;
   }
-  error = null;
   replacing = false;
   await test();
 }
 
 async function test() {
-  const result = await commands.testKey(provider.id);
-  error = result.status === "error" ? result.error : null;
+  error = failure(await commands.testKey(provider.id));
 }
 
 async function remove() {
-  const result = await commands.removeKey(provider.id);
-  error = result.status === "error" ? result.error : null;
+  error = failure(await commands.removeKey(provider.id));
 }
 
 function seconds(millis: number): string {

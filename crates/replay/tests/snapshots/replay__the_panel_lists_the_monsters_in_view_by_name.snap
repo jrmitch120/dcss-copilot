@@ -17,7 +17,7 @@ expression: focus
             "text": "h",
             "colour": "brown"
           },
-          "tile": null
+          "tile": "mon/animals/jackal"
         },
         "name": "jackal",
         "detail": null
@@ -28,7 +28,7 @@ expression: focus
             "text": "g",
             "colour": "lightGrey"
           },
-          "tile": null
+          "tile": "mon/humanoids/goblin"
         },
         "name": "goblin",
         "detail": null
@@ -44,7 +44,7 @@ expression: focus
             "text": "h",
             "colour": "brown"
           },
-          "tile": null
+          "tile": "mon/animals/jackal"
         },
         "name": "jackal",
         "detail": null
@@ -55,7 +55,7 @@ expression: focus
             "text": "g",
             "colour": "lightGrey"
           },
-          "tile": null
+          "tile": "mon/humanoids/goblin"
         },
         "name": "goblin",
         "detail": null
@@ -71,7 +71,7 @@ expression: focus
             "text": "h",
             "colour": "brown"
           },
-          "tile": null
+          "tile": "mon/animals/jackal"
         },
         "name": "jackal",
         "detail": null
@@ -87,7 +87,7 @@ expression: focus
             "text": "h",
             "colour": "brown"
           },
-          "tile": null
+          "tile": "mon/animals/jackal"
         },
         "name": "jackal",
         "detail": null
@@ -103,7 +103,7 @@ expression: focus
             "text": "h",
             "colour": "brown"
           },
-          "tile": null
+          "tile": "mon/animals/jackal"
         },
         "name": "jackal",
         "detail": null
@@ -114,7 +114,7 @@ expression: focus
             "text": "S",
             "colour": "lightGreen"
           },
-          "tile": null
+          "tile": "mon/animals/adder"
         },
         "name": "adder",
         "detail": null

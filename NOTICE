@@ -15,5 +15,12 @@ licensed under the GNU General Public License, version 2 or later:
     the crawl tag or commit it was extracted from.
   - Combat, spell and related formulas ported from crawl source.
 
-DCSS tile art, where used, is from crawl's rltiles. It is mostly CC0; any
-tiles under other licenses are credited individually.
+DCSS tile art: the monster tiles in app/static/tiles are from crawl's rltiles
+(crawl-ref/source/rltiles at the tag each Game Knowledge bundle records), the
+work of DCSS's tile artists (https://github.com/crawl/tiles/blob/master/ARTISTS.md),
+released under CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+Some tiles are based on the public domain RLTiles tileset
+(http://rltiles.sf.net). Tiles whose license crawl's tile project lists as
+unknown, from NetHack, or not agreed by their artist
+(TILES_UNDER_UNKNOWN_LICENSE.md in https://github.com/crawl/tiles) are not
+shipped; the panel draws those monsters as glyphs.

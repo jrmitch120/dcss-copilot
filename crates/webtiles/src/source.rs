@@ -104,14 +104,21 @@ impl WebtilesSource {
         game.apply(&envelope.msg);
 
         let identity = game.identify(envelope, &mut self.seen);
-        let session = std::mem::take(&mut game.session);
-        let Some(identity) = identity else {
-            return Vec::new();
-        };
-        let crawl_version = identity.crawl_version.as_ref();
-        let knowledge = crawl_version.and_then(|version| self.knowledge.for_version(&version.0));
-        let visible = game.visible(knowledge);
         let switched = self.followed.as_ref() != Some(&key);
+        let Some(identity) = identity else {
+            // A game process can stop before it names its game. In the followed tab, that is the
+            // followed game's stream stopping; any other tab's waits until its game is named.
+            if switched {
+                return Vec::new();
+            }
+            return std::mem::take(&mut game.session)
+                .into_iter()
+                .map(SourceEvent::Session)
+                .collect();
+        };
+        let session = std::mem::take(&mut game.session);
+        let knowledge = identity.knowledge(&self.knowledge);
+        let visible = game.visible(knowledge);
         let mut events = Vec::new();
         let (last_identity, last_visible) = match &game.reported {
             Some((identity, visible)) if !switched => (Some(identity), Some(visible)),

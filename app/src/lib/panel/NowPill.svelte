@@ -1,10 +1,10 @@
 <script lang="ts">
 import type { NowPill } from "$lib/bindings";
+import { threatTone } from "./tone";
 
 let { now }: { now: NowPill } = $props();
 
-// The pill takes the Threat Level's colour, or a neutral grey while there is none.
-let tone = $derived(now.state === "rated" ? now.level : "unrated");
+let tone = $derived(threatTone(now));
 </script>
 
 <div class="now {tone}">

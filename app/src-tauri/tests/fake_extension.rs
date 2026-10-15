@@ -38,6 +38,7 @@ fn fake_extension(app: &App) -> FakeExtension {
         &app.url,
         FAKE_EXTENSION_ORIGIN,
     )
+    .unwrap()
 }
 
 fn envelopes() -> Vec<Envelope> {

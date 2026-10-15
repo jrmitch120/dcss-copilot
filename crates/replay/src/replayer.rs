@@ -4,7 +4,7 @@
 use std::ops::Range;
 
 use copilot_core::{Advisor, Appearance, Connection, SourceEvent, ViewModel};
-use copilot_gk::Library;
+use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
@@ -93,11 +93,11 @@ impl Game {
 
 impl Replayer {
     /// Starts before the Recording's first envelope, with the Game Knowledge the app ships.
-    #[must_use]
-    pub fn new(recording: Recording) -> Self {
-        // A shipped bundle that doesn't read leaves its monsters undecoded, which fails every
-        // replay snapshot that decodes one.
-        let knowledge = Library::shipped().unwrap_or_default();
+    ///
+    /// # Errors
+    /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
+    pub fn new(recording: Recording) -> Result<Self, BundleError> {
+        let knowledge = Library::shipped()?;
         let mut game = Game::new(&knowledge);
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
         turns.push(None);
@@ -105,13 +105,13 @@ impl Replayer {
             game.apply(envelope);
             turns.push(game.advisor.visible().turn);
         }
-        Self {
+        Ok(Self {
             recording,
             turns,
             position: 0,
             game: Game::new(&knowledge),
             knowledge,
-        }
+        })
     }
 
     /// The Recording being replayed.
@@ -175,6 +175,8 @@ impl Replayer {
                 buffer_overflowed: false,
             },
             appearance: Appearance::default(),
+            // A replay fails rather than run without the shipped Game Knowledge.
+            unreadable_game_knowledge: None,
             game: self.game.advisor.game_view(),
         }
     }

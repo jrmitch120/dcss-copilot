@@ -16,7 +16,7 @@ export const commands = {
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
 	/**  The player chose a slot's model and how it thinks. */
-	setModel: (slot: Slot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
+	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
 	saveKey: (provider: string, key: string) => typedError<null, string>(__TAURI_INVOKE("save_key", { provider, key })),
 	/**  The player removed their key for a provider. */
@@ -88,7 +88,7 @@ reason: string };
 export type Depiction = {
 	/**  The glyph the console game draws. */
 	glyph: Glyph,
-	/**  The tile webtiles draws, when Game Knowledge names one. */
+	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
 	tile: TileName | null,
 };
 
@@ -206,6 +206,13 @@ export type ModelOption = {
 	suggested: ThinkingOption,
 };
 
+/**  The two models a player chooses: one for everyday advice, one for thinking harder. */
+export type ModelSlot = 
+/**  The Quick Model: Alerts, Decision Point nudges, Coach advice and ordinary questions. */
+"quick" | 
+/**  The Deep Model: questions the player asks the Advisor to think harder about. */
+"deep";
+
 /**  Settings → Models and keys, as the Settings window draws it. */
 export type ModelsAndKeysView = {
 	/**  The Quick Model slot. */
@@ -256,17 +263,10 @@ export type SettingsView = {
 	models: ModelsAndKeysView,
 };
 
-/**  Which model slot. */
-export type Slot = 
-/**  The Quick Model, for everyday advice and questions. */
-"quick" | 
-/**  The Deep Model, for when the player ticks "Think deeper". */
-"deep";
-
 /**  One slot's model, and what it could be changed to. */
 export type SlotView = {
 	/**  Which slot this is. */
-	slot: Slot,
+	slot: ModelSlot,
 	/**  The slot's provider. */
 	provider: ProviderView,
 	/**  The model's id. */
@@ -277,7 +277,10 @@ export type SlotView = {
 	models: ModelOption[],
 };
 
-/**  A thinking setting, as the Settings window offers it. */
+/**
+ *  A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
+ *  effort inside adaptive thinking, so it isn't `Thinking` itself.
+ */
 export type ThinkingOption = 
 /**  No thinking. */
 "off" | 
@@ -299,8 +302,8 @@ export type ThreatLevel =
 
 /**
  *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as
- *  `mon/unique/saint_roka`. The panel draws it from `tiles/<name>.png`, and draws the glyph
- *  instead for a tile the app doesn't ship.
+ *  `mon/animals/jackal`. The panel draws it from `tiles/<name>.png`, which the app ships for every
+ *  tile Game Knowledge names, and draws the glyph instead should one fail to load.
  */
 export type TileName = string;
 
@@ -317,6 +320,11 @@ export type ViewModel = {
 	connection: Connection,
 	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
 	appearance: Appearance,
+	/**
+	 *  Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
+	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.
+	 */
+	unreadableGameKnowledge: string | null,
 	/**  The panel for the game being followed, once one is identified. */
 	game: GameView | null,
 };

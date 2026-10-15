@@ -1,0 +1,29 @@
+### Animals
+%sdir mon/animals
+
+## Batty monsters ('b')
+%rim 1
+bat MONS_BAT
+
+## Hounds, hogs, and other four-legged carnivores ('h')
+%rim 0
+jackal MONS_JACKAL
+
+## Rodents ('r')
+%sdir mon/animals
+rat MONS_RAT
+%rim 1
+quokka MONS_QUOKKA
+
+## Turtles and crabs ('t')
+%sdir mon/animals
+%rim 0
+snapping_turtle MONS_SNAPPING_TURTLE
+
+## Snakes ('S')
+%sdir mon/animals
+adder MONS_ADDER
+
+%sdir mon/humanoids
+%rim 0
+goblin_rider MONS_GOBLIN_RIDER

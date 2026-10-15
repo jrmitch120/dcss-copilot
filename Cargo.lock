@@ -716,6 +716,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "specta",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -1690,6 +1691,7 @@ dependencies = [
  "serde",
  "serde-saphyr",
  "serde_json",
+ "tempfile",
  "thiserror 2.0.21",
 ]
 

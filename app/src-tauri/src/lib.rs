@@ -2,6 +2,7 @@
 
 mod keys;
 mod live;
+mod log;
 mod models;
 pub mod relay;
 mod settings;
@@ -19,7 +20,7 @@ use tokio::sync::mpsc;
 
 use crate::keys::{Keys, OsKeychain};
 use crate::live::Live;
-use crate::models::{ModelsAndKeys, ModelsAndKeysView, Slot, ThinkingOption};
+use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
 use crate::relay::{BrowserApprovals, RELAY_PORT};
 use crate::settings::Settings;
 
@@ -119,13 +120,12 @@ fn settings_view(live: State<'_, Live>, models: State<'_, ModelsAndKeys>) -> Set
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
 fn set_model(
-    slot: Slot,
+    slot: ModelSlot,
     model: String,
     thinking: ThinkingOption,
     app: AppHandle,
     live: State<'_, Live>,
 ) -> Result<(), String> {
-    let slot = ModelSlot::from(slot);
     let provider = live.model(slot).provider();
     let choice =
         ModelChoice::new(provider, &model, thinking.into()).map_err(|error| error.to_string())?;
@@ -226,7 +226,7 @@ pub fn run() {
             let settings_path = app.path().app_config_dir()?.join("settings.json");
             // An unreadable settings file is replaced by the defaults the next time one changes.
             let settings = Settings::load(&settings_path).unwrap_or_else(|error| {
-                eprintln!("{error}; using the default settings");
+                crate::log::error(format_args!("{error}; using the default settings"));
                 Settings::defaults(&settings_path)
             });
             app.manage(Live::new(env!("CARGO_PKG_VERSION"), recordings, settings));
@@ -293,13 +293,17 @@ fn current_settings(live: &Live, models: &ModelsAndKeys) -> SettingsView {
 fn push_settings(app: &AppHandle) {
     let view = current_settings(&app.state::<Live>(), &app.state::<ModelsAndKeys>());
     if let Err(error) = SettingsChanged(view).emit(app) {
-        eprintln!("could not push the settings to the Settings window: {error}");
+        crate::log::error(format_args!(
+            "could not push the settings to the Settings window: {error}"
+        ));
     }
 }
 
 fn push_view_model(app: &AppHandle, live: &Live) {
     if let Err(error) = ViewModelChanged(live.view_model()).emit(app) {
-        eprintln!("could not push the view model to the panel: {error}");
+        crate::log::error(format_args!(
+            "could not push the view model to the panel: {error}"
+        ));
     }
 }
 
@@ -315,7 +319,11 @@ mod tests {
 
     use super::current_settings;
     use crate::live::Live;
+    use copilot_llm::{LlmError, LlmProvider, LlmRequest, LlmStream};
+    use futures_util::StreamExt;
+
     use crate::models::tests::{KEY, MemoryKeychain, WORKS, models, replaying};
+    use crate::models::{Connect, KeyState, KeyTest, ModelsAndKeys};
     use crate::relay::RelayEvent;
     use crate::settings::Settings;
 
@@ -323,6 +331,79 @@ mod tests {
     #[test]
     fn bindings() {
         super::export_bindings().unwrap();
+    }
+
+    /// A provider whose every call fails with `error`.
+    struct Failing(LlmError);
+
+    impl LlmProvider for Failing {
+        fn stream(&self, _: LlmRequest) -> LlmStream {
+            futures_util::stream::once(std::future::ready(Err(self.0.clone()))).boxed()
+        }
+    }
+
+    fn failing(error: LlmError) -> Connect {
+        Box::new(move |_, _| Box::new(Failing(error.clone())))
+    }
+
+    /// Every message the Settings window shows about `models`' Anthropic key.
+    fn key_messages(models: &ModelsAndKeys) -> Vec<String> {
+        let quick = ModelChoice::default_for(ModelSlot::Quick);
+        let deep = ModelChoice::default_for(ModelSlot::Deep);
+        let view = models.view(&quick, &deep).keys.remove(0);
+        let mut messages = vec![serde_json::to_string(&view).unwrap()];
+        match view.test {
+            KeyTest::Rejected { message } | KeyTest::Failed { message } => messages.push(message),
+            _ => {}
+        }
+        if let KeyState::Stored { masked, .. } = view.key {
+            messages.push(masked);
+        }
+        messages
+    }
+
+    #[tokio::test]
+    async fn a_key_never_reaches_the_log_or_an_error_from_saving_testing_or_removing_it() {
+        let mut said = Vec::new();
+
+        // No keychain: reading keys at launch is logged, and the key is held for the session.
+        let without_keychain = models(&MemoryKeychain::unusable(), replaying(WORKS));
+        without_keychain.save_key(Provider::Anthropic, KEY).unwrap();
+        without_keychain.remove_key(Provider::Anthropic).unwrap();
+
+        // A provider that fails, even one that echoes the key it was called with.
+        for error in [
+            LlmError::Unreachable("connection refused".to_owned()),
+            LlmError::BadRequest {
+                status: 400,
+                message: format!("x-api-key {KEY} is malformed"),
+            },
+        ] {
+            let models = models(&MemoryKeychain::default(), failing(error));
+            models.save_key(Provider::Anthropic, KEY).unwrap();
+            models.test_key(Provider::Anthropic, None).await;
+            said.extend(key_messages(&models));
+        }
+
+        // A keychain that won't delete the key.
+        let locked = models(&MemoryKeychain::refusing_delete(), replaying(WORKS));
+        locked.save_key(Provider::Anthropic, KEY).unwrap();
+        said.push(
+            locked
+                .remove_key(Provider::Anthropic)
+                .unwrap_err()
+                .to_string(),
+        );
+
+        said.extend(crate::log::tests::logged());
+        assert!(
+            said.iter()
+                .any(|line| line.contains("no Secret Service is running")),
+            "{said:?}"
+        );
+        for line in &said {
+            assert!(!line.contains(KEY), "the key reached: {line}");
+        }
     }
 
     /// Every file under `dir`, as text: Recordings decompressed, everything else as written.

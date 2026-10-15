@@ -6,8 +6,8 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Instant;
 
 use copilot_llm::{
-    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, Message, ModelChoice, ModelSlot, Provider,
-    SidecarRecorder, Thinking, complete,
+    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, Message, ModelChoice, ModelInfo, ModelSlot,
+    Provider, SidecarRecorder, Thinking, complete,
 };
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -42,8 +42,8 @@ impl ModelsAndKeys {
         let keys = lock(&self.keys);
         let tests = lock(&self.tests);
         ModelsAndKeysView {
-            quick: slot_view(Slot::Quick, quick),
-            deep: slot_view(Slot::Deep, deep),
+            quick: slot_view(ModelSlot::Quick, quick),
+            deep: slot_view(ModelSlot::Deep, deep),
             keys: Provider::ALL
                 .into_iter()
                 .map(|provider| KeyView {
@@ -106,7 +106,7 @@ impl ModelsAndKeys {
                 message: format!("There is no {} key to test.", provider.name()),
             };
         };
-        let mut live = (self.connect)(provider, held.key);
+        let mut live = (self.connect)(provider, held.key.clone());
         if let Some(path) = sidecar {
             match SidecarRecorder::create(live, &path) {
                 Ok(recorder) => live = Box::new(recorder),
@@ -117,36 +117,48 @@ impl ModelsAndKeys {
                 }
             }
         }
-        let (request, model_name) = key_test_request(provider);
+        let Some((request, model_name)) = key_test_request(provider.models()) else {
+            return KeyTest::Failed {
+                message: format!("{} offers no model to test the key with.", provider.name()),
+            };
+        };
         let started = Instant::now();
         match complete(live.as_ref(), request).await {
             Ok(_) => KeyTest::Works {
                 model: model_name.to_owned(),
                 millis: u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX),
             },
-            Err(LlmError::KeyRejected { message, .. }) => KeyTest::Rejected { message },
+            Err(LlmError::KeyRejected { message, .. }) => KeyTest::Rejected {
+                message: masking(&held.key, &message),
+            },
             Err(error) => KeyTest::Failed {
-                message: error.to_string(),
+                message: masking(&held.key, &error.to_string()),
             },
         }
     }
 }
 
-/// The call that tests a key: the provider's first model, asked for one word.
-fn key_test_request(provider: Provider) -> (LlmRequest, &'static str) {
-    let models = provider.models();
-    let (id, name, thinking) = models.first().map_or(("", "", Thinking::Off), |model| {
-        (model.id, model.name, model.suggested)
-    });
+/// What a provider said, with `key` masked wherever it echoed it back.
+fn masking(key: &ApiKey, said: &str) -> String {
+    if key.is_empty() {
+        return said.to_owned();
+    }
+    said.replace(key.expose(), &key.masked())
+}
+
+/// The call that tests a key: the first of the provider's `models`, asked for one word, and the
+/// model's name. `None` when the provider offers no model to ask.
+fn key_test_request(models: &'static [ModelInfo]) -> Option<(LlmRequest, &'static str)> {
+    let model = models.first()?;
     let request = LlmRequest {
-        thinking,
+        thinking: model.suggested,
         ..LlmRequest::new(
-            id,
+            model.id,
             KEY_TEST_MAX_TOKENS,
             vec![Message::user("Reply with the single word OK.")],
         )
     };
-    (request, name)
+    Some((request, model.name))
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -161,7 +173,7 @@ fn provider_view(provider: Provider) -> ProviderView {
     }
 }
 
-fn slot_view(slot: Slot, choice: &ModelChoice) -> SlotView {
+fn slot_view(slot: ModelSlot, choice: &ModelChoice) -> SlotView {
     SlotView {
         slot,
         provider: provider_view(choice.provider()),
@@ -198,31 +210,12 @@ pub struct ModelsAndKeysView {
     pub keys: Vec<KeyView>,
 }
 
-/// Which model slot.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
-pub enum Slot {
-    /// The Quick Model, for everyday advice and questions.
-    Quick,
-    /// The Deep Model, for when the player ticks "Think deeper".
-    Deep,
-}
-
-impl From<Slot> for ModelSlot {
-    fn from(slot: Slot) -> Self {
-        match slot {
-            Slot::Quick => Self::Quick,
-            Slot::Deep => Self::Deep,
-        }
-    }
-}
-
 /// One slot's model, and what it could be changed to.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SlotView {
     /// Which slot this is.
-    pub slot: Slot,
+    pub slot: ModelSlot,
     /// The slot's provider.
     pub provider: ProviderView,
     /// The model's id.
@@ -257,7 +250,8 @@ pub struct ModelOption {
     pub suggested: ThinkingOption,
 }
 
-/// A thinking setting, as the Settings window offers it.
+/// A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
+/// effort inside adaptive thinking, so it isn't `Thinking` itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ThinkingOption {
@@ -393,17 +387,26 @@ pub(crate) mod tests {
     pub(crate) const WORKS: &[u8] = include_bytes!("../tests/sidecars/key-test-works.llm.jsonl");
     const REJECTED: &[u8] = include_bytes!("../tests/sidecars/key-test-rejected.llm.jsonl");
 
-    /// A keychain in memory, which can be made unusable like a Linux desktop without one.
+    /// A keychain in memory, which can be made unusable like a Linux desktop without one, or
+    /// made to refuse deleting a key.
     #[derive(Clone, Default)]
     pub(crate) struct MemoryKeychain {
         keys: Arc<Mutex<HashMap<Provider, String>>>,
         unusable: bool,
+        refuses_delete: bool,
     }
 
     impl MemoryKeychain {
-        fn unusable() -> Self {
+        pub(crate) fn unusable() -> Self {
             Self {
                 unusable: true,
+                ..Self::default()
+            }
+        }
+
+        pub(crate) fn refusing_delete() -> Self {
+            Self {
+                refuses_delete: true,
                 ..Self::default()
             }
         }
@@ -430,6 +433,9 @@ pub(crate) mod tests {
 
         fn delete(&self, provider: Provider) -> Result<(), KeychainError> {
             self.check()?;
+            if self.refuses_delete {
+                return Err(KeychainError("the keychain is locked".to_owned()));
+            }
             lock(&self.keys).remove(&provider);
             Ok(())
         }
@@ -588,6 +594,11 @@ pub(crate) mod tests {
 
         models.save_key(Provider::Anthropic, KEY).unwrap();
         assert_eq!(anthropic(&models).test, KeyTest::Untested);
+    }
+
+    #[test]
+    fn a_provider_without_models_has_no_key_test_rather_than_one_with_an_empty_model() {
+        assert_eq!(key_test_request(&[]), None);
     }
 
     #[test]

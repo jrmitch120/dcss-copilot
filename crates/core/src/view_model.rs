@@ -16,6 +16,9 @@ pub struct ViewModel {
     pub connection: Connection,
     /// Whether monsters and items are drawn as DCSS tiles or glyphs.
     pub appearance: Appearance,
+    /// Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
+    /// followed without it: monsters and items aren't decoded and no Threat Level is judged.
+    pub unreadable_game_knowledge: Option<String>,
     /// The panel for the game being followed, once one is identified.
     pub game: Option<GameView>,
 }
@@ -28,6 +31,7 @@ impl ViewModel {
             app_version: app_version.to_owned(),
             connection: Connection::NoBrowser,
             appearance,
+            unreadable_game_knowledge: None,
             game: None,
         }
     }
@@ -174,7 +178,7 @@ pub struct Listing {
 pub struct Depiction {
     /// The glyph the console game draws.
     pub glyph: Glyph,
-    /// The tile webtiles draws, when Game Knowledge names one.
+    /// The tile webtiles draws, when Game Knowledge names one the app ships.
     pub tile: Option<TileName>,
 }
 
@@ -189,8 +193,8 @@ pub struct Glyph {
 }
 
 /// A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as
-/// `mon/unique/saint_roka`. The panel draws it from `tiles/<name>.png`, and draws the glyph
-/// instead for a tile the app doesn't ship.
+/// `mon/animals/jackal`. The panel draws it from `tiles/<name>.png`, which the app ships for every
+/// tile Game Knowledge names, and draws the glyph instead should one fail to load.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 pub struct TileName(pub String);
 
@@ -257,6 +261,7 @@ mod tests {
                 "appVersion": "1.2.3",
                 "connection": { "state": "noBrowser" },
                 "appearance": "tiles",
+                "unreadableGameKnowledge": null,
                 "game": null
             })
         );

@@ -4,6 +4,7 @@
 use std::str::FromStr;
 use std::time::Duration;
 
+use copilot_gk::BundleError;
 use copilot_webtiles::relay_protocol::{
     AppFrame, ExtensionFrame, RELAY_PORT, RELAY_PROTOCOL_VERSION, Refusal,
 };
@@ -63,14 +64,16 @@ pub enum FakeExtensionError {
 
 impl FakeExtension {
     /// A page that has received nothing yet, relaying to the app at `url` from `origin`.
-    #[must_use]
-    pub fn new(recording: Recording, url: &str, origin: &str) -> Self {
-        Self {
-            page: Replayer::new(recording),
+    ///
+    /// # Errors
+    /// If the Game Knowledge the app ships can't be read, which the page's replay needs.
+    pub fn new(recording: Recording, url: &str, origin: &str) -> Result<Self, BundleError> {
+        Ok(Self {
+            page: Replayer::new(recording)?,
             url: url.to_owned(),
             origin: origin.to_owned(),
             socket: None,
-        }
+        })
     }
 
     /// What the page has received, replayed in process.

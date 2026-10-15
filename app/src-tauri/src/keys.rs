@@ -150,7 +150,10 @@ impl Keys {
                     );
                 }
                 Ok(None) => {}
-                Err(error) => eprintln!("keys: can't read the {} key: {error}", provider.name()),
+                Err(error) => crate::log::error(format_args!(
+                    "keys: can't read the {} key: {error}",
+                    provider.name()
+                )),
             }
             if let Some(key) = environment(provider.key_variable())
                 .map(|key| ApiKey::new(&key))
