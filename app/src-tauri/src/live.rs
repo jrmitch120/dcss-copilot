@@ -73,7 +73,9 @@ impl Live {
         let (knowledge, unreadable_knowledge) = match knowledge {
             Ok(knowledge) => (knowledge, None),
             Err(error) => {
-                eprintln!("{error}: games are followed without Game Knowledge");
+                crate::log::error(format_args!(
+                    "{error}: games are followed without Game Knowledge"
+                ));
                 (Library::default(), Some(error.to_string()))
             }
         };
@@ -246,7 +248,10 @@ impl Recorder {
                     flushed_at: envelope.ts,
                 },
                 Err(error) => {
-                    eprintln!("recording: could not start {}: {error}", path.display());
+                    crate::log::error(format_args!(
+                        "recording: could not start {}: {error}",
+                        path.display()
+                    ));
                     Self::Off
                 }
             };
@@ -264,7 +269,7 @@ impl Recorder {
                 Ok(())
             });
             if let Err(error) = written {
-                eprintln!("recording: stopped, could not write: {error}");
+                crate::log::error(format_args!("recording: stopped, could not write: {error}"));
                 *self = Self::Off;
             }
         }
@@ -279,7 +284,7 @@ impl Recorder {
         if let Self::Writing { writer, .. } = std::mem::replace(self, idle)
             && let Err(error) = writer.finish()
         {
-            eprintln!("recording: could not finish: {error}");
+            crate::log::error(format_args!("recording: could not finish: {error}"));
         }
     }
 }

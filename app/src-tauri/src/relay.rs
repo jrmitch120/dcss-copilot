@@ -167,7 +167,9 @@ pub async fn serve(
                 tokio::spawn(connection(stream, Arc::clone(&approvals), events.clone()));
             }
             Err(error) => {
-                eprintln!("relay: could not accept a connection: {error}");
+                crate::log::error(format_args!(
+                    "relay: could not accept a connection: {error}"
+                ));
                 tokio::time::sleep(ACCEPT_RETRY).await;
             }
         }
@@ -206,7 +208,7 @@ async fn connection(
         return;
     };
     if let Err(error) = session(socket, browser, approvals, events).await {
-        eprintln!("relay: {error}");
+        crate::log::error(format_args!("relay: {error}"));
     }
 }
 

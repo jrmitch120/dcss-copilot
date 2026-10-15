@@ -106,7 +106,7 @@ impl ModelsAndKeys {
                 message: format!("There is no {} key to test.", provider.name()),
             };
         };
-        let mut live = (self.connect)(provider, held.key);
+        let mut live = (self.connect)(provider, held.key.clone());
         if let Some(path) = sidecar {
             match SidecarRecorder::create(live, &path) {
                 Ok(recorder) => live = Box::new(recorder),
@@ -128,12 +128,22 @@ impl ModelsAndKeys {
                 model: model_name.to_owned(),
                 millis: u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX),
             },
-            Err(LlmError::KeyRejected { message, .. }) => KeyTest::Rejected { message },
+            Err(LlmError::KeyRejected { message, .. }) => KeyTest::Rejected {
+                message: masking(&held.key, &message),
+            },
             Err(error) => KeyTest::Failed {
-                message: error.to_string(),
+                message: masking(&held.key, &error.to_string()),
             },
         }
     }
+}
+
+/// What a provider said, with `key` masked wherever it echoed it back.
+fn masking(key: &ApiKey, said: &str) -> String {
+    if key.is_empty() {
+        return said.to_owned();
+    }
+    said.replace(key.expose(), &key.masked())
 }
 
 /// The call that tests a key: the first of the provider's `models`, asked for one word, and the
@@ -377,17 +387,26 @@ pub(crate) mod tests {
     pub(crate) const WORKS: &[u8] = include_bytes!("../tests/sidecars/key-test-works.llm.jsonl");
     const REJECTED: &[u8] = include_bytes!("../tests/sidecars/key-test-rejected.llm.jsonl");
 
-    /// A keychain in memory, which can be made unusable like a Linux desktop without one.
+    /// A keychain in memory, which can be made unusable like a Linux desktop without one, or
+    /// made to refuse deleting a key.
     #[derive(Clone, Default)]
     pub(crate) struct MemoryKeychain {
         keys: Arc<Mutex<HashMap<Provider, String>>>,
         unusable: bool,
+        refuses_delete: bool,
     }
 
     impl MemoryKeychain {
-        fn unusable() -> Self {
+        pub(crate) fn unusable() -> Self {
             Self {
                 unusable: true,
+                ..Self::default()
+            }
+        }
+
+        pub(crate) fn refusing_delete() -> Self {
+            Self {
+                refuses_delete: true,
                 ..Self::default()
             }
         }
@@ -414,6 +433,9 @@ pub(crate) mod tests {
 
         fn delete(&self, provider: Provider) -> Result<(), KeychainError> {
             self.check()?;
+            if self.refuses_delete {
+                return Err(KeychainError("the keychain is locked".to_owned()));
+            }
             lock(&self.keys).remove(&provider);
             Ok(())
         }
