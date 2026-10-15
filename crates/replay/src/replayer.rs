@@ -3,8 +3,10 @@
 
 use std::ops::Range;
 
-use copilot_core::{Advisor, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, Connection, SourceEvent, ViewModel};
+use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
+use serde::Serialize;
 
 use crate::Recording;
 
@@ -19,6 +21,7 @@ pub struct Replayer {
     /// any.
     turns: Vec<Option<u32>>,
     position: usize,
+    knowledge: Library,
     game: Game,
 }
 
@@ -32,38 +35,83 @@ pub struct Applied {
     pub envelopes: Range<usize>,
 }
 
+/// Something the Game Source reported that happened rather than what the game now shows: a
+/// screen read, or a session event.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Moment {
+    /// The envelope it came from, counting from 0.
+    pub envelope: usize,
+    /// The followed game's turn just after it.
+    pub turn: Option<u32>,
+    /// What happened.
+    #[serde(flatten)]
+    pub event: SourceEvent,
+}
+
 /// The Game Source and the core, fed together.
-#[derive(Default)]
 struct Game {
     source: WebtilesSource,
     advisor: Advisor,
+    /// What has happened so far, in order.
+    timeline: Vec<Moment>,
+    /// How many envelopes have been applied.
+    applied: usize,
 }
 
 impl Game {
-    fn apply(&mut self, envelope: &Envelope) {
-        for event in self.source.ingest(envelope) {
-            self.advisor.apply(event);
+    fn new(knowledge: &Library) -> Self {
+        Self {
+            source: WebtilesSource::new(knowledge.clone()),
+            advisor: Advisor::new(knowledge.clone()),
+            timeline: Vec::new(),
+            applied: 0,
         }
+    }
+
+    fn apply(&mut self, envelope: &Envelope) {
+        let events = self.source.ingest(envelope);
+        for event in &events {
+            self.advisor.apply(event.clone());
+        }
+        let turn = self.advisor.visible().turn;
+        self.timeline.extend(
+            events
+                .into_iter()
+                .filter(|event| {
+                    matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_))
+                })
+                .map(|event| Moment {
+                    envelope: self.applied,
+                    turn,
+                    event,
+                }),
+        );
+        self.applied += 1;
     }
 }
 
 impl Replayer {
-    /// Starts before the Recording's first envelope.
-    #[must_use]
-    pub fn new(recording: Recording) -> Self {
-        let mut game = Game::default();
+    /// Starts before the Recording's first envelope, with the Game Knowledge the app ships.
+    ///
+    /// # Errors
+    /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
+    pub fn new(recording: Recording) -> Result<Self, BundleError> {
+        let knowledge = Library::shipped()?;
+        let mut game = Game::new(&knowledge);
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
         turns.push(None);
         for envelope in &recording.envelopes {
             game.apply(envelope);
             turns.push(game.advisor.visible().turn);
         }
-        Self {
+        Ok(Self {
             recording,
             turns,
             position: 0,
-            game: Game::default(),
-        }
+            game: Game::new(&knowledge),
+            knowledge,
+        })
     }
 
     /// The Recording being replayed.
@@ -112,15 +160,25 @@ impl Replayer {
         &self.game.advisor
     }
 
-    /// What the panel would show, with the browser connected.
+    /// The screen reads and session events so far, in order.
+    #[must_use]
+    pub fn timeline(&self) -> &[Moment] {
+        &self.game.timeline
+    }
+
+    /// What the panel would show, with the browser connected and the default Appearance.
     #[must_use]
     pub fn view_model(&self) -> ViewModel {
-        let connection = Connection::Connected {
-            buffer_overflowed: false,
-        };
-        self.game
-            .advisor
-            .view_model(&self.recording.header.app_version, connection)
+        ViewModel {
+            app_version: self.recording.header.app_version.clone(),
+            connection: Connection::Connected {
+                buffer_overflowed: false,
+            },
+            appearance: Appearance::default(),
+            // A replay fails rather than run without the shipped Game Knowledge.
+            unreadable_game_knowledge: None,
+            game: self.game.advisor.game_view(),
+        }
     }
 
     /// Applies the next envelope, if any.
@@ -154,7 +212,7 @@ impl Replayer {
         let target = position.min(self.recording.envelopes.len());
         let restarted = target < self.position;
         if restarted {
-            self.game = Game::default();
+            self.game = Game::new(&self.knowledge);
             self.position = 0;
         }
         let start = self.position;

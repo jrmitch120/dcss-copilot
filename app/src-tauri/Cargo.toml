@@ -18,10 +18,14 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 copilot-core.workspace = true
+copilot-gk.workspace = true
+copilot-llm.workspace = true
 copilot-replay.workspace = true
 copilot-webtiles.workspace = true
 # The relay's localhost websocket server. Tauri already runs on tokio.
 futures-util.workspace = true
+# Players' API keys, in the OS keychain: Keychain Services, Credential Manager or the Secret Service.
+keyring = "4"
 serde.workspace = true
 serde_json.workspace = true
 specta.workspace = true
@@ -36,5 +40,6 @@ tokio-tungstenite.workspace = true
 workspace = true
 
 [dev-dependencies]
+insta.workspace = true
 tempfile = "3"
 tokio = { workspace = true, features = ["rt-multi-thread"] }

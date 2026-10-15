@@ -9,14 +9,41 @@ export const commands = {
 	viewModel: () => __TAURI_INVOKE<ViewModel>("view_model"),
 	/**  The player answered "Allow this browser?". */
 	answerBrowser: (allow: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_browser", { allow })),
+	/**  The player chose to draw monsters and items as tiles or glyphs. */
+	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
+	/**  Opens the Settings window, or brings it to the front. */
+	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
+	/**  The settings as they are now, for a Settings window that has just loaded. */
+	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
+	/**  The player chose a slot's model and how it thinks. */
+	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
+	/**  The player pasted a key for a provider. */
+	saveKey: (provider: string, key: string) => typedError<null, string>(__TAURI_INVOKE("save_key", { provider, key })),
+	/**  The player removed their key for a provider. */
+	removeKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("remove_key", { provider })),
+	/**  The player asked to test a provider's key. The outcome arrives in the settings. */
+	testKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("test_key", { provider })),
 };
 
 /** Events */
 export const events = {
+	settingsChanged: makeEvent<SettingsChanged>("settings-changed"),
 	viewModelChanged: makeEvent<ViewModelChanged>("view-model-changed"),
 };
 
 /* Types */
+/**  The player's setting for how monsters and items are drawn. */
+export type Appearance = 
+/**  DCSS tiles, as webtiles draws them. Anything without a tile falls back to its glyph. */
+"tiles" | 
+/**  DCSS glyphs in their game colours, as the console game draws them. */
+"glyphs";
+
+/**  The ask box at the bottom of the panel. */
+export type AskBox = 
+/**  Answering needs a model, and none is set up. */
+{ state: "needsModel" };
+
 /**  The character in the game being followed. A stat is `None` until the game reports it. */
 export type Character = {
 	/**  The character's name. */
@@ -30,6 +57,9 @@ export type Character = {
 	/**  The game's turn count. */
 	turn: number | null,
 };
+
+/**  The sixteen colours DCSS draws glyphs in, named as crawl names them, in crawl's order. */
+export type Colour = "black" | "blue" | "green" | "cyan" | "red" | "magenta" | "brown" | "lightGrey" | "darkGrey" | "lightBlue" | "lightGreen" | "lightCyan" | "lightRed" | "lightMagenta" | "yellow" | "white";
 
 /**  How the app is connected to the browser extension. */
 export type Connection = 
@@ -52,6 +82,232 @@ bufferOverflowed: boolean } |
 reason: string };
 
 /**
+ *  How a monster or item is drawn: always as a glyph, and as a tile too when one is known.
+ *  The player's Appearance setting picks which the panel shows.
+ */
+export type Depiction = {
+	/**  The glyph the console game draws. */
+	glyph: Glyph,
+	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
+	tile: TileName | null,
+};
+
+/**  The card under the now pill: what deserves the player's attention now. */
+export type FocusCard = 
+/**  Nothing calls for a decision: the card lists what is in view. */
+{ card: "inView"; 
+/**
+ *  The monsters in view, or `None` while the Advisor can't read monsters, which is
+ *  not the same as there being none.
+ */
+monsters: Listing[] | null };
+
+/**
+ *  The docked panel for the followed game, top to bottom: header, now pill, focus card,
+ *  Run Plan rail and ask box. The footer belongs to the app, not the game.
+ */
+export type GameView = {
+	/**  Who is playing, shown in the header. */
+	character: Character,
+	/**  How dangerous this moment is, at a glance. */
+	now: NowPill,
+	/**  The one thing that deserves the player's attention now. */
+	focus: FocusCard,
+	/**  The Run Plan, summarised along the bottom of the panel. */
+	runPlan: RunPlanRail,
+	/**  Where the player asks the Advisor questions. */
+	ask: AskBox,
+};
+
+/**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
+export type Glyph = {
+	/**  The character drawn, usually one letter or symbol. */
+	text: string,
+	/**  Its colour. */
+	colour: Colour,
+};
+
+/**  Where a key is kept. */
+export type KeyPlace = 
+/**  In the OS keychain. */
+{ place: "keychain" } | 
+/**  In memory until the app exits, because the keychain can't be used. */
+{ place: "session"; 
+/**  Why the keychain can't be used. */
+reason: string } | 
+/**  In an environment variable the player set outside the app. */
+{ place: "environment"; 
+/**  The variable. */
+variable: string };
+
+/**  Whether the app has a key for a provider. */
+export type KeyState = 
+/**  No key yet. */
+{ state: "missing"; 
+/**  The environment variable the app would also read it from. */
+variable: string } | 
+/**  A key, shown only masked. */
+{ state: "stored"; 
+/**  The key's start and last four characters, such as `sk-ant-…a1b2`. */
+masked: string; 
+/**  Where it is kept. */
+place: KeyPlace };
+
+/**  How a key's last test went. */
+export type KeyTest = 
+/**  Not tested since it was given. */
+{ state: "untested" } | 
+/**  A test call is on its way. */
+{ state: "testing" } | 
+/**  A model answered. */
+{ state: "works"; 
+/**  The model that answered. */
+model: string; 
+/**  How long the answer took. */
+millis: number } | 
+/**  The provider refused the key. */
+{ state: "rejected"; 
+/**  What the provider said. */
+message: string } | 
+/**  The test couldn't tell, such as when the provider can't be reached. */
+{ state: "failed"; 
+/**  What went wrong. */
+message: string };
+
+/**  One provider's key, masked. */
+export type KeyView = {
+	/**  The provider. */
+	provider: ProviderView,
+	/**  Whether there is a key, and where it is kept. */
+	key: KeyState,
+	/**  How its last test went. */
+	test: KeyTest,
+};
+
+/**  One row of a list in the panel, such as a monster in view. */
+export type Listing = {
+	/**  How the thing is drawn. */
+	depiction: Depiction,
+	/**  Its name, as the game names it. */
+	name: string,
+	/**  A short fact beside the name, if any. */
+	detail: string | null,
+};
+
+/**  A model the player can choose. */
+export type ModelOption = {
+	/**  The model's id. */
+	id: string,
+	/**  Its name. */
+	name: string,
+	/**  The thinking settings it accepts, from least to most. */
+	thinking: ThinkingOption[],
+	/**  The one to pick when the player switches to this model. */
+	suggested: ThinkingOption,
+};
+
+/**  The two models a player chooses: one for everyday advice, one for thinking harder. */
+export type ModelSlot = 
+/**  The Quick Model: Alerts, Decision Point nudges, Coach advice and ordinary questions. */
+"quick" | 
+/**  The Deep Model: questions the player asks the Advisor to think harder about. */
+"deep";
+
+/**  Settings → Models and keys, as the Settings window draws it. */
+export type ModelsAndKeysView = {
+	/**  The Quick Model slot. */
+	quick: SlotView,
+	/**  The Deep Model slot. */
+	deep: SlotView,
+	/**  Each provider's key. */
+	keys: KeyView[],
+};
+
+/**  The threat label and one line at the top of the panel. */
+export type NowPill = 
+/**  The Advisor can't judge a Threat Level yet, so it shows none rather than guess. */
+{ state: "unrated" } | 
+/**  The Advisor judged how dangerous this moment is. */
+{ state: "rated"; 
+/**  The Threat Level. */
+level: ThreatLevel; 
+/**  One sentence about this moment, such as which monsters can attack. */
+line: string; 
+/**
+ *  The numbers behind the level, such as the chance of death and the worst-case hit,
+ *  when anything can attack.
+ */
+detail: string | null };
+
+/**  A provider, as the Settings window names it. */
+export type ProviderView = {
+	/**  The id commands take, such as `anthropic`. */
+	id: string,
+	/**  The provider's name. */
+	name: string,
+};
+
+/**  The Run Plan rail along the bottom of the panel. */
+export type RunPlanRail = 
+/**  There is no Run Plan for this game yet. */
+{ state: "notPlanned" };
+
+/**  The core pushes new settings to the Settings window. */
+export type SettingsChanged = SettingsView;
+
+/**  Everything the Settings window shows. */
+export type SettingsView = {
+	/**  The running app's version, for About. */
+	appVersion: string,
+	/**  Settings → Models and keys. */
+	models: ModelsAndKeysView,
+};
+
+/**  One slot's model, and what it could be changed to. */
+export type SlotView = {
+	/**  Which slot this is. */
+	slot: ModelSlot,
+	/**  The slot's provider. */
+	provider: ProviderView,
+	/**  The model's id. */
+	model: string,
+	/**  How it thinks. */
+	thinking: ThinkingOption,
+	/**  The models the provider offers, with the thinking each accepts. */
+	models: ModelOption[],
+};
+
+/**
+ *  A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
+ *  effort inside adaptive thinking, so it isn't `Thinking` itself.
+ */
+export type ThinkingOption = 
+/**  No thinking. */
+"off" | 
+/**  Adaptive thinking at low effort. */
+"low" | 
+/**  Adaptive thinking at medium effort. */
+"medium" | 
+/**  Adaptive thinking at high effort. */
+"high";
+
+/**  How dangerous a moment is: the Threat Level. */
+export type ThreatLevel = 
+/**  Neither likely to die nor to be hit hard before the next action. */
+"calm" | 
+/**  A real chance of death, or a hard hit, before the next action. */
+"dangerous" | 
+/**  Death before the next action is likely enough, or a hit could take every hit point. */
+"lethal";
+
+/**
+ *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as
+ *  `mon/animals/jackal`. The panel draws it from `tiles/<name>.png`, which the app ships for every
+ *  tile Game Knowledge names, and draws the glyph instead should one fail to load.
+ */
+export type TileName = string;
+
+/**
  *  Everything the panel renders, pushed by the core to the webview.
  * 
  *  The webview holds no game logic: it only draws this. TypeScript types are
@@ -62,8 +318,15 @@ export type ViewModel = {
 	appVersion: string,
 	/**  How the app is connected to the browser. */
 	connection: Connection,
-	/**  The character in the game being followed, once one is identified. */
-	character: Character | null,
+	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
+	appearance: Appearance,
+	/**
+	 *  Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
+	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.
+	 */
+	unreadableGameKnowledge: string | null,
+	/**  The panel for the game being followed, once one is identified. */
+	game: GameView | null,
 };
 
 /**  The core pushes a new view model to the panel. */

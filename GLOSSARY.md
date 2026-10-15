@@ -16,6 +16,10 @@ _Avoid_: Integration, connector, backend
 A saved copy of everything a Game Source sent during one game, which can be replayed to reproduce what the Advisor saw. The player can opt in to recording and export a game to report a problem.
 _Avoid_: Log, trace, capture (when meaning the saved file)
 
+**LLM Sidecar**:
+The LLM calls made while a Recording was made, saved beside it and looked up by each request's hash, so a replay gets the same answers without calling a model.
+_Avoid_: Cassette, fixture, mock
+
 **Envelope**:
 One raw message from a Game Source, unchanged, wrapped with where and when it was received. The browser extension relays envelopes to the app, and a Recording is a sequence of them.
 _Avoid_: Packet, event, frame (a frame is one websocket message of the relay protocol)
@@ -38,13 +42,29 @@ _Avoid_: Context, game state (when meaning the whole)
 What the game currently reports to the player: map in view, monsters, stats, inventory, statuses, messages, and any screen the player has open (overview, skills, spells, character dump).
 _Avoid_: Screen, snapshot
 
+**Screen Read**:
+What a screen the player opened shows, such as the character overview, skills, spells, mutations, the dungeon overview, the character dump or any other menu, as crawl's own plain text. A Game Source reports one each time a screen opens or what it shows changes, and the Advisor reads facts off it.
+_Avoid_: Screen scrape, menu dump
+
+**Session Event**:
+Something that happened to the Game Source's view of a game rather than in the game: the Advisor joined it, the source resynced it in full, the connection to it was lost, or it ended.
+_Avoid_: Connection state, lifecycle event
+
 **Accumulated State**:
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache
 
+**Known, Stale, Missing**:
+How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
+_Avoid_: Fresh, expired, cached
+
 **Game Knowledge**:
 Static facts about DCSS itself for one Crawl Version: monster, spell, item, god and species data. When the Advisor has none for the exact Crawl Version being played, it uses the nearest it has and tells the player its advice is approximate.
 _Avoid_: Wiki data, database
+
+**Game Knowledge bundle**:
+The Game Knowledge for one Crawl Version as one file, extracted from crawl's source at that version's tag and shipped with the app. It records the crawl commit it came from, and holds the version's own enum numbering, so a Game Source decodes a game through the bundle for its Crawl Version.
+_Avoid_: Data pack, dataset
 
 **Crawl Version**:
 The exact build of DCSS a game is played on: a stable release such as 0.34.1, or a particular trunk build.
@@ -63,6 +83,14 @@ _Avoid_: Situation, snapshot, context, prompt data
 **Threat Level**:
 How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit.
 _Avoid_: Danger score, threat score
+
+**Worst-Case Hit**:
+The total damage the player could take before their next action, as bad as it gets barring one time in a hundred (the 99th percentile of the Threat Level's simulation). It counts every monster that can attack, not only the hardest single blow.
+_Avoid_: Max damage, max hit
+
+**Formula Variant**:
+One version of a crawl formula as the engine ports it, such as a monster's to-hit as crawl 0.34 computes it. A Game Knowledge bundle names the variant of each formula its Crawl Version uses, so the engine picks its code by name and never compares version strings.
+_Avoid_: Formula version, ruleset
 
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
@@ -115,6 +143,24 @@ _Avoid_: Loot alert, rare drop
 **Information**:
 Factual lookups the player asks for or that are surfaced alongside play, such as monster details or a resistance breakdown. Not a recommendation.
 _Avoid_: Advice (when no recommendation is made)
+
+### Panel
+
+**Now Pill**:
+The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level, because a Gap leaves an input it needs Missing, it shows UNRATED rather than CALM.
+_Avoid_: Status bar, banner
+
+**Focus Card**:
+The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
+_Avoid_: Main card, hero card
+
+**Run Plan Rail**:
+The Run Plan summarised along the bottom of the panel, one row per part of the plan.
+_Avoid_: Plan bar, sidebar
+
+**Appearance**:
+The player's choice to draw monsters and items as DCSS tiles (the default) or as glyphs in DCSS's colours. Tiles are drawn only at whole-number scales; anything without a tile is drawn as its glyph.
+_Avoid_: Theme, skin, tileset
 
 ### Cost
 

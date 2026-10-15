@@ -1,0 +1,124 @@
+---
+source: crates/replay/tests/replay.rs
+expression: focus
+---
+[
+  null,
+  {
+    "card": "inView",
+    "monsters": null
+  },
+  {
+    "card": "inView",
+    "monsters": [
+      {
+        "depiction": {
+          "glyph": {
+            "text": "h",
+            "colour": "brown"
+          },
+          "tile": "mon/animals/jackal"
+        },
+        "name": "jackal",
+        "detail": null
+      },
+      {
+        "depiction": {
+          "glyph": {
+            "text": "g",
+            "colour": "lightGrey"
+          },
+          "tile": "mon/humanoids/goblin"
+        },
+        "name": "goblin",
+        "detail": null
+      }
+    ]
+  },
+  {
+    "card": "inView",
+    "monsters": [
+      {
+        "depiction": {
+          "glyph": {
+            "text": "h",
+            "colour": "brown"
+          },
+          "tile": "mon/animals/jackal"
+        },
+        "name": "jackal",
+        "detail": null
+      },
+      {
+        "depiction": {
+          "glyph": {
+            "text": "g",
+            "colour": "lightGrey"
+          },
+          "tile": "mon/humanoids/goblin"
+        },
+        "name": "goblin",
+        "detail": null
+      }
+    ]
+  },
+  {
+    "card": "inView",
+    "monsters": [
+      {
+        "depiction": {
+          "glyph": {
+            "text": "h",
+            "colour": "brown"
+          },
+          "tile": "mon/animals/jackal"
+        },
+        "name": "jackal",
+        "detail": null
+      }
+    ]
+  },
+  {
+    "card": "inView",
+    "monsters": [
+      {
+        "depiction": {
+          "glyph": {
+            "text": "h",
+            "colour": "brown"
+          },
+          "tile": "mon/animals/jackal"
+        },
+        "name": "jackal",
+        "detail": null
+      }
+    ]
+  },
+  {
+    "card": "inView",
+    "monsters": [
+      {
+        "depiction": {
+          "glyph": {
+            "text": "h",
+            "colour": "brown"
+          },
+          "tile": "mon/animals/jackal"
+        },
+        "name": "jackal",
+        "detail": null
+      },
+      {
+        "depiction": {
+          "glyph": {
+            "text": "S",
+            "colour": "lightGreen"
+          },
+          "tile": "mon/animals/adder"
+        },
+        "name": "adder",
+        "detail": null
+      }
+    ]
+  }
+]

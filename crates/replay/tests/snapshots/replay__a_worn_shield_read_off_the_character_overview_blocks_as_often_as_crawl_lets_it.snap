@@ -1,0 +1,194 @@
+---
+source: crates/replay/tests/replay.rs
+expression: by_turn
+---
+[
+  {
+    "turn": null,
+    "wornShield": null,
+    "factSheet": {
+      "threat": {
+        "state": "unrated",
+        "gaps": [
+          {
+            "gap": "hitPoints"
+          },
+          {
+            "gap": "monstersInView"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "turn": 100,
+    "wornShield": {
+      "state": "missing"
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 20,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 7,
+        "hostilesInView": 3,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness",
+          "wornShield"
+        ]
+      }
+    }
+  },
+  {
+    "turn": 101,
+    "wornShield": {
+      "state": "known",
+      "value": "kiteShield",
+      "turn": 101,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 18,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 6,
+        "hostilesInView": 3,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    }
+  },
+  {
+    "turn": 102,
+    "wornShield": {
+      "state": "stale",
+      "value": "kiteShield",
+      "turn": 101,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 18,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 6,
+        "hostilesInView": 3,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness",
+          "wornShield"
+        ]
+      }
+    }
+  }
+]

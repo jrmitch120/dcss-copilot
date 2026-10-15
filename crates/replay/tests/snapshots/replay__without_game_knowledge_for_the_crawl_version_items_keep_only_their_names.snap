@@ -1,0 +1,12 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.inventory
+---
+[
+  {
+    "letter": "a",
+    "name": "a potion of curing",
+    "quantity": 1,
+    "kind": null
+  }
+]

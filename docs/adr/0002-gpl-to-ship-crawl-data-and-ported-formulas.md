@@ -12,5 +12,6 @@ DCSS Copilot is licensed GPL-3.0-or-later, not MIT, because it is built on crawl
 
 - No CLA or DCO. Contributions come in under GPL-3.0-or-later.
 - Each Game Knowledge bundle records the crawl tag or commit it was extracted from, along with crawl's copyright and license. Its corresponding source is our extractor plus that tag.
+- Tiles ship under crawl's GPL too. Crawl's tile project releases most tiles under CC0 but not those whose license it doesn't know, that come from NetHack or whose artist hasn't agreed; those are still part of crawl's GPL distribution, so we ship every monster tile, crediting the CC0 ones as CC0 and the rest to crawl under its GPL.
 - The About screen credits the DCSS devteam and the tile artists, and states our license. `NOTICE` ships in the repo and in installers, and binaries link to the public source.
 - qw (no license) remains a design reference only, and CrawlWiki (GFDL) is linked or paraphrased, never bulk-copied. GPL doesn't change either.

@@ -3,7 +3,36 @@ source: crates/replay/tests/replay.rs
 expression: replayer.advisor().visible()
 ---
 {
-  "hp": 18,
-  "hpMax": 18,
-  "turn": 0
+  "turn": 0,
+  "stats": {
+    "hp": 18,
+    "hpMax": 18,
+    "mp": 1,
+    "mpMax": 1,
+    "ac": null,
+    "ev": null,
+    "sh": null,
+    "strength": null,
+    "intelligence": null,
+    "dexterity": null,
+    "xl": 1,
+    "gold": null
+  },
+  "religion": {
+    "worships": "noGod"
+  },
+  "place": {
+    "branch": "Dungeon",
+    "depth": 1
+  },
+  "position": {
+    "x": 40,
+    "y": 12
+  },
+  "statuses": null,
+  "monsters": null,
+  "inventory": null,
+  "map": null,
+  "messages": [],
+  "screen": null
 }

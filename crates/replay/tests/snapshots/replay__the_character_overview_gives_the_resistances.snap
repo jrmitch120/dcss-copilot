@@ -1,0 +1,28 @@
+---
+source: crates/replay/tests/replay.rs
+expression: resistances
+---
+{
+  "fire": {
+    "pips": 1
+  },
+  "cold": {
+    "pips": 0
+  },
+  "negative": {
+    "pips": 0
+  },
+  "poison": "immune",
+  "electricity": {
+    "pips": -1
+  },
+  "corrosion": {
+    "pips": 0
+  },
+  "seeInvisible": {
+    "pips": 1
+  },
+  "willpower": {
+    "pips": 2
+  }
+}
