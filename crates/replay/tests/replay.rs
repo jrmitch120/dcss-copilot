@@ -490,3 +490,15 @@ fn a_worn_shield_read_off_the_character_overview_blocks_as_often_as_crawl_lets_i
 
     insta::assert_json_snapshot!(by_turn);
 }
+
+#[test]
+fn a_replay_names_each_crawl_version_its_games_reported_in_the_order_first_seen() {
+    let versions: Vec<_> = replay(TWO_TABS)
+        .unwrap()
+        .crawl_versions
+        .into_iter()
+        .map(|version| version.0)
+        .collect();
+
+    assert_eq!(versions, ["0.34.1", "0.33.1"]);
+}

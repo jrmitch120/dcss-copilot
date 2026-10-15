@@ -3,7 +3,7 @@
 
 use std::ops::Range;
 
-use copilot_core::{Advisor, Appearance, Connection, SourceEvent, ViewModel};
+use copilot_core::{Advisor, Appearance, Connection, CrawlVersion, SourceEvent, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
@@ -20,6 +20,8 @@ pub struct Replayer {
     /// The followed game's turn once that many envelopes have been applied: `turns[0]` is before
     /// any.
     turns: Vec<Option<u32>>,
+    /// Every Crawl Version the followed games report, in the order first seen.
+    crawl_versions: Vec<CrawlVersion>,
     position: usize,
     knowledge: Library,
     game: Game,
@@ -101,17 +103,34 @@ impl Replayer {
         let mut game = Game::new(&knowledge);
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
         turns.push(None);
+        let mut crawl_versions = Vec::new();
         for envelope in &recording.envelopes {
             game.apply(envelope);
             turns.push(game.advisor.visible().turn);
+            if let Some(version) = game
+                .advisor
+                .identity()
+                .and_then(|identity| identity.crawl_version.as_ref())
+                .filter(|version| !crawl_versions.contains(*version))
+            {
+                crawl_versions.push(version.clone());
+            }
         }
         Ok(Self {
             recording,
             turns,
+            crawl_versions,
             position: 0,
             game: Game::new(&knowledge),
             knowledge,
         })
+    }
+
+    /// Every Crawl Version the Recording's followed games report, in the order first seen: what
+    /// a manifest tags the Recording with.
+    #[must_use]
+    pub fn crawl_versions(&self) -> &[CrawlVersion] {
+        &self.crawl_versions
     }
 
     /// The Recording being replayed.

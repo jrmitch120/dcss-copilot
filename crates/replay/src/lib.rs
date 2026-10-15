@@ -14,7 +14,7 @@ pub use replayer::{Applied, Moment, Replayer};
 
 use std::io::Read;
 
-use copilot_core::{GameIdentity, ViewModel, VisibleState};
+use copilot_core::{CrawlVersion, GameIdentity, ViewModel, VisibleState};
 use copilot_gk::BundleError;
 
 /// What the core made of a replayed Recording.
@@ -24,6 +24,8 @@ pub struct Replay {
     pub view_models: Vec<ViewModel>,
     /// The followed game's identity at the end.
     pub identity: Option<GameIdentity>,
+    /// Every Crawl Version a followed game reported, in the order first seen.
+    pub crawl_versions: Vec<CrawlVersion>,
     /// The followed game's Visible State at the end.
     pub visible: VisibleState,
     /// The screen reads and session events, in order.
@@ -60,6 +62,7 @@ pub fn replay(recording: impl Read) -> Result<Replay, ReplayError> {
     Ok(Replay {
         view_models,
         identity: replayer.advisor().identity().cloned(),
+        crawl_versions: replayer.crawl_versions().to_vec(),
         visible: replayer.advisor().visible().clone(),
         timeline: replayer.timeline().to_vec(),
         truncated: replayer.recording().truncated,
