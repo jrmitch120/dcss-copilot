@@ -96,7 +96,7 @@ expression: bundle
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/rat",
       "description": "A dirty rodent that has grown large and aggressive in the dungeon environment."
     },
     "19": {

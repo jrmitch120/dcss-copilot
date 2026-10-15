@@ -2,11 +2,11 @@
 //! tile from, read from the tile lists as `rltiles/tool/tile_list_processor.cc` reads them.
 //!
 //! Only a tile drawn straight from one image file is named. A tile the build recolours, mirrors,
-//! composes onto a background or turns into a corpse has no file of its own, so it is left out,
-//! as is a tile whose file is on the list of crawl tiles under an unknown license. The black rim
-//! the build draws around some tiles (`%rim`) isn't in the file, so those tiles ship without it.
+//! composes onto a background or turns into a corpse has no file of its own, so it is left out.
+//! The black rim the build draws around some tiles (`%rim`) isn't in the file, so those tiles
+//! ship without it.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashMap;
 use std::path::Path;
 
 use crate::{ExtractError, read};
@@ -16,11 +16,6 @@ const PLAYER_TILES: &str = "dc-player.txt";
 
 /// The prefix the player tile list gives its enums, as its `%prefix` line says.
 const PLAYER_PREFIX: &str = "TILEP";
-
-/// Crawl tiles whose license is unknown, by file name, which crawl's tile project leaves out of
-/// any release of its tiles under CC0: `TILES_UNDER_UNKNOWN_LICENSE.md` at
-/// <https://github.com/crawl/tiles> commit a6ea1655db5c044829d9eea19a232fa6fcac87b0.
-const UNKNOWN_LICENSE: &str = include_str!("../tiles-under-unknown-license.txt");
 
 /// The tile lists' directives that don't change which file a tile is drawn from.
 const IGNORED_DIRECTIVES: &[&str] = &[
@@ -48,14 +43,8 @@ impl TileFiles {
     /// # Errors
     /// If a list can't be read, or uses a directive the extractor doesn't understand.
     pub fn read(rltiles: &Path) -> Result<Self, ExtractError> {
-        let unknown_license: BTreeSet<&str> = UNKNOWN_LICENSE
-            .lines()
-            .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-            .map(str::trim)
-            .collect();
         let mut list = TileList {
             rltiles,
-            unknown_license: &unknown_license,
             prefix: String::new(),
             sdir: String::new(),
             recoloured: false,
@@ -87,7 +76,6 @@ impl TileFiles {
 /// Reading the tile lists, line by line, with the state their directives set.
 struct TileList<'a> {
     rltiles: &'a Path,
-    unknown_license: &'a BTreeSet<&'a str>,
     prefix: String,
     sdir: String,
     recoloured: bool,
@@ -170,7 +158,6 @@ impl TileList<'_> {
             None
         } else {
             self.image_file(image)
-                .filter(|file| !self.under_unknown_license(file))
         };
         self.add(file, names);
     }
@@ -197,12 +184,6 @@ impl TileList<'_> {
             .into_iter()
             .chain([image.to_owned()])
             .find(|file| self.rltiles.join(format!("{file}.png")).is_file())
-    }
-
-    fn under_unknown_license(&self, file: &str) -> bool {
-        let name = file.rsplit('/').next().unwrap_or(file);
-        self.unknown_license
-            .contains(format!("{name}.png").as_str())
     }
 }
 

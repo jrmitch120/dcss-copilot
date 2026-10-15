@@ -60,7 +60,7 @@ fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
 
     let files = files_under(out.path());
     let names: Vec<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
-    // The rat's tile is one whose license crawl's tile project doesn't know, so it isn't shipped.
+    // The rat's tile is one crawl's tile project doesn't release under CC0; it ships under crawl's GPL.
     assert_eq!(
         names,
         [
@@ -68,6 +68,7 @@ fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
             "mon/animals/bat.png",
             "mon/animals/jackal.png",
             "mon/animals/quokka.png",
+            "mon/animals/rat.png",
             "mon/animals/snapping_turtle.png",
             "mon/humanoids/goblin_rider.png",
         ]

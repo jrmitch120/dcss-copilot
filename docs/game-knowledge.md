@@ -38,10 +38,9 @@ The extractor checks `--tag` and `--commit` against the checkout with git: the t
 
 ## Tiles
 
-A monster's tile is the image webtiles draws it with, named by its path in `rltiles` without the extension, such as `mon/animals/jackal`. Its tile enum is the one `util/mon-gen.py` gives it, and the tile lists say which image file that enum is drawn from. A bundle names a tile only when the app can ship its file:
+A monster's tile is the image webtiles draws it with, named by its path in `rltiles` without the extension, such as `mon/animals/jackal`. Its tile enum is the one `util/mon-gen.py` gives it, and the tile lists say which image file that enum is drawn from. A tile crawl's build makes, by recolouring, mirroring, composing onto a background or turning into a corpse, has no file of its own, so the bundle names no tile for it.
 
-- a tile crawl's build makes, by recolouring, mirroring, composing onto a background or turning into a corpse, has no file of its own, so it has no tile;
-- a file that crawl's tile project lists as under an unknown license, from NetHack, or not agreed by its artist (`tools/gk-extract/tiles-under-unknown-license.txt`, from `TILES_UNDER_UNKNOWN_LICENSE.md` in [crawl/tiles](https://github.com/crawl/tiles)) is not shipped, so it has no tile either. The rest are CC0 (`NOTICE`).
+Every tile file the bundle names ships, whatever its license. Most are CC0; the ones crawl's tile project lists as under an unknown license, from NetHack, or not agreed by their artist (`TILES_UNDER_UNKNOWN_LICENSE.md` in [crawl/tiles](https://github.com/crawl/tiles)) are not, and ship as part of crawl under its GPL (ADR 0002, `NOTICE`).
 
 Crawl's build draws a black rim around some tiles (`%rim 1`); the shipped files don't have it. The panel draws a monster without a tile as its glyph.
 

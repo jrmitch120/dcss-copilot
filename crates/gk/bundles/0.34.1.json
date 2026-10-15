@@ -116,7 +116,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/komodo_dragon",
       "description": "An enormous monitor lizard more than capable of preying on large animals."
     },
     "5": {
@@ -426,7 +426,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/rat",
       "description": "A dirty rodent that has grown large and aggressive in the dungeon environment."
     },
     "16": {
@@ -456,7 +456,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/green_rat",
       "description": "A rodent with hair of a most peculiar green colour, and a powerful bite. It\ntends to form great swarms with its kin."
     },
     "17": {
@@ -486,7 +486,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/orange_rat",
       "description": "A unusually large rat. Its weird, knobbly orange skin glows with the infernal\nenergies that spawned it."
     },
     "19": {
@@ -636,7 +636,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/warg",
       "description": "A particularly evil-looking wolf, usually found in the company of orcs."
     },
     "26": {
@@ -851,7 +851,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/alligator",
       "description": "An aggressive crocodilian with great crunching jaws full of sharp teeth."
     },
     "36": {
@@ -881,7 +881,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/crocodile",
       "description": "A crocodilian with powerful jaws."
     },
     "37": {
@@ -1491,7 +1491,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/lindwurm",
       "description": "A small serpentine dragon with a pair of strong forelimbs. Its thick scales\ngive off an eerie red glow."
     },
     "60": {
@@ -1551,7 +1551,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/swamp_drake",
       "description": "A small and slimy dragon, covered in swamp muck and giving off a terrible\nstench."
     },
     "62": {
@@ -1581,7 +1581,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/death_drake",
       "description": "A dark and baleful minor dragon. It breathes a lethally potent miasma from its\npestilential maw."
     },
     "63": {
@@ -1616,7 +1616,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/steam_dragon",
       "description": "A relatively small grey dragon, with a resilient-looking scaly hide and steam\npouring from its mouth."
     },
     "64": {
@@ -1731,7 +1731,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/fire_dragon",
       "description": "A great reptilian beast with powerful claws on its limbs, covered in thick\nred scales and with two huge bat-like wings. Little trails of smoke spill\nfrom its toothy maw."
     },
     "67": {
@@ -1966,7 +1966,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/iron_dragon",
       "description": "A very heavy, slow and apparently flightless dragon. It is named for its\nscales, which are so tough they might be iron. Small flakes of metal trail from\nits nostrils."
     },
     "73": {
@@ -2041,7 +2041,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/holy/pearl_dragon",
       "description": "A dragon consecrated to the holy divine powers. Its breath is blessed fire, and\nits claws sear its victims with divine wrath."
     },
     "75": {
@@ -2211,7 +2211,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/amorphous/acid_blob",
       "description": "A lump of sickly pustulent flesh, dripping with lethal acid."
     },
     "82": {
@@ -2241,7 +2241,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/amorphous/slime_creature",
       "description": "An icky glob of slime that slithers along the ground. It can merge with other\nslime creatures to become dramatically more dangerous, and is especially likely\nto do so in confined spaces."
     },
     "84": {
@@ -3201,7 +3201,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "player/felids/cat4",
       "description": "A feline creature that has been granted sentience by magical means. It uses the\ngift of speech to demand milk, treats and catnip."
     },
     "132": {
@@ -3231,7 +3231,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/vampire_bat",
       "description": "A large black bat with vicious fangs that feeds on blood. It is the preferred\nform for vampires in disguise."
     },
     "133": {
@@ -3261,7 +3261,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/humanoids/demigod",
       "description": "A human-like figure with an aura of power betraying its divine ancestry."
     },
     "134": {
@@ -3331,7 +3331,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/nonliving/gargoyle",
       "description": "A granite statue of a hideous winged monster, somehow brought to life."
     },
     "136": {
@@ -3361,7 +3361,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/nonliving/war_gargoyle",
       "description": "A rare type of gargoyle, constructed from a solid steel statue and imbued with\nvicious strength, speed, and weaponised breath."
     },
     "137": {
@@ -3391,7 +3391,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/nonliving/molten_gargoyle",
       "description": "A hideous molten stone statue come to life, with flames licking across its\nbody."
     },
     "138": {
@@ -3421,7 +3421,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/aberrations/ugly_thing",
       "description": "An ugly thing. According to legend, it is the otherworldly spawn of a wizard's\nbreeding experiment. Yuck."
     },
     "139": {
@@ -3451,7 +3451,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/aberrations/very_ugly_thing",
       "description": "A very ugly thing. According to legend, it is the otherworldly spawn of a\nwizard's breeding experiment. Double yuck!"
     },
     "140": {
@@ -3511,7 +3511,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/sky_beast",
       "description": "A strange aerial creature formed of fleshy clouds and electric feathers. It\ncommands the faint wind currents of the Dungeon with every strike, which will\nbuffet its victims in dramatic correlation to the amount of open air around\nsaid prey."
     },
     "142": {
@@ -3967,7 +3967,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/toadstool_left",
       "description": "A short-lived species of fungus typically found on or around decaying organic\nmatter."
     },
     "171": {
@@ -3989,7 +3989,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/fungus1",
       "description": "A lumpy grey fungus, growing well in the dank underground dungeon."
     },
     "172": {
@@ -4041,7 +4041,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/plant_01",
       "description": "A plant that has adapted to grow in the unpleasant dungeon environment,\nsomehow thriving even underground in the absence of the sun."
     },
     "174": {
@@ -4065,7 +4065,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/oklob_sapling",
       "description": "A young oklob plant. It is more fragile than the mature specimen, but the acid\nit sprays is just as deadly."
     },
     "175": {
@@ -4089,7 +4089,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/oklob_plant",
       "description": "A very dangerous plant which fends off predators by spraying corrosive vitriol\nat them. Even experienced adventurers give oklob plants a wide berth."
     },
     "176": {
@@ -4111,7 +4111,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/bush",
       "description": "A woody plant. It looks dry enough to be easily set on fire, and its foliage is\nnot very dense, permitting both magic and missiles to pass through unaffected.\nHowever, it is firmly rooted, and requires significant effort to destroy."
     },
     "177": {
@@ -4185,7 +4185,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/fungi_plants/ballistomycete",
       "description": "A lumpy reddish fungus covered in knobbly rhizome growths, growing well in the\ndank underground dungeon. When it senses a threat, the ballistomycete may\nrelease a deadly floating spore that explodes on its victims."
     },
     "181": {
@@ -4695,7 +4695,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/humanoids/orcs/orc_warlord",
       "description": "A supreme commander of an orc host, skilled at both melee and ranged combat."
     },
     "198": {
@@ -5315,7 +5315,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demihumanoids/minotaur",
       "description": "A large muscular human with the head of a bull. It makes its home in a\ngauntlet where it awaits worthy challengers."
     },
     "231": {
@@ -5520,7 +5520,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/aquatic/octopode",
       "description": "A more intelligent cousin of the mighty kraken, capable of using tools and\nspells. It is fully amphibious, but most of its species choose to stay beneath\nthe waves and serve their King."
     },
     "237": {
@@ -5729,7 +5729,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demihumanoids/taurs/centaur",
       "description": "A hybrid with the torso of a human atop the body of a horse. It is highly\nskilled in archery."
     },
     "244": {
@@ -5764,7 +5764,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demihumanoids/taurs/centaur_warrior",
       "description": "A muscular centaur, veteran of numerous battles, armed with well-made weapons\nand able to use them skilfully."
     },
     "245": {
@@ -5959,7 +5959,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/humanoids/troll",
       "description": "A huge and physically powerful humanoid creature. Short on intelligence but\nlong on brawn, its thick knobbly hide heals rapidly from most wounds."
     },
     "252": {
@@ -7229,7 +7229,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/statues/obsidian_statue",
       "description": "A beautiful statue of an unknown creature, jet-black like a tear in reality.\nIts eyes glow with an otherworldly, malignant radiance."
     },
     "304": {
@@ -7251,7 +7251,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/statues/ice_statue",
       "description": "An imposing idol of some nameless arctic god, carved in glistening deep blue\nice. Freezing vapours swirl about it, and a chill pervades the air."
     },
     "305": {
@@ -7329,7 +7329,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/statues/lightning_spire",
       "description": "A buzzing contraption made from a coil and a rod. It irregularly zaps\nelectricity at the most distant enemy in its range."
     },
     "308": {
@@ -7454,7 +7454,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demons/lemure",
       "description": "An accursed soul magically bound to hellish servitude for the highest bidder.\nIf its master is slain, it will be freed, departing this realm with gratitude."
     },
     "312": {
@@ -8199,7 +8199,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demons/cacodemon",
       "description": "A maniacal demon, brimming with accursed power. Its gleeful laughter rarely\nceases, even in the heat of battle."
     },
     "338": {
@@ -8259,7 +8259,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demons/shadow_demon",
       "description": "A mysterious demonic figure, difficult to distinguish from the darkness around\nit. It weaves the shadows into powerful minions."
     },
     "340": {
@@ -8363,7 +8363,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/demons/ice_fiend",
       "description": "A huge frigid demon covered in frost and wreathed in freezing air. It is one of\nthe most terrible denizens of the many Hells."
     },
     "343": {
@@ -8616,7 +8616,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/abyss/thrashing_horror",
       "description": "A seething mass of yellow flesh. It thrashes erratically, staggering foes\nbeneath the weight of its impacts."
     },
     "352": {
@@ -8803,7 +8803,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/aberrations/tentacled_monstrosity",
       "description": "A writhing mass of tentacles, all covered in putrid mucus."
     },
     "358": {
@@ -8958,7 +8958,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/mummy",
       "description": "An undead figure covered in bandages and embalming fluids, compelled to walk by\nan ancient curse. It radiates a malign aura."
     },
     "367": {
@@ -9018,7 +9018,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/guardian_mummy",
       "description": "An ancient warrior, embalmed and cursed to walk in undeath for eternity."
     },
     "369": {
@@ -9078,7 +9078,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/mummy_priest",
       "description": "An ancient servant of a long forgotten god, embalmed and cursed to walk in\nundeath for all eternity."
     },
     "371": {
@@ -9357,7 +9357,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/wraith",
       "description": "A cloud of black mist surrounding an insubstantial skeletal form. Its eyes burn\nbright with unholy malevolence and hunger for life essence, on which it feeds."
     },
     "381": {
@@ -9392,7 +9392,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/freezing_wraith",
       "description": "An incorporeal skeletal form surrounded by a cloud of freezing air, likely the\nremains of some unfortunate adventurer. It now floats slowly through the\ndungeon, seeking to share its fate with others."
     },
     "382": {
@@ -9685,7 +9685,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/curse_toe",
       "description": "A disembodied toe, hanging in the air and radiating an intense field of\nnegative energy."
     },
     "392": {
@@ -9707,7 +9707,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/curse_skull",
       "description": "A charred skull floating in the air and rotating slowly. Mystic symbols are\ncarved into its blackened surface."
     },
     "393": {
@@ -10083,7 +10083,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/antaeus",
       "description": "Once a hero among the titans, Antaeus grew jealous of the titan queen. In\nsingle combat he challenged and slew her, and for this crime he was exiled and\ndescended into the Hells. Finding the inhabitants of that place no match for his\nmight, Antaeus tore from its substance a fourth Hell, Cocytus, a realm born of\nfrozen spite."
     },
     "417": {
@@ -10843,7 +10843,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/louise",
       "description": "A mighty sorceress, clad from head to toe in heavy armour. Once an adventurer\nlooking for the fabled Orb of Zot, she was cast into the Abyss and got\nhopelessly lost there. Toyed with by some greater power, she was stuck on the\nhostile plane for nearly a decade. When she finally emerged from the Abyss,\nLouise had become powerful indeed, but had also gone fully insane. She now\nwanders the halls of the dungeon, seeking other adventurers to share her fate."
     },
     "443": {
@@ -10873,7 +10873,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/frances",
       "description": "A stout warrior who once bested a powerful lord of Pandemonium in combat,\ngaining control over the demon's realm and thanes. The battle left her with a\ndeep facial scar, one that she carries as a badge of honour rather than a\nsymbol of shame."
     },
     "444": {
@@ -11671,7 +11671,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/menkaure",
       "description": "A fair and noble ruler of an ancient and mighty kingdom, mummified after an\nearly death. His faithful priests subsequently infused him with great and\npowerful magic, seeking to grant him eternal life. Now he is forgotten and\nreduced to mouldering bandages and dry, brittle bones."
     },
     "469": {
@@ -11701,7 +11701,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/duvessa",
       "description": "A plain-looking deep elven fighter who is technically brilliant in many forms of\ncombat, but over-confident because of it. She is complemented by the magical\nskills of her twin brother, Dowan. She journeys to the surface to challenge\nits greatest champions."
     },
     "470": {
@@ -11731,7 +11731,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/dowan",
       "description": "A beautiful but vain deep elf with an aptitude for magic and little else. His\nskills are the perfect complement of his twin sister Duvessa's fighting prowess.\nIn search of more powerful spells, he journeys to the surface with his sister."
     },
     "471": {
@@ -11826,7 +11826,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/khufu",
       "description": "An incredibly powerful emperor on the way to godhood. He died quite some time\nago, but he sees no reason why that should stop him."
     },
     "474": {
@@ -11856,7 +11856,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/nikola",
       "description": "A brilliant scientist obsessed with electricity. In his attempts to perfect his\nelectric golem, he was involved in a terrible accident, and now phases in and\nout of reality."
     },
     "475": {
@@ -11916,7 +11916,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/pikel",
       "description": "A wise kobold would fear the forces of Hell, and certainly would not set up a\nhighly lucrative transdimensional trade in damned souls. But Pikel is better\nknown for his whip than his wisdom, mercilessly tormenting his piteous charges\nas he ferries them to their buyers."
     },
     "477": {
@@ -12156,7 +12156,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/arachne",
       "description": "Once a talented human weaver, Arachne was transformed into a monstrous\nhalf-spider by a jealous rival's curse. Driven out of her village, she found\nsanctuary for a time among the jorogumo before a bitter feud forced her to\nflee once more.\n\nNow she wanders other corners of the dungeon with a small retinue of loyal\nstudents in tow, seeking a new domain in which they can spin their peerless\ntapestries in peace."
     },
     "485": {
@@ -12394,7 +12394,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/nonliving/orb_of_destruction1",
       "description": "A conjured globe of pure magic that homes onto a designated target, albeit with\nmassive inertia. A smart and agile person may move out of its path, causing it\nto miss its target. It cannot be avoided by Dodging skill, and is able to make\nsharp turns to hit adjacent targets."
     },
     "493": {
@@ -12825,7 +12825,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/vault/cloud_mage",
       "description": "A strange wizard who has attained mastery over clouds, making deft and\nforeboding mystic gestures."
     },
     "509": {
@@ -13167,7 +13167,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/swamp_drake",
       "description": null
     },
     "524": {
@@ -13447,7 +13447,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/zombies/zombie_small",
       "description": "A corpse raised to undeath by necromancy."
     },
     "533": {
@@ -13531,7 +13531,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/ancient_champion",
       "description": "An unfathomably ancient skeleton. It has hundreds of golden sigils etched onto\nits bones, and pulses with terrible, unholy power."
     },
     "536": {
@@ -13706,7 +13706,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/wind_drake",
       "description": "A small but powerful dragon, particularly adept amongst its kin at manipulating\nthe currents of air that surround it. It can exhale powerful blasts of wind."
     },
     "543": {
@@ -14266,7 +14266,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/dragons/fire_dragon",
       "description": null
     },
     "571": {
@@ -14720,7 +14720,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/unique/asterion",
       "description": "Once a king infamous for waging bloodthirsty campaigns, Asterion was exiled to\nthe depths of the dungeon for his crimes. Here he lurks in his tattered finery,\ndreaming of a new kingdom. In his lust for power, the minotaur king turned to\nthe worship of Makhleb, and Makhleb has rewarded him with horrifying\ndestructive might."
     },
     "593": {
@@ -14916,7 +14916,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/ghost_crab",
       "description": "A crab twisted by proximity to negative energy. Apparitions of the dead swirl\naround it, only barely visible."
     },
     "601": {
@@ -14946,7 +14946,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/torpor_snail",
       "description": "A ponderous gastropod with a rock-hard shell. It is said to be in some way\nconnected with the god Cheibriados; its very presence slows the movements of\nunwary adventurers, leaving them easy prey for its terrifying, ever-gnashing\nradulae."
     },
     "604": {
@@ -14981,7 +14981,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/bennu",
       "description": "A sacred, self-created sunbird, representative of rebirth. It has ascended\npast the cycles of life and death, and calls upon aspects of both, rising forth\nfrom death in a burst of unholy flame."
     },
     "605": {
@@ -15039,7 +15039,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/undead/death_scarab",
       "description": "A hideous swarming undead insect, exuding death and decay and feeding on the\nlife energies of those unfortunate enough to encounter it."
     },
     "608": {
@@ -15129,7 +15129,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": null,
+      "tile": "mon/animals/shard_shrike",
       "description": "An incredibly fast-moving bird, known for impaling its prey on shards of ice\nbefore tearing them to pieces. It has acclimated to the desolate wastes of\nCocytus, and is enveloped with an accursed chill."
     },
     "613": {

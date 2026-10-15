@@ -5,7 +5,8 @@ let { appVersion }: { appVersion: string } = $props();
 <p class="small">
   DCSS Copilot {appVersion} · GPL-3.0-or-later. Monster, spell and item text and several formulas
   come from Dungeon Crawl Stone Soup, © the DCSS devteam (GPL-2.0-or-later). Monster tiles are the
-  work of DCSS's tile artists, released under CC0.
+  work of DCSS's tile artists: most are released under CC0, and the rest ship as part of Dungeon
+  Crawl Stone Soup under its GPL-2.0-or-later.
 </p>
 <p class="small muted">Source: <span class="mono">github.com/jrmitch120/dcss-copilot</span></p>
 
