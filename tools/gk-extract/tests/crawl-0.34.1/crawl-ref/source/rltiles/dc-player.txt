@@ -1,0 +1,5 @@
+%name player
+%startvalue TILE_MAIN_MAX main
+%prefix TILEP
+
+%include dc-mon.txt

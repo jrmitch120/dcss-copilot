@@ -38,7 +38,7 @@ jobs:
         run: |
           crawl="$RUNNER_TEMP/crawl"
           git clone --depth 1 --branch 0.34.1 --filter=blob:none --sparse https://github.com/crawl/crawl "$crawl"
-          git -C "$crawl" sparse-checkout set --no-cone '/crawl-ref/source/*.h' '/crawl-ref/source/*.cc' '/crawl-ref/source/dat/mons/' '/crawl-ref/source/dat/species/' '/crawl-ref/source/dat/descript/'
+          git -C "$crawl" sparse-checkout set --no-cone '/crawl-ref/source/*.h' '/crawl-ref/source/*.cc' '/crawl-ref/source/dat/mons/' '/crawl-ref/source/dat/species/' '/crawl-ref/source/dat/descript/' '/crawl-ref/source/rltiles/'
           test "$(git -C "$crawl" rev-parse HEAD)" = "$(jq -r .crawl.commit crates/gk/bundles/0.34.1.json)"
           DCSS_CRAWL_SOURCE="$crawl" cargo test -p gk-extract -- --ignored
       - name: Generated bindings are up to date

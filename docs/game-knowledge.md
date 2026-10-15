@@ -10,7 +10,8 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 
 | Bundle part | From |
 |---|---|
-| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter` flag and energy costs read as `util/mon-gen.py` reads them |
+| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter` flag, energy costs and tile read as `util/mon-gen.py` reads them |
+| monster tiles | the tile lists in `rltiles/`, from `dc-player.txt`, read as crawl's tile build (`rltiles/tool`) reads them |
 | item classes | `object_class_type` in `object-class-type.h` |
 | item sub-types | the sub-type enums in `item-prop-enum.h`, `potion-type.h` and `book-type.h`, named by the tables and name functions in `item-prop.cc` and `item-name.cc` |
 | spells | `spelldata` in `spl-data.h`, numbered by `spell_type` in `spell-type.h` |
@@ -28,17 +29,28 @@ It understands only what those files use: `#if TAG_MAJOR_VERSION` conditionals, 
 ```sh
 git clone --depth 1 --branch 0.34.1 https://github.com/crawl/crawl /tmp/crawl
 cargo run -p gk-extract -- /tmp/crawl --tag 0.34.1 --commit "$(git -C /tmp/crawl rev-parse HEAD)" \
-  > crates/gk/bundles/0.34.1.json
+  --tiles app/static/tiles > crates/gk/bundles/0.34.1.json
 ```
+
+`--tiles` copies the image of every tile the bundle names into the app's `static/tiles/`, where the panel draws them from.
 
 The extractor checks `--tag` and `--commit` against the checkout with git: the tag must point at the commit, which must be the one checked out, with no changes to tracked files. Each bundle records the crawl tag and commit it came from and crawl's license (ADR 0002). A new bundle also needs adding to `Library::shipped` in `crates/gk`.
 
+## Tiles
+
+A monster's tile is the image webtiles draws it with, named by its path in `rltiles` without the extension, such as `mon/animals/jackal`. Its tile enum is the one `util/mon-gen.py` gives it, and the tile lists say which image file that enum is drawn from. A bundle names a tile only when the app can ship its file:
+
+- a tile crawl's build makes, by recolouring, mirroring, composing onto a background or turning into a corpse, has no file of its own, so it has no tile;
+- a file that crawl's tile project lists as under an unknown license, from NetHack, or not agreed by its artist (`tools/gk-extract/tiles-under-unknown-license.txt`, from `TILES_UNDER_UNKNOWN_LICENSE.md` in [crawl/tiles](https://github.com/crawl/tiles)) is not shipped, so it has no tile either. The rest are CC0 (`NOTICE`).
+
+Crawl's build draws a black rim around some tiles (`%rim 1`); the shipped files don't have it. The panel draws a monster without a tile as its glyph.
+
 ## Tests
 
-Two tests in `tools/gk-extract/tests/extract.rs` cover the extractor (seam 3):
+The tests in `tools/gk-extract/tests/extract.rs` cover the extractor (seam 3):
 
-- A snapshot of the bundle built from `tests/crawl-0.34.1/`, crawl's files at 0.34.1 trimmed to a few entries each. It runs everywhere.
-- The shipped bundle is exactly what the extractor makes of crawl at its tag. It needs a crawl checkout, so it is ignored unless run with one; CI checks out crawl at the pinned commit and runs it:
+- A snapshot of the bundle built from `tests/crawl-0.34.1/`, crawl's files at 0.34.1 trimmed to a few entries each, and the tiles copied from it. They run everywhere, as do the checks of a release against a throwaway git checkout and of a release with no known formula variants.
+- The shipped bundle and tiles are exactly what the extractor makes of crawl at its tag. It needs a crawl checkout, so it is ignored unless run with one; CI checks out crawl at the pinned commit and runs it:
 
 ```sh
 DCSS_CRAWL_SOURCE=/tmp/crawl cargo test -p gk-extract -- --ignored

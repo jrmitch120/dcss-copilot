@@ -6,6 +6,7 @@ use std::path::Path;
 use copilot_gk::{Energy, EnumId, Monster, MonsterAttack, Species, Will};
 use serde::Deserialize;
 
+use crate::tiles::TileFiles;
 use crate::{ExtractError, in_range, read};
 
 /// A `dat/mons/*.yaml` file: the fields the bundle keeps. `util/mon-gen.py` defines the format.
@@ -27,6 +28,8 @@ struct MonsterFile {
     #[serde(default)]
     flags: Vec<String>,
     energy: Option<EnergyField>,
+    /// The tile it is drawn with, when not the one named after its enum.
+    tile: Option<String>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
 }
@@ -105,6 +108,7 @@ const FIGHTER_FLAG: &str = "fighter";
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
+    tiles: &TileFiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
     let values: HashMap<&str, i64> = monster_type
@@ -141,9 +145,13 @@ pub fn monsters(
                 });
             }
         };
+        let tile = tiles
+            .file(&tile_enum(&id, monster.tile.as_deref()))
+            .map(str::to_owned);
         monsters.insert(
             in_range(&id, value)?,
             Monster {
+                tile,
                 description: descriptions.get(&monster.name.to_lowercase()).cloned(),
                 id: EnumId(id),
                 name: monster.name,
@@ -182,6 +190,16 @@ pub fn monsters(
         );
     }
     Ok(monsters)
+}
+
+/// The tile enum a monster is drawn with, as `base_tile` in `util/mon-gen.py` names it: its own
+/// enum's, unless its `tile` names another.
+fn tile_enum(id: &str, tile: Option<&str>) -> String {
+    match tile {
+        None => format!("TILEP_{id}"),
+        Some(tile) if tile.starts_with("tile") => tile.to_uppercase(),
+        Some(tile) => format!("TILEP_MONS_{}", tile.to_uppercase()),
+    }
 }
 
 /// Every species defined in `dat/species` for this build, in file name order.
