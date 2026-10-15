@@ -18,6 +18,13 @@ pub trait LlmProvider: Send + Sync {
     fn stream(&self, request: LlmRequest) -> LlmStream;
 }
 
+/// A boxed provider is a provider, so wrappers such as the sidecar recorder can own any.
+impl<P: LlmProvider + ?Sized> LlmProvider for Box<P> {
+    fn stream(&self, request: LlmRequest) -> LlmStream {
+        (**self).stream(request)
+    }
+}
+
 /// Makes one call and waits for the whole answer.
 ///
 /// # Errors

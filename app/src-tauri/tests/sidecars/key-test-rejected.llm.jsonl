@@ -1,0 +1,1 @@
+{"hash":"634acb717be984a7","request":{"model":"claude-haiku-5-5","max_tokens":16,"system":[],"messages":[{"role":"user","content":[{"type":"text","text":"Reply with the single word OK."}]}],"tools":[],"output":null,"thinking":"off"},"events":[],"error":{"error":"key_rejected","status":401,"message":"invalid x-api-key"}}

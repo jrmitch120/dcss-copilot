@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use copilot_core::Appearance;
+use copilot_llm::{ModelChoice, ModelSlot};
 use serde::{Deserialize, Serialize};
 
 /// The player's settings and where they are saved.
@@ -14,10 +15,22 @@ pub struct Settings {
 
 /// What the settings file holds. A setting missing from the file takes its default, so files
 /// from older versions still load.
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 struct Saved {
     appearance: Appearance,
+    quick_model: ModelChoice,
+    deep_model: ModelChoice,
+}
+
+impl Default for Saved {
+    fn default() -> Self {
+        Self {
+            appearance: Appearance::default(),
+            quick_model: ModelChoice::default_for(ModelSlot::Quick),
+            deep_model: ModelChoice::default_for(ModelSlot::Deep),
+        }
+    }
 }
 
 /// Why the settings couldn't be read or written.
@@ -89,6 +102,27 @@ impl Settings {
     /// If the settings can't be saved. The change still applies until the app exits.
     pub fn set_appearance(&mut self, appearance: Appearance) -> Result<(), SettingsError> {
         self.saved.appearance = appearance;
+        self.save()
+    }
+
+    /// The model a slot calls.
+    #[must_use]
+    pub fn model(&self, slot: ModelSlot) -> &ModelChoice {
+        match slot {
+            ModelSlot::Quick => &self.saved.quick_model,
+            ModelSlot::Deep => &self.saved.deep_model,
+        }
+    }
+
+    /// Changes the model a slot calls, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_model(&mut self, slot: ModelSlot, choice: ModelChoice) -> Result<(), SettingsError> {
+        match slot {
+            ModelSlot::Quick => self.saved.quick_model = choice,
+            ModelSlot::Deep => self.saved.deep_model = choice,
+        }
         self.save()
     }
 

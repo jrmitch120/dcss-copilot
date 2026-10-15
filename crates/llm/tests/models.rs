@@ -74,13 +74,14 @@ fn a_saved_choice_round_trips_and_an_invalid_one_doesnt_load() {
 }
 
 #[test]
-fn every_model_offered_takes_at_least_one_thinking_setting() {
+fn every_model_offered_suggests_a_thinking_setting_it_accepts() {
     for model in Provider::Anthropic.models() {
         assert!(
             !model.thinking.is_empty(),
             "{} has no thinking settings",
             model.id
         );
+        assert!(model.thinking.contains(&model.suggested), "{}", model.id);
         for &thinking in model.thinking {
             assert!(ModelChoice::new(Provider::Anthropic, model.id, thinking).is_ok());
         }

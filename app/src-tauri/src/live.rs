@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use copilot_core::{Advisor, Appearance, Connection, ViewModel};
+use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
@@ -41,6 +42,8 @@ enum Recorder {
     Idle(PathBuf),
     Writing {
         dir: PathBuf,
+        /// The Recording being written.
+        path: PathBuf,
         writer: RecordingWriter<BufWriter<File>>,
         /// The envelope timestamp of the last flush.
         flushed_at: u64,
@@ -140,6 +143,27 @@ impl Live {
         self.lock().settings.set_appearance(appearance)
     }
 
+    /// The model a slot calls.
+    pub fn model(&self, slot: ModelSlot) -> ModelChoice {
+        self.lock().settings.model(slot).clone()
+    }
+
+    /// The player chose the model a slot calls.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_model(&self, slot: ModelSlot, choice: ModelChoice) -> Result<(), SettingsError> {
+        self.lock().settings.set_model(slot, choice)
+    }
+
+    /// Where LLM calls are recorded while a dev build records a Recording: its LLM sidecar.
+    pub fn llm_sidecar(&self) -> Option<PathBuf> {
+        match &self.lock().recorder {
+            Recorder::Writing { path, .. } => Some(sidecar_path(path)),
+            Recorder::Off | Recorder::Idle(_) => None,
+        }
+    }
+
     /// The relay couldn't start, so no browser can connect.
     pub fn relay_unavailable(&self, reason: String) {
         self.lock().relay_unavailable = Some(reason);
@@ -172,6 +196,7 @@ impl Recorder {
             *self = match start_recording(dir, &path) {
                 Ok(writer) => Self::Writing {
                     dir: dir.clone(),
+                    path,
                     writer,
                     flushed_at: envelope.ts,
                 },
@@ -228,6 +253,7 @@ mod tests {
     use serde_json::json;
 
     use copilot_core::Appearance;
+    use copilot_llm::{Effort, Provider, Thinking};
 
     use super::*;
     use crate::settings::Settings;
@@ -275,5 +301,47 @@ mod tests {
 
         let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
         assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
+    }
+
+    #[test]
+    fn the_players_model_for_each_slot_is_remembered_across_restarts() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let haiku_thinking = ModelChoice::new(
+            Provider::Anthropic,
+            "claude-haiku-5-5",
+            Thinking::Adaptive(Effort::Low),
+        )
+        .unwrap();
+
+        live.set_model(ModelSlot::Quick, haiku_thinking.clone())
+            .unwrap();
+
+        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(restarted.model(ModelSlot::Quick), haiku_thinking);
+        assert_eq!(
+            restarted.model(ModelSlot::Deep),
+            ModelChoice::default_for(ModelSlot::Deep)
+        );
+    }
+
+    #[test]
+    fn llm_calls_are_recorded_beside_the_recording_being_written() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new(
+            "1.2.3",
+            Some(dir.path().join("recordings")),
+            Settings::load(&path).unwrap(),
+        );
+        assert_eq!(live.llm_sidecar(), None);
+
+        live.handle(envelope(json!({ "msg": "game_started" })));
+
+        assert_eq!(
+            live.llm_sidecar(),
+            Some(dir.path().join("recordings/1760486400000.llm.jsonl"))
+        );
     }
 }

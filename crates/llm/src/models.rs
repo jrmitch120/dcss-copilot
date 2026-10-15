@@ -66,8 +66,10 @@ pub struct ModelInfo {
     pub id: &'static str,
     /// Its name, for the player.
     pub name: &'static str,
-    /// The thinking settings it accepts, the first being the one to suggest.
+    /// The thinking settings it accepts, from least to most.
     pub thinking: &'static [Thinking],
+    /// The one of them to suggest when the player picks this model.
+    pub suggested: Thinking,
 }
 
 /// Anthropic's current models. Sonnet 5.5 and Opus 5.5 always think, so they can't be turned
@@ -81,22 +83,25 @@ const ANTHROPIC_MODELS: &[ModelInfo] = &[
             Thinking::Adaptive(Effort::Low),
             Thinking::Adaptive(Effort::Medium),
         ],
+        suggested: Thinking::Off,
     },
     ModelInfo {
         id: "claude-sonnet-5-5",
         name: "Claude Sonnet 5.5",
         thinking: ADAPTIVE,
+        suggested: Thinking::Adaptive(Effort::Medium),
     },
     ModelInfo {
         id: "claude-opus-5-5",
         name: "Claude Opus 5.5",
         thinking: ADAPTIVE,
+        suggested: Thinking::Adaptive(Effort::Medium),
     },
 ];
 
 const ADAPTIVE: &[Thinking] = &[
-    Thinking::Adaptive(Effort::Medium),
     Thinking::Adaptive(Effort::Low),
+    Thinking::Adaptive(Effort::Medium),
     Thinking::Adaptive(Effort::High),
 ];
 
