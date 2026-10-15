@@ -3,7 +3,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{Position, Screen, SourceEvent, VisibleState};
+use copilot_core::{Position, Screen, SessionEvent, SourceEvent, VisibleState};
 use copilot_replay::{Applied, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
@@ -16,6 +16,8 @@ const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
 const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
 const WATCHED_SCREENS: &[u8] = include_bytes!("recordings/screens-watched-mid-menu.dcssrec");
 const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
+const STOPPED_UNNAMED: &[u8] =
+    include_bytes!("recordings/session-tiv-reloads-and-crashes-before-naming-the-game.dcssrec");
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
@@ -247,6 +249,24 @@ fn session_events_tell_joining_resyncing_losing_and_ending_a_game() {
     let replay = replay(SESSION).unwrap();
 
     insta::assert_json_snapshot!(replay.timeline);
+}
+
+#[test]
+fn the_followed_tabs_stream_stopping_before_the_game_is_named_is_still_reported() {
+    let replay = replay(STOPPED_UNNAMED).unwrap();
+
+    let sessions: Vec<_> = replay
+        .timeline
+        .iter()
+        .filter_map(|moment| match moment.event {
+            SourceEvent::Session(session) => Some((moment.envelope, session)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        sessions,
+        [(3, SessionEvent::Joined), (6, SessionEvent::ConnectionLost)]
+    );
 }
 
 #[test]
