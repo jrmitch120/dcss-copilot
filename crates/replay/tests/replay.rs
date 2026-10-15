@@ -18,7 +18,12 @@ fn replayer(recording: &[u8]) -> Replayer {
 fn the_panel_shows_the_character_hp_and_turn_as_the_game_is_played() {
     let replay = replay(MINOTAUR).unwrap();
 
-    insta::assert_json_snapshot!(replay.view_models);
+    let characters: Vec<_> = replay
+        .view_models
+        .into_iter()
+        .map(|view| view.game.map(|game| game.character))
+        .collect();
+    insta::assert_json_snapshot!(characters);
 }
 
 #[test]
@@ -42,7 +47,7 @@ fn the_panel_follows_the_tab_whose_game_last_changed_and_starts_afresh_on_a_new_
     let characters: Vec<_> = replay
         .view_models
         .into_iter()
-        .map(|view| view.character)
+        .map(|view| view.game.map(|game| game.character))
         .collect();
     insta::assert_json_snapshot!(characters);
 }
@@ -140,7 +145,17 @@ fn seeking_backward_replays_from_the_start() {
     fresh.seek(2);
     assert_eq!(replayer.view_model(), fresh.view_model());
     assert_eq!(
-        replayer.view_model().character.map(|c| c.species),
+        replayer
+            .view_model()
+            .game
+            .map(|game| game.character.species),
         Some("Minotaur".to_owned())
     );
+}
+
+#[test]
+fn a_followed_game_fills_the_panel_with_only_what_the_advisor_can_tell_so_far() {
+    let replay = replay(MINOTAUR).unwrap();
+
+    insta::assert_json_snapshot!(replay.view_models.last().unwrap().game);
 }

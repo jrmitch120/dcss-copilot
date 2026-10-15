@@ -9,6 +9,8 @@ export const commands = {
 	viewModel: () => __TAURI_INVOKE<ViewModel>("view_model"),
 	/**  The player answered "Allow this browser?". */
 	answerBrowser: (allow: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_browser", { allow })),
+	/**  The player chose to draw monsters and items as tiles or glyphs. */
+	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 };
 
 /** Events */
@@ -17,6 +19,18 @@ export const events = {
 };
 
 /* Types */
+/**  The player's setting for how monsters and items are drawn. */
+export type Appearance = 
+/**  DCSS tiles, as webtiles draws them. Anything without a tile falls back to its glyph. */
+"tiles" | 
+/**  DCSS glyphs in their game colours, as the console game draws them. */
+"glyphs";
+
+/**  The ask box at the bottom of the panel. */
+export type AskBox = 
+/**  Answering needs a model, and none is set up. */
+{ state: "needsModel" };
+
 /**  The character in the game being followed. A stat is `None` until the game reports it. */
 export type Character = {
 	/**  The character's name. */
@@ -30,6 +44,9 @@ export type Character = {
 	/**  The game's turn count. */
 	turn: number | null,
 };
+
+/**  The sixteen colours DCSS draws glyphs in, named as crawl names them. */
+export type Colour = "black" | "blue" | "green" | "cyan" | "red" | "magenta" | "brown" | "lightGrey" | "darkGrey" | "lightBlue" | "lightGreen" | "lightCyan" | "lightRed" | "lightMagenta" | "yellow" | "white";
 
 /**  How the app is connected to the browser extension. */
 export type Connection = 
@@ -52,6 +69,79 @@ bufferOverflowed: boolean } |
 reason: string };
 
 /**
+ *  How a monster or item is drawn: always as a glyph, and as a tile too when one is known.
+ *  The player's Appearance setting picks which the panel shows.
+ */
+export type Depiction = {
+	/**  The glyph the console game draws. */
+	glyph: Glyph,
+	/**  The tile webtiles draws, when Game Knowledge names one. */
+	tile: TileName | null,
+};
+
+/**  The card under the now pill: what deserves the player's attention now. */
+export type FocusCard = 
+/**  Nothing calls for a decision: the card lists what is in view. */
+{ card: "inView"; 
+/**
+ *  The monsters in view, or `None` while the Advisor can't read monsters, which is
+ *  not the same as there being none.
+ */
+monsters: Listing[] | null };
+
+/**
+ *  The docked panel for the followed game, top to bottom: header, now pill, focus card,
+ *  Run Plan rail and ask box. The footer belongs to the app, not the game.
+ */
+export type GameView = {
+	/**  Who is playing, shown in the header. */
+	character: Character,
+	/**  How dangerous this moment is, at a glance. */
+	now: NowPill,
+	/**  The one thing that deserves the player's attention now. */
+	focus: FocusCard,
+	/**  The Run Plan, summarised along the bottom of the panel. */
+	runPlan: RunPlanRail,
+	/**  Where the player asks the Advisor questions. */
+	ask: AskBox,
+};
+
+/**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
+export type Glyph = {
+	/**  The character drawn, usually one letter or symbol. */
+	text: string,
+	/**  Its colour. */
+	colour: Colour,
+};
+
+/**  One row of a list in the panel, such as a monster in view. */
+export type Listing = {
+	/**  How the thing is drawn. */
+	depiction: Depiction,
+	/**  Its name, as the game names it. */
+	name: string,
+	/**  A short fact beside the name, if any. */
+	detail: string | null,
+};
+
+/**  The threat label and one line at the top of the panel. */
+export type NowPill = 
+/**  The Advisor can't judge a Threat Level yet, so it shows none rather than guess. */
+{ state: "unrated" };
+
+/**  The Run Plan rail along the bottom of the panel. */
+export type RunPlanRail = 
+/**  There is no Run Plan for this game yet. */
+{ state: "notPlanned" };
+
+/**
+ *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as
+ *  `mon/unique/saint_roka`. The panel draws it from `tiles/<name>.png`, and draws the glyph
+ *  instead for a tile the app doesn't ship.
+ */
+export type TileName = string;
+
+/**
  *  Everything the panel renders, pushed by the core to the webview.
  * 
  *  The webview holds no game logic: it only draws this. TypeScript types are
@@ -62,8 +152,10 @@ export type ViewModel = {
 	appVersion: string,
 	/**  How the app is connected to the browser. */
 	connection: Connection,
-	/**  The character in the game being followed, once one is identified. */
-	character: Character | null,
+	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
+	appearance: Appearance,
+	/**  The panel for the game being followed, once one is identified. */
+	game: GameView | null,
 };
 
 /**  The core pushes a new view model to the panel. */
