@@ -1,9 +1,8 @@
 //! What a Game Source adapter tells the core. Source-neutral: nothing here knows how a game was read.
 
-use copilot_gk::{EnumId, ItemKind};
 use serde::Serialize;
 
-use crate::view_model::Glyph;
+use crate::visible_state::VisibleState;
 
 /// One thing a Game Source learned about the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -49,48 +48,4 @@ pub enum Role {
     Playing,
     /// The player is spectating someone else's game.
     Spectating,
-}
-
-/// What the game currently reports to the player. A value is `None` until the game has reported it.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VisibleState {
-    /// Current hit points.
-    pub hp: Option<i32>,
-    /// Maximum hit points.
-    pub hp_max: Option<i32>,
-    /// The game's turn count.
-    pub turn: Option<u32>,
-    /// The monsters the player can see, in map order: top row first, left to right. `None` until
-    /// the game has sent its map, which is not the same as there being none.
-    pub monsters: Option<Vec<VisibleMonster>>,
-    /// The items the player carries, by inventory letter. `None` until the game has sent the
-    /// inventory.
-    pub inventory: Option<Vec<InventoryItem>>,
-}
-
-/// An item the player carries.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InventoryItem {
-    /// Its inventory letter.
-    pub letter: char,
-    /// Its name, as the game shows it, such as `2 potions of curing`.
-    pub name: String,
-    /// How many there are in the stack.
-    pub quantity: u32,
-    /// What it is, when the bundle for the game's Crawl Version decodes its class and sub-type.
-    pub kind: Option<ItemKind>,
-}
-
-/// A monster the player can see.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VisibleMonster {
-    /// Its name, as the game names it, such as `jackal` or `Sigmund`.
-    pub name: String,
-    /// The glyph the game draws it with on the map.
-    pub glyph: Glyph,
-    /// Its Game Knowledge identity, when the bundle for the game's Crawl Version decodes its type.
-    pub id: Option<EnumId>,
 }

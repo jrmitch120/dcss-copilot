@@ -12,6 +12,7 @@ const TWO_TABS: &[u8] = include_bytes!("recordings/two-tabs-and-a-new-game.dcssr
 const MONSTERS: &[u8] = include_bytes!("recordings/monsters-in-view.dcssrec");
 const NO_GAME_KNOWLEDGE: &[u8] =
     include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
+const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -93,6 +94,19 @@ fn without_game_knowledge_for_the_crawl_version_monsters_keep_only_their_names()
     let replay = replay(NO_GAME_KNOWLEDGE).unwrap();
 
     insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
+fn the_characters_stats_religion_place_and_statuses_are_decoded() {
+    let visible = replay(KOBOLD).unwrap().visible;
+
+    insta::assert_json_snapshot!(serde_json::json!({
+        "stats": visible.stats,
+        "religion": visible.religion,
+        "place": visible.place,
+        "position": visible.position,
+        "statuses": visible.statuses,
+    }));
 }
 
 #[test]
