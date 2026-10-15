@@ -1,0 +1,50 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "tools/*", "app/src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/jrmitch120/dcss-copilot"
+publish = false
+
+[workspace.dependencies]
+copilot-core = { path = "crates/core" }
+copilot-gk = { path = "crates/gk" }
+copilot-llm = { path = "crates/llm" }
+copilot-replay = { path = "crates/replay" }
+copilot-store = { path = "crates/store" }
+copilot-webtiles = { path = "crates/webtiles" }
+anyhow = "1"
+insta = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+specta = { version = "=2.0.0-rc.25", features = ["derive"] }
+specta-typescript = "=0.0.12"
+tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
+thiserror = "2"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+dbg_macro = "deny"
+todo = "warn"
+semicolon_if_nothing_returned = "warn"
+redundant_closure_for_method_calls = "warn"
+explicit_iter_loop = "warn"
+needless_pass_by_value = "warn"
+match_same_arms = "warn"
+manual_let_else = "warn"
+
+# See https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

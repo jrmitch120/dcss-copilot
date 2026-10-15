@@ -1,0 +1,19 @@
+[package]
+name = "copilot-core"
+description = "Visible State, Accumulated State, engine, detectors and renderer: everything behind the Recording replay seam that does no IO"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+specta.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

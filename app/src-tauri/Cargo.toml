@@ -1,0 +1,28 @@
+[package]
+name = "copilot-app"
+description = "The DCSS Copilot desktop app: wires the core to its windows, tray and keychain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+# Distinct from the bin name, which Windows needs (rust-lang/cargo#8519).
+name = "copilot_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+copilot-core.workspace = true
+serde.workspace = true
+specta.workspace = true
+specta-typescript.workspace = true
+tauri = { version = "2", features = [] }
+tauri-specta.workspace = true
+
+[lints]
+workspace = true

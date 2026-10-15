@@ -1,0 +1,15 @@
+[package]
+name = "crawl-oracle"
+description = "Diffs the engine's ported formulas against a crawl build"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+
+[lints]
+workspace = true

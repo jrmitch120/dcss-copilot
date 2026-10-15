@@ -1,0 +1,5 @@
+packages:
+  - app
+  - extension
+allowBuilds:
+  lefthook: true

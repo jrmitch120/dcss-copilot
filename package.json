@@ -1,0 +1,17 @@
+{
+  "name": "dcss-copilot",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "packageManager": "pnpm@12.11.2",
+  "scripts": {
+    "check": "pnpm -r check",
+    "test": "pnpm -r --if-present test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "tauri": "pnpm --filter @dcss-copilot/app tauri"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "lefthook": "^2"
+  }
+}
