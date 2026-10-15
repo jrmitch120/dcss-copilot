@@ -91,6 +91,12 @@ impl Live {
             // Replacing an unanswered request closes its connection, which retries.
             RelayEvent::ApprovalNeeded(request) => state.approval = Some(request),
             RelayEvent::Connected => {
+                // A connection replays every tab from its first message, so with no other browser
+                // connected nothing known so far is still current.
+                if state.browsers == 0 {
+                    state.source = WebtilesSource::new();
+                    state.advisor = Advisor::new();
+                }
                 state.browsers += 1;
                 state.recorder.finish();
             }
@@ -198,4 +204,37 @@ fn start_recording(
     std::fs::create_dir_all(dir)?;
     let file = BufWriter::new(File::create(path)?);
     RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    fn envelope(msg: serde_json::Value) -> RelayEvent {
+        RelayEvent::Envelope(Envelope {
+            origin: "https://crawl.example.org".to_owned(),
+            tab: 7,
+            ts: 1_760_486_400_000,
+            game_version: None,
+            msg,
+        })
+    }
+
+    #[test]
+    fn a_browser_connecting_when_none_is_starts_afresh_because_its_tabs_replay_from_the_start() {
+        let live = Live::new("1.2.3", None);
+        live.handle(RelayEvent::Connected);
+        live.handle(envelope(json!({ "msg": "game_started" })));
+        live.handle(envelope(
+            json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": 500 }),
+        ));
+        assert!(live.view_model().character.is_some());
+
+        live.handle(RelayEvent::Disconnected);
+        live.handle(RelayEvent::Connected);
+
+        assert_eq!(live.view_model().character, None);
+    }
 }
