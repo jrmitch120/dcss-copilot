@@ -218,6 +218,36 @@ expression: bundle
       },
       "tile": "mon/humanoids/goblin_rider",
       "description": null
+    },
+    "27": {
+      "id": "MONS_BLACK_DRACONIAN",
+      "name": "black draconian",
+      "glyph": "d",
+      "hd": 14,
+      "hp10x": 980,
+      "ac": 9,
+      "ev": 10,
+      "will": {
+        "value": 40
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 20
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": null,
+      "description": "A muscular black-scaled humanoid with a reptilian tail and powerful wings."
     }
   },
   "itemClasses": {

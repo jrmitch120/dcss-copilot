@@ -67,6 +67,8 @@ enum monster_type                      // env.mons[].type
     // (trimmed for the extractor test)
     MONS_GOBLIN_RIDER,
     // (trimmed for the extractor test)
+    MONS_BLACK_DRACONIAN,
+    // (trimmed for the extractor test)
 
     NUM_MONSTERS,               // used for polymorph
 

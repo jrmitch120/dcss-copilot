@@ -44,6 +44,13 @@ Every tile file the bundle names ships, whatever its license. Most are CC0; the 
 
 Crawl's build outlines the tiles listed under `%rim 1` in black: every transparent pixel beside a drawn one, up, down, left or right, becomes opaque black (`tile::add_rim` in `rltiles/tool/tile.cc`). The extractor does the same to those tiles as it writes them, so they look as they do in webtiles, and copies the rest unchanged. A file drawn both with and without the outline for different monsters stops the extraction, since the app ships one image per file. The panel draws a monster without a tile as its glyph.
 
+Crawl's data gives some monsters the program bug's error tile (`misc/error`), which isn't a picture of them, so the extractor gives them no tile and doesn't ship the error image. No tile yet: crawl composes or recolours them at runtime. At 0.34.1 they are:
+
+- program bug;
+- black, yellow, green, purple, red, white, grey and pale draconian;
+- tentacle and tentacle segment (the kraken's), eldritch tentacle and eldritch tentacle segment, starspawn tentacle and starspawn tentacle segment, snaplasher vine and snaplasher vine segment;
+- hell lord and god wrath avatar.
+
 ## Tests
 
 The tests in `tools/gk-extract/tests/extract.rs` cover the extractor (seam 3):

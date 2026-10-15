@@ -9,6 +9,10 @@ bat
 A large grey bat that, despite being herbivorous, is quite aggressive. It is
 myopic and uses echolocation to navigate.
 %%%%
+black draconian
+
+A muscular black-scaled humanoid with a reptilian tail and powerful wings.
+%%%%
 jackal
 
 A small canine scavenger. Packs of jackals roam the underworld, searching for

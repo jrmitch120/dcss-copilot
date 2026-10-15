@@ -26,7 +26,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A ravenous and incredibly buggy monster. Please report its existence to the\nDevTeam."
     },
     "1": {
@@ -6548,7 +6548,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular black-scaled humanoid with a reptilian tail and powerful wings."
     },
     "274": {
@@ -6583,7 +6583,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular yellow-scaled humanoid with a reptilian tail and small wings."
     },
     "275": {
@@ -6618,7 +6618,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular green-scaled humanoid with a reptilian tail and small wings."
     },
     "276": {
@@ -6648,7 +6648,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular purple-scaled humanoid with a reptilian tail and small wings."
     },
     "277": {
@@ -6678,7 +6678,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular red-scaled humanoid with a reptilian tail and small wings."
     },
     "278": {
@@ -6708,7 +6708,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular white-scaled humanoid with a reptilian tail and small wings."
     },
     "279": {
@@ -6743,7 +6743,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular grey-scaled humanoid with a reptilian tail and small wings."
     },
     "280": {
@@ -6773,7 +6773,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A muscular humanoid with pale scales, a reptilian tail and small wings."
     },
     "281": {
@@ -7163,7 +7163,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "The mighty tentacle of a kraken. Any damage dealt to it hurts the whole\ncreature."
     },
     "301": {
@@ -7185,7 +7185,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A part of the mighty tentacle of a kraken. Any damage dealt to it hurts the\nwhole creature."
     },
     "302": {
@@ -8736,7 +8736,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "An immense, squamous appendage of some unseen creature, dripping with ichor and\ntipped with a single, terrible-looking claw."
     },
     "356": {
@@ -8758,7 +8758,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A part of an immense, squamous appendage. It thrashes and pulsates like no\nother living thing."
     },
     "357": {
@@ -12440,7 +12440,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": null
     },
     "496": {
@@ -12990,7 +12990,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "The writhing appendage of a tentacled starspawn, capable of grasping nearly any\nprey and dragging it back to be devoured. Any damage dealt to it hurts the\nwhole creature."
     },
     "515": {
@@ -13012,7 +13012,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A sinuous length of an extended starspawn tentacle. Any damage dealt to it\nhurts the whole creature."
     },
     "516": {
@@ -13961,7 +13961,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "A swift and sinuous vine brought alive by a dryad's magic. It can quickly bind\nand entangle the dryad's foes, dragging them back to the forest from which it\nsurges."
     },
     "553": {
@@ -13985,7 +13985,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": "Part of a swift and sinuous vine brought alive by a dryad's magic. It can\nquickly bind and entangle the dryad's foes, dragging them back to the forest\nfrom which it surges."
     },
     "554": {
@@ -18735,7 +18735,7 @@
         "missile": 10,
         "spell": 10
       },
-      "tile": "misc/error",
+      "tile": null,
       "description": null
     },
     "735": {

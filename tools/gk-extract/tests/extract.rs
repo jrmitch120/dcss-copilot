@@ -123,6 +123,21 @@ fn the_tiles_a_bundle_names_are_written_as_crawls_tile_build_draws_them() {
 }
 
 #[test]
+fn a_monster_drawn_with_crawls_error_tile_has_no_tile() {
+    let extraction = extract(&fixture(), &release()).unwrap();
+
+    // Crawl composes and recolours a black draconian at runtime; its data names only the
+    // program bug's error tile, which isn't a picture of it.
+    let draconian = extraction
+        .bundle
+        .monsters
+        .values()
+        .find(|monster| monster.id.0 == "MONS_BLACK_DRACONIAN")
+        .unwrap();
+    assert_eq!(draconian.tile, None);
+}
+
+#[test]
 fn a_crawl_release_without_known_formula_variants_is_refused_rather_than_read_as_0_34() {
     for tag in ["0.35.0", "0.33.1", "0.35-a0"] {
         let release = CrawlRelease {

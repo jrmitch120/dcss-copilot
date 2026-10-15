@@ -4,7 +4,8 @@
 //!
 //! Only a tile drawn straight from one image file is named. A tile the build recolours, mirrors,
 //! composes onto a background or turns into a corpse has no file of its own, so it is left out.
-//! A tile the build outlines in black (`%rim 1`) ships outlined, as the build outlines it.
+//! A tile the build outlines in black (`%rim 1`) ships outlined, as the build outlines it. Crawl's
+//! error tile isn't a picture of any monster, so a monster drawn with it has no tile.
 
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
@@ -17,6 +18,11 @@ const PLAYER_TILES: &str = "dc-player.txt";
 
 /// The prefix the player tile list gives its enums, as its `%prefix` line says.
 const PLAYER_PREFIX: &str = "TILEP";
+
+/// The file of crawl's error tile, which `TILEP_MONS_PROGRAM_BUG` and `TILEP_ERROR` name: what
+/// crawl's data gives monsters it composes or recolours at runtime, such as draconians and
+/// tentacles, and what crawl draws when it has no picture.
+const ERROR_TILE: &str = "misc/error";
 
 /// The tile lists' directives that don't change which file a tile is drawn from.
 const IGNORED_DIRECTIVES: &[&str] = &[
@@ -53,13 +59,14 @@ impl ShippedTiles {
 
     /// Ships the tile enum such as `TILEP_MONS_JACKAL`, returning the tile the bundle names it
     /// by: its file's path in `rltiles` without the extension, such as `mon/animals/jackal`.
-    /// `None` for a tile with no file of its own.
+    /// `None` for a tile with no file of its own, or crawl's error tile.
     ///
     /// # Errors
     /// If the file is already shipped for another tile enum, but drawn with the outline where
     /// this one isn't or the other way round: the app ships one image per file.
     pub(crate) fn ship(&mut self, tile: &str) -> Result<Option<String>, ExtractError> {
-        let Some(Tile { file, outlined }) = self.files.tile(tile) else {
+        let Some(Tile { file, outlined }) = self.files.tile(tile).filter(|t| t.file != ERROR_TILE)
+        else {
             return Ok(None);
         };
         let shipped = *self.shipped.entry(file.clone()).or_insert(*outlined);
