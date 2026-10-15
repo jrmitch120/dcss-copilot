@@ -410,7 +410,7 @@ function lookCard(n, inline = false) {
     ${inline ? '' : `<div style="display:flex;gap:10px;align-items:center">${L.tile()}<div><b>${disp(n)}</b><div class="tiny muted">${L.kind}</div></div></div>`}
     <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;${inline ? '' : 'margin-top:8px'}">${L.facts.map(f => `<span>${f}</span>`).join('')}</div>
     <div class="small" style="margin-top:6px;color:#b9bdc9"><b>vs you:</b> ${L.vs}</div>
-    <div class="tiny muted" style="margin-top:5px">📖 Information · no LLM${inline ? ' · <a data-look-close>close</a>' : ''}</div></div>`;
+    <div class="tiny muted" style="margin-top:5px">📖 Information${inline ? ' · <a data-look-close>close</a>' : ''}</div></div>`;
 }
 function matchName(t) {
   t = t.trim().toLowerCase();
@@ -422,7 +422,7 @@ function matchName(t) {
   }
   return null;
 }
-const chipHtml = t => { const n = matchName(t); return n ? `<button class="lchip" data-lookchip="${n}">${LOOK[n].tile().replace(/width="32" height="32"/, 'width="20" height="20"')}<b>${disp(n)}</b><span class="muted">· look up, no LLM</span><kbd>Tab</kbd></button>` : ''; };
+const chipHtml = t => { const n = matchName(t); return n ? `<button class="lchip" data-lookchip="${n}">${LOOK[n].tile().replace(/width="32" height="32"/, 'width="20" height="20"')}<span>📖</span><b>${disp(n)}</b><kbd>Tab</kbd></button>` : ''; };
 let askVal = '', extra = [], inlineLook = null;
 const ASK = {
   name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'type or click to look up', 'danger: click a threat'],
