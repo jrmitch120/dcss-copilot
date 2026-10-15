@@ -80,6 +80,14 @@ _Avoid_: Situation, snapshot, context, prompt data
 How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit.
 _Avoid_: Danger score, threat score
 
+**Worst-Case Hit**:
+The total damage the player could take before their next action, as bad as it gets barring one time in a hundred (the 99th percentile of the Threat Level's simulation). It counts every monster that can attack, not only the hardest single blow.
+_Avoid_: Max damage, max hit
+
+**Formula Variant**:
+One version of a crawl formula as the engine ports it, such as a monster's to-hit as crawl 0.34 computes it. A Game Knowledge bundle names the variant of each formula its Crawl Version uses, so the engine picks its code by name and never compares version strings.
+_Avoid_: Formula version, ruleset
+
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
 _Avoid_: Escape (when meaning the whole list), panic button

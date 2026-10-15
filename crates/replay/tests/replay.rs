@@ -16,6 +16,7 @@ const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
 const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
 const WATCHED_SCREENS: &[u8] = include_bytes!("recordings/screens-watched-mid-menu.dcssrec");
 const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
+const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -377,4 +378,62 @@ fn a_followed_game_fills_the_panel_with_only_what_the_advisor_can_tell_so_far() 
     let replay = replay(MINOTAUR).unwrap();
 
     insta::assert_json_snapshot!(replay.view_models.last().unwrap().game);
+}
+
+/// The Fact Sheet as each turn of `recording` ended, by turn.
+fn fact_sheets_by_turn(recording: &[u8]) -> Vec<serde_json::Value> {
+    let mut replayer = replayer(recording);
+    let mut sheets: Vec<(Option<u32>, serde_json::Value)> = Vec::new();
+    while !replayer.at_end() {
+        replayer.step();
+        let turn = replayer.turn();
+        let sheet = serde_json::to_value(replayer.advisor().fact_sheet()).unwrap();
+        match sheets.last_mut() {
+            Some((last, last_sheet)) if *last == turn => *last_sheet = sheet,
+            _ => sheets.push((turn, sheet)),
+        }
+    }
+    sheets
+        .into_iter()
+        .map(|(turn, sheet)| serde_json::json!({ "turn": turn, "factSheet": sheet }))
+        .collect()
+}
+
+#[test]
+fn the_threat_level_rises_as_monsters_close_in_and_hit_points_fall() {
+    insta::assert_json_snapshot!(fact_sheets_by_turn(JACKALS));
+}
+
+#[test]
+fn a_hostile_in_reach_is_judged_by_crawls_melee_and_a_neutral_one_is_not() {
+    let replayer = {
+        let mut replayer = replayer(KOBOLD);
+        replayer.seek(usize::MAX);
+        replayer
+    };
+
+    insta::assert_json_snapshot!(replayer.advisor().fact_sheet());
+}
+
+#[test]
+fn without_game_knowledge_for_the_crawl_version_the_threat_is_unrated_and_says_why() {
+    let replayer = {
+        let mut replayer = replayer(NO_GAME_KNOWLEDGE);
+        replayer.seek(usize::MAX);
+        replayer
+    };
+
+    insta::assert_json_snapshot!(replayer.advisor().fact_sheet());
+}
+
+#[test]
+fn the_now_pill_shows_the_threat_level_and_one_line() {
+    let pills: Vec<_> = replay(JACKALS)
+        .unwrap()
+        .view_models
+        .into_iter()
+        .filter_map(|view| view.game.map(|game| game.now))
+        .collect();
+
+    insta::assert_json_snapshot!(pills);
 }

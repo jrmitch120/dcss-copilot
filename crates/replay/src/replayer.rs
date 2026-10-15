@@ -63,7 +63,7 @@ impl Game {
     fn new(knowledge: &Library) -> Self {
         Self {
             source: WebtilesSource::new(knowledge.clone()),
-            advisor: Advisor::new(),
+            advisor: Advisor::new(knowledge.clone()),
             timeline: Vec::new(),
             applied: 0,
         }

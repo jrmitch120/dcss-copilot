@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+use crate::fact_sheet::ThreatLevel;
+
 /// Everything the panel renders, pushed by the core to the webview.
 ///
 /// The webview holds no game logic: it only draws this. TypeScript types are
@@ -105,10 +107,24 @@ pub struct Character {
 
 /// The threat label and one line at the top of the panel.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
-#[serde(tag = "state", rename_all = "camelCase")]
+#[serde(
+    tag = "state",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum NowPill {
     /// The Advisor can't judge a Threat Level yet, so it shows none rather than guess.
     Unrated,
+    /// The Advisor judged how dangerous this moment is.
+    Rated {
+        /// The Threat Level.
+        level: ThreatLevel,
+        /// One sentence about this moment, such as which monsters can attack.
+        line: String,
+        /// The numbers behind the level, such as the chance of death and the worst-case hit,
+        /// when anything can attack.
+        detail: Option<String>,
+    },
 }
 
 /// The card under the now pill: what deserves the player's attention now.
