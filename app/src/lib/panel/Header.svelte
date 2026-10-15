@@ -3,13 +3,16 @@ import type { Character, NowPill } from "$lib/bindings";
 
 let { character, now }: { character: Character; now: NowPill } = $props();
 
+// The dot takes the Threat Level's colour, or a neutral grey while there is none.
+let tone = $derived(now.state === "rated" ? now.level : "unrated");
+
 function stat(value: number | null): string {
   return value === null ? "?" : String(value);
 }
 </script>
 
 <header>
-  <span class="dot {now.state}"></span>
+  <span class="dot {tone}"></span>
   <span class="who">
     <b>{character.name}</b>
     · {character.species} · HP {stat(character.hp)}/{stat(character.hpMax)}
@@ -35,6 +38,21 @@ header {
 
 .dot.unrated {
   background: var(--unrated);
+}
+
+.dot.calm {
+  background: var(--calm);
+  box-shadow: 0 0 8px var(--calm);
+}
+
+.dot.dangerous {
+  background: var(--warning);
+  box-shadow: 0 0 8px var(--warning);
+}
+
+.dot.lethal {
+  background: var(--danger);
+  box-shadow: 0 0 8px var(--danger);
 }
 
 .who {

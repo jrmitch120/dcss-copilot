@@ -1,0 +1,33 @@
+---
+source: crates/replay/tests/replay.rs
+expression: pills
+---
+[
+  {
+    "state": "unrated"
+  },
+  {
+    "state": "rated",
+    "level": "calm",
+    "line": "Nothing hostile can reach you before your next action.",
+    "detail": null
+  },
+  {
+    "state": "rated",
+    "level": "calm",
+    "line": "Nothing hostile can reach you before your next action.",
+    "detail": null
+  },
+  {
+    "state": "rated",
+    "level": "dangerous",
+    "line": "3 monsters can attack before your next action.",
+    "detail": "Death under 0.1% · worst hit 7 of 12 HP"
+  },
+  {
+    "state": "rated",
+    "level": "lethal",
+    "line": "3 monsters can attack before your next action.",
+    "detail": "Death 31.6% · worst hit 7 of 3 HP"
+  }
+]

@@ -219,7 +219,18 @@ export type ModelsAndKeysView = {
 /**  The threat label and one line at the top of the panel. */
 export type NowPill = 
 /**  The Advisor can't judge a Threat Level yet, so it shows none rather than guess. */
-{ state: "unrated" };
+{ state: "unrated" } | 
+/**  The Advisor judged how dangerous this moment is. */
+{ state: "rated"; 
+/**  The Threat Level. */
+level: ThreatLevel; 
+/**  One sentence about this moment, such as which monsters can attack. */
+line: string; 
+/**
+ *  The numbers behind the level, such as the chance of death and the worst-case hit,
+ *  when anything can attack.
+ */
+detail: string | null };
 
 /**  A provider, as the Settings window names it. */
 export type ProviderView = {
@@ -276,6 +287,15 @@ export type ThinkingOption =
 "medium" | 
 /**  Adaptive thinking at high effort. */
 "high";
+
+/**  How dangerous a moment is: the Threat Level. */
+export type ThreatLevel = 
+/**  Neither likely to die nor to be hit hard before the next action. */
+"calm" | 
+/**  A real chance of death, or a hard hit, before the next action. */
+"dangerous" | 
+/**  Death before the next action is likely enough, or a hit could take every hit point. */
+"lethal";
 
 /**
  *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as

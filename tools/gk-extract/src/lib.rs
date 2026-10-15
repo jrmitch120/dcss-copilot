@@ -11,7 +11,7 @@ mod yaml;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use copilot_gk::{Bundle, CrawlSource, EnumId, ItemClass, ItemSubType, Spell};
+use copilot_gk::{Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, Spell};
 
 use crate::cpp::Source;
 
@@ -19,6 +19,12 @@ use crate::cpp::Source;
 const CRAWL_LICENSE: &str = "Dungeon Crawl Stone Soup, copyright the DCSS devteam and \
 contributors (https://github.com/crawl/crawl), licensed under the GNU General Public License, \
 version 2 or later.";
+
+/// The variants of the ported formulas that the crawl source this extractor reads uses: crawl
+/// 0.34's. A crawl whose monster data changed shape, as trunk's attacks gain a reach, fails to
+/// extract instead of being given these; nightly drift detection flags a ported function whose
+/// code changed.
+const FORMULAS: Formulas = Formulas::CRAWL_0_34;
 
 /// Where crawl's game source lives inside a crawl checkout.
 const SOURCE_DIR: &str = "crawl-ref/source";
@@ -144,6 +150,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractEr
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
+        formulas: FORMULAS,
     })
 }
 

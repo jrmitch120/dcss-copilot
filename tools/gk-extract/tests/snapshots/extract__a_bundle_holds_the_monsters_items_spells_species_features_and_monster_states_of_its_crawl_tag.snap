@@ -21,6 +21,21 @@ expression: bundle
         "value": 0
       },
       "speed": 30,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 1
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
       "description": "A large grey bat that, despite being herbivorous, is quite aggressive. It is\nmyopic and uses echolocation to navigate."
     },
     "9": {
@@ -35,6 +50,21 @@ expression: bundle
         "value": 10
       },
       "speed": 13,
+      "attacks": [
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_POISON",
+          "damage": 4
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 6,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
       "description": "A common dungeon snake, a species of troglodytic reptile commonly found in\nsubterranean spaces."
     },
     "14": {
@@ -49,6 +79,21 @@ expression: bundle
         "value": 0
       },
       "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_PLAIN",
+          "damage": 3
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
       "description": "A dirty rodent that has grown large and aggressive in the dungeon environment."
     },
     "19": {
@@ -63,6 +108,21 @@ expression: bundle
         "value": 0
       },
       "speed": 12,
+      "attacks": [
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_PLAIN",
+          "damage": 5
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
       "description": null
     },
     "21": {
@@ -77,7 +137,80 @@ expression: bundle
         "value": 0
       },
       "speed": 14,
+      "attacks": [
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_PLAIN",
+          "damage": 3
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
       "description": "A small canine scavenger. Packs of jackals roam the underworld, searching for\ncarrion to devour."
+    },
+    "25": {
+      "id": "MONS_SNAPPING_TURTLE",
+      "name": "snapping turtle",
+      "glyph": "t",
+      "hd": 10,
+      "hp10x": 600,
+      "ac": 16,
+      "ev": 5,
+      "will": {
+        "value": 40
+      },
+      "speed": 8,
+      "attacks": [
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_REACH",
+          "damage": 35
+        }
+      ],
+      "fighter": false,
+      "energy": {
+        "walk": 10,
+        "swim": 6,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "description": null
+    },
+    "26": {
+      "id": "MONS_GOBLIN_RIDER",
+      "name": "goblin rider",
+      "glyph": "g",
+      "hd": 5,
+      "hp10x": 295,
+      "ac": 4,
+      "ev": 10,
+      "will": {
+        "value": 10
+      },
+      "speed": 15,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 20
+        }
+      ],
+      "fighter": true,
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 15,
+        "missile": 10,
+        "spell": 10
+      },
+      "description": null
     }
   },
   "itemClasses": {
@@ -348,5 +481,14 @@ expression: bundle
     "1": "MTHRT_EASY",
     "2": "MTHRT_TOUGH",
     "3": "MTHRT_NASTY"
+  },
+  "formulas": {
+    "monsterToHit": "crawl-0.34",
+    "evasionRoll": "crawl-0.34",
+    "monsterDamage": "crawl-0.34",
+    "armour": "crawl-0.34",
+    "shieldBlock": "crawl-0.34",
+    "monsterReach": "crawl-0.34",
+    "monsterEnergy": "crawl-0.34"
   }
 }

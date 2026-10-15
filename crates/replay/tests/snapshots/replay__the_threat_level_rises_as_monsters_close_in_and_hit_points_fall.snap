@@ -1,0 +1,147 @@
+---
+source: crates/replay/tests/replay.rs
+expression: fact_sheets_by_turn(JACKALS)
+---
+[
+  {
+    "turn": null,
+    "factSheet": {
+      "threat": {
+        "state": "unrated",
+        "gaps": [
+          {
+            "gap": "hitPoints"
+          },
+          {
+            "gap": "monstersInView"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "turn": 100,
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 20,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 3,
+        "acting": [],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    }
+  },
+  {
+    "turn": 101,
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "dangerous",
+        "hp": 12,
+        "death": {
+          "times": 1,
+          "trials": 10000
+        },
+        "worstHit": 7,
+        "hostilesInView": 3,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    }
+  },
+  {
+    "turn": 102,
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 3,
+        "death": {
+          "times": 3157,
+          "trials": 10000
+        },
+        "worstHit": 7,
+        "hostilesInView": 3,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    }
+  }
+]

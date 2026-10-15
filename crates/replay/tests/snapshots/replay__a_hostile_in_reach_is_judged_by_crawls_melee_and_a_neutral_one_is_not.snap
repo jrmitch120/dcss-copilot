@@ -1,0 +1,35 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replayer.advisor().fact_sheet()
+---
+{
+  "threat": {
+    "state": "rated",
+    "level": "calm",
+    "hp": 26,
+    "death": {
+      "times": 0,
+      "trials": 10000
+    },
+    "worstHit": 4,
+    "hostilesInView": 1,
+    "acting": [
+      {
+        "name": "hobgoblin",
+        "position": {
+          "x": 1,
+          "y": -1
+        },
+        "distance": 1
+      }
+    ],
+    "notModelled": [
+      "monsterEquipment",
+      "attackFlavours",
+      "rangedAndSpells",
+      "statuses",
+      "paths",
+      "awareness"
+    ]
+  }
+}

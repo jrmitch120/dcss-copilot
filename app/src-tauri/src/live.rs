@@ -66,8 +66,8 @@ impl Live {
             app_version,
             knowledge: knowledge.clone(),
             state: Mutex::new(State {
-                source: WebtilesSource::new(knowledge),
-                advisor: Advisor::new(),
+                source: WebtilesSource::new(knowledge.clone()),
+                advisor: Advisor::new(knowledge),
                 browsers: 0,
                 approval: None,
                 buffer_overflowed: false,
@@ -115,7 +115,7 @@ impl Live {
                 // connected nothing known so far is still current.
                 if state.browsers == 0 {
                     state.source = WebtilesSource::new(self.knowledge.clone());
-                    state.advisor = Advisor::new();
+                    state.advisor = Advisor::new(self.knowledge.clone());
                 }
                 state.browsers += 1;
                 state.recorder.finish();

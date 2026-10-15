@@ -11,7 +11,10 @@ expression: replay.view_models.last().unwrap().game
     "turn": 4
   },
   "now": {
-    "state": "unrated"
+    "state": "rated",
+    "level": "calm",
+    "line": "No hostiles in view.",
+    "detail": null
   },
   "focus": {
     "card": "inView",

@@ -94,6 +94,8 @@ pub struct Bundle {
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
     /// `mon_threat_level_type` enum value: a monster's webtiles `threat`.
     pub monster_threats: BTreeMap<u8, EnumId>,
+    /// Which variant of each ported crawl formula this Crawl Version uses.
+    pub formulas: Formulas,
 }
 
 impl Bundle {
@@ -101,6 +103,13 @@ impl Bundle {
     #[must_use]
     pub fn monster(&self, value: u16) -> Option<&Monster> {
         self.monsters.get(&value)
+    }
+
+    /// The monster with this `monster_type` identifier, such as `MONS_GOBLIN`, if this version
+    /// defines one.
+    #[must_use]
+    pub fn monster_by_id(&self, id: &EnumId) -> Option<&Monster> {
+        self.monsters.values().find(|monster| monster.id == *id)
     }
 
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
@@ -133,6 +142,99 @@ impl Bundle {
                 .map(|sub_type| sub_type.id.clone()),
         })
     }
+}
+
+/// Which variant of each ported crawl formula a Crawl Version uses. The engine picks its code by
+/// these names and never compares version strings. A variant is named after the first crawl
+/// release whose source it was ported from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Formulas {
+    /// A monster's melee accuracy: `mon_to_hit_base` and `attack::calc_to_hit`.
+    pub monster_to_hit: MonsterToHit,
+    /// Whether an attack beats the defender's evasion: `attack::test_hit`.
+    pub evasion_roll: EvasionRoll,
+    /// A monster's melee damage before armour: `attack::calc_damage`.
+    pub monster_damage: MonsterDamage,
+    /// What the player's armour saves: `actor::apply_ac` and `player::gdr_perc`.
+    pub armour: Armour,
+    /// Whether the player's shield blocks a monster's attack: `attack::attack_shield_blocked`.
+    pub shield_block: ShieldBlock,
+    /// How far a monster's melee attack reaches: `melee_attack::can_reach`.
+    pub monster_reach: MonsterReach,
+    /// How often a monster acts in one player turn: `_monster_add_energy` and the energy
+    /// threshold in `monster::has_action_energy`.
+    pub monster_energy: MonsterEnergy,
+}
+
+/// The variants of a monster's melee accuracy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterToHit {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of the roll against evasion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EvasionRoll {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's melee damage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterDamage {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of what armour saves.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Armour {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of the shield block.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ShieldBlock {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's melee reach.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterReach {
+    /// As in crawl 0.34: an attack reaches two squares when its flavour does, such as
+    /// `AF_REACH`, and `AF_RIFT` reaches three.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of monster energy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterEnergy {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+impl Formulas {
+    /// The variants crawl 0.34 uses.
+    pub const CRAWL_0_34: Self = Self {
+        monster_to_hit: MonsterToHit::Crawl034,
+        evasion_roll: EvasionRoll::Crawl034,
+        monster_damage: MonsterDamage::Crawl034,
+        armour: Armour::Crawl034,
+        shield_block: ShieldBlock::Crawl034,
+        monster_reach: MonsterReach::Crawl034,
+        monster_energy: MonsterEnergy::Crawl034,
+    };
 }
 
 /// Where a bundle came from. Its corresponding source is the extractor plus this crawl tag.
@@ -174,8 +276,44 @@ pub struct Monster {
     pub will: Will,
     /// Speed, where 10 is the player's normal speed.
     pub speed: u32,
+    /// Its melee attacks, in crawl's order: everything it does in one melee action. Empty for a
+    /// monster that never attacks in melee.
+    pub attacks: Vec<MonsterAttack>,
+    /// It has crawl's `fighter` flag, which makes its attacks more accurate.
+    pub fighter: bool,
+    /// How much energy each kind of action costs it, where 10 is a normal action.
+    pub energy: Energy,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,
+}
+
+/// One of a monster's melee attacks, as `dat/mons` defines it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonsterAttack {
+    /// Its `attack_type` identifier, such as `AT_BITE`.
+    pub kind: EnumId,
+    /// Its `attack_flavour` identifier, such as `AF_POISON`, or `AF_PLAIN` for none.
+    pub flavour: EnumId,
+    /// The most damage it deals before armour, its "damage" in `dat/mons`.
+    pub damage: u32,
+}
+
+/// What each kind of action costs a monster, in energy: crawl's `mon_energy_usage`. A monster
+/// gains its speed in energy over a normal player turn and acts while it has enough.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Energy {
+    /// Moving on land.
+    pub walk: u32,
+    /// Moving through water.
+    pub swim: u32,
+    /// A melee attack, with all of its attacks.
+    pub attack: u32,
+    /// Firing a missile.
+    pub missile: u32,
+    /// Casting a spell.
+    pub spell: u32,
 }
 
 /// A monster's willpower: how hard it is to affect with hexes.

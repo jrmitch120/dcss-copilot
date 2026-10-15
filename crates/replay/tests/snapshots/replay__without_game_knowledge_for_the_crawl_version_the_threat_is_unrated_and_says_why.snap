@@ -1,0 +1,14 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replayer.advisor().fact_sheet()
+---
+{
+  "threat": {
+    "state": "unrated",
+    "gaps": [
+      {
+        "gap": "gameKnowledge"
+      }
+    ]
+  }
+}
