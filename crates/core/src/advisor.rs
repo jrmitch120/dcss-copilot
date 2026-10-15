@@ -1,9 +1,10 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
-use crate::game_source::{GameIdentity, SourceEvent, VisibleMonster, VisibleState};
+use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
     AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail,
 };
+use crate::visible_state::{VisibleMonster, VisibleState};
 
 /// Follows one Game Source's game and turns what it learns into the view model.
 #[derive(Debug, Clone, Default)]
@@ -23,7 +24,10 @@ impl Advisor {
     pub fn apply(&mut self, event: SourceEvent) {
         match event {
             SourceEvent::Identified(identity) => self.identity = Some(identity),
-            SourceEvent::Visible(visible) => self.visible = visible,
+            SourceEvent::Visible(visible) => self.visible = *visible,
+            // The open screen is in Visible State too. Remembering what screens said, and what a
+            // game's sessions mean for what is remembered of it, is Accumulated State's job.
+            SourceEvent::ScreenRead(_) | SourceEvent::Session(_) => {}
         }
     }
 
@@ -50,8 +54,8 @@ impl Advisor {
             character: Character {
                 name: identity.character.clone(),
                 species: identity.species.clone(),
-                hp: self.visible.hp,
-                hp_max: self.visible.hp_max,
+                hp: self.visible.stats.hp,
+                hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
             now: NowPill::Unrated,

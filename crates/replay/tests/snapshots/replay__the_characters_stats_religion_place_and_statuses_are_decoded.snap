@@ -1,0 +1,41 @@
+---
+source: crates/replay/tests/replay.rs
+expression: "serde_json::json!({\n    \"stats\": visible.stats, \"religion\": visible.religion, \"place\":\n    visible.place, \"position\": visible.position, \"statuses\": visible.statuses,\n})"
+---
+{
+  "stats": {
+    "hp": 26,
+    "hpMax": 34,
+    "mp": 2,
+    "mpMax": 3,
+    "ac": 4,
+    "ev": 14,
+    "sh": 0,
+    "strength": 14,
+    "intelligence": 8,
+    "dexterity": 15,
+    "xl": 5,
+    "gold": 87
+  },
+  "religion": {
+    "worships": "god",
+    "name": "Trog",
+    "pietyRank": 2,
+    "penance": false
+  },
+  "place": {
+    "branch": "Dungeon",
+    "depth": 3
+  },
+  "position": {
+    "x": 0,
+    "y": 0
+  },
+  "statuses": [
+    {
+      "light": null,
+      "text": "fast",
+      "colour": "lightGreen"
+    }
+  ]
+}

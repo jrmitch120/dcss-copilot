@@ -87,6 +87,13 @@ pub struct Bundle {
     pub spells: BTreeMap<u16, Spell>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
+    /// Every dungeon feature, by its `dungeon_feature_type` enum value: a map cell's webtiles `f`.
+    pub features: BTreeMap<u16, EnumId>,
+    /// Every monster attitude, by its `mon_attitude_type` enum value: a monster's webtiles `att`.
+    pub attitudes: BTreeMap<u8, EnumId>,
+    /// Crawl's own ratings of how dangerous a monster is to the player, by their
+    /// `mon_threat_level_type` enum value: a monster's webtiles `threat`.
+    pub monster_threats: BTreeMap<u8, EnumId>,
 }
 
 impl Bundle {
@@ -94,6 +101,24 @@ impl Bundle {
     #[must_use]
     pub fn monster(&self, value: u16) -> Option<&Monster> {
         self.monsters.get(&value)
+    }
+
+    /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
+    #[must_use]
+    pub fn feature(&self, value: u16) -> Option<&EnumId> {
+        self.features.get(&value)
+    }
+
+    /// The monster attitude whose `mon_attitude_type` enum value is `value`.
+    #[must_use]
+    pub fn attitude(&self, value: u8) -> Option<&EnumId> {
+        self.attitudes.get(&value)
+    }
+
+    /// The monster threat rating whose `mon_threat_level_type` enum value is `value`.
+    #[must_use]
+    pub fn monster_threat(&self, value: u8) -> Option<&EnumId> {
+        self.monster_threats.get(&value)
     }
 
     /// What an item with this `base_type` and `sub_type` is, if this version has the class. The

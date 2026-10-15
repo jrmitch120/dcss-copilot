@@ -2,8 +2,13 @@
 
 mod envelope;
 mod inventory;
+mod json;
 mod map;
+mod markup;
+mod messages;
+mod player;
 pub mod relay_protocol;
+mod screens;
 mod source;
 
 pub use envelope::Envelope;

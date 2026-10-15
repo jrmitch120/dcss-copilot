@@ -1,0 +1,52 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.timeline
+---
+[
+  {
+    "envelope": 2,
+    "turn": 1500,
+    "event": "session",
+    "session": "joined"
+  },
+  {
+    "envelope": 4,
+    "turn": 1500,
+    "event": "screenRead",
+    "screen": {
+      "kind": "skills"
+    },
+    "title": null,
+    "lines": [
+      "Tiv the Kobold Berserker",
+      "",
+      "",
+      "a + Fighting      6.0  1.6  +0"
+    ]
+  },
+  {
+    "envelope": 5,
+    "turn": 1500,
+    "event": "screenRead",
+    "screen": {
+      "kind": "mutations"
+    },
+    "title": "Innate Abilities, Weirdness & Mutations",
+    "lines": [
+      "You are small and have weak limbs."
+    ]
+  },
+  {
+    "envelope": 6,
+    "turn": 1500,
+    "event": "screenRead",
+    "screen": {
+      "kind": "mutations"
+    },
+    "title": "Innate Abilities, Weirdness & Mutations",
+    "lines": [
+      "You are small and have weak limbs.",
+      "You can see in the dark."
+    ]
+  }
+]

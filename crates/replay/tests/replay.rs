@@ -3,7 +3,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::VisibleState;
+use copilot_core::{Position, Screen, SourceEvent, VisibleState};
 use copilot_replay::{Applied, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
@@ -12,6 +12,10 @@ const TWO_TABS: &[u8] = include_bytes!("recordings/two-tabs-and-a-new-game.dcssr
 const MONSTERS: &[u8] = include_bytes!("recordings/monsters-in-view.dcssrec");
 const NO_GAME_KNOWLEDGE: &[u8] =
     include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
+const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
+const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
+const WATCHED_SCREENS: &[u8] = include_bytes!("recordings/screens-watched-mid-menu.dcssrec");
+const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -93,6 +97,178 @@ fn without_game_knowledge_for_the_crawl_version_monsters_keep_only_their_names()
     let replay = replay(NO_GAME_KNOWLEDGE).unwrap();
 
     insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
+fn the_characters_stats_religion_place_and_statuses_are_decoded() {
+    let visible = replay(KOBOLD).unwrap().visible;
+
+    insta::assert_json_snapshot!(serde_json::json!({
+        "stats": visible.stats,
+        "religion": visible.religion,
+        "place": visible.place,
+        "position": visible.position,
+        "statuses": visible.statuses,
+    }));
+}
+
+#[test]
+fn monsters_in_view_have_their_square_attitude_and_crawls_threat_rating() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
+fn the_current_levels_map_holds_the_squares_in_view_and_those_remembered() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.map);
+}
+
+#[test]
+fn each_square_of_the_map_is_decoded_to_its_dungeon_feature() {
+    let map = replay(KOBOLD).unwrap().visible.map.unwrap();
+
+    let feature = |x, y| {
+        map.cell(Position { x, y })
+            .and_then(|cell| cell.feature.clone())
+            .map(|feature| feature.0)
+    };
+    assert_eq!(feature(2, 0).as_deref(), Some("DNGN_STONE_STAIRS_DOWN_I"));
+    assert_eq!(feature(3, 1).as_deref(), Some("DNGN_OPEN_DOOR"));
+    assert_eq!(feature(-3, 0).as_deref(), Some("DNGN_ROCK_WALL"));
+    // A monster stands on the floor.
+    assert_eq!(feature(1, -1).as_deref(), Some("DNGN_FLOOR"));
+}
+
+#[test]
+fn messages_are_the_recent_lines_as_plain_text_after_the_game_takes_any_back() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.messages);
+}
+
+#[test]
+fn each_screen_the_player_opens_is_read_as_plain_text() {
+    let replay = replay(SCREENS).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+}
+
+#[test]
+fn a_console_style_screen_is_read_once_crawl_has_drawn_it() {
+    let replay = replay(SCREENS).unwrap();
+
+    let skills: Vec<_> = replay
+        .timeline
+        .iter()
+        .filter_map(|moment| match &moment.event {
+            SourceEvent::ScreenRead(read) if read.screen == Screen::Skills => Some(read),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(skills.len(), 1);
+    assert_eq!(skills[0].lines[0], "Tiv the Kobold Berserker");
+}
+
+#[test]
+fn the_character_overview_gives_the_resistances() {
+    let replay = replay(SCREENS).unwrap();
+
+    let resistances = replay
+        .timeline
+        .iter()
+        .find_map(|moment| match &moment.event {
+            SourceEvent::ScreenRead(read) => read.resistances(),
+            _ => None,
+        });
+    insta::assert_json_snapshot!(resistances);
+}
+
+#[test]
+fn the_character_dump_gives_the_same_resistances_as_the_overview() {
+    let replay = replay(SCREENS).unwrap();
+
+    let resistances_on = |screen: Screen| {
+        replay
+            .timeline
+            .iter()
+            .find_map(|moment| match &moment.event {
+                SourceEvent::ScreenRead(read) if read.screen == screen => read.resistances(),
+                _ => None,
+            })
+    };
+    let from_dump = resistances_on(Screen::CharacterDump);
+    assert!(from_dump.is_some());
+    assert_eq!(from_dump, resistances_on(Screen::CharacterOverview));
+}
+
+#[test]
+fn a_spectator_sees_the_screens_already_open_and_a_redrawn_menu_closes_once() {
+    let replay = replay(WATCHED_SCREENS).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+    assert_eq!(replay.visible.screen, None);
+}
+
+#[test]
+fn a_screen_is_visible_while_it_is_open() {
+    let mut replayer = replayer(SCREENS);
+    let open = |replayer: &Replayer| {
+        replayer
+            .advisor()
+            .visible()
+            .screen
+            .as_ref()
+            .map(|read| read.screen.clone())
+    };
+
+    replayer.seek(5);
+    assert_eq!(open(&replayer), Some(Screen::CharacterOverview));
+    replayer.step();
+    assert_eq!(open(&replayer), None);
+    replayer.seek(16);
+    assert_eq!(
+        open(&replayer),
+        Some(Screen::Other("describe-monster".to_owned()))
+    );
+    replayer.step();
+    assert_eq!(open(&replayer), Some(Screen::DungeonOverview));
+    while !replayer.at_end() {
+        replayer.step();
+    }
+    assert_eq!(open(&replayer), None);
+}
+
+#[test]
+fn session_events_tell_joining_resyncing_losing_and_ending_a_game() {
+    let replay = replay(SESSION).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+}
+
+#[test]
+fn a_reloaded_game_is_the_same_game_and_a_new_character_is_not() {
+    let mut replayer = replayer(SESSION);
+    let first_seen = |replayer: &Replayer| replayer.advisor().identity().unwrap().first_seen_ms;
+
+    replayer.seek(4);
+    let started = first_seen(&replayer);
+    replayer.seek(9);
+    assert_eq!(first_seen(&replayer), started, "after the page reload");
+    replayer.seek(14);
+    assert_eq!(
+        first_seen(&replayer),
+        started,
+        "after playing on from the save"
+    );
+    replayer.seek(19);
+    assert_ne!(
+        first_seen(&replayer),
+        started,
+        "a new character of the same name"
+    );
 }
 
 #[test]

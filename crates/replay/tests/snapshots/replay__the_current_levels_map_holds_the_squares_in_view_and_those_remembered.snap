@@ -1,0 +1,24 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.map
+---
+{
+  "topLeft": {
+    "x": -3,
+    "y": -2
+  },
+  "rows": [
+    "#######",
+    "#...h.#",
+    "#..@C>#",
+    "#.....'.r",
+    "#######"
+  ],
+  "inView": [
+    "xxxxxxx",
+    "xxxxxxx",
+    "xxxxxxx",
+    "xxxxxxx..",
+    "xxxxxxx"
+  ]
+}

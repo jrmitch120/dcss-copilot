@@ -25,7 +25,7 @@ fn fixture() -> PathBuf {
 }
 
 #[test]
-fn a_bundle_holds_the_monsters_items_spells_and_species_of_its_crawl_tag() {
+fn a_bundle_holds_the_monsters_items_spells_species_features_and_monster_states_of_its_crawl_tag() {
     let bundle = extract(&fixture(), &release()).unwrap();
 
     insta::assert_json_snapshot!(bundle);

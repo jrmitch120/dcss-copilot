@@ -1,9 +1,9 @@
 //! What a Game Source adapter tells the core. Source-neutral: nothing here knows how a game was read.
 
-use copilot_gk::{EnumId, ItemKind};
 use serde::Serialize;
 
-use crate::view_model::Glyph;
+use crate::screen::ScreenRead;
+use crate::visible_state::VisibleState;
 
 /// One thing a Game Source learned about the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -12,7 +12,47 @@ pub enum SourceEvent {
     /// The game being followed, or what is known about it, changed.
     Identified(GameIdentity),
     /// The game now reports this Visible State.
-    Visible(VisibleState),
+    Visible(Box<VisibleState>),
+    /// The player opened a screen, or the open screen changed, and this is what it shows. The
+    /// Visible State that follows holds it too, while it stays open.
+    ScreenRead(ScreenRead),
+    /// Something happened to the source's view of the game, rather than in the game.
+    Session(SessionEvent),
+}
+
+/// Something that happened to a Game Source's view of the game it follows, rather than in the
+/// game: a Session Event.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(tag = "session", rename_all = "camelCase")]
+pub enum SessionEvent {
+    /// The source began following a game it hadn't seen before, from its start or part way
+    /// through.
+    Joined,
+    /// The source was sent the state of a game it had already seen afresh, picking it up where it
+    /// was: after the player reloaded the page, or played on from a save.
+    Resynced,
+    /// The game's stream stopped without the game ending, such as when the player saved, the
+    /// connection to the server dropped, or the game crashed. It may be picked up again.
+    ConnectionLost,
+    /// The game is over.
+    GameEnded {
+        /// How it ended.
+        how: GameEnd,
+    },
+}
+
+/// How a game ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GameEnd {
+    /// The character escaped with the Orb of Zot.
+    Won,
+    /// The character died.
+    Died,
+    /// The player quit the game.
+    Quit,
+    /// The character left the dungeon without the Orb.
+    LeftTheDungeon,
 }
 
 /// Which game this is: what tells one character's run apart from every other.
@@ -49,48 +89,4 @@ pub enum Role {
     Playing,
     /// The player is spectating someone else's game.
     Spectating,
-}
-
-/// What the game currently reports to the player. A value is `None` until the game has reported it.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VisibleState {
-    /// Current hit points.
-    pub hp: Option<i32>,
-    /// Maximum hit points.
-    pub hp_max: Option<i32>,
-    /// The game's turn count.
-    pub turn: Option<u32>,
-    /// The monsters the player can see, in map order: top row first, left to right. `None` until
-    /// the game has sent its map, which is not the same as there being none.
-    pub monsters: Option<Vec<VisibleMonster>>,
-    /// The items the player carries, by inventory letter. `None` until the game has sent the
-    /// inventory.
-    pub inventory: Option<Vec<InventoryItem>>,
-}
-
-/// An item the player carries.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InventoryItem {
-    /// Its inventory letter.
-    pub letter: char,
-    /// Its name, as the game shows it, such as `2 potions of curing`.
-    pub name: String,
-    /// How many there are in the stack.
-    pub quantity: u32,
-    /// What it is, when the bundle for the game's Crawl Version decodes its class and sub-type.
-    pub kind: Option<ItemKind>,
-}
-
-/// A monster the player can see.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VisibleMonster {
-    /// Its name, as the game names it, such as `jackal` or `Sigmund`.
-    pub name: String,
-    /// The glyph the game draws it with on the map.
-    pub glyph: Glyph,
-    /// Its Game Knowledge identity, when the bundle for the game's Crawl Version decodes its type.
-    pub id: Option<EnumId>,
 }

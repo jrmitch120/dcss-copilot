@@ -3,9 +3,10 @@
 
 use std::ops::Range;
 
-use copilot_core::{Advisor, Appearance, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, Connection, SourceEvent, ViewModel};
 use copilot_gk::Library;
 use copilot_webtiles::{Envelope, WebtilesSource};
+use serde::Serialize;
 
 use crate::Recording;
 
@@ -34,10 +35,28 @@ pub struct Applied {
     pub envelopes: Range<usize>,
 }
 
+/// Something the Game Source reported that happened rather than what the game now shows: a
+/// screen read, or a session event.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Moment {
+    /// The envelope it came from, counting from 0.
+    pub envelope: usize,
+    /// The followed game's turn just after it.
+    pub turn: Option<u32>,
+    /// What happened.
+    #[serde(flatten)]
+    pub event: SourceEvent,
+}
+
 /// The Game Source and the core, fed together.
 struct Game {
     source: WebtilesSource,
     advisor: Advisor,
+    /// What has happened so far, in order.
+    timeline: Vec<Moment>,
+    /// How many envelopes have been applied.
+    applied: usize,
 }
 
 impl Game {
@@ -45,13 +64,30 @@ impl Game {
         Self {
             source: WebtilesSource::new(knowledge.clone()),
             advisor: Advisor::new(),
+            timeline: Vec::new(),
+            applied: 0,
         }
     }
 
     fn apply(&mut self, envelope: &Envelope) {
-        for event in self.source.ingest(envelope) {
-            self.advisor.apply(event);
+        let events = self.source.ingest(envelope);
+        for event in &events {
+            self.advisor.apply(event.clone());
         }
+        let turn = self.advisor.visible().turn;
+        self.timeline.extend(
+            events
+                .into_iter()
+                .filter(|event| {
+                    matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_))
+                })
+                .map(|event| Moment {
+                    envelope: self.applied,
+                    turn,
+                    event,
+                }),
+        );
+        self.applied += 1;
     }
 }
 
@@ -122,6 +158,12 @@ impl Replayer {
     #[must_use]
     pub fn advisor(&self) -> &Advisor {
         &self.game.advisor
+    }
+
+    /// The screen reads and session events so far, in order.
+    #[must_use]
+    pub fn timeline(&self) -> &[Moment] {
+        &self.game.timeline
     }
 
     /// What the panel would show, with the browser connected and the default Appearance.

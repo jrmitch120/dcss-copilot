@@ -1,0 +1,43 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.timeline
+---
+[
+  {
+    "envelope": 3,
+    "turn": 1234,
+    "event": "session",
+    "session": "joined"
+  },
+  {
+    "envelope": 8,
+    "turn": 1240,
+    "event": "session",
+    "session": "resynced"
+  },
+  {
+    "envelope": 10,
+    "turn": 1300,
+    "event": "session",
+    "session": "connectionLost"
+  },
+  {
+    "envelope": 13,
+    "turn": 1300,
+    "event": "session",
+    "session": "resynced"
+  },
+  {
+    "envelope": 15,
+    "turn": 1410,
+    "event": "session",
+    "session": "gameEnded",
+    "how": "died"
+  },
+  {
+    "envelope": 18,
+    "turn": 0,
+    "event": "session",
+    "session": "joined"
+  }
+]

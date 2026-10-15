@@ -325,5 +325,28 @@ expression: bundle
       "id": "SP_MINOTAUR",
       "name": "Minotaur"
     }
-  ]
+  ],
+  "features": {
+    "0": "DNGN_UNSEEN",
+    "1": "DNGN_CLOSED_DOOR",
+    "2": "DNGN_RUNED_DOOR",
+    "30": "DNGN_LAVA",
+    "31": "DNGN_DEEP_WATER",
+    "32": "DNGN_FLOOR",
+    "33": "DNGN_STONE_STAIRS_DOWN_I"
+  },
+  "attitudes": {
+    "0": "ATT_HOSTILE",
+    "1": "ATT_NEUTRAL",
+    "2": "ATT_OLD_STRICT_NEUTRAL",
+    "3": "ATT_GOOD_NEUTRAL",
+    "4": "ATT_FRIENDLY",
+    "5": "ATT_MARIONETTE"
+  },
+  "monsterThreats": {
+    "0": "MTHRT_TRIVIAL",
+    "1": "MTHRT_EASY",
+    "2": "MTHRT_TOUGH",
+    "3": "MTHRT_NASTY"
+  }
 }
