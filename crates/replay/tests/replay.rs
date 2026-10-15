@@ -14,6 +14,7 @@ const NO_GAME_KNOWLEDGE: &[u8] =
     include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
 const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
 const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
+const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -211,6 +212,36 @@ fn a_screen_is_visible_while_it_is_open() {
         replayer.step();
     }
     assert_eq!(open(&replayer), None);
+}
+
+#[test]
+fn session_events_tell_joining_resyncing_losing_and_ending_a_game() {
+    let replay = replay(SESSION).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+}
+
+#[test]
+fn a_reloaded_game_is_the_same_game_and_a_new_character_is_not() {
+    let mut replayer = replayer(SESSION);
+    let first_seen = |replayer: &Replayer| replayer.advisor().identity().unwrap().first_seen_ms;
+
+    replayer.seek(4);
+    let started = first_seen(&replayer);
+    replayer.seek(9);
+    assert_eq!(first_seen(&replayer), started, "after the page reload");
+    replayer.seek(14);
+    assert_eq!(
+        first_seen(&replayer),
+        started,
+        "after playing on from the save"
+    );
+    replayer.seek(19);
+    assert_ne!(
+        first_seen(&replayer),
+        started,
+        "a new character of the same name"
+    );
 }
 
 #[test]

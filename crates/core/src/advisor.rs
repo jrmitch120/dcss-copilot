@@ -25,9 +25,9 @@ impl Advisor {
         match event {
             SourceEvent::Identified(identity) => self.identity = Some(identity),
             SourceEvent::Visible(visible) => self.visible = *visible,
-            // The open screen is in Visible State too; remembering what screens said is
-            // Accumulated State's job.
-            SourceEvent::ScreenRead(_) => {}
+            // The open screen is in Visible State too. Remembering what screens said, and what a
+            // game's sessions mean for what is remembered of it, is Accumulated State's job.
+            SourceEvent::ScreenRead(_) | SourceEvent::Session(_) => {}
         }
     }
 

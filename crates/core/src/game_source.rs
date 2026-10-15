@@ -16,6 +16,43 @@ pub enum SourceEvent {
     /// The player opened a screen, or the open screen changed, and this is what it shows. The
     /// Visible State that follows holds it too, while it stays open.
     ScreenRead(ScreenRead),
+    /// Something happened to the source's view of the game, rather than in the game.
+    Session(SessionEvent),
+}
+
+/// Something that happened to a Game Source's view of the game it follows, rather than in the
+/// game: a Session Event.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(tag = "session", rename_all = "camelCase")]
+pub enum SessionEvent {
+    /// The source began following a game it hadn't seen before, from its start or part way
+    /// through.
+    Joined,
+    /// The source was sent the state of a game it had already seen afresh, picking it up where it
+    /// was: after the player reloaded the page, or played on from a save.
+    Resynced,
+    /// The game's stream stopped without the game ending, such as when the player saved, the
+    /// connection to the server dropped, or the game crashed. It may be picked up again.
+    ConnectionLost,
+    /// The game is over.
+    GameEnded {
+        /// How it ended.
+        how: GameEnd,
+    },
+}
+
+/// How a game ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GameEnd {
+    /// The character escaped with the Orb of Zot.
+    Won,
+    /// The character died.
+    Died,
+    /// The player quit the game.
+    Quit,
+    /// The character left the dungeon without the Orb.
+    LeftTheDungeon,
 }
 
 /// Which game this is: what tells one character's run apart from every other.

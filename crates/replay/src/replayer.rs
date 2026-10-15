@@ -78,7 +78,9 @@ impl Game {
         self.timeline.extend(
             events
                 .into_iter()
-                .filter(|event| matches!(event, SourceEvent::ScreenRead(_)))
+                .filter(|event| {
+                    matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_))
+                })
                 .map(|event| Moment {
                     envelope: self.applied,
                     turn,

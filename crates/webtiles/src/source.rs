@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use copilot_core::{CrawlVersion, GameIdentity, Role, SourceEvent, VisibleState};
+use copilot_core::{
+    CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent, VisibleState,
+};
 use copilot_gk::{Bundle, Library};
 use serde_json::Value;
 
@@ -16,6 +18,10 @@ use crate::screens::Screens;
 /// Each tab's game is merged separately, because webtiles sends deltas per connection. The source
 /// follows the tab whose game most recently changed and reports only that game.
 ///
+/// A new game process for a game the source has already seen, such as after the player reloaded
+/// the page or played on from a save, is the same game resynced. It is a new game when the last
+/// one ended or its turn went backwards.
+///
 /// Webtiles numbers monster and item types with each Crawl Version's own enums, so the source
 /// decodes a game through the Game Knowledge bundle for its version, when it has one.
 #[derive(Debug)]
@@ -23,6 +29,25 @@ pub struct WebtilesSource {
     knowledge: Library,
     tabs: HashMap<TabKey, TabGame>,
     followed: Option<TabKey>,
+    /// Every game seen so far, to tell a resynced game from a new one.
+    seen: HashMap<GameKey, SeenGame>,
+}
+
+/// What tells one game apart from another before its first-seen time is known.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct GameKey {
+    server: String,
+    account: Option<String>,
+    character: String,
+    species: String,
+}
+
+/// What the source last saw of a game.
+#[derive(Debug, Clone, Copy)]
+struct SeenGame {
+    first_seen_ms: u64,
+    turn: Option<u32>,
+    ended: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -40,6 +65,12 @@ struct TabGame {
     shown: Shown,
     first_seen_ms: Option<u64>,
     reported: Option<(GameIdentity, VisibleState)>,
+    /// The game process has stopped sending: the game ended, or the player left it.
+    stopped: bool,
+    /// The game is over.
+    ended: bool,
+    /// Session Events not yet reported.
+    session: Vec<SessionEvent>,
 }
 
 /// What one game process has sent, merged. A new process sends its state afresh.
@@ -59,6 +90,7 @@ impl WebtilesSource {
             knowledge,
             tabs: HashMap::new(),
             followed: None,
+            seen: HashMap::new(),
         }
     }
 
@@ -71,7 +103,9 @@ impl WebtilesSource {
         let game = self.tabs.entry(key.clone()).or_default();
         game.apply(&envelope.msg);
 
-        let Some(identity) = game.identify(envelope) else {
+        let identity = game.identify(envelope, &mut self.seen);
+        let session = std::mem::take(&mut game.session);
+        let Some(identity) = identity else {
             return Vec::new();
         };
         let crawl_version = identity.crawl_version.as_ref();
@@ -86,6 +120,7 @@ impl WebtilesSource {
         if last_identity != Some(&identity) {
             events.push(SourceEvent::Identified(identity.clone()));
         }
+        events.extend(session.into_iter().map(SourceEvent::Session));
         if let Some(screen) = &visible.screen
             && last_visible.and_then(|last| last.screen.as_ref()) != Some(screen)
         {
@@ -115,6 +150,17 @@ impl TabGame {
             Some("player") => self.shown.player.merge(msg),
             Some("map") => self.shown.map.merge(msg),
             Some("msgs") => self.shown.messages.merge(msg),
+            Some("game_ended") => {
+                let reason = string(msg, "reason");
+                let end = reason.as_deref().and_then(game_end);
+                self.ended = end.is_some();
+                self.stop(end.map_or(SessionEvent::ConnectionLost, |how| {
+                    SessionEvent::GameEnded { how }
+                }));
+            }
+            // Back in the lobby without the game ending: the player stopped watching, or the
+            // server left the game.
+            Some("go_lobby") => self.stop(SessionEvent::ConnectionLost),
             _ => self.shown.screens.merge(msg),
         }
     }
@@ -125,6 +171,17 @@ impl TabGame {
         self.shown = Shown::default();
         self.first_seen_ms = None;
         self.reported = None;
+        self.stopped = false;
+        self.ended = false;
+        self.session.clear();
+    }
+
+    /// The game process stopped sending, which only the first message that says so reports.
+    fn stop(&mut self, event: SessionEvent) {
+        if !self.stopped {
+            self.stopped = true;
+            self.session.push(event);
+        }
     }
 
     /// What the game reports now, with its monsters and items decoded through `knowledge`.
@@ -154,13 +211,45 @@ impl TabGame {
     }
 
     /// The game's identity, once the game has named the character and species. The first call
-    /// that succeeds fixes when the game was first seen.
-    fn identify(&mut self, envelope: &Envelope) -> Option<GameIdentity> {
+    /// that succeeds tells whether this process joined a new game or resynced one already
+    /// `seen`, which fixes when the game was first seen.
+    fn identify(
+        &mut self,
+        envelope: &Envelope,
+        seen: &mut HashMap<GameKey, SeenGame>,
+    ) -> Option<GameIdentity> {
         let player = &self.shown.player;
         let (Some(name), Some(species)) = (&player.name, &player.species) else {
             return None;
         };
-        let first_seen_ms = *self.first_seen_ms.get_or_insert(envelope.ts);
+        let key = GameKey {
+            server: envelope.origin.clone(),
+            account: self.account.clone(),
+            character: name.clone(),
+            species: species.clone(),
+        };
+        let first_seen_ms = if let Some(first_seen_ms) = self.first_seen_ms {
+            first_seen_ms
+        } else {
+            let (first_seen_ms, event) = match seen.get(&key) {
+                Some(game) if game.continues_at(player.turn) => {
+                    (game.first_seen_ms, SessionEvent::Resynced)
+                }
+                _ => (envelope.ts, SessionEvent::Joined),
+            };
+            self.first_seen_ms = Some(first_seen_ms);
+            // Before anything else this process has said about the game.
+            self.session.insert(0, event);
+            first_seen_ms
+        };
+        seen.insert(
+            key,
+            SeenGame {
+                first_seen_ms,
+                turn: player.turn,
+                ended: self.ended,
+            },
+        );
         Some(GameIdentity {
             server: envelope.origin.clone(),
             account: self.account.clone(),
@@ -171,6 +260,30 @@ impl TabGame {
             wizard: player.wizard,
             role: self.role,
         })
+    }
+}
+
+impl SeenGame {
+    /// A game process at `turn` can be this game picked up again: it hasn't ended and its turn
+    /// hasn't gone backwards.
+    fn continues_at(&self, turn: Option<u32>) -> bool {
+        !self.ended
+            && match (self.turn, turn) {
+                (Some(last), Some(now)) => now >= last,
+                _ => true,
+            }
+    }
+}
+
+/// How the game ended, from a `game_ended` message's reason: the exit types crawl's `end.cc`
+/// names. Any other reason, such as `saved`, `disconnect` or `crash`, leaves the game unfinished.
+fn game_end(reason: &str) -> Option<GameEnd> {
+    match reason {
+        "won" => Some(GameEnd::Won),
+        "dead" => Some(GameEnd::Died),
+        "quit" => Some(GameEnd::Quit),
+        "bailed out" => Some(GameEnd::LeftTheDungeon),
+        _ => None,
     }
 }
 

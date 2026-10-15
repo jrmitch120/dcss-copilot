@@ -4,6 +4,12 @@ expression: replay.timeline
 ---
 [
   {
+    "envelope": 3,
+    "turn": 1234,
+    "event": "session",
+    "session": "joined"
+  },
+  {
     "envelope": 4,
     "turn": 1234,
     "event": "screenRead",
