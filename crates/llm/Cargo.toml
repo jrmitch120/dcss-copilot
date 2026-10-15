@@ -20,5 +20,6 @@ workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+tempfile = "3"
 # The fake provider endpoint the adapter tests talk to.
 tokio = { workspace = true, features = ["io-util", "macros", "net", "rt"] }

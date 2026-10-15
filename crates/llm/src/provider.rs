@@ -81,4 +81,13 @@ pub enum LlmError {
     /// The stream ended before the answer was complete.
     #[error("the answer ended before it was complete")]
     Incomplete,
+    /// A replay asked for a call its LLM sidecar never recorded, such as after a prompt changed.
+    #[error("the LLM sidecar has no answer for request {hash}; record it again")]
+    NotRecorded {
+        /// The request's hash.
+        hash: String,
+    },
+    /// A dev build couldn't record the call in its LLM sidecar.
+    #[error("the call couldn't be recorded in the LLM sidecar: {0}")]
+    Sidecar(String),
 }

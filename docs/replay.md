@@ -64,6 +64,19 @@ cargo build -p copilot-replay --bin dcssrec
 git config diff.dcssrec.textconv "$PWD/target/debug/dcssrec unpack"
 ```
 
+## The LLM sidecar
+
+Tests never call a live model. Every LLM call a dev build makes while it records goes into the Recording's LLM sidecar, `game.llm.jsonl` beside `game.dcssrec`, and tests answer calls from a sidecar instead of a provider. Both sides live in `crates/llm`:
+
+| Type | Does |
+|---|---|
+| `SidecarRecorder` | wraps a live provider and appends each call as it ends |
+| `SidecarReplayer` | answers each call with what was recorded for it, and never calls a model |
+
+A sidecar is JSON Lines, one call per line: the request's hash, the request itself, everything the call streamed and, if it failed, its error. Answers are looked up by the request's hash, so a changed prompt fails with `NotRecorded` and the hash it wanted, rather than replaying a stale answer: record that call again in a dev build. A line whose request was edited by hand no longer matches its hash and is refused. A request asked more often than it was recorded gets its last answer again.
+
+Committed sidecars sit beside the tests that replay them, such as `crates/llm/tests/sidecars/`. They never hold a key: providers keep it out of the request.
+
 ## Snapshots
 
 Snapshots are golden files in `tests/snapshots/`, committed and reviewed in diffs like code. A test whose output changed fails, and `insta` writes the new output beside the old as `*.snap.new`. CI never writes snapshots; it only fails.

@@ -1,6 +1,9 @@
 //! A fake LLM provider endpoint: a localhost HTTP server that answers each request with a canned
 //! response and remembers what it was sent. No test ever reaches a live model.
 
+// Each test file uses its own part of this.
+#![allow(dead_code)]
+
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};

@@ -8,6 +8,7 @@ mod key;
 mod provider;
 mod request;
 mod response;
+mod sidecar;
 
 pub use anthropic::AnthropicProvider;
 pub use key::ApiKey;
@@ -17,3 +18,7 @@ pub use request::{
     ToolDef,
 };
 pub use response::{LlmResponse, StopReason, StreamEvent, Usage};
+pub use sidecar::{
+    RequestHash, SIDECAR_EXTENSION, SidecarError, SidecarRecorder, SidecarReplayer, request_hash,
+    sidecar_path,
+};
