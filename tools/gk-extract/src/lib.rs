@@ -137,6 +137,13 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractEr
         item_classes: crawl.item_classes(&item_names)?,
         spells: crawl.spells()?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,
+        features: crawl.values(
+            "dungeon-feature-type.h",
+            "dungeon_feature_type",
+            "NUM_FEATURES",
+        )?,
+        attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
+        monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
     })
 }
 
@@ -168,6 +175,25 @@ impl Crawl {
 
     fn enumeration(&self, file: &str, name: &str) -> Result<Vec<(String, i64)>, ExtractError> {
         self.parse(file)?.enumeration(name)
+    }
+
+    /// The enumerators of `enum <name>` before `end` (or all of them, when `end` is empty), by
+    /// value. An enumerator that aliases an earlier one's value keeps the earlier one's name.
+    fn values<T: TryFrom<i64> + Ord>(
+        &self,
+        file: &str,
+        name: &str,
+        end: &str,
+    ) -> Result<BTreeMap<T, EnumId>, ExtractError> {
+        let mut values = BTreeMap::new();
+        for (id, value) in self
+            .enumeration(file, name)?
+            .into_iter()
+            .take_while(|(id, _)| id != end)
+        {
+            values.entry(in_range(&id, value)?).or_insert(EnumId(id));
+        }
+        Ok(values)
     }
 
     /// Every item sub-type identifier crawl names, with its name. An identifier's first name wins.
