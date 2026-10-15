@@ -319,17 +319,17 @@ enum Block {
 
 impl Block {
     fn start(block: &Value) -> Self {
-        let text = |field: &str| block[field].as_str().unwrap_or_default().to_owned();
+        let starting_text = |field: &str| block[field].as_str().unwrap_or_default().to_owned();
         match block["type"].as_str() {
-            Some("text") => Self::Text(text("text")),
+            Some("text") => Self::Text(starting_text("text")),
             Some("thinking") => Self::Thinking {
-                thinking: text("thinking"),
-                signature: text("signature"),
+                thinking: starting_text("thinking"),
+                signature: starting_text("signature"),
             },
-            Some("redacted_thinking") => Self::RedactedThinking(text("data")),
+            Some("redacted_thinking") => Self::RedactedThinking(starting_text("data")),
             Some("tool_use") => Self::ToolUse {
-                id: text("id"),
-                name: text("name"),
+                id: starting_text("id"),
+                name: starting_text("name"),
                 json: String::new(),
             },
             _ => Self::Unknown,
@@ -338,20 +338,20 @@ impl Block {
 
     /// Applies a delta and returns any text the caller should see now.
     fn apply(&mut self, delta: &Value) -> Option<String> {
-        let more = |field: &str| delta[field].as_str().unwrap_or_default();
+        let appended_text = |field: &str| delta[field].as_str().unwrap_or_default();
         match (self, delta["type"].as_str()) {
             (Self::Text(text), Some("text_delta")) => {
-                text.push_str(more("text"));
-                return Some(more("text").to_owned());
+                text.push_str(appended_text("text"));
+                return Some(appended_text("text").to_owned());
             }
             (Self::Thinking { thinking, .. }, Some("thinking_delta")) => {
-                thinking.push_str(more("thinking"));
+                thinking.push_str(appended_text("thinking"));
             }
             (Self::Thinking { signature, .. }, Some("signature_delta")) => {
-                signature.push_str(more("signature"));
+                signature.push_str(appended_text("signature"));
             }
             (Self::ToolUse { json, .. }, Some("input_json_delta")) => {
-                json.push_str(more("partial_json"));
+                json.push_str(appended_text("partial_json"));
             }
             _ => {}
         }
