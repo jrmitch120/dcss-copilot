@@ -13,6 +13,8 @@ A Recording (`*.dcssrec`) is everything a Game Source sent during a session: zst
 | `seek_turn(t)` | on the first envelope at which the followed game's turn is at least `t`; `None` if the Recording never gets there |
 | `seek(n)` | just after envelope `n` (`0` is the start) |
 
+Turns are the followed game's, so on a Recording with several games or tabs, `step_turn()` also stops where the followed game changes, and `seek_turn(t)` finds the first game to reach `t`; `seek(n)` reaches any envelope.
+
 Any backward move rebuilds the game from the start at full speed, because the core only moves forward. `replay()` runs a whole Recording and returns every distinct view model, plus the identity and Visible State at the end.
 
 Tests replay committed Recordings from `crates/replay/tests/recordings/` and assert with `insta` snapshots.
@@ -37,6 +39,7 @@ cargo run -p copilot-replay --bin fake-extension -- path/to/game.dcssrec --speed
 | `g <n>` | go to just after message `n` |
 | `x <speed>` | change the speed |
 | `c` | connect again, replaying everything so far |
+| `h` | show the commands |
 | `q` | quit |
 
 Jumps forward relay at full speed. A backward move is a page reload: the fake extension reconnects, and the app, with no other browser connected, starts afresh and takes the replay from the start at full speed. Moves made while the app isn't connected only move the page along; connecting replays them.

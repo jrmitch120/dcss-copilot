@@ -5,7 +5,7 @@ mod recording;
 mod replayer;
 
 pub use fake_extension::{
-    APP_URL, FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed,
+    FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
 };
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,

@@ -9,6 +9,9 @@ use crate::Envelope;
 /// changes shape; the app also accepts the previous version.
 pub const RELAY_PROTOCOL_VERSION: u32 = 1;
 
+/// The port the app listens on for the extension, on 127.0.0.1 only.
+pub const RELAY_PORT: u16 = 47_821;
+
 /// A frame the extension sends the app.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]

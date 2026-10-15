@@ -11,7 +11,7 @@ use std::io::BufReader;
 
 use anyhow::{Context, bail};
 use copilot_replay::{
-    APP_URL, Applied, FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Recording, Speed,
+    Applied, FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Recording, Speed, app_url,
 };
 use tokio::io::{AsyncBufReadExt, BufReader as AsyncBufReader};
 use tokio::time::{Instant, sleep_until};
@@ -44,7 +44,7 @@ fn parse_args() -> anyhow::Result<Args> {
         recording: String::new(),
         speed: Speed::Times(1.0),
         play: false,
-        url: APP_URL.to_owned(),
+        url: app_url(),
         origin: FAKE_EXTENSION_ORIGIN.to_owned(),
     };
     while let Some(arg) = args.next() {

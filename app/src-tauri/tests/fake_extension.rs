@@ -8,7 +8,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use copilot_app_lib::relay::{BrowserApprovals, RelayEvent, serve};
-use copilot_replay::{FakeExtension, FakeExtensionError, Recording};
+use copilot_replay::{FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Recording};
 use copilot_webtiles::Envelope;
 use copilot_webtiles::relay_protocol::Refusal;
 use tokio::net::TcpListener;
@@ -16,8 +16,6 @@ use tokio::sync::mpsc;
 
 const MINOTAUR: &[u8] =
     include_bytes!("../../../crates/replay/tests/recordings/minotaur-first-steps.dcssrec");
-
-const BROWSER: &str = "chrome-extension://dcss-copilot-fake-extension";
 
 struct App {
     url: String,
@@ -35,7 +33,11 @@ async fn start_app(data_dir: &Path) -> App {
 }
 
 fn fake_extension(app: &App) -> FakeExtension {
-    FakeExtension::new(Recording::read(MINOTAUR).unwrap(), &app.url, BROWSER)
+    FakeExtension::new(
+        Recording::read(MINOTAUR).unwrap(),
+        &app.url,
+        FAKE_EXTENSION_ORIGIN,
+    )
 }
 
 fn envelopes() -> Vec<Envelope> {

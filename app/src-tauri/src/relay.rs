@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use copilot_webtiles::Envelope;
+pub use copilot_webtiles::relay_protocol::RELAY_PORT;
 use copilot_webtiles::relay_protocol::{AppFrame, ExtensionFrame, RELAY_PROTOCOL_VERSION, Refusal};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -16,9 +17,6 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::handshake::server::{ErrorResponse, Request, Response};
 use tokio_tungstenite::tungstenite::http::StatusCode;
 use tokio_tungstenite::tungstenite::{self, Message};
-
-/// The port the extension connects to, on 127.0.0.1 only.
-pub const RELAY_PORT: u16 = 47_821;
 
 /// Only browser extensions may connect: never a web page, which could feed the app a fake game.
 const EXTENSION_ORIGIN_SCHEMES: [&str; 2] = ["chrome-extension://", "moz-extension://"];

@@ -4,7 +4,9 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use copilot_webtiles::relay_protocol::{AppFrame, ExtensionFrame, RELAY_PROTOCOL_VERSION, Refusal};
+use copilot_webtiles::relay_protocol::{
+    AppFrame, ExtensionFrame, RELAY_PORT, RELAY_PROTOCOL_VERSION, Refusal,
+};
 use futures_util::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
@@ -14,13 +16,16 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use crate::{Applied, Recording, Replayer};
 
-/// Where the app listens for the extension.
-pub const APP_URL: &str = "ws://127.0.0.1:47821";
-
 /// The origin the fake extension connects from. The app asks "Allow this browser?" for it once.
 pub const FAKE_EXTENSION_ORIGIN: &str = "chrome-extension://dcss-copilot-fake-extension";
 
 type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
+
+/// Where the app listens for the extension.
+#[must_use]
+pub fn app_url() -> String {
+    format!("ws://127.0.0.1:{RELAY_PORT}")
+}
 
 /// A browser page playing a Recording, and the extension relaying it to the app.
 ///
@@ -247,7 +252,7 @@ impl FromStr for Speed {
         if text == "max" {
             return Ok(Self::AsFastAsPossible);
         }
-        match text.trim_start_matches(['x', '×']).parse::<f64>() {
+        match text.parse::<f64>() {
             Ok(times) if times.is_finite() && times > 0.0 => Ok(Self::Times(times)),
             _ => Err(format!(
                 "{text:?} isn't a speed: use max, or a multiple of real time such as 1, 4 or 0.5"
@@ -279,7 +284,7 @@ mod tests {
     fn a_speed_is_max_or_a_positive_multiple_of_real_time() {
         assert_eq!("max".parse(), Ok(Speed::AsFastAsPossible));
         assert_eq!("4".parse(), Ok(Speed::Times(4.0)));
-        assert_eq!("x0.5".parse(), Ok(Speed::Times(0.5)));
+        assert_eq!("0.5".parse(), Ok(Speed::Times(0.5)));
         for bad in ["0", "-2", "inf", "fast"] {
             assert!(bad.parse::<Speed>().is_err(), "{bad}");
         }
