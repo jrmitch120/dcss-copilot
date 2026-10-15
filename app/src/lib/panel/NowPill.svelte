@@ -2,14 +2,25 @@
 import type { NowPill } from "$lib/bindings";
 
 let { now }: { now: NowPill } = $props();
+
+// The pill takes the Threat Level's colour, or a neutral grey while there is none.
+let tone = $derived(now.state === "rated" ? now.level : "unrated");
 </script>
 
-<div class="now {now.state}">
+<div class="now {tone}">
   {#if now.state === "unrated"}
     <div class="lab">UNRATED</div>
     <div class="line">
       The Advisor can't judge danger yet.
       <small>No Threat Level is shown until it can be computed.</small>
+    </div>
+  {:else}
+    <div class="lab">{now.level.toUpperCase()}</div>
+    <div class="line">
+      {now.line}
+      {#if now.detail}
+        <small>{now.detail}</small>
+      {/if}
     </div>
   {/if}
 </div>
@@ -28,6 +39,21 @@ let { now }: { now: NowPill } = $props();
   border: 1px solid var(--border-strong);
 }
 
+.now.calm {
+  background: rgba(46, 213, 115, 0.08);
+  border: 1px solid rgba(46, 213, 115, 0.25);
+}
+
+.now.dangerous {
+  background: linear-gradient(90deg, rgba(255, 178, 107, 0.2), rgba(255, 178, 107, 0.04));
+  border: 1px solid rgba(255, 178, 107, 0.5);
+}
+
+.now.lethal {
+  background: linear-gradient(90deg, rgba(255, 59, 92, 0.22), rgba(255, 59, 92, 0.05));
+  border: 1px solid rgba(255, 59, 92, 0.5);
+}
+
 .lab {
   flex: none;
   font-size: 11px;
@@ -37,6 +63,18 @@ let { now }: { now: NowPill } = $props();
 
 .unrated .lab {
   color: var(--unrated);
+}
+
+.calm .lab {
+  color: var(--calm);
+}
+
+.dangerous .lab {
+  color: var(--warning);
+}
+
+.lethal .lab {
+  color: var(--danger);
 }
 
 .line {
