@@ -108,8 +108,7 @@ impl WebtilesSource {
         let Some(identity) = identity else {
             return Vec::new();
         };
-        let crawl_version = identity.crawl_version.as_ref();
-        let knowledge = crawl_version.and_then(|version| self.knowledge.for_version(&version.0));
+        let knowledge = identity.knowledge(&self.knowledge);
         let visible = game.visible(knowledge);
         let switched = self.followed.as_ref() != Some(&key);
         let mut events = Vec::new();

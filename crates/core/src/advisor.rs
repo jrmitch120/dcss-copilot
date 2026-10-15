@@ -46,8 +46,7 @@ impl Advisor {
 
     /// The Game Knowledge for the followed game's Crawl Version, if the Advisor has it.
     fn game_knowledge(&self) -> Option<&Bundle> {
-        let version = self.identity.as_ref()?.crawl_version.as_ref()?;
-        self.knowledge.for_version(&version.0)
+        self.identity.as_ref()?.knowledge(&self.knowledge)
     }
 
     /// What the engine computed about this moment.

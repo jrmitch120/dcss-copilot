@@ -23,8 +23,7 @@ pub struct Live {
 }
 
 struct State {
-    source: WebtilesSource,
-    advisor: Advisor,
+    game: Following,
     /// Allowed browsers currently connected.
     browsers: usize,
     approval: Option<ApprovalRequest>,
@@ -66,8 +65,7 @@ impl Live {
             app_version,
             knowledge: knowledge.clone(),
             state: Mutex::new(State {
-                source: WebtilesSource::new(knowledge.clone()),
-                advisor: Advisor::new(knowledge),
+                game: Following::new(&knowledge),
                 browsers: 0,
                 approval: None,
                 buffer_overflowed: false,
@@ -100,7 +98,7 @@ impl Live {
             app_version: self.app_version.to_owned(),
             connection,
             appearance: state.settings.appearance(),
-            game: state.advisor.game_view(),
+            game: state.game.advisor.game_view(),
         }
     }
 
@@ -114,8 +112,7 @@ impl Live {
                 // A connection replays every tab from its first message, so with no other browser
                 // connected nothing known so far is still current.
                 if state.browsers == 0 {
-                    state.source = WebtilesSource::new(self.knowledge.clone());
-                    state.advisor = Advisor::new(self.knowledge.clone());
+                    state.game = Following::new(&self.knowledge);
                 }
                 state.browsers += 1;
                 state.recorder.finish();
@@ -191,6 +188,28 @@ impl Live {
 impl State {
     fn ingest(&mut self, envelope: &Envelope) {
         self.recorder.record(envelope);
+        self.game.ingest(envelope);
+    }
+}
+
+/// The game the relay delivers: the webtiles Game Source and the Advisor it feeds, always built
+/// together from the same Game Knowledge.
+struct Following {
+    source: WebtilesSource,
+    advisor: Advisor,
+}
+
+impl Following {
+    /// Nothing followed yet, decoding and judging games through `knowledge`.
+    fn new(knowledge: &Library) -> Self {
+        Self {
+            source: WebtilesSource::new(knowledge.clone()),
+            advisor: Advisor::new(knowledge.clone()),
+        }
+    }
+
+    /// Decodes one relayed envelope and tells the Advisor what the Game Source learned.
+    fn ingest(&mut self, envelope: &Envelope) {
         for event in self.source.ingest(envelope) {
             self.advisor.apply(event);
         }

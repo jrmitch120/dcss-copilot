@@ -1,5 +1,6 @@
 //! What a Game Source adapter tells the core. Source-neutral: nothing here knows how a game was read.
 
+use copilot_gk::{Bundle, Library};
 use serde::Serialize;
 
 use crate::screen::ScreenRead;
@@ -75,6 +76,15 @@ pub struct GameIdentity {
     pub wizard: bool,
     /// Whether the player is playing this game or watching someone else's, once known.
     pub role: Option<Role>,
+}
+
+impl GameIdentity {
+    /// The Game Knowledge in `library` for this game's Crawl Version, once the game has reported
+    /// its version and if the library has a bundle for it.
+    #[must_use]
+    pub fn knowledge<'a>(&self, library: &'a Library) -> Option<&'a Bundle> {
+        library.for_version(&self.crawl_version.as_ref()?.0)
+    }
 }
 
 /// The exact build of DCSS a game runs on, such as `0.34.1` or a trunk build like `0.35-a0-123-gabc1234`.
