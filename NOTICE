@@ -28,3 +28,6 @@ Some tiles are based on the public domain RLTiles tileset
     in https://github.com/crawl/tiles), are not released under CC0. They ship
     as part of Dungeon Crawl Stone Soup, copyright the DCSS devteam and
     contributors, under crawl's GNU General Public License, version 2 or later.
+
+As crawl's tile build does, the tiles crawl's tile lists outline (%rim 1) are
+shipped with a one-pixel black outline added; the tiles are otherwise unchanged.

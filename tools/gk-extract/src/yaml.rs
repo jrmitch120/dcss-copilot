@@ -145,7 +145,7 @@ pub fn monsters(
                 });
             }
         };
-        let tile = tiles.ship(&tile_enum(&id, monster.tile.as_deref()));
+        let tile = tiles.ship(&tile_enum(&id, monster.tile.as_deref()))?;
         monsters.insert(
             in_range(&id, value)?,
             Monster {

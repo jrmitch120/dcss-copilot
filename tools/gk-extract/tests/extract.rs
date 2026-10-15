@@ -51,8 +51,37 @@ fn files_under(dir: &Path) -> Vec<(String, Vec<u8>)> {
     files
 }
 
+/// A PNG's size and its pixels as 8-bit RGBA, read the way crawl's tile build reads an image
+/// (`tile::load` in `rltiles/tool/tile.cc`).
+fn rgba(png_bytes: &[u8]) -> (u32, u32, Vec<u8>) {
+    let mut decoder = png::Decoder::new(std::io::Cursor::new(png_bytes));
+    decoder.set_transformations(
+        png::Transformations::normalize_to_color8() | png::Transformations::ALPHA,
+    );
+    let mut reader = decoder.read_info().unwrap();
+    let mut pixels = vec![0; reader.output_buffer_size().unwrap()];
+    let frame = reader.next_frame(&mut pixels).unwrap();
+    pixels.truncate(frame.buffer_size());
+    let pixels = match frame.color_type {
+        png::ColorType::Rgba => pixels,
+        png::ColorType::GrayscaleAlpha => pixels
+            .chunks(2)
+            .flat_map(|ga| [ga[0], ga[0], ga[0], ga[1]])
+            .collect(),
+        other => panic!("{other:?}"),
+    };
+    (frame.width, frame.height, pixels)
+}
+
+/// Tiles the fixture's tile list outlines (`%rim 1`), as crawl's own tile build draws them: made
+/// by `tile::load`, `tile::add_rim(tile_colour::black)` and `write_png` from crawl 0.34.1's
+/// `rltiles/tool`, compiled on their own, run on the fixture's files.
+fn outlined_by_crawl() -> PathBuf {
+    manifest_dir().join("tests/outlined-by-crawl")
+}
+
 #[test]
-fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
+fn the_tiles_a_bundle_names_are_written_as_crawls_tile_build_draws_them() {
     let extraction = extract(&fixture(), &release()).unwrap();
     let out = tempfile::tempdir().unwrap();
 
@@ -75,8 +104,21 @@ fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
     );
     assert_eq!(written, names.len());
     let rltiles = fixture().join("crawl-ref/source/rltiles");
+    let outlined: Vec<String> = files_under(&outlined_by_crawl())
+        .into_iter()
+        .map(|(name, _)| name)
+        .collect();
+    assert_eq!(outlined, ["mon/animals/bat.png", "mon/animals/quokka.png"]);
     for (name, bytes) in &files {
-        assert_eq!(bytes, &std::fs::read(rltiles.join(name)).unwrap(), "{name}");
+        if outlined.contains(name) {
+            let crawls = std::fs::read(outlined_by_crawl().join(name)).unwrap();
+            assert!(
+                rgba(bytes) == rgba(&crawls),
+                "{name} isn't outlined as crawl outlines it"
+            );
+        } else {
+            assert_eq!(bytes, &std::fs::read(rltiles.join(name)).unwrap(), "{name}");
+        }
     }
 }
 

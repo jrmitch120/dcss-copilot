@@ -6,6 +6,7 @@
 //! the enum values match what webtiles sends.
 
 mod cpp;
+mod image;
 mod tiles;
 mod yaml;
 
