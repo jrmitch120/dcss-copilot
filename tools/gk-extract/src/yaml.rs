@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
-use copilot_gk::{EnumId, Monster, Species, Will};
+use copilot_gk::{Energy, EnumId, Monster, MonsterAttack, Species, Will};
 use serde::Deserialize;
 
 use crate::{ExtractError, in_range, read};
@@ -22,8 +22,52 @@ struct MonsterFile {
     will: Option<WillField>,
     will_per_hd: Option<u32>,
     speed: Option<u32>,
+    #[serde(default)]
+    attacks: Vec<AttackField>,
+    #[serde(default)]
+    flags: Vec<String>,
+    energy: Option<EnergyField>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
+}
+
+/// One entry of a monster's `attacks`. `parse_attacks` in `util/mon-gen.py` refuses any other
+/// field, so a crawl that adds one (as later trunk adds `reach`) fails here rather than being
+/// read wrongly.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AttackField {
+    #[serde(rename = "type")]
+    kind: String,
+    damage: u32,
+    flavour: Option<String>,
+}
+
+/// A monster's `energy`, as `parse_energy` in `util/mon-gen.py` reads it: `move` sets both
+/// `walk` and `swim`, and anything not given costs the default.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnergyField {
+    #[serde(rename = "move")]
+    moving: Option<u32>,
+    walk: Option<u32>,
+    swim: Option<u32>,
+    attack: Option<u32>,
+    missile: Option<u32>,
+    spell: Option<u32>,
+}
+
+impl EnergyField {
+    fn energy(&self) -> Energy {
+        let or_default = |cost: Option<u32>| cost.unwrap_or(DEFAULT_ENERGY);
+        Energy {
+            walk: or_default(self.walk.or(self.moving)),
+            swim: or_default(self.swim.or(self.moving)),
+            attack: or_default(self.attack),
+            missile: or_default(self.missile),
+            spell: or_default(self.spell),
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -50,6 +94,12 @@ struct SpeciesFile {
 
 /// `util/mon-gen.py`'s default speed.
 const DEFAULT_SPEED: u32 = 10;
+
+/// `util/mon-gen.py`'s default energy cost of every action, crawl's `DEFAULT_ENERGY`.
+const DEFAULT_ENERGY: u32 = 10;
+
+/// The flag `dat/mons` gives a monster whose melee is more accurate: crawl's `M_FIGHTER`.
+const FIGHTER_FLAG: &str = "fighter";
 
 /// Every monster defined in `dat/mons` for this build, by its value in `monster_type`.
 pub fn monsters(
@@ -104,6 +154,30 @@ pub fn monsters(
                 ev: monster.ev,
                 will,
                 speed: monster.speed.unwrap_or(DEFAULT_SPEED),
+                attacks: monster
+                    .attacks
+                    .into_iter()
+                    .map(|attack| MonsterAttack {
+                        // As `parse_attacks` in `util/mon-gen.py` names them.
+                        kind: EnumId(format!("AT_{}", attack.kind.to_uppercase())),
+                        flavour: EnumId(format!(
+                            "AF_{}",
+                            attack.flavour.as_deref().unwrap_or("plain").to_uppercase()
+                        )),
+                        damage: attack.damage,
+                    })
+                    .collect(),
+                fighter: monster.flags.iter().any(|flag| flag == FIGHTER_FLAG),
+                energy: monster.energy.map_or(
+                    Energy {
+                        walk: DEFAULT_ENERGY,
+                        swim: DEFAULT_ENERGY,
+                        attack: DEFAULT_ENERGY,
+                        missile: DEFAULT_ENERGY,
+                        spell: DEFAULT_ENERGY,
+                    },
+                    |energy| energy.energy(),
+                ),
             },
         );
     }
