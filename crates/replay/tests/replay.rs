@@ -9,6 +9,9 @@ use copilot_replay::{Applied, Recording, Replayer, replay};
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
 const SPECTATING: &[u8] = include_bytes!("recordings/spectating-trunk-wizard.dcssrec");
 const TWO_TABS: &[u8] = include_bytes!("recordings/two-tabs-and-a-new-game.dcssrec");
+const MONSTERS: &[u8] = include_bytes!("recordings/monsters-in-view.dcssrec");
+const NO_GAME_KNOWLEDGE: &[u8] =
+    include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -50,6 +53,32 @@ fn the_panel_follows_the_tab_whose_game_last_changed_and_starts_afresh_on_a_new_
         .map(|view| view.game.map(|game| game.character))
         .collect();
     insta::assert_json_snapshot!(characters);
+}
+
+#[test]
+fn the_panel_lists_the_monsters_in_view_by_name() {
+    let replay = replay(MONSTERS).unwrap();
+
+    let focus: Vec<_> = replay
+        .view_models
+        .into_iter()
+        .map(|view| view.game.map(|game| game.focus))
+        .collect();
+    insta::assert_json_snapshot!(focus);
+}
+
+#[test]
+fn monsters_in_view_are_decoded_through_the_game_knowledge_for_the_crawl_version() {
+    let replay = replay(MONSTERS).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
+fn without_game_knowledge_for_the_crawl_version_monsters_keep_only_their_names() {
+    let replay = replay(NO_GAME_KNOWLEDGE).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
 }
 
 #[test]

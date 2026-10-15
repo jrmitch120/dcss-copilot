@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use copilot_core::{Advisor, Appearance, Connection, ViewModel};
+use copilot_gk::Library;
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
@@ -15,6 +16,8 @@ use crate::settings::{Settings, SettingsError};
 /// Everything the app knows about the browser connection and the game it relays.
 pub struct Live {
     app_version: &'static str,
+    /// The Game Knowledge games are decoded through.
+    knowledge: Library,
     state: Mutex<State>,
 }
 
@@ -52,10 +55,15 @@ impl Live {
     /// `recordings` if given.
     pub fn new(app_version: &'static str, recordings: Option<PathBuf>, settings: Settings) -> Self {
         let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
+        let knowledge = Library::shipped().unwrap_or_else(|error| {
+            eprintln!("{error}: games are followed without Game Knowledge");
+            Library::default()
+        });
         Self {
             app_version,
+            knowledge: knowledge.clone(),
             state: Mutex::new(State {
-                source: WebtilesSource::new(),
+                source: WebtilesSource::new(knowledge),
                 advisor: Advisor::new(),
                 browsers: 0,
                 approval: None,
@@ -103,7 +111,7 @@ impl Live {
                 // A connection replays every tab from its first message, so with no other browser
                 // connected nothing known so far is still current.
                 if state.browsers == 0 {
-                    state.source = WebtilesSource::new();
+                    state.source = WebtilesSource::new(self.knowledge.clone());
                     state.advisor = Advisor::new();
                 }
                 state.browsers += 1;

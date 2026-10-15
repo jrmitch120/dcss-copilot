@@ -6,7 +6,9 @@ mod game_source;
 mod view_model;
 
 pub use advisor::Advisor;
-pub use game_source::{CrawlVersion, GameIdentity, Role, SourceEvent, VisibleState};
+pub use game_source::{
+    CrawlVersion, GameIdentity, Role, SourceEvent, VisibleMonster, VisibleState,
+};
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
     Listing, NowPill, RunPlanRail, TileName, ViewModel,

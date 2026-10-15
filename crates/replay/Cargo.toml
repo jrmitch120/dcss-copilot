@@ -11,6 +11,7 @@ publish.workspace = true
 [dependencies]
 anyhow.workspace = true
 copilot-core.workspace = true
+copilot-gk.workspace = true
 copilot-webtiles.workspace = true
 # The fake extension's websocket client, the same stack as the app's relay.
 futures-util.workspace = true

@@ -1,7 +1,9 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
-use crate::game_source::{GameIdentity, SourceEvent, VisibleState};
-use crate::view_model::{AskBox, Character, FocusCard, GameView, NowPill, RunPlanRail};
+use crate::game_source::{GameIdentity, SourceEvent, VisibleMonster, VisibleState};
+use crate::view_model::{
+    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail,
+};
 
 /// Follows one Game Source's game and turns what it learns into the view model.
 #[derive(Debug, Clone, Default)]
@@ -39,8 +41,8 @@ impl Advisor {
 
     /// The panel for the followed game, once a Game Source has identified it.
     ///
-    /// Each part shows only what the Advisor can tell: it can't yet judge a Threat Level, read
-    /// monsters or make a Run Plan, so it says so rather than guess.
+    /// Each part shows only what the Advisor can tell: it can't yet judge a Threat Level or make
+    /// a Run Plan, so it says so rather than guess.
     #[must_use]
     pub fn game_view(&self) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
@@ -53,9 +55,27 @@ impl Advisor {
                 turn: self.visible.turn,
             },
             now: NowPill::Unrated,
-            focus: FocusCard::InView { monsters: None },
+            focus: FocusCard::InView {
+                monsters: self
+                    .visible
+                    .monsters
+                    .as_ref()
+                    .map(|monsters| monsters.iter().map(listing).collect()),
+            },
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
         })
+    }
+}
+
+/// A monster's row in the panel. Tiles aren't named yet, so the panel draws its glyph.
+fn listing(monster: &VisibleMonster) -> Listing {
+    Listing {
+        depiction: Depiction {
+            glyph: monster.glyph.clone(),
+            tile: None,
+        },
+        name: monster.name.clone(),
+        detail: None,
     }
 }

@@ -421,6 +421,7 @@ name = "copilot-app"
 version = "0.1.0"
 dependencies = [
  "copilot-core",
+ "copilot-gk",
  "copilot-replay",
  "copilot-webtiles",
  "futures-util",
@@ -441,6 +442,7 @@ dependencies = [
 name = "copilot-core"
 version = "0.1.0"
 dependencies = [
+ "copilot-gk",
  "serde",
  "serde_json",
  "specta",
@@ -465,6 +467,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "copilot-core",
+ "copilot-gk",
  "copilot-webtiles",
  "futures-util",
  "insta",
@@ -485,6 +488,7 @@ name = "copilot-webtiles"
 version = "0.1.0"
 dependencies = [
  "copilot-core",
+ "copilot-gk",
  "serde",
  "serde_json",
 ]

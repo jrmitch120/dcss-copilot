@@ -15,7 +15,7 @@ expression: replay.view_models.last().unwrap().game
   },
   "focus": {
     "card": "inView",
-    "monsters": null
+    "monsters": []
   },
   "runPlan": {
     "state": "notPlanned"

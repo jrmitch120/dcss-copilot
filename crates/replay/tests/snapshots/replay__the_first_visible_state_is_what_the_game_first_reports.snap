@@ -5,5 +5,6 @@ expression: replayer.advisor().visible()
 {
   "hp": 18,
   "hpMax": 18,
-  "turn": 0
+  "turn": 0,
+  "monsters": null
 }

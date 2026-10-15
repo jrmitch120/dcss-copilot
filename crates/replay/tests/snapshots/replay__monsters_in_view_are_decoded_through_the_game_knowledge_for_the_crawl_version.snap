@@ -1,0 +1,22 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.monsters
+---
+[
+  {
+    "name": "jackal",
+    "glyph": {
+      "text": "h",
+      "colour": "brown"
+    },
+    "id": "MONS_JACKAL"
+  },
+  {
+    "name": "adder",
+    "glyph": {
+      "text": "S",
+      "colour": "lightGreen"
+    },
+    "id": "MONS_ADDER"
+  }
+]
