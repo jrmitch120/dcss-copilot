@@ -10,7 +10,7 @@ pub use fake_extension::{
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
-pub use replayer::{Applied, Replayer};
+pub use replayer::{Applied, Moment, Replayer};
 
 use std::io::Read;
 
@@ -25,6 +25,8 @@ pub struct Replay {
     pub identity: Option<GameIdentity>,
     /// The followed game's Visible State at the end.
     pub visible: VisibleState,
+    /// The screen reads and session events, in order.
+    pub timeline: Vec<Moment>,
     /// The Recording was cut short, so this is only what was saved before it ended.
     pub truncated: bool,
 }
@@ -47,6 +49,7 @@ pub fn replay(recording: impl Read) -> Result<Replay, RecordingError> {
         view_models,
         identity: replayer.advisor().identity().cloned(),
         visible: replayer.advisor().visible().clone(),
+        timeline: replayer.timeline().to_vec(),
         truncated: replayer.recording().truncated,
     })
 }

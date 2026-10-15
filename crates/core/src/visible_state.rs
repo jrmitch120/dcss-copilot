@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use copilot_gk::{EnumId, ItemKind};
 use serde::Serialize;
 
+use crate::screen::ScreenRead;
 use crate::view_model::{Colour, Glyph};
 
 /// What the game currently reports to the player. A value is `None` until the game has reported it.
@@ -34,6 +35,8 @@ pub struct VisibleState {
     pub map: Option<LevelMap>,
     /// The most recent messages, oldest first, up to the last [`RECENT_MESSAGES`].
     pub messages: Vec<GameMessage>,
+    /// The screen the player has open over the map, if any: the top one, when one opened another.
+    pub screen: Option<ScreenRead>,
 }
 
 /// How many of the latest messages Visible State keeps: more than one turn's worth, as the

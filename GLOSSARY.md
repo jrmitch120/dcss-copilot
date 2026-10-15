@@ -42,6 +42,14 @@ _Avoid_: Context, game state (when meaning the whole)
 What the game currently reports to the player: map in view, monsters, stats, inventory, statuses, messages, and any screen the player has open (overview, skills, spells, character dump).
 _Avoid_: Screen, snapshot
 
+**Screen Read**:
+What a screen the player opened shows, such as the character overview, skills, spells, mutations, the dungeon overview, the character dump or any other menu, as crawl's own plain text. A Game Source reports one each time a screen opens or what it shows changes, and the Advisor reads facts off it.
+_Avoid_: Screen scrape, menu dump
+
+**Session Event**:
+Something that happened to the Game Source's view of a game rather than in the game: the Advisor joined it, the source resynced it in full, the connection to it was lost, or it ended.
+_Avoid_: Connection state, lifecycle event
+
 **Accumulated State**:
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache

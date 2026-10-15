@@ -8,6 +8,7 @@ mod markup;
 mod messages;
 mod player;
 pub mod relay_protocol;
+mod screens;
 mod source;
 
 pub use envelope::Envelope;

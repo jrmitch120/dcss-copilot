@@ -1,0 +1,162 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.timeline
+---
+[
+  {
+    "envelope": 4,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "characterOverview"
+    },
+    "title": null,
+    "lines": [
+      "Tiv the Skirmisher                             Kobold Berserker",
+      "Health: 31/34      AC  4     Str 14     XL:     5   Next: 42%",
+      "Magic:  2/3        EV 14     Int  8     God:    Trog [**....]",
+      "",
+      "rFire   + . .   (50%)      a - +0 mace",
+      "rCold   . . .   (100%)     (no armour)",
+      "rNeg    . . .   (100%)",
+      "rPois   ∞       (0%)",
+      "rElec   x       (150%)",
+      "rCorr   .       (100%)",
+      "SInv    +",
+      "Will    ++...",
+      "Stlth   ++++++........",
+      "HPRegen 0.28/turn"
+    ]
+  },
+  {
+    "envelope": 7,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "skills"
+    },
+    "title": null,
+    "lines": [
+      "Tiv the Kobold Berserker",
+      "",
+      "  Skill          Level Cost  Apt",
+      "a + Fighting      5.3  1.4  +0",
+      "b + Maces & Flails 4.0  2.1  +0",
+      "c - Dodging       2.1  1.8 +2"
+    ]
+  },
+  {
+    "envelope": 9,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "mutations"
+    },
+    "title": "Innate Abilities, Weirdness & Mutations",
+    "lines": [
+      "You are small and have weak limbs.",
+      "You can see in the dark."
+    ]
+  },
+  {
+    "envelope": 11,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "spells"
+    },
+    "title": " Your Spells                       Type          Failure  Level",
+    "lines": [
+      " a - Sting                          Poison        4%       1"
+    ]
+  },
+  {
+    "envelope": 12,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "spells"
+    },
+    "title": " Your Spells                       Type          Failure  Level",
+    "lines": [
+      " a - Sting                          Poison        3%       1"
+    ]
+  },
+  {
+    "envelope": 14,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "dungeonOverview"
+    },
+    "title": null,
+    "lines": [
+      "                    Dungeon Overview and Level Annotations",
+      "Branches: (use G to reach them and ?/B for more information)",
+      "Dungeon      (3/15)            Temple       (D:4)",
+      "",
+      "Altars: (use Ctrl-F \"altar\" to reach them and ?/G for information about gods)",
+      "Trog"
+    ]
+  },
+  {
+    "envelope": 15,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "other",
+      "name": "describe-monster"
+    },
+    "title": "hobgoblin",
+    "lines": [
+      "A larger and stronger relative of the goblin."
+    ]
+  },
+  {
+    "envelope": 16,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "dungeonOverview"
+    },
+    "title": null,
+    "lines": [
+      "                    Dungeon Overview and Level Annotations",
+      "Branches: (use G to reach them and ?/B for more information)",
+      "Dungeon      (3/15)            Temple       (D:4)",
+      "",
+      "Altars: (use Ctrl-F \"altar\" to reach them and ?/G for information about gods)",
+      "Trog"
+    ]
+  },
+  {
+    "envelope": 18,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "characterDump"
+    },
+    "title": null,
+    "lines": [
+      " Dungeon Crawl Stone Soup version 0.34.1 (webtiles) character file.",
+      "",
+      "Tiv the Skirmisher (Kobold Berserker)                Turns: 1234, Time: 00:12:01",
+      "",
+      "Health: 31/34      AC:  4    Str: 14    XL:     5   Next: 42%",
+      "You worship Trog."
+    ]
+  },
+  {
+    "envelope": 20,
+    "turn": 1234,
+    "event": "screenRead",
+    "screen": {
+      "kind": "other",
+      "name": "ability"
+    },
+    "title": "  Ability - do what?                  Cost                          Failure",
+    "lines": [
+      " a - Berserk                        None                            0%"
+    ]
+  }
+]

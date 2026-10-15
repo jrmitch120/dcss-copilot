@@ -9,6 +9,7 @@ use crate::json::string;
 use crate::map::LevelMap;
 use crate::messages::MessageLog;
 use crate::player::Player;
+use crate::screens::Screens;
 
 /// The webtiles Game Source: decodes relayed envelopes into source-neutral events.
 ///
@@ -47,6 +48,7 @@ struct Shown {
     player: Player,
     map: LevelMap,
     messages: MessageLog,
+    screens: Screens,
 }
 
 impl WebtilesSource {
@@ -84,8 +86,13 @@ impl WebtilesSource {
         if last_identity != Some(&identity) {
             events.push(SourceEvent::Identified(identity.clone()));
         }
+        if let Some(screen) = &visible.screen
+            && last_visible.and_then(|last| last.screen.as_ref()) != Some(screen)
+        {
+            events.push(SourceEvent::ScreenRead(screen.clone()));
+        }
         if last_visible != Some(&visible) {
-            events.push(SourceEvent::Visible(visible.clone()));
+            events.push(SourceEvent::Visible(Box::new(visible.clone())));
         }
         if !events.is_empty() {
             game.reported = Some((identity, visible));
@@ -108,7 +115,7 @@ impl TabGame {
             Some("player") => self.shown.player.merge(msg),
             Some("map") => self.shown.map.merge(msg),
             Some("msgs") => self.shown.messages.merge(msg),
-            _ => {}
+            _ => self.shown.screens.merge(msg),
         }
     }
 
@@ -126,6 +133,7 @@ impl TabGame {
             player,
             map,
             messages,
+            screens,
         } = &self.shown;
         VisibleState {
             turn: player.turn,
@@ -141,6 +149,7 @@ impl TabGame {
                 .map(|inventory| inventory.items(knowledge)),
             map: map.level(knowledge),
             messages: messages.recent(),
+            screen: screens.open(),
         }
     }
 

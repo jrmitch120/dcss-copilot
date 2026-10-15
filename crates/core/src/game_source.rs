@@ -2,6 +2,7 @@
 
 use serde::Serialize;
 
+use crate::screen::ScreenRead;
 use crate::visible_state::VisibleState;
 
 /// One thing a Game Source learned about the game it follows.
@@ -11,7 +12,10 @@ pub enum SourceEvent {
     /// The game being followed, or what is known about it, changed.
     Identified(GameIdentity),
     /// The game now reports this Visible State.
-    Visible(VisibleState),
+    Visible(Box<VisibleState>),
+    /// The player opened a screen, or the open screen changed, and this is what it shows. The
+    /// Visible State that follows holds it too, while it stays open.
+    ScreenRead(ScreenRead),
 }
 
 /// Which game this is: what tells one character's run apart from every other.

@@ -24,7 +24,10 @@ impl Advisor {
     pub fn apply(&mut self, event: SourceEvent) {
         match event {
             SourceEvent::Identified(identity) => self.identity = Some(identity),
-            SourceEvent::Visible(visible) => self.visible = visible,
+            SourceEvent::Visible(visible) => self.visible = *visible,
+            // The open screen is in Visible State too; remembering what screens said is
+            // Accumulated State's job.
+            SourceEvent::ScreenRead(_) => {}
         }
     }
 

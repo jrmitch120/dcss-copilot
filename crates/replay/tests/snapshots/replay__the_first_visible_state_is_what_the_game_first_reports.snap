@@ -33,5 +33,6 @@ expression: replayer.advisor().visible()
   "monsters": null,
   "inventory": null,
   "map": null,
-  "messages": []
+  "messages": [],
+  "screen": null
 }

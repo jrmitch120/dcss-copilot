@@ -3,7 +3,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{Position, VisibleState};
+use copilot_core::{Position, Screen, SourceEvent, VisibleState};
 use copilot_replay::{Applied, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
@@ -13,6 +13,7 @@ const MONSTERS: &[u8] = include_bytes!("recordings/monsters-in-view.dcssrec");
 const NO_GAME_KNOWLEDGE: &[u8] =
     include_bytes!("recordings/monsters-without-game-knowledge.dcssrec");
 const KOBOLD: &[u8] = include_bytes!("recordings/kobold-on-d3.dcssrec");
+const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap())
@@ -144,6 +145,72 @@ fn messages_are_the_recent_lines_as_plain_text_after_the_game_takes_any_back() {
     let replay = replay(KOBOLD).unwrap();
 
     insta::assert_json_snapshot!(replay.visible.messages);
+}
+
+#[test]
+fn each_screen_the_player_opens_is_read_as_plain_text() {
+    let replay = replay(SCREENS).unwrap();
+
+    insta::assert_json_snapshot!(replay.timeline);
+}
+
+#[test]
+fn a_console_style_screen_is_read_once_crawl_has_drawn_it() {
+    let replay = replay(SCREENS).unwrap();
+
+    let skills: Vec<_> = replay
+        .timeline
+        .iter()
+        .filter_map(|moment| match &moment.event {
+            SourceEvent::ScreenRead(read) if read.screen == Screen::Skills => Some(read),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(skills.len(), 1);
+    assert_eq!(skills[0].lines[0], "Tiv the Kobold Berserker");
+}
+
+#[test]
+fn the_character_overview_gives_the_resistances() {
+    let replay = replay(SCREENS).unwrap();
+
+    let resistances = replay
+        .timeline
+        .iter()
+        .find_map(|moment| match &moment.event {
+            SourceEvent::ScreenRead(read) => read.resistances(),
+            _ => None,
+        });
+    insta::assert_json_snapshot!(resistances);
+}
+
+#[test]
+fn a_screen_is_visible_while_it_is_open() {
+    let mut replayer = replayer(SCREENS);
+    let open = |replayer: &Replayer| {
+        replayer
+            .advisor()
+            .visible()
+            .screen
+            .as_ref()
+            .map(|read| read.screen.clone())
+    };
+
+    replayer.seek(5);
+    assert_eq!(open(&replayer), Some(Screen::CharacterOverview));
+    replayer.step();
+    assert_eq!(open(&replayer), None);
+    replayer.seek(16);
+    assert_eq!(
+        open(&replayer),
+        Some(Screen::Other("describe-monster".to_owned()))
+    );
+    replayer.step();
+    assert_eq!(open(&replayer), Some(Screen::DungeonOverview));
+    while !replayer.at_end() {
+        replayer.step();
+    }
+    assert_eq!(open(&replayer), None);
 }
 
 #[test]
