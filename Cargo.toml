@@ -18,13 +18,14 @@ copilot-replay = { path = "crates/replay" }
 copilot-store = { path = "crates/store" }
 copilot-webtiles = { path = "crates/webtiles" }
 anyhow = "1"
-insta = "1"
+insta = { version = "1", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 specta-typescript = "=0.0.12"
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 thiserror = "2"
+zstd = "0.13"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

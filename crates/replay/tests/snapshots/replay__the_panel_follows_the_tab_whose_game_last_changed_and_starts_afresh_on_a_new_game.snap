@@ -1,0 +1,35 @@
+---
+source: crates/replay/tests/replay.rs
+expression: characters
+---
+[
+  null,
+  {
+    "name": "Mira",
+    "species": "Minotaur",
+    "hp": 18,
+    "hpMax": 18,
+    "turn": 100
+  },
+  {
+    "name": "Wizzy",
+    "species": "Deep Elf",
+    "hp": 11,
+    "hpMax": 11,
+    "turn": 1520
+  },
+  {
+    "name": "Mira",
+    "species": "Minotaur",
+    "hp": 17,
+    "hpMax": 18,
+    "turn": 101
+  },
+  {
+    "name": "Mira",
+    "species": "Gnoll",
+    "hp": 14,
+    "hpMax": 14,
+    "turn": 0
+  }
+]

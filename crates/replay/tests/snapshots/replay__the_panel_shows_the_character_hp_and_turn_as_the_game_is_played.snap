@@ -1,0 +1,56 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.view_models
+---
+[
+  {
+    "appVersion": "0.0.0-test",
+    "connection": {
+      "state": "connected",
+      "bufferOverflowed": false
+    },
+    "character": null
+  },
+  {
+    "appVersion": "0.0.0-test",
+    "connection": {
+      "state": "connected",
+      "bufferOverflowed": false
+    },
+    "character": {
+      "name": "Mira",
+      "species": "Minotaur",
+      "hp": 18,
+      "hpMax": 18,
+      "turn": 0
+    }
+  },
+  {
+    "appVersion": "0.0.0-test",
+    "connection": {
+      "state": "connected",
+      "bufferOverflowed": false
+    },
+    "character": {
+      "name": "Mira",
+      "species": "Minotaur",
+      "hp": 15,
+      "hpMax": 18,
+      "turn": 3
+    }
+  },
+  {
+    "appVersion": "0.0.0-test",
+    "connection": {
+      "state": "connected",
+      "bufferOverflowed": false
+    },
+    "character": {
+      "name": "Mira",
+      "species": "Minotaur",
+      "hp": 15,
+      "hpMax": 18,
+      "turn": 4
+    }
+  }
+]

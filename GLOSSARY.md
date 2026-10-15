@@ -16,6 +16,10 @@ _Avoid_: Integration, connector, backend
 A saved copy of everything a Game Source sent during one game, which can be replayed to reproduce what the Advisor saw. The player can opt in to recording and export a game to report a problem.
 _Avoid_: Log, trace, capture (when meaning the saved file)
 
+**Envelope**:
+One raw message from a Game Source, unchanged, wrapped with where and when it was received. The browser extension relays envelopes to the app, and a Recording is a sequence of them.
+_Avoid_: Packet, event, frame (a frame is one websocket message of the relay protocol)
+
 **Tournament Game**:
 A game that counts for the official DCSS tournament: played on the tournament's own Crawl Version, on an official server, within the tournament's dates. Games on other versions during those dates are not Tournament Games. The Advisor gives only Information in a Tournament Game.
 _Avoid_: Tourney game, competitive game

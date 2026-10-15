@@ -1,0 +1,9 @@
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486400000,"gameVersion":null,"msg":{"msg":"login_success","username":"mira","admin":false}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486400100,"gameVersion":null,"msg":{"msg":"lobby_entry","id":3,"username":"someone","game_id":"dcss-0.34","xl":"5","char":"MiFi","place":"D:3","turn":"2512"}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486401000,"gameVersion":null,"msg":{"msg":"game_started"}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486401010,"gameVersion":null,"msg":{"msg":"version","text":"Dungeon Crawl Stone Soup 0.34.1"}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486401020,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","name":"Mira","title":"the Skirmisher","wizard":0,"explore":0,"species":"Minotaur","god":"","hp":18,"hp_max":18,"real_hp_max":18,"mp":1,"mp_max":1,"xl":1,"time":0,"turn":0,"place":"Dungeon","depth":1,"pos":{"x":40,"y":12}}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486401030,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"map","clear":true,"cells":[{"x":40,"y":12,"f":1,"g":"@"}]}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486405000,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"msgs","messages":[{"text":"The jackal bites you.","turn":3,"channel":0}]}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486405010,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","hp":15,"time":30,"turn":3}}
+{"origin":"https://crawl.example.org","tab":7,"ts":1760486406000,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","time":40,"turn":4,"pos":{"x":41,"y":12}}}

@@ -1,0 +1,4 @@
+{"origin":"http://localhost:8080","tab":3,"ts":1760486500000,"gameVersion":null,"msg":{"msg":"login_success","username":"me","admin":false}}
+{"origin":"http://localhost:8080","tab":3,"ts":1760486500100,"gameVersion":null,"msg":{"msg":"watching_started","username":"tester"}}
+{"origin":"http://localhost:8080","tab":3,"ts":1760486500110,"gameVersion":null,"msg":{"msg":"version","text":"Dungeon Crawl Stone Soup 0.35-a0-412-g28a137d"}}
+{"origin":"http://localhost:8080","tab":3,"ts":1760486500120,"gameVersion":"Dungeon Crawl Stone Soup 0.35-a0-412-g28a137d","msg":{"msg":"player","name":"Wizzy","species":"Deep Elf","wizard":1,"hp":11,"hp_max":11,"turn":1520}}

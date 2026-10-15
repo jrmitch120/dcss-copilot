@@ -1,0 +1,14 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.identity
+---
+{
+  "server": "https://crawl.example.org",
+  "account": "mira",
+  "character": "Mira",
+  "species": "Minotaur",
+  "firstSeenMs": 1760486401020,
+  "crawlVersion": "0.34.1",
+  "wizard": false,
+  "role": "playing"
+}
