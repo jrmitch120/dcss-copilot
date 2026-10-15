@@ -285,8 +285,7 @@ pub struct Monster {
     pub energy: Energy,
     /// The tile webtiles draws it with, as its image's path in crawl's `rltiles` without the
     /// extension, such as `mon/animals/jackal`: shipped with the app under `tiles/`. `None` when
-    /// crawl's tile build makes the image rather than drawing it from one file, or the file is
-    /// one the app doesn't ship because its license is unknown.
+    /// crawl's tile build makes the image rather than drawing it from one file.
     pub tile: Option<String>,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,

@@ -1,3 +1,5 @@
+misc/error MONS_PROGRAM_BUG
+
 ### Animals
 %sdir mon/animals
 

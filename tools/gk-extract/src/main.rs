@@ -9,7 +9,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{Context, bail};
-use gk_extract::{CrawlRelease, copy_tiles, extract};
+use gk_extract::{CrawlRelease, extract};
 
 const USAGE: &str =
     "usage: gk-extract <crawl checkout> --tag <release tag> --commit <sha> [--tiles <dir>]";
@@ -34,15 +34,17 @@ fn main() -> anyhow::Result<()> {
     };
 
     let release = CrawlRelease::checked_out(&crawl, &tag, &commit)?;
-    let bundle = extract(&crawl, &release)
+    let extraction = extract(&crawl, &release)
         .with_context(|| format!("extracting from {}", crawl.display()))?;
     if let Some(dir) = tiles {
-        let copied = copy_tiles(&crawl, &bundle, &dir)
-            .with_context(|| format!("copying tiles into {}", dir.display()))?;
-        eprintln!("copied {copied} tiles into {}", dir.display());
+        let written = extraction
+            .tiles
+            .write(&crawl, &dir)
+            .with_context(|| format!("writing tiles into {}", dir.display()))?;
+        eprintln!("wrote {written} tiles into {}", dir.display());
     }
     let mut out = std::io::stdout().lock();
-    serde_json::to_writer_pretty(&mut out, &bundle)?;
+    serde_json::to_writer_pretty(&mut out, &extraction.bundle)?;
     writeln!(out)?;
     Ok(())
 }
