@@ -37,6 +37,12 @@ $effect(() => {
     {/if}
     <div class="body">
       <ConnectionNotice connection={view.connection} following={view.game !== null} />
+      {#if view.unreadableGameKnowledge}
+        <p class="status error">
+          DCSS Copilot can't read its Game Knowledge, so it can't name or judge monsters:
+          {view.unreadableGameKnowledge}
+        </p>
+      {/if}
       {#if view.game}
         <NowPill now={view.game.now} />
         <FocusCard focus={view.game.focus} appearance={view.appearance} />
@@ -57,6 +63,15 @@ $effect(() => {
   height: 100vh;
   background:
     radial-gradient(600px 400px at 100% 0%, var(--bg-glow) 0%, transparent 60%), var(--bg);
+}
+
+.status {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.error {
+  color: var(--error);
 }
 
 .body {

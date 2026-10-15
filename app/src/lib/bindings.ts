@@ -320,6 +320,11 @@ export type ViewModel = {
 	connection: Connection,
 	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
 	appearance: Appearance,
+	/**
+	 *  Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
+	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.
+	 */
+	unreadableGameKnowledge: string | null,
 	/**  The panel for the game being followed, once one is identified. */
 	game: GameView | null,
 };

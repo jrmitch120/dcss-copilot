@@ -175,6 +175,8 @@ impl Replayer {
                 buffer_overflowed: false,
             },
             appearance: Appearance::default(),
+            // A replay fails rather than run without the shipped Game Knowledge.
+            unreadable_game_knowledge: None,
             game: self.game.advisor.game_view(),
         }
     }

@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use copilot_core::{Advisor, Appearance, Connection, ViewModel};
-use copilot_gk::Library;
+use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
@@ -19,6 +19,8 @@ pub struct Live {
     app_version: &'static str,
     /// The Game Knowledge games are decoded through.
     knowledge: Library,
+    /// Why the shipped Game Knowledge couldn't be read, if it couldn't, for the player.
+    unreadable_knowledge: Option<String>,
     state: Mutex<State>,
 }
 
@@ -56,13 +58,28 @@ impl Live {
     /// Starts with no browser connected and the player's `settings`, writing a Recording into
     /// `recordings` if given.
     pub fn new(app_version: &'static str, recordings: Option<PathBuf>, settings: Settings) -> Self {
+        Self::with_knowledge(app_version, recordings, settings, Library::shipped())
+    }
+
+    /// As [`Live::new`], with `knowledge` in place of the Game Knowledge the app ships. Without
+    /// it, games are followed undecoded and unjudged, and the panel says why.
+    fn with_knowledge(
+        app_version: &'static str,
+        recordings: Option<PathBuf>,
+        settings: Settings,
+        knowledge: Result<Library, BundleError>,
+    ) -> Self {
         let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
-        let knowledge = Library::shipped().unwrap_or_else(|error| {
-            eprintln!("{error}: games are followed without Game Knowledge");
-            Library::default()
-        });
+        let (knowledge, unreadable_knowledge) = match knowledge {
+            Ok(knowledge) => (knowledge, None),
+            Err(error) => {
+                eprintln!("{error}: games are followed without Game Knowledge");
+                (Library::default(), Some(error.to_string()))
+            }
+        };
         Self {
             app_version,
+            unreadable_knowledge,
             knowledge: knowledge.clone(),
             state: Mutex::new(State {
                 game: Following::new(&knowledge),
@@ -98,6 +115,7 @@ impl Live {
             app_version: self.app_version.to_owned(),
             connection,
             appearance: state.settings.appearance(),
+            unreadable_game_knowledge: self.unreadable_knowledge.clone(),
             game: state.game.advisor.game_view(),
         }
     }
@@ -298,6 +316,26 @@ mod tests {
             game_version: None,
             msg,
         })
+    }
+
+    #[test]
+    fn shipped_game_knowledge_that_doesnt_read_is_shown_to_the_player() {
+        let path = std::env::temp_dir().join("dcss-copilot-unused-settings.json");
+        let broken = BundleError {
+            tag: "0.34.1".to_owned(),
+            reason: "expected value at line 1 column 1".to_owned(),
+        };
+
+        let without = Live::with_knowledge("1.2.3", None, Settings::defaults(&path), Err(broken));
+
+        assert_eq!(
+            without.view_model().unreadable_game_knowledge.as_deref(),
+            Some(
+                "the Game Knowledge bundle for crawl 0.34.1 couldn't be read: expected value at \
+                 line 1 column 1"
+            )
+        );
+        assert_eq!(live().view_model().unreadable_game_knowledge, None);
     }
 
     #[test]
