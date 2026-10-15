@@ -3,7 +3,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::VisibleState;
+use copilot_core::{Position, VisibleState};
 use copilot_replay::{Applied, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
@@ -114,6 +114,29 @@ fn monsters_in_view_have_their_square_attitude_and_crawls_threat_rating() {
     let replay = replay(KOBOLD).unwrap();
 
     insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
+fn the_current_levels_map_holds_the_squares_in_view_and_those_remembered() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.map);
+}
+
+#[test]
+fn each_square_of_the_map_is_decoded_to_its_dungeon_feature() {
+    let map = replay(KOBOLD).unwrap().visible.map.unwrap();
+
+    let feature = |x, y| {
+        map.cell(Position { x, y })
+            .and_then(|cell| cell.feature.clone())
+            .map(|feature| feature.0)
+    };
+    assert_eq!(feature(2, 0).as_deref(), Some("DNGN_STONE_STAIRS_DOWN_I"));
+    assert_eq!(feature(3, 1).as_deref(), Some("DNGN_OPEN_DOOR"));
+    assert_eq!(feature(-3, 0).as_deref(), Some("DNGN_ROCK_WALL"));
+    // A monster stands on the floor.
+    assert_eq!(feature(1, -1).as_deref(), Some("DNGN_FLOOR"));
 }
 
 #[test]

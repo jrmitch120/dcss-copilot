@@ -126,6 +126,7 @@ impl TabGame {
                 .inventory
                 .as_ref()
                 .map(|inventory| inventory.items(knowledge)),
+            map: self.map.level(knowledge),
         }
     }
 

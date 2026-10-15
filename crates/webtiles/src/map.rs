@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use copilot_core::{Attitude, Colour, CrawlThreat, Glyph, Position, VisibleMonster};
+use copilot_core::{Attitude, Colour, CrawlThreat, Glyph, MapCell, Position, VisibleMonster};
 use copilot_gk::{Bundle, EnumId};
 use serde_json::Value;
 
@@ -33,6 +33,8 @@ pub struct LevelMap {
 
 #[derive(Debug, Default)]
 struct Cell {
+    /// Its `dungeon_feature_type` value.
+    feature: Option<i64>,
     glyph: Option<String>,
     colour: Option<u8>,
     /// The tile's background flags, once the game has sent tile data for the cell.
@@ -116,6 +118,9 @@ impl LevelMap {
         self.last = (x, y);
 
         let cell = self.cells.entry((y, x)).or_default();
+        if let Some(feature) = delta.get("f").and_then(Value::as_i64) {
+            cell.feature = Some(feature);
+        }
         if let Some(glyph) = delta.get("g").and_then(Value::as_str) {
             cell.glyph = Some(glyph.to_owned());
         }
@@ -146,8 +151,8 @@ impl LevelMap {
         let monsters = self
             .cells
             .iter()
-            .filter(|(_, cell)| cell.tile_bg.is_some_and(|bg| bg & UNSEEN == 0))
-            .filter_map(|(&(y, x), cell)| {
+            .filter(|(_, cell)| cell.in_view())
+            .filter_map(|(&key, cell)| {
                 let info = match cell.monster.as_ref()? {
                     CellMonster::Tracked(id) => self.tracked.get(id)?,
                     CellMonster::Untracked(info) => info,
@@ -164,16 +169,9 @@ impl LevelMap {
                         .clone()
                         .or_else(|| known.map(|monster| monster.name.clone()))
                         .unwrap_or_else(|| UNNAMED.to_owned()),
-                    glyph: Glyph {
-                        text: cell.glyph.clone().unwrap_or_default(),
-                        colour: Colour::from_crawl(cell.colour.unwrap_or(DEFAULT_COLOUR))
-                            .unwrap_or(Colour::LightGrey),
-                    },
+                    glyph: cell.glyph(),
                     id: known.map(|monster| monster.id.clone()),
-                    position: Position {
-                        x: i32::try_from(x).ok()?,
-                        y: i32::try_from(y).ok()?,
-                    },
+                    position: position(key)?,
                     attitude: decode(info.attitude, knowledge, Bundle::attitude).and_then(attitude),
                     crawl_threat: decode(info.threat, knowledge, Bundle::monster_threat)
                         .and_then(crawl_threat),
@@ -182,6 +180,51 @@ impl LevelMap {
             .collect();
         Some(monsters)
     }
+
+    /// The level as the game shows it, with each square's feature decoded through `knowledge`
+    /// when there is a bundle for the game's Crawl Version. `None` until the game has sent a map.
+    pub fn level(&self, knowledge: Option<&Bundle>) -> Option<copilot_core::LevelMap> {
+        if !self.received {
+            return None;
+        }
+        Some(copilot_core::LevelMap::new(self.cells.iter().filter_map(
+            |(&key, cell)| {
+                // A square the game blanks out is one it doesn't show.
+                cell.glyph
+                    .as_deref()
+                    .filter(|glyph| !glyph.trim().is_empty())?;
+                let cell = MapCell {
+                    glyph: cell.glyph(),
+                    feature: decode(cell.feature, knowledge, Bundle::feature).cloned(),
+                    in_view: cell.in_view(),
+                };
+                Some((position(key)?, cell))
+            },
+        )))
+    }
+}
+
+impl Cell {
+    /// The player can see the cell now.
+    fn in_view(&self) -> bool {
+        self.tile_bg.is_some_and(|bg| bg & UNSEEN == 0)
+    }
+
+    fn glyph(&self) -> Glyph {
+        Glyph {
+            text: self.glyph.clone().unwrap_or_default(),
+            colour: Colour::from_crawl(self.colour.unwrap_or(DEFAULT_COLOUR))
+                .unwrap_or(Colour::LightGrey),
+        }
+    }
+}
+
+/// The square at a `(y, x)` cell key.
+fn position((y, x): (i64, i64)) -> Option<Position> {
+    Some(Position {
+        x: i32::try_from(x).ok()?,
+        y: i32::try_from(y).ok()?,
+    })
 }
 
 /// Merges a cell's `mon` delta as `map_knowledge.js` does: onto the monster with the same client

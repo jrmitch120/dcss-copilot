@@ -1,5 +1,7 @@
 //! Visible State: what the game currently reports to the player, as a Game Source decodes it.
 
+use std::collections::BTreeMap;
+
 use copilot_gk::{EnumId, ItemKind};
 use serde::Serialize;
 
@@ -27,6 +29,107 @@ pub struct VisibleState {
     /// The items the player carries, by inventory letter. `None` until the game has sent the
     /// inventory.
     pub inventory: Option<Vec<InventoryItem>>,
+    /// The current level as the game shows it: the squares in view and those remembered. `None`
+    /// until the game has sent its map.
+    pub map: Option<LevelMap>,
+}
+
+/// The current level's map: every square the game shows, in view or remembered from earlier.
+///
+/// It serializes as text, one string per row as the console would draw it, so a snapshot of it
+/// reads as a map.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct LevelMap {
+    /// By `(y, x)`, so iterating goes top row first, left to right.
+    cells: BTreeMap<(i32, i32), MapCell>,
+}
+
+/// One square of the map.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapCell {
+    /// What the game draws there: the feature, or an item, cloud or monster on it.
+    pub glyph: Glyph,
+    /// The dungeon feature, such as `DNGN_FLOOR`, when the bundle for the game's Crawl Version
+    /// decodes it.
+    pub feature: Option<EnumId>,
+    /// The player can see the square now. Otherwise the game shows it as remembered, which may
+    /// be out of date.
+    pub in_view: bool,
+}
+
+impl LevelMap {
+    /// A map of these squares.
+    pub fn new(cells: impl IntoIterator<Item = (Position, MapCell)>) -> Self {
+        Self {
+            cells: cells
+                .into_iter()
+                .map(|(position, cell)| ((position.y, position.x), cell))
+                .collect(),
+        }
+    }
+
+    /// The square at `position`, if the game shows one there.
+    #[must_use]
+    pub fn cell(&self, position: Position) -> Option<&MapCell> {
+        self.cells.get(&(position.y, position.x))
+    }
+
+    /// Every square, top row first, left to right.
+    pub fn cells(&self) -> impl Iterator<Item = (Position, &MapCell)> {
+        self.cells
+            .iter()
+            .map(|(&(y, x), cell)| (Position { x, y }, cell))
+    }
+
+    /// The top-left corner of the smallest rectangle holding every square, and its bottom-right.
+    fn bounds(&self) -> Option<(Position, Position)> {
+        let (&(top, _), _) = self.cells.first_key_value()?;
+        let (&(bottom, _), _) = self.cells.last_key_value()?;
+        let left = self.cells.keys().map(|&(_, x)| x).min()?;
+        let right = self.cells.keys().map(|&(_, x)| x).max()?;
+        Some((
+            Position { x: left, y: top },
+            Position {
+                x: right,
+                y: bottom,
+            },
+        ))
+    }
+
+    /// The map's rows as text, drawing each square with `draw` and a space where there is none.
+    fn rows(&self, draw: impl Fn(&MapCell) -> String) -> Vec<String> {
+        let Some((top_left, bottom_right)) = self.bounds() else {
+            return Vec::new();
+        };
+        (top_left.y..=bottom_right.y)
+            .map(|y| {
+                (top_left.x..=bottom_right.x)
+                    .map(|x| {
+                        self.cells
+                            .get(&(y, x))
+                            .map_or_else(|| " ".to_owned(), &draw)
+                    })
+                    .collect::<String>()
+                    .trim_end()
+                    .to_owned()
+            })
+            .collect()
+    }
+}
+
+impl Serialize for LevelMap {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+        let mut map = serializer.serialize_struct("LevelMap", 3)?;
+        map.serialize_field("topLeft", &self.bounds().map(|(top_left, _)| top_left))?;
+        map.serialize_field("rows", &self.rows(|cell| cell.glyph.text.clone()))?;
+        map.serialize_field(
+            "inView",
+            &self.rows(|cell| if cell.in_view { "x" } else { "." }.to_owned()),
+        )?;
+        map.end()
+    }
 }
 
 /// The character's numbers from the status pane. Each is `None` until the game reports it.
