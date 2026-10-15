@@ -11,10 +11,23 @@ export const commands = {
 	answerBrowser: (allow: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_browser", { allow })),
 	/**  The player chose to draw monsters and items as tiles or glyphs. */
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
+	/**  Opens the Settings window, or brings it to the front. */
+	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
+	/**  The settings as they are now, for a Settings window that has just loaded. */
+	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
+	/**  The player chose a slot's model and how it thinks. */
+	setModel: (slot: Slot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
+	/**  The player pasted a key for a provider. */
+	saveKey: (provider: string, key: string) => typedError<null, string>(__TAURI_INVOKE("save_key", { provider, key })),
+	/**  The player removed their key for a provider. */
+	removeKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("remove_key", { provider })),
+	/**  The player asked to test a provider's key. The outcome arrives in the settings. */
+	testKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("test_key", { provider })),
 };
 
 /** Events */
 export const events = {
+	settingsChanged: makeEvent<SettingsChanged>("settings-changed"),
 	viewModelChanged: makeEvent<ViewModelChanged>("view-model-changed"),
 };
 
@@ -114,6 +127,63 @@ export type Glyph = {
 	colour: Colour,
 };
 
+/**  Where a key is kept. */
+export type KeyPlace = 
+/**  In the OS keychain. */
+{ place: "keychain" } | 
+/**  In memory until the app exits, because the keychain can't be used. */
+{ place: "session"; 
+/**  Why the keychain can't be used. */
+reason: string } | 
+/**  In an environment variable the player set outside the app. */
+{ place: "environment"; 
+/**  The variable. */
+variable: string };
+
+/**  Whether the app has a key for a provider. */
+export type KeyState = 
+/**  No key yet. */
+{ state: "missing"; 
+/**  The environment variable the app would also read it from. */
+variable: string } | 
+/**  A key, shown only masked. */
+{ state: "stored"; 
+/**  The key's start and last four characters, such as `sk-ant-…a1b2`. */
+masked: string; 
+/**  Where it is kept. */
+place: KeyPlace };
+
+/**  How a key's last test went. */
+export type KeyTest = 
+/**  Not tested since it was given. */
+{ state: "untested" } | 
+/**  A test call is on its way. */
+{ state: "testing" } | 
+/**  A model answered. */
+{ state: "works"; 
+/**  The model that answered. */
+model: string; 
+/**  How long the answer took. */
+millis: number } | 
+/**  The provider refused the key. */
+{ state: "rejected"; 
+/**  What the provider said. */
+message: string } | 
+/**  The test couldn't tell, such as when the provider can't be reached. */
+{ state: "failed"; 
+/**  What went wrong. */
+message: string };
+
+/**  One provider's key, masked. */
+export type KeyView = {
+	/**  The provider. */
+	provider: ProviderView,
+	/**  Whether there is a key, and where it is kept. */
+	key: KeyState,
+	/**  How its last test went. */
+	test: KeyTest,
+};
+
 /**  One row of a list in the panel, such as a monster in view. */
 export type Listing = {
 	/**  How the thing is drawn. */
@@ -124,15 +194,88 @@ export type Listing = {
 	detail: string | null,
 };
 
+/**  A model the player can choose. */
+export type ModelOption = {
+	/**  The model's id. */
+	id: string,
+	/**  Its name. */
+	name: string,
+	/**  The thinking settings it accepts, from least to most. */
+	thinking: ThinkingOption[],
+	/**  The one to pick when the player switches to this model. */
+	suggested: ThinkingOption,
+};
+
+/**  Settings → Models and keys, as the Settings window draws it. */
+export type ModelsAndKeysView = {
+	/**  The Quick Model slot. */
+	quick: SlotView,
+	/**  The Deep Model slot. */
+	deep: SlotView,
+	/**  Each provider's key. */
+	keys: KeyView[],
+};
+
 /**  The threat label and one line at the top of the panel. */
 export type NowPill = 
 /**  The Advisor can't judge a Threat Level yet, so it shows none rather than guess. */
 { state: "unrated" };
 
+/**  A provider, as the Settings window names it. */
+export type ProviderView = {
+	/**  The id commands take, such as `anthropic`. */
+	id: string,
+	/**  The provider's name. */
+	name: string,
+};
+
 /**  The Run Plan rail along the bottom of the panel. */
 export type RunPlanRail = 
 /**  There is no Run Plan for this game yet. */
 { state: "notPlanned" };
+
+/**  The core pushes new settings to the Settings window. */
+export type SettingsChanged = SettingsView;
+
+/**  Everything the Settings window shows. */
+export type SettingsView = {
+	/**  The running app's version, for About. */
+	appVersion: string,
+	/**  Settings → Models and keys. */
+	models: ModelsAndKeysView,
+};
+
+/**  Which model slot. */
+export type Slot = 
+/**  The Quick Model, for everyday advice and questions. */
+"quick" | 
+/**  The Deep Model, for when the player ticks "Think deeper". */
+"deep";
+
+/**  One slot's model, and what it could be changed to. */
+export type SlotView = {
+	/**  Which slot this is. */
+	slot: Slot,
+	/**  The slot's provider. */
+	provider: ProviderView,
+	/**  The model's id. */
+	model: string,
+	/**  How it thinks. */
+	thinking: ThinkingOption,
+	/**  The models the provider offers, with the thinking each accepts. */
+	models: ModelOption[],
+};
+
+/**  A thinking setting, as the Settings window offers it. */
+export type ThinkingOption = 
+/**  No thinking. */
+"off" | 
+/**  Adaptive thinking at low effort. */
+"low" | 
+/**  Adaptive thinking at medium effort. */
+"medium" | 
+/**  Adaptive thinking at high effort. */
+"high";
 
 /**
  *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as

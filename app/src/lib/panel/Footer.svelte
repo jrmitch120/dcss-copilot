@@ -12,7 +12,15 @@ const CHOICES: [Appearance, string][] = [
 
 async function choose(choice: Appearance) {
   const result = await commands.setAppearance(choice);
-  saveError = result.status === "error" ? result.error : null;
+  saveError =
+    result.status === "error"
+      ? `This choice lasts only until DCSS Copilot closes: ${result.error}`
+      : null;
+}
+
+async function openSettings() {
+  const result = await commands.openSettings();
+  saveError = result.status === "error" ? `Settings couldn't open: ${result.error}` : null;
 }
 </script>
 
@@ -31,9 +39,12 @@ async function choose(choice: Appearance) {
       </button>
     {/each}
   </fieldset>
+  <button type="button" class="gear" title="Settings" aria-label="Settings" onclick={openSettings}>
+    ⚙
+  </button>
 </footer>
 {#if saveError}
-  <p class="error small">This choice lasts only until DCSS Copilot closes: {saveError}</p>
+  <p class="error small">{saveError}</p>
 {/if}
 
 <style>
@@ -76,6 +87,19 @@ footer {
   background: rgba(255, 255, 255, 0.9);
   color: #111111;
   font-weight: 600;
+}
+
+.gear {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.gear:hover {
+  color: var(--text-strong);
 }
 
 .error {

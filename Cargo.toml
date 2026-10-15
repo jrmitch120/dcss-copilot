@@ -20,6 +20,8 @@ copilot-webtiles = { path = "crates/webtiles" }
 anyhow = "1"
 futures-util = "0.3"
 insta = { version = "1", features = ["json"] }
+# HTTPS to LLM providers: rustls with the OS's root certificates, so there is no OpenSSL to install.
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 # preserve_order: relayed messages keep their key order, so Recordings hold them unchanged.
 serde_json = { version = "1", features = ["preserve_order"] }

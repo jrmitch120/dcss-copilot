@@ -16,6 +16,10 @@ _Avoid_: Integration, connector, backend
 A saved copy of everything a Game Source sent during one game, which can be replayed to reproduce what the Advisor saw. The player can opt in to recording and export a game to report a problem.
 _Avoid_: Log, trace, capture (when meaning the saved file)
 
+**LLM Sidecar**:
+The LLM calls made while a Recording was made, saved beside it and looked up by each request's hash, so a replay gets the same answers without calling a model.
+_Avoid_: Cassette, fixture, mock
+
 **Envelope**:
 One raw message from a Game Source, unchanged, wrapped with where and when it was received. The browser extension relays envelopes to the app, and a Recording is a sequence of them.
 _Avoid_: Packet, event, frame (a frame is one websocket message of the relay protocol)
