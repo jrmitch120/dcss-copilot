@@ -1,0 +1,114 @@
+/* The panel's visual system: modern dark styling around DCSS's own colours.
+   Layout and styling follow round3.html (prototype/visual-direction) and index.html
+   (prototype/in-game-surfaces). */
+
+:root {
+  --bg: #0c0e14;
+  --bg-glow: #10182a;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-low: rgba(255, 255, 255, 0.02);
+  --inset: rgba(0, 0, 0, 0.35);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.06);
+
+  --text: #e6e8ee;
+  --text-strong: #ffffff;
+  --text-soft: #c9cdd8;
+  --text-muted: #8a90a3;
+  --text-label: #6f7588;
+  --text-faint: #555b6c;
+
+  /* Threat and status accents. */
+  --calm: #2ed573;
+  --danger: #ff3b5c;
+  --find: #ffd166;
+  --warning: #ffb26b;
+  --error: #ff6b84;
+  --info: #74b9ff;
+  --unrated: #9aa0b2;
+
+  /* DCSS's sixteen glyph colours, as webtiles draws them (crawl's webserver style.css). */
+  --dcss-black: #000000;
+  --dcss-blue: #005afa;
+  --dcss-green: #4e9a06;
+  --dcss-cyan: #06989a;
+  --dcss-red: #b30009;
+  --dcss-magenta: #cd21cb;
+  --dcss-brown: #8f5902;
+  --dcss-light-grey: #babdb6;
+  --dcss-dark-grey: #555753;
+  --dcss-light-blue: #5e78ff;
+  --dcss-light-green: #8ae234;
+  --dcss-light-cyan: #34e2e2;
+  --dcss-light-red: #ef2929;
+  --dcss-light-magenta: #fd59fa;
+  --dcss-yellow: #fce94f;
+  --dcss-white: #eeeeec;
+
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+  --radius-card: 14px;
+  --radius-pill: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font:
+    13.5px / 1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--surface), var(--surface-low));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 12px 14px;
+}
+
+.lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+
+.lbl em {
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: var(--text-faint);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 12px;
+}
