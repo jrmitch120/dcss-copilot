@@ -1,9 +1,12 @@
-//! Recording format, in-process replayer and fake-extension front end.
+//! Recording format, in-process replayer, fake-extension front end, scenarios and the corpus.
 
+mod corpus;
 mod fake_extension;
 mod recording;
 mod replayer;
+mod scenario;
 
+pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame, PlayedBy, sha256_hex};
 pub use fake_extension::{
     FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
 };
@@ -11,6 +14,10 @@ pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
 pub use replayer::{Applied, Moment, Replayer};
+pub use scenario::{
+    ExpectedAlert, ExpectedSuggestedAction, SCENARIO_EXTENSION, Scenario, ScenarioError,
+    ScenarioReplay, Setup, Snapshot,
+};
 
 use std::io::Read;
 

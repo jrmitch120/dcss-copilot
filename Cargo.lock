@@ -734,9 +734,11 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
+ "sha2 0.11.1",
  "thiserror 2.0.21",
  "tokio",
  "tokio-tungstenite",
+ "toml 1.1.8+spec-1.1.0",
  "zstd",
 ]
 
@@ -799,6 +801,20 @@ name = "core_detect"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
+
+[[package]]
+name = "corpus"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "copilot-replay",
+ "copilot-webtiles",
+ "futures-util",
+ "reqwest",
+ "serde_json",
+ "tokio",
+ "tokio-tungstenite",
+]
 
 [[package]]
 name = "cpubits"

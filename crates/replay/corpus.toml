@@ -1,0 +1,3 @@
+# The corpus: full games kept as release assets of the corpus repo, one release per Crawl Version
+# (`crawl-<version>`), pinned here by SHA-256. See docs/corpus.md.
+repository = "jrmitch120/dcss-copilot-corpus"

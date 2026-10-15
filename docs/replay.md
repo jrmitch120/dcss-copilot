@@ -17,7 +17,7 @@ Turns are the followed game's, so on a Recording with several games or tabs, `st
 
 Any backward move rebuilds the game from the start at full speed, because the core only moves forward. `replay()` runs a whole Recording and returns every distinct view model, the identity and Visible State at the end, and the timeline: each Screen Read and Session Event in order, with the envelope it came from and the turn just after it (`Replayer::timeline()` gives it so far).
 
-Tests replay committed Recordings from `crates/replay/tests/recordings/` and assert with `insta` snapshots.
+Tests replay committed Recordings from `crates/replay/tests/recordings/` and Scenarios from `crates/replay/tests/scenarios/`, and assert with `insta` snapshots. `docs/corpus.md` covers Scenarios, recording them on local webtiles, and the corpus of full games.
 
 ## Over the websocket: designing the panel
 

@@ -17,7 +17,12 @@ copilot-webtiles.workspace = true
 futures-util.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+# Pins corpus games by hash. Already in the lockfile through Tauri.
+sha2 = "0.11"
 thiserror.workspace = true
+# Scenario and corpus manifests are hand-written, with comments: TOML, already in the lockfile
+# through Tauri.
+toml = "1"
 tokio = { workspace = true, features = ["io-std", "io-util", "macros", "net", "rt", "time"] }
 tokio-tungstenite.workspace = true
 zstd.workspace = true

@@ -26,7 +26,7 @@ You are the steward of this codebase. Build it thoughtfully and purposefully, wi
 | `app/src-tauri` | The Tauri shell. Wires the crates together and owns windows, the tray and the keychain. |
 | `app/src` | The Svelte 5 panel. Renders the view model; holds no game logic. |
 | `extension` | The WXT extension. A pure relay: forwards raw messages, parses and stores nothing (ADR 0001). |
-| `tools/*` | Offline binaries: the Game Knowledge extractor and the crawl oracle. |
+| `tools/*` | Offline binaries: the Game Knowledge extractor, the crawl oracle, and the corpus recorder and fetcher. |
 
 Each crate is a deep module: a small public surface over a lot of behaviour. Add a new crate only when it brings a separate binary or a dependency that must stay out of `core`; grow existing modules otherwise.
 
@@ -59,7 +59,7 @@ Tests drive the system through its seams and assert on what comes out. The seams
 3. **Offline builders**: fixed input files in, output files out.
 4. **Extension relay**: a fake page `comm` in, envelopes out.
 
-Write a unit test only for logic a seam test can't reach precisely, such as a probability distribution. Snapshots use `insta` and are golden files reviewed in diffs; `docs/replay.md` covers the replayers, committed Recordings and how to update snapshots. Tests never call a live LLM; they replay the sidecar.
+Write a unit test only for logic a seam test can't reach precisely, such as a probability distribution. Snapshots use `insta` and are golden files reviewed in diffs; `docs/replay.md` covers the replayers, committed Recordings and how to update snapshots; `docs/corpus.md` covers Scenarios and the corpus of full games. Tests never call a live LLM; they replay the sidecar.
 
 ## Rust
 

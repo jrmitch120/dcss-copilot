@@ -20,6 +20,7 @@ const STOPPED_UNNAMED: &[u8] =
     include_bytes!("recordings/session-tiv-reloads-and-crashes-before-naming-the-game.dcssrec");
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
+const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap()).unwrap()
@@ -42,6 +43,27 @@ fn a_game_is_identified_by_server_account_character_species_and_when_it_was_firs
     let replay = replay(MINOTAUR).unwrap();
 
     insta::assert_json_snapshot!(replay.identity);
+}
+
+#[test]
+fn a_game_is_a_wizard_mode_game_from_the_moment_the_player_enters_wizard_mode() {
+    let mut replayer = replayer(ENTERS_WIZARD_MODE);
+    let mut changes: Vec<(usize, bool)> = Vec::new();
+    while !replayer.at_end() {
+        replayer.step();
+        if let Some(wizard) = replayer
+            .advisor()
+            .identity()
+            .map(|identity| identity.wizard)
+            && changes.last().map(|(_, last)| *last) != Some(wizard)
+        {
+            changes.push((replayer.position(), wizard));
+        }
+    }
+
+    // Just after the game's first `player` message, then just after the one crawl sends once
+    // "wiz" is confirmed.
+    assert_eq!(changes, [(20, false), (37, true)]);
 }
 
 #[test]

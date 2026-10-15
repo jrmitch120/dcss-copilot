@@ -1,0 +1,160 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz94713139",
+    "character": "wiz94713139",
+    "species": "Minotaur",
+    "firstSeenMs": 1792094714533,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "snapshots": [
+    {
+      "turn": 0,
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 19,
+          "death": {
+            "times": 200,
+            "trials": 10000
+          },
+          "worstHit": 19,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "rangedAndSpells",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz94713139",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "line": "Ogre can attack before your next action.",
+          "detail": "Death 2.0% · worst hit 19 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "O",
+                  "colour": "brown"
+                },
+                "tile": "mon/humanoids/ogre"
+              },
+              "name": "ogre",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 19,
+          "death": {
+            "times": 200,
+            "trials": 10000
+          },
+          "worstHit": 19,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "rangedAndSpells",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz94713139",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 2
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "line": "Ogre can attack before your next action.",
+          "detail": "Death 2.0% · worst hit 19 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "O",
+                  "colour": "brown"
+                },
+                "tile": "mon/humanoids/ogre"
+              },
+              "name": "ogre",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ]
+}
