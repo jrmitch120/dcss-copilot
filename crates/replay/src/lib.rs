@@ -1,8 +1,12 @@
 //! Recording format, in-process replayer and fake-extension front end.
 
+mod fake_extension;
 mod recording;
 mod replayer;
 
+pub use fake_extension::{
+    APP_URL, FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed,
+};
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };

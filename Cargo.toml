@@ -18,6 +18,7 @@ copilot-replay = { path = "crates/replay" }
 copilot-store = { path = "crates/store" }
 copilot-webtiles = { path = "crates/webtiles" }
 anyhow = "1"
+futures-util = "0.3"
 insta = { version = "1", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 # preserve_order: relayed messages keep their key order, so Recordings hold them unchanged.
@@ -26,6 +27,8 @@ specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 specta-typescript = "=0.0.12"
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 thiserror = "2"
+tokio = "1"
+tokio-tungstenite = "0.30"
 zstd = "0.13"
 
 [workspace.lints.rust]

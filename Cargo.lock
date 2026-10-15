@@ -438,10 +438,13 @@ dependencies = [
  "anyhow",
  "copilot-core",
  "copilot-webtiles",
+ "futures-util",
  "insta",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+ "tokio",
+ "tokio-tungstenite",
  "zstd",
 ]
 
