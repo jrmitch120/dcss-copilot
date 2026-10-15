@@ -59,7 +59,7 @@ Tests drive the system through its seams and assert on what comes out. The seams
 3. **Offline builders**: fixed input files in, output files out.
 4. **Extension relay**: a fake page `comm` in, envelopes out.
 
-Write a unit test only for logic a seam test can't reach precisely, such as a probability distribution. Snapshots use `insta` and are golden files reviewed in diffs. Tests never call a live LLM; they replay the sidecar.
+Write a unit test only for logic a seam test can't reach precisely, such as a probability distribution. Snapshots use `insta` and are golden files reviewed in diffs; `docs/replay.md` covers the replayers, committed Recordings and how to update snapshots. Tests never call a live LLM; they replay the sidecar.
 
 ## Rust
 

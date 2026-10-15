@@ -9,11 +9,16 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+anyhow.workspace = true
 copilot-core.workspace = true
 copilot-webtiles.workspace = true
+# The fake extension's websocket client, the same stack as the app's relay.
+futures-util.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, features = ["io-std", "io-util", "macros", "net", "rt", "time"] }
+tokio-tungstenite.workspace = true
 zstd.workspace = true
 
 [lints]

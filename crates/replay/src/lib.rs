@@ -1,15 +1,20 @@
 //! Recording format, in-process replayer and fake-extension front end.
 
+mod fake_extension;
 mod recording;
+mod replayer;
 
+pub use fake_extension::{
+    FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
+};
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
+pub use replayer::{Applied, Replayer};
 
 use std::io::Read;
 
-use copilot_core::{Advisor, Connection, GameIdentity, ViewModel, VisibleState};
-use copilot_webtiles::WebtilesSource;
+use copilot_core::{GameIdentity, ViewModel, VisibleState};
 
 /// What the core made of a replayed Recording.
 #[derive(Debug, Clone)]
@@ -24,32 +29,24 @@ pub struct Replay {
     pub truncated: bool,
 }
 
-/// Feeds a Recording through the webtiles Game Source and the core, in process, as if a browser
-/// had relayed it live.
+/// Replays a whole Recording in process, one envelope at a time.
 ///
 /// # Errors
 /// If the Recording can't be read.
 pub fn replay(recording: impl Read) -> Result<Replay, RecordingError> {
-    let recording = Recording::read(recording)?;
-    let connection = Connection::Connected {
-        buffer_overflowed: false,
-    };
-    let mut source = WebtilesSource::new();
-    let mut advisor = Advisor::new();
+    let mut replayer = Replayer::new(Recording::read(recording)?);
     let mut view_models: Vec<ViewModel> = Vec::new();
-    for envelope in &recording.envelopes {
-        for event in source.ingest(envelope) {
-            advisor.apply(event);
-        }
-        let view = advisor.view_model(&recording.header.app_version, connection.clone());
+    while !replayer.at_end() {
+        replayer.step();
+        let view = replayer.view_model();
         if view_models.last() != Some(&view) {
             view_models.push(view);
         }
     }
     Ok(Replay {
         view_models,
-        identity: advisor.identity().cloned(),
-        visible: advisor.visible().clone(),
-        truncated: recording.truncated,
+        identity: replayer.advisor().identity().cloned(),
+        visible: replayer.advisor().visible().clone(),
+        truncated: replayer.recording().truncated,
     })
 }

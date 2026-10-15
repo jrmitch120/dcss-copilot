@@ -1,7 +1,0 @@
-{"origin":"https://crawl.example.org","tab":7,"ts":1760486400000,"gameVersion":null,"msg":{"msg":"game_started"}}
-{"origin":"https://crawl.example.org","tab":7,"ts":1760486400010,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","name":"Mira","species":"Minotaur","hp":18,"hp_max":18,"turn":100}}
-{"origin":"https://other.example.org","tab":9,"ts":1760486410000,"gameVersion":null,"msg":{"msg":"watching_started","username":"tester"}}
-{"origin":"https://other.example.org","tab":9,"ts":1760486410010,"gameVersion":"Dungeon Crawl Stone Soup 0.33.1","msg":{"msg":"player","name":"Wizzy","species":"Deep Elf","hp":11,"hp_max":11,"turn":1520}}
-{"origin":"https://crawl.example.org","tab":7,"ts":1760486420000,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","hp":17,"turn":101}}
-{"origin":"https://crawl.example.org","tab":7,"ts":1760486430000,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"game_started"}}
-{"origin":"https://crawl.example.org","tab":7,"ts":1760486430010,"gameVersion":"Dungeon Crawl Stone Soup 0.34.1","msg":{"msg":"player","name":"Mira","species":"Gnoll","hp":14,"hp_max":14,"turn":0}}

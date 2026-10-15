@@ -435,12 +435,16 @@ version = "0.1.0"
 name = "copilot-replay"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "copilot-core",
  "copilot-webtiles",
+ "futures-util",
  "insta",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+ "tokio",
+ "tokio-tungstenite",
  "zstd",
 ]
 

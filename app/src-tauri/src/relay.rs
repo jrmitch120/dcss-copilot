@@ -7,6 +7,8 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use copilot_webtiles::Envelope;
+pub use copilot_webtiles::relay_protocol::RELAY_PORT;
+use copilot_webtiles::relay_protocol::{AppFrame, ExtensionFrame, RELAY_PROTOCOL_VERSION, Refusal};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use tokio::net::{TcpListener, TcpStream};
@@ -15,12 +17,6 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::handshake::server::{ErrorResponse, Request, Response};
 use tokio_tungstenite::tungstenite::http::StatusCode;
 use tokio_tungstenite::tungstenite::{self, Message};
-
-/// The port the extension connects to, on 127.0.0.1 only.
-pub const RELAY_PORT: u16 = 47_821;
-
-/// The only compatibility contract with the extension. The app also accepts the previous version.
-pub const RELAY_PROTOCOL_VERSION: u32 = 1;
 
 /// Only browser extensions may connect: never a web page, which could feed the app a fake game.
 const EXTENSION_ORIGIN_SCHEMES: [&str; 2] = ["chrome-extension://", "moz-extension://"];
@@ -178,30 +174,6 @@ pub async fn serve(
     }
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
-enum ExtensionFrame {
-    Hello { protocol: u32 },
-    Envelope { envelope: Envelope },
-    Overflow,
-    Ping,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
-enum AppFrame {
-    Welcome { protocol: u32 },
-    AwaitingApproval,
-    Refused { reason: Refusal },
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-enum Refusal {
-    UnsupportedProtocol,
-    BrowserDenied,
-}
-
 #[derive(Debug, thiserror::Error)]
 enum SessionError {
     #[error("websocket failed: {0}")]
@@ -319,7 +291,7 @@ async fn relay(socket: &mut Socket, events: &mpsc::Sender<RelayEvent>) -> Result
     while let Some(frame) = next_frame(socket).await? {
         let event = match frame {
             ExtensionFrame::Envelope { envelope } => RelayEvent::Envelope(envelope),
-            ExtensionFrame::Overflow => RelayEvent::Overflow,
+            ExtensionFrame::Overflow { .. } => RelayEvent::Overflow,
             ExtensionFrame::Hello { .. } | ExtensionFrame::Ping => continue,
         };
         if events.send(event).await.is_err() {

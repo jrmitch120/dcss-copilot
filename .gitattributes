@@ -1,0 +1,2 @@
+# Recordings are zstd JSON Lines. See docs/replay.md to show their lines in `git diff`.
+*.dcssrec binary diff=dcssrec
