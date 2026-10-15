@@ -14,6 +14,13 @@ expression: characters
   {
     "name": "Mira",
     "species": "Minotaur",
+    "hp": 18,
+    "hpMax": 18,
+    "turn": 0
+  },
+  {
+    "name": "Mira",
+    "species": "Minotaur",
     "hp": 15,
     "hpMax": 18,
     "turn": 3

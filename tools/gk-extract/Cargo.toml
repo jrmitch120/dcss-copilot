@@ -10,6 +10,15 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+copilot-gk.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# Crawl's monster and species data is YAML; serde-saphyr is pure Rust and panic-free.
+serde-saphyr = "2"
+thiserror.workspace = true
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+insta.workspace = true

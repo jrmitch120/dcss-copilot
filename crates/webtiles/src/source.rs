@@ -1,16 +1,23 @@
 use std::collections::HashMap;
 
 use copilot_core::{CrawlVersion, GameIdentity, Role, SourceEvent, VisibleState};
+use copilot_gk::{Bundle, Library};
 use serde_json::Value;
 
 use crate::Envelope;
+use crate::inventory::Inventory;
+use crate::map::LevelMap;
 
 /// The webtiles Game Source: decodes relayed envelopes into source-neutral events.
 ///
 /// Each tab's game is merged separately, because webtiles sends deltas per connection. The source
 /// follows the tab whose game most recently changed and reports only that game.
-#[derive(Debug, Default)]
+///
+/// Webtiles numbers monster and item types with each Crawl Version's own enums, so the source
+/// decodes a game through the Game Knowledge bundle for its version, when it has one.
+#[derive(Debug)]
 pub struct WebtilesSource {
+    knowledge: Library,
     tabs: HashMap<TabKey, TabGame>,
     followed: Option<TabKey>,
 }
@@ -27,6 +34,7 @@ struct TabGame {
     account: Option<String>,
     role: Option<Role>,
     player: PlayerFields,
+    map: LevelMap,
     first_seen_ms: Option<u64>,
     reported: Option<(GameIdentity, VisibleState)>,
 }
@@ -37,14 +45,22 @@ struct PlayerFields {
     name: Option<String>,
     species: Option<String>,
     wizard: bool,
-    visible: VisibleState,
+    hp: Option<i32>,
+    hp_max: Option<i32>,
+    turn: Option<u32>,
+    /// `None` until a `player` message has carried the inventory.
+    inventory: Option<Inventory>,
 }
 
 impl WebtilesSource {
-    /// A source that has seen nothing yet.
+    /// A source that has seen nothing yet, decoding games through `knowledge`.
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(knowledge: Library) -> Self {
+        Self {
+            knowledge,
+            tabs: HashMap::new(),
+            followed: None,
+        }
     }
 
     /// Takes in one relayed envelope and returns what changed about the followed game.
@@ -59,7 +75,9 @@ impl WebtilesSource {
         let Some(identity) = game.identify(envelope) else {
             return Vec::new();
         };
-        let visible = game.player.visible.clone();
+        let crawl_version = identity.crawl_version.as_ref();
+        let knowledge = crawl_version.and_then(|version| self.knowledge.for_version(&version.0));
+        let visible = game.visible(knowledge);
         let switched = self.followed.as_ref() != Some(&key);
         let mut events = Vec::new();
         let (last_identity, last_visible) = match &game.reported {
@@ -91,6 +109,7 @@ impl TabGame {
                 self.account = string(msg, "username");
             }
             Some("player") => self.player.merge(msg),
+            Some("map") => self.map.merge(msg),
             _ => {}
         }
     }
@@ -99,8 +118,24 @@ impl TabGame {
     fn start(&mut self, role: Role) {
         self.role = Some(role);
         self.player = PlayerFields::default();
+        self.map = LevelMap::default();
         self.first_seen_ms = None;
         self.reported = None;
+    }
+
+    /// What the game reports now, with its monsters and items decoded through `knowledge`.
+    fn visible(&self, knowledge: Option<&Bundle>) -> VisibleState {
+        VisibleState {
+            hp: self.player.hp,
+            hp_max: self.player.hp_max,
+            turn: self.player.turn,
+            monsters: self.map.monsters_in_view(knowledge),
+            inventory: self
+                .player
+                .inventory
+                .as_ref()
+                .map(|inventory| inventory.items(knowledge)),
+        }
     }
 
     /// The game's identity, once the game has named the character and species. The first call
@@ -126,6 +161,9 @@ impl TabGame {
 impl PlayerFields {
     /// Merges a `player` delta: a field is sent only when it changed.
     fn merge(&mut self, msg: &Value) {
+        if let Some(inv) = msg.get("inv") {
+            self.inventory.get_or_insert_default().merge(inv);
+        }
         if let Some(name) = string(msg, "name") {
             self.name = Some(name);
         }
@@ -136,13 +174,13 @@ impl PlayerFields {
             self.wizard = wizard.as_i64().is_some_and(|w| w != 0) || wizard.as_bool() == Some(true);
         }
         if let Some(hp) = int(msg, "hp") {
-            self.visible.hp = Some(hp);
+            self.hp = Some(hp);
         }
         if let Some(hp_max) = int(msg, "hp_max") {
-            self.visible.hp_max = Some(hp_max);
+            self.hp_max = Some(hp_max);
         }
         if let Some(turn) = int(msg, "turn") {
-            self.visible.turn = Some(turn);
+            self.turn = Some(turn);
         }
     }
 }

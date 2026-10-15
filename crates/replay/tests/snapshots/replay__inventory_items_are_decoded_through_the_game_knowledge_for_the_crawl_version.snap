@@ -1,0 +1,24 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.inventory
+---
+[
+  {
+    "letter": "a",
+    "name": "a +0 mace (weapon)",
+    "quantity": 1,
+    "kind": {
+      "class": "OBJ_WEAPONS",
+      "subType": "WPN_MACE"
+    }
+  },
+  {
+    "letter": "b",
+    "name": "a potion of curing",
+    "quantity": 1,
+    "kind": {
+      "class": "OBJ_POTIONS",
+      "subType": "POT_CURING"
+    }
+  }
+]

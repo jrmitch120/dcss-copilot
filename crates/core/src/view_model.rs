@@ -178,7 +178,7 @@ pub struct Glyph {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 pub struct TileName(pub String);
 
-/// The sixteen colours DCSS draws glyphs in, named as crawl names them.
+/// The sixteen colours DCSS draws glyphs in, named as crawl names them, in crawl's order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Colour {
@@ -198,6 +198,34 @@ pub enum Colour {
     LightMagenta,
     Yellow,
     White,
+}
+
+impl Colour {
+    /// Every colour, in crawl's `COLOURS` order: a colour's index is its number in crawl.
+    const ALL: [Self; 16] = [
+        Self::Black,
+        Self::Blue,
+        Self::Green,
+        Self::Cyan,
+        Self::Red,
+        Self::Magenta,
+        Self::Brown,
+        Self::LightGrey,
+        Self::DarkGrey,
+        Self::LightBlue,
+        Self::LightGreen,
+        Self::LightCyan,
+        Self::LightRed,
+        Self::LightMagenta,
+        Self::Yellow,
+        Self::White,
+    ];
+
+    /// The colour crawl numbers `number`, from 0 for black to 15 for white.
+    #[must_use]
+    pub fn from_crawl(number: u8) -> Option<Self> {
+        Self::ALL.get(usize::from(number)).copied()
+    }
 }
 
 #[cfg(test)]

@@ -9,6 +9,7 @@
     "includes": [
       "**",
       "!**/src/lib/bindings.ts",
+      "!crates/gk/bundles",
       "!**/.svelte-kit",
       "!**/.wxt",
       "!**/.output",

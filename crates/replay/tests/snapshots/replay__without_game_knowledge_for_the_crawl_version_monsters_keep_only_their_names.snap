@@ -1,0 +1,14 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.monsters
+---
+[
+  {
+    "name": "howler monkey",
+    "glyph": {
+      "text": "h",
+      "colour": "lightGreen"
+    },
+    "id": null
+  }
+]

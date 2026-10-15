@@ -4,6 +4,7 @@
 use std::ops::Range;
 
 use copilot_core::{Advisor, Appearance, Connection, ViewModel};
+use copilot_gk::Library;
 use copilot_webtiles::{Envelope, WebtilesSource};
 
 use crate::Recording;
@@ -19,6 +20,7 @@ pub struct Replayer {
     /// any.
     turns: Vec<Option<u32>>,
     position: usize,
+    knowledge: Library,
     game: Game,
 }
 
@@ -33,13 +35,19 @@ pub struct Applied {
 }
 
 /// The Game Source and the core, fed together.
-#[derive(Default)]
 struct Game {
     source: WebtilesSource,
     advisor: Advisor,
 }
 
 impl Game {
+    fn new(knowledge: &Library) -> Self {
+        Self {
+            source: WebtilesSource::new(knowledge.clone()),
+            advisor: Advisor::new(),
+        }
+    }
+
     fn apply(&mut self, envelope: &Envelope) {
         for event in self.source.ingest(envelope) {
             self.advisor.apply(event);
@@ -48,10 +56,13 @@ impl Game {
 }
 
 impl Replayer {
-    /// Starts before the Recording's first envelope.
+    /// Starts before the Recording's first envelope, with the Game Knowledge the app ships.
     #[must_use]
     pub fn new(recording: Recording) -> Self {
-        let mut game = Game::default();
+        // A shipped bundle that doesn't read leaves its monsters undecoded, which fails every
+        // replay snapshot that decodes one.
+        let knowledge = Library::shipped().unwrap_or_default();
+        let mut game = Game::new(&knowledge);
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
         turns.push(None);
         for envelope in &recording.envelopes {
@@ -62,7 +73,8 @@ impl Replayer {
             recording,
             turns,
             position: 0,
-            game: Game::default(),
+            game: Game::new(&knowledge),
+            knowledge,
         }
     }
 
@@ -156,7 +168,7 @@ impl Replayer {
         let target = position.min(self.recording.envelopes.len());
         let restarted = target < self.position;
         if restarted {
-            self.game = Game::default();
+            self.game = Game::new(&self.knowledge);
             self.position = 0;
         }
         let start = self.position;
