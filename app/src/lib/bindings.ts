@@ -88,7 +88,7 @@ reason: string };
 export type Depiction = {
 	/**  The glyph the console game draws. */
 	glyph: Glyph,
-	/**  The tile webtiles draws, when Game Knowledge names one. */
+	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
 	tile: TileName | null,
 };
 
@@ -302,8 +302,8 @@ export type ThreatLevel =
 
 /**
  *  A DCSS tile, named by its path in crawl's `rltiles` tree without the extension, such as
- *  `mon/unique/saint_roka`. The panel draws it from `tiles/<name>.png`, and draws the glyph
- *  instead for a tile the app doesn't ship.
+ *  `mon/animals/jackal`. The panel draws it from `tiles/<name>.png`, which the app ships for every
+ *  tile Game Knowledge names, and draws the glyph instead should one fail to load.
  */
 export type TileName = string;
 

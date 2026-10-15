@@ -8,7 +8,7 @@ use crate::accumulated_state::AccumulatedState;
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment};
 use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
-    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail,
+    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail, TileName,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -142,11 +142,12 @@ impl Advisor {
             },
             now: now_pill(&self.fact_sheet.threat),
             focus: FocusCard::InView {
-                monsters: self
-                    .visible
-                    .monsters
-                    .as_ref()
-                    .map(|monsters| monsters.iter().map(listing).collect()),
+                monsters: self.visible.monsters.as_ref().map(|monsters| {
+                    monsters
+                        .iter()
+                        .map(|monster| listing(monster, self.game_knowledge()))
+                        .collect()
+                }),
             },
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
@@ -210,12 +211,16 @@ fn capitalised(name: &str) -> String {
     })
 }
 
-/// A monster's row in the panel. Tiles aren't named yet, so the panel draws its glyph.
-fn listing(monster: &VisibleMonster) -> Listing {
+/// A monster's row in the panel, with its tile when `knowledge` names one.
+fn listing(monster: &VisibleMonster, knowledge: Option<&Bundle>) -> Listing {
+    let tile = monster
+        .id
+        .as_ref()
+        .and_then(|id| knowledge?.monster_by_id(id)?.tile.clone());
     Listing {
         depiction: Depiction {
             glyph: monster.glyph.clone(),
-            tile: None,
+            tile: tile.map(TileName),
         },
         name: monster.name.clone(),
         detail: None,
