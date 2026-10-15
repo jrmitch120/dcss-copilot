@@ -29,7 +29,8 @@ fn main() -> anyhow::Result<()> {
         bail!(USAGE);
     };
 
-    let bundle = extract(&crawl, &CrawlRelease { tag, commit })
+    let release = CrawlRelease::checked_out(&crawl, &tag, &commit)?;
+    let bundle = extract(&crawl, &release)
         .with_context(|| format!("extracting from {}", crawl.display()))?;
     let mut out = std::io::stdout().lock();
     serde_json::to_writer_pretty(&mut out, &bundle)?;

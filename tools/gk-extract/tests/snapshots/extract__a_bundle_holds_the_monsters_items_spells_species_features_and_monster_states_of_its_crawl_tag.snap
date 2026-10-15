@@ -5,7 +5,7 @@ expression: bundle
 {
   "crawl": {
     "tag": "0.34.1",
-    "commit": "381d86c47a17a7f29770cf5e6f7bd9b60642aab6",
+    "commit": "1eebc1a2892e1c89776a0d7a10691f8dac8d9796",
     "license": "Dungeon Crawl Stone Soup, copyright the DCSS devteam and contributors (https://github.com/crawl/crawl), licensed under the GNU General Public License, version 2 or later."
   },
   "monsters": {

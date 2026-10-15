@@ -19,7 +19,7 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 | monster attitudes | `mon_attitude_type` in `mon-attitude-type.h` |
 | monster threat ratings | `mon_threat_level_type` in `mon-util.h` |
 
-A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit, so the engine picks its code by name and never compares version strings. The extractor gives every bundle the variants of the crawl source it reads, crawl 0.34's; a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know, stops the extraction.
+A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit, so the engine picks its code by name and never compares version strings. The extractor picks them by the release's series, so `0.34.1` gets the variants ported from crawl 0.34. A release in a series it has no variants for, such as a newer stable, a beta or trunk, stops the extraction rather than being read as 0.34, and so does a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know. Adding a series means porting its formulas and naming them in `FORMULA_VARIANTS` in `tools/gk-extract`.
 
 It understands only what those files use: `#if TAG_MAJOR_VERSION` conditionals, function-like macros that build table entries, and enum initializers that are literals or earlier enumerators. Anything else stops the extraction with an error naming the file, rather than producing a wrong bundle.
 
@@ -31,7 +31,7 @@ cargo run -p gk-extract -- /tmp/crawl --tag 0.34.1 --commit "$(git -C /tmp/crawl
   > crates/gk/bundles/0.34.1.json
 ```
 
-Each bundle records the crawl tag and commit it came from and crawl's license (ADR 0002). A new bundle also needs adding to `Library::shipped` in `crates/gk`.
+The extractor checks `--tag` and `--commit` against the checkout with git: the tag must point at the commit, which must be the one checked out, with no changes to tracked files. Each bundle records the crawl tag and commit it came from and crawl's license (ADR 0002). A new bundle also needs adding to `Library::shipped` in `crates/gk`.
 
 ## Tests
 

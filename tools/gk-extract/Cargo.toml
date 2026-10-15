@@ -22,3 +22,5 @@ workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+# A throwaway git checkout to check releases against.
+tempfile = "3"

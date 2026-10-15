@@ -10,6 +10,7 @@ mod yaml;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use copilot_gk::{Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, Spell};
 
@@ -20,11 +21,11 @@ const CRAWL_LICENSE: &str = "Dungeon Crawl Stone Soup, copyright the DCSS devtea
 contributors (https://github.com/crawl/crawl), licensed under the GNU General Public License, \
 version 2 or later.";
 
-/// The variants of the ported formulas that the crawl source this extractor reads uses: crawl
-/// 0.34's. A crawl whose monster data changed shape, as trunk's attacks gain a reach, fails to
-/// extract instead of being given these; nightly drift detection flags a ported function whose
-/// code changed.
-const FORMULAS: Formulas = Formulas::CRAWL_0_34;
+/// The variants of the ported formulas each crawl release series uses, by series: a release tag
+/// such as `0.34.1` is in series `0.34`. A release in no series here, such as a newer stable, a
+/// beta or trunk, fails to extract rather than being given another release's variants; nightly
+/// drift detection flags a ported function whose code changed within a series.
+const FORMULA_VARIANTS: &[(&str, Formulas)] = &[("0.34", Formulas::CRAWL_0_34)];
 
 /// Where crawl's game source lives inside a crawl checkout.
 const SOURCE_DIR: &str = "crawl-ref/source";
@@ -85,6 +86,78 @@ pub struct CrawlRelease {
     pub commit: String,
 }
 
+impl CrawlRelease {
+    /// The release checked out at `crawl`, a git checkout of crawl: `tag` must point at `commit`,
+    /// which must be the commit checked out, with no changes to tracked files.
+    ///
+    /// # Errors
+    /// If git can't read the checkout, the tag or commit isn't what is checked out, or tracked
+    /// files have been changed.
+    pub fn checked_out(crawl: &Path, tag: &str, commit: &str) -> Result<Self, ExtractError> {
+        let head = git(crawl, &["rev-parse", "--verify", "HEAD^{commit}"])?;
+        let tagged = git(
+            crawl,
+            &[
+                "rev-parse",
+                "--verify",
+                &format!("refs/tags/{tag}^{{commit}}"),
+            ],
+        );
+        if tagged.as_deref().ok() != Some(head.as_str()) || commit != head {
+            return Err(ExtractError::NotCheckedOut {
+                tag: tag.to_owned(),
+                commit: commit.to_owned(),
+                head,
+            });
+        }
+        let changed = git(crawl, &["status", "--porcelain", "--untracked-files=no"])?;
+        if !changed.is_empty() {
+            return Err(ExtractError::Changed { files: changed });
+        }
+        Ok(Self {
+            tag: tag.to_owned(),
+            commit: head,
+        })
+    }
+
+    /// The formula variants this release uses, from its release series.
+    fn formulas(&self) -> Result<Formulas, ExtractError> {
+        let series = self
+            .tag
+            .splitn(3, '.')
+            .take(2)
+            .collect::<Vec<_>>()
+            .join(".");
+        FORMULA_VARIANTS
+            .iter()
+            .find(|(known, _)| *known == series)
+            .map(|&(_, formulas)| formulas)
+            .ok_or_else(|| ExtractError::NoFormulaVariants {
+                tag: self.tag.clone(),
+            })
+    }
+}
+
+/// What git prints for `args` in the checkout at `crawl`, trimmed.
+fn git(crawl: &Path, args: &[&str]) -> Result<String, ExtractError> {
+    let failed = |reason: String| ExtractError::Git {
+        command: args.join(" "),
+        reason,
+    };
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(crawl)
+        .args(args)
+        .output()
+        .map_err(|error| failed(error.to_string()))?;
+    if !out.status.success() {
+        return Err(failed(
+            String::from_utf8_lossy(&out.stderr).trim().to_owned(),
+        ));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
+}
+
 /// Why a bundle couldn't be extracted.
 #[derive(Debug, thiserror::Error)]
 pub enum ExtractError {
@@ -112,6 +185,37 @@ pub enum ExtractError {
         /// What couldn't be read.
         what: String,
     },
+    /// Git couldn't read the crawl checkout.
+    #[error("git {command} failed: {reason}")]
+    Git {
+        /// The git command, without `git -C <checkout>`.
+        command: String,
+        /// What git said.
+        reason: String,
+    },
+    /// The release asked for isn't what the crawl checkout has checked out.
+    #[error("crawl {tag} at {commit} isn't what is checked out: HEAD is {head}")]
+    NotCheckedOut {
+        /// The tag asked for.
+        tag: String,
+        /// The commit asked for.
+        commit: String,
+        /// The commit checked out.
+        head: String,
+    },
+    /// Tracked files in the crawl checkout have been changed, so it isn't the release.
+    #[error("the crawl checkout has changes, so it isn't the release:\n{files}")]
+    Changed {
+        /// The changed files, as `git status --porcelain` lists them.
+        files: String,
+    },
+    /// The extractor knows no formula variants for the release, so it can't say which the
+    /// engine should use.
+    #[error("no ported formula variants are known for crawl {tag}")]
+    NoFormulaVariants {
+        /// The release tag.
+        tag: String,
+    },
     /// An enum value doesn't fit the bundle's type for it.
     #[error("{id} has the value {value}, out of range")]
     OutOfRange {
@@ -125,8 +229,10 @@ pub enum ExtractError {
 /// Extracts the bundle for `release` from the crawl checkout at `crawl`.
 ///
 /// # Errors
-/// If a file can't be read or isn't in a form the extractor understands.
+/// If the extractor knows no formula variants for the release, or a file can't be read or isn't
+/// in a form the extractor understands.
 pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractError> {
+    let formulas = release.formulas()?;
     let crawl = Crawl::open(crawl)?;
     let item_names = crawl.item_names()?;
     Ok(Bundle {
@@ -150,7 +256,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractEr
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
-        formulas: FORMULAS,
+        formulas,
     })
 }
 
