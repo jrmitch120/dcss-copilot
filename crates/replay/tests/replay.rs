@@ -110,6 +110,13 @@ fn the_characters_stats_religion_place_and_statuses_are_decoded() {
 }
 
 #[test]
+fn monsters_in_view_have_their_square_attitude_and_crawls_threat_rating() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.monsters.unwrap());
+}
+
+#[test]
 fn the_first_visible_state_is_what_the_game_first_reports() {
     let mut replayer = replayer(MINOTAUR);
     while replayer.advisor().visible() == &VisibleState::default() && !replayer.at_end() {

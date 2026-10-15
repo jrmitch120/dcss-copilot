@@ -3,8 +3,8 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use copilot_core::{Colour, Glyph, VisibleMonster};
-use copilot_gk::Bundle;
+use copilot_core::{Attitude, Colour, CrawlThreat, Glyph, Position, VisibleMonster};
+use copilot_gk::{Bundle, EnumId};
 use serde_json::Value;
 
 /// Tile background flags that mark a cell the player can't see now, from crawl's
@@ -53,6 +53,10 @@ struct MonsterInfo {
     name: Option<String>,
     /// Its `monster_type` value, which only the Crawl Version's Game Knowledge can decode.
     kind: Option<i64>,
+    /// Its `mon_attitude_type` value.
+    attitude: Option<i64>,
+    /// Its `mon_threat_level_type` value.
+    threat: Option<i64>,
 }
 
 impl MonsterInfo {
@@ -62,6 +66,12 @@ impl MonsterInfo {
         }
         if let Some(kind) = delta.get("type").and_then(Value::as_i64) {
             self.kind = Some(kind);
+        }
+        if let Some(attitude) = delta.get("att").and_then(Value::as_i64) {
+            self.attitude = Some(attitude);
+        }
+        if let Some(threat) = delta.get("threat").and_then(Value::as_i64) {
+            self.threat = Some(threat);
         }
     }
 }
@@ -135,9 +145,9 @@ impl LevelMap {
         }
         let monsters = self
             .cells
-            .values()
-            .filter(|cell| cell.tile_bg.is_some_and(|bg| bg & UNSEEN == 0))
-            .filter_map(|cell| {
+            .iter()
+            .filter(|(_, cell)| cell.tile_bg.is_some_and(|bg| bg & UNSEEN == 0))
+            .filter_map(|(&(y, x), cell)| {
                 let info = match cell.monster.as_ref()? {
                     CellMonster::Tracked(id) => self.tracked.get(id)?,
                     CellMonster::Untracked(info) => info,
@@ -160,6 +170,13 @@ impl LevelMap {
                             .unwrap_or(Colour::LightGrey),
                     },
                     id: known.map(|monster| monster.id.clone()),
+                    position: Position {
+                        x: i32::try_from(x).ok()?,
+                        y: i32::try_from(y).ok()?,
+                    },
+                    attitude: decode(info.attitude, knowledge, Bundle::attitude).and_then(attitude),
+                    crawl_threat: decode(info.threat, knowledge, Bundle::monster_threat)
+                        .and_then(crawl_threat),
                 })
             })
             .collect();
@@ -210,4 +227,37 @@ fn low_word(index: &Value) -> u64 {
         .as_u64()
         .or_else(|| index.get(0).and_then(Value::as_u64))
         .unwrap_or(0)
+}
+
+/// The identifier `knowledge` gives an enum value, through one of its tables.
+fn decode<'a, T: TryFrom<i64>>(
+    value: Option<i64>,
+    knowledge: Option<&'a Bundle>,
+    table: fn(&'a Bundle, T) -> Option<&'a EnumId>,
+) -> Option<&'a EnumId> {
+    table(knowledge?, T::try_from(value?).ok()?)
+}
+
+/// The attitude a `mon_attitude_type` identifier names.
+fn attitude(id: &EnumId) -> Option<Attitude> {
+    Some(match id.0.as_str() {
+        "ATT_HOSTILE" => Attitude::Hostile,
+        "ATT_NEUTRAL" => Attitude::Neutral,
+        "ATT_GOOD_NEUTRAL" => Attitude::GoodNeutral,
+        "ATT_STRICT_NEUTRAL" | "ATT_OLD_STRICT_NEUTRAL" => Attitude::StrictNeutral,
+        "ATT_FRIENDLY" => Attitude::Friendly,
+        "ATT_MARIONETTE" => Attitude::Marionette,
+        _ => return None,
+    })
+}
+
+/// The rating a `mon_threat_level_type` identifier names.
+fn crawl_threat(id: &EnumId) -> Option<CrawlThreat> {
+    Some(match id.0.as_str() {
+        "MTHRT_TRIVIAL" => CrawlThreat::Trivial,
+        "MTHRT_EASY" => CrawlThreat::Easy,
+        "MTHRT_TOUGH" => CrawlThreat::Tough,
+        "MTHRT_NASTY" => CrawlThreat::Nasty,
+        _ => return None,
+    })
 }

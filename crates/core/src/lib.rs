@@ -13,5 +13,6 @@ pub use view_model::{
     Listing, NowPill, RunPlanRail, TileName, ViewModel,
 };
 pub use visible_state::{
-    InventoryItem, Place, Position, Religion, Stats, Status, VisibleMonster, VisibleState,
+    Attitude, CrawlThreat, InventoryItem, Place, Position, Religion, Stats, Status, VisibleMonster,
+    VisibleState,
 };

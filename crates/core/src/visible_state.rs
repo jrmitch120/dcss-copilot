@@ -136,4 +136,44 @@ pub struct VisibleMonster {
     pub glyph: Glyph,
     /// Its Game Knowledge identity, when the bundle for the game's Crawl Version decodes its type.
     pub id: Option<EnumId>,
+    /// The square it is on.
+    pub position: Position,
+    /// Whose side it is on, when the bundle for the game's Crawl Version decodes it.
+    pub attitude: Option<Attitude>,
+    /// How dangerous crawl itself rates it for this character, when the bundle for the game's
+    /// Crawl Version decodes it. Crawl's own rating, not the Advisor's Threat Level.
+    pub crawl_threat: Option<CrawlThreat>,
+}
+
+/// Whose side a monster is on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Attitude {
+    /// It fights the player.
+    Hostile,
+    /// It fights everyone, but isn't hunting the player.
+    Neutral,
+    /// It won't attack the player or the player's allies.
+    GoodNeutral,
+    /// It won't attack the player, but may attack the player's allies.
+    StrictNeutral,
+    /// It is the player's ally.
+    Friendly,
+    /// It is an ally for now, under a spell that will end.
+    Marionette,
+}
+
+/// Crawl's rating of how dangerous a monster is to the character, which webtiles shows as the
+/// colour of its name in the monster list.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum CrawlThreat {
+    /// No danger.
+    Trivial,
+    /// Little danger.
+    Easy,
+    /// A real fight.
+    Tough,
+    /// Dangerous.
+    Nasty,
 }

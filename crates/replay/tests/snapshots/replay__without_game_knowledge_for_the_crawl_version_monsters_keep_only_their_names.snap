@@ -1,6 +1,6 @@
 ---
 source: crates/replay/tests/replay.rs
-expression: replay.visible.monsters
+expression: replay.visible.monsters.unwrap()
 ---
 [
   {
@@ -9,6 +9,12 @@ expression: replay.visible.monsters
       "text": "h",
       "colour": "lightGreen"
     },
-    "id": null
+    "id": null,
+    "position": {
+      "x": 21,
+      "y": 8
+    },
+    "attitude": null,
+    "crawlThreat": null
   }
 ]
