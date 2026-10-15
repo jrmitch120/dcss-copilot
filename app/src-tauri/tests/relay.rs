@@ -151,7 +151,7 @@ async fn a_new_browser_waits_for_the_player_to_allow_it_then_relays_envelopes() 
     }
     assert!(matches!(
         app.events.recv().await,
-        Some(RelayEvent::Overflow { tab: 7, .. })
+        Some(RelayEvent::Overflow)
     ));
 
     drop(socket);
@@ -213,10 +213,13 @@ async fn the_current_and_previous_relay_protocol_versions_are_accepted() {
         Some(json!({ "type": "welcome", "protocol": 1 }))
     );
 
-    let mut newer = hello(&app, 2).await;
-    assert_eq!(
-        receive(&mut newer).await,
-        Some(json!({ "type": "refused", "reason": "unsupported-protocol" }))
-    );
-    assert_eq!(receive(&mut newer).await, None);
+    for unsupported in [2, u32::MAX] {
+        let mut newer = hello(&app, unsupported).await;
+        assert_eq!(
+            receive(&mut newer).await,
+            Some(json!({ "type": "refused", "reason": "unsupported-protocol" })),
+            "protocol {unsupported}"
+        );
+        assert_eq!(receive(&mut newer).await, None);
+    }
 }

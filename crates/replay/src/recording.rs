@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 /// The file extension Recordings are saved with.
 pub const RECORDING_EXTENSION: &str = "dcssrec";
 
+/// The header's `format`, so a stray file is recognised as not a Recording.
+const FORMAT_TAG: &str = "dcssrec";
+
 /// Bumped whenever the header or line format changes.
 const FORMAT_VERSION: u32 = 1;
 
@@ -69,7 +72,7 @@ impl<W: Write> RecordingWriter<W> {
             encoder: zstd::Encoder::new(writer, ZSTD_LEVEL)?,
         };
         let header = RecordingHeader {
-            format: RECORDING_EXTENSION.to_owned(),
+            format: FORMAT_TAG.to_owned(),
             format_version: FORMAT_VERSION,
             app_version: app_version.to_owned(),
         };
@@ -131,7 +134,7 @@ impl Recording {
         let (lines, truncated) = read_lines(reader)?;
         let (header_line, envelope_lines) = lines.split_first().ok_or(RecordingError::Empty)?;
         let header: RecordingHeader = parse(header_line, 1)?;
-        if header.format != RECORDING_EXTENSION || header.format_version != FORMAT_VERSION {
+        if header.format != FORMAT_TAG || header.format_version != FORMAT_VERSION {
             return Err(RecordingError::UnsupportedFormat {
                 format: header.format,
                 version: header.format_version,

@@ -7,7 +7,7 @@ export const RELAY_PROTOCOL_VERSION = 1;
 export const APP_URL = "ws://127.0.0.1:47821";
 
 /** One webtiles message as the page received it, before the extension knows its tab. */
-export interface Capture {
+export interface PageEnvelope {
   origin: string;
   /** Unix milliseconds. */
   ts: number;
@@ -16,15 +16,15 @@ export interface Capture {
   msg: unknown;
 }
 
-/** A captured message on its way to the app. */
-export interface Envelope extends Capture {
+/** A webtiles message on its way to the app. */
+export interface Envelope extends PageEnvelope {
   tab: number;
 }
 
 /** What a page tells the extension. */
 export type PageReport =
-  | { kind: "live"; capture: Capture }
-  | { kind: "replay"; origin: string; captures: Capture[]; overflowed: boolean };
+  | { kind: "live"; envelope: PageEnvelope }
+  | { kind: "replay"; origin: string; envelopes: PageEnvelope[]; overflowed: boolean };
 
 export type ExtensionFrame =
   | { type: "hello"; protocol: number }

@@ -38,12 +38,7 @@ pub enum RelayEvent {
     /// An allowed browser relayed an envelope.
     Envelope(Envelope),
     /// A tab's buffer overflowed before it could be replayed, so its game is missing its start.
-    Overflow {
-        /// The game server's page origin.
-        origin: String,
-        /// The tab whose history is missing.
-        tab: i64,
-    },
+    Overflow,
     /// An allowed browser disconnected.
     Disconnected,
 }
@@ -188,7 +183,7 @@ pub async fn serve(
 enum ExtensionFrame {
     Hello { protocol: u32 },
     Envelope { envelope: Envelope },
-    Overflow { origin: String, tab: i64 },
+    Overflow,
     Ping,
 }
 
@@ -261,7 +256,7 @@ fn forbidden() -> ErrorResponse {
 }
 
 fn supported(protocol: u32) -> bool {
-    protocol == RELAY_PROTOCOL_VERSION || protocol + 1 == RELAY_PROTOCOL_VERSION
+    protocol == RELAY_PROTOCOL_VERSION || protocol.checked_add(1) == Some(RELAY_PROTOCOL_VERSION)
 }
 
 async fn session(
@@ -324,7 +319,7 @@ async fn relay(socket: &mut Socket, events: &mpsc::Sender<RelayEvent>) -> Result
     while let Some(frame) = next_frame(socket).await? {
         let event = match frame {
             ExtensionFrame::Envelope { envelope } => RelayEvent::Envelope(envelope),
-            ExtensionFrame::Overflow { origin, tab } => RelayEvent::Overflow { origin, tab },
+            ExtensionFrame::Overflow => RelayEvent::Overflow,
             ExtensionFrame::Hello { .. } | ExtensionFrame::Ping => continue,
         };
         if events.send(event).await.is_err() {

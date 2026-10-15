@@ -1,6 +1,6 @@
-// Runs in the webtiles page itself (MAIN world): captures every message the page handles.
+// Runs in the webtiles page itself (MAIN world): envelopes every message the page handles.
 
-import type { Capture, PageReport } from "./protocol";
+import type { PageEnvelope, PageReport } from "./protocol";
 
 /** About 25 MB of messages: enough for a long session, small enough to sit in a tab. */
 export const PAGE_BUFFER_LIMIT_BYTES = 25 * 1024 * 1024;
@@ -11,7 +11,7 @@ export interface Comm {
 }
 
 export interface PageRelay {
-  /** Report every buffered capture, so a newly connected app sees the game from the start. */
+  /** Report every buffered envelope, so a newly connected app sees the game from the start. */
   replay(): void;
 }
 
@@ -28,15 +28,16 @@ export function wrapComm(
   },
 ): PageRelay {
   const limit = options.bufferLimitBytes ?? PAGE_BUFFER_LIMIT_BYTES;
-  let buffer: Capture[] = [];
+  let buffer: PageEnvelope[] = [];
   let bufferedBytes = 0;
   let overflowed = false;
   let gameVersion: string | null = null;
+  const utf8 = new TextEncoder();
 
   const handle = comm.handle_message.bind(comm);
   comm.handle_message = (msg: unknown) => {
     try {
-      capture(msg);
+      envelop(msg);
     } catch (error) {
       // The relay must never break the game page.
       console.error("DCSS Copilot could not capture a message", error);
@@ -44,28 +45,40 @@ export function wrapComm(
     return handle(msg);
   };
 
-  function capture(msg: unknown): void {
+  function envelop(msg: unknown): void {
     const type = (msg as { msg?: unknown } | null)?.msg;
     // A `multi` message's children pass through handle_message on their own.
     if (type === "multi") return;
     if (type === "version") gameVersion = String((msg as { text?: unknown }).text ?? "");
 
-    const captured: Capture = { origin: options.origin, ts: options.now(), gameVersion, msg };
+    // A copy, so the buffer keeps the message as the server sent it whatever the page does to it.
+    const raw = structuredClone(msg);
+    const envelope: PageEnvelope = {
+      origin: options.origin,
+      ts: options.now(),
+      gameVersion,
+      msg: raw,
+    };
     if (!overflowed) {
-      bufferedBytes += JSON.stringify(msg).length;
+      bufferedBytes += utf8.encode(JSON.stringify(raw)).length;
       if (bufferedBytes > limit) {
         overflowed = true;
         buffer = [];
       } else {
-        buffer.push(captured);
+        buffer.push(envelope);
       }
     }
-    options.report({ kind: "live", capture: captured });
+    options.report({ kind: "live", envelope });
   }
 
   return {
     replay() {
-      options.report({ kind: "replay", origin: options.origin, captures: [...buffer], overflowed });
+      options.report({
+        kind: "replay",
+        origin: options.origin,
+        envelopes: [...buffer],
+        overflowed,
+      });
     },
   };
 }

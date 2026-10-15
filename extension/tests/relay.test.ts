@@ -145,6 +145,19 @@ describe("extension relay", () => {
     ]);
   });
 
+  it("replays messages as the server sent them, even if the page changed them after handling", () => {
+    const relay = relayHarness();
+    const msg = { msg: "player", inv: { 0: { name: "a +0 club" } } };
+    relay.serverSends(msg);
+    msg.inv[0].name = "changed by the page";
+
+    const socket = relay.connectAndWelcome();
+
+    expect(socket.envelopes().map(messageOf)).toEqual([
+      { msg: "player", inv: { 0: { name: "a +0 club" } } },
+    ]);
+  });
+
   it("replays the whole buffer again when the app reconnects", () => {
     const relay = relayHarness();
     relay.serverSends({ msg: "player", name: "Mira" });

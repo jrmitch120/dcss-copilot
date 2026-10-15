@@ -20,6 +20,10 @@ _Avoid_: Log, trace, capture (when meaning the saved file)
 One raw message from a Game Source, unchanged, wrapped with where and when it was received. The browser extension relays envelopes to the app, and a Recording is a sequence of them.
 _Avoid_: Packet, event, frame (a frame is one websocket message of the relay protocol)
 
+**Relay protocol version**:
+The one integer the browser extension and the app agree on to understand each other. The app accepts its own version and the previous one, so the two can update separately.
+_Avoid_: API version, app version
+
 **Tournament Game**:
 A game that counts for the official DCSS tournament: played on the tournament's own Crawl Version, on an official server, within the tournament's dates. Games on other versions during those dates are not Tournament Games. The Advisor gives only Information in a Tournament Game.
 _Avoid_: Tourney game, competitive game

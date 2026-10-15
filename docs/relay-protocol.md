@@ -44,8 +44,10 @@ Every frame is one JSON text message tagged by `type`.
 | Frame | When |
 |---|---|
 | `{"type":"welcome","protocol":1}` | The browser is allowed and the protocol is supported. Envelopes may follow. |
-| `{"type":"awaiting-approval"}` | First connect from this browser: the app is asking the player "Allow this browser?". `welcome` or `refused` follows. |
+| `{"type":"awaiting-approval"}` | First connect from this browser: the app is asking the player "Allow this browser?". `welcome` or `refused` follows, unless a newer connection is asked instead: then the app closes this one without a frame and the extension retries. |
 | `{"type":"refused","reason":"unsupported-protocol"}` | The extension's protocol is neither the app's current nor previous version. The app closes the connection. |
 | `{"type":"refused","reason":"browser-denied"}` | The player answered no, now or earlier. The app closes the connection. |
 
 The player's answer is remembered per browser origin.
+
+Each connection starts afresh: every tab replays its buffer, so the app rebuilds each game from its first message and a dev build starts a new Recording.

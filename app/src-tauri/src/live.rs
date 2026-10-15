@@ -2,11 +2,11 @@
 
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use copilot_core::{Advisor, Connection, ViewModel};
-use copilot_replay::{RECORDING_EXTENSION, RecordingWriter};
+use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
 use crate::relay::{ApprovalRequest, RelayEvent};
@@ -25,18 +25,20 @@ struct State {
     approval: Option<ApprovalRequest>,
     buffer_overflowed: bool,
     relay_unavailable: Option<String>,
-    recording: Recording,
+    recorder: Recorder,
 }
 
 /// How often, in game-page milliseconds, a Recording is flushed, so a crash loses at most this much.
 const RECORDING_FLUSH_MS: u64 = 1_000;
 
-/// Dev builds save every envelope they receive, so a session can be replayed.
-enum Recording {
+/// Dev builds save every envelope they receive, so a session can be replayed. Each browser
+/// connection replays its tabs from the start, so each gets its own Recording.
+enum Recorder {
     Off,
-    /// Recording is on; the file is created when the first envelope arrives.
-    Pending(PathBuf),
+    /// Recording into this directory; the next file starts when an envelope arrives.
+    Idle(PathBuf),
     Writing {
+        dir: PathBuf,
         writer: RecordingWriter<BufWriter<File>>,
         /// The envelope timestamp of the last flush.
         flushed_at: u64,
@@ -46,7 +48,7 @@ enum Recording {
 impl Live {
     /// Starts with no browser connected, writing a Recording into `recordings` if given.
     pub fn new(app_version: &'static str, recordings: Option<PathBuf>) -> Self {
-        let recording = recordings.map_or(Recording::Off, Recording::Pending);
+        let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
         Self {
             app_version,
             state: Mutex::new(State {
@@ -56,7 +58,7 @@ impl Live {
                 approval: None,
                 buffer_overflowed: false,
                 relay_unavailable: None,
-                recording,
+                recorder,
             }),
         }
     }
@@ -86,17 +88,19 @@ impl Live {
     pub fn handle(&self, event: RelayEvent) {
         let mut state = self.lock();
         match event {
-            // A newer request from the same or another browser replaces an unanswered one, whose
-            // connection then closes and retries.
+            // Replacing an unanswered request closes its connection, which retries.
             RelayEvent::ApprovalNeeded(request) => state.approval = Some(request),
-            RelayEvent::Connected => state.browsers += 1,
+            RelayEvent::Connected => {
+                state.browsers += 1;
+                state.recorder.finish();
+            }
             RelayEvent::Disconnected => {
                 state.browsers = state.browsers.saturating_sub(1);
                 if state.browsers == 0 {
                     state.buffer_overflowed = false;
                 }
             }
-            RelayEvent::Overflow { .. } => state.buffer_overflowed = true,
+            RelayEvent::Overflow => state.buffer_overflowed = true,
             RelayEvent::Envelope(envelope) => state.ingest(&envelope),
         }
     }
@@ -120,12 +124,7 @@ impl Live {
 
     /// Ends the Recording so it can be read to its last envelope. Call before the app exits.
     pub fn finish_recording(&self) {
-        let recording = std::mem::replace(&mut self.lock().recording, Recording::Off);
-        if let Recording::Writing { writer, .. } = recording
-            && let Err(error) = writer.finish()
-        {
-            eprintln!("recording: could not finish: {error}");
-        }
+        self.lock().recorder.finish();
     }
 
     fn lock(&self) -> MutexGuard<'_, State> {
@@ -136,27 +135,33 @@ impl Live {
 
 impl State {
     fn ingest(&mut self, envelope: &Envelope) {
-        self.record(envelope);
+        self.recorder.record(envelope);
         for event in self.source.ingest(envelope) {
             self.advisor.apply(event);
         }
     }
+}
 
+impl Recorder {
     fn record(&mut self, envelope: &Envelope) {
-        if let Recording::Pending(dir) = &self.recording {
+        if let Self::Idle(dir) = self {
             let path = dir.join(format!("{}.{RECORDING_EXTENSION}", envelope.ts));
-            self.recording = match start_recording(dir, &path) {
-                Ok(writer) => Recording::Writing {
+            *self = match start_recording(dir, &path) {
+                Ok(writer) => Self::Writing {
+                    dir: dir.clone(),
                     writer,
                     flushed_at: envelope.ts,
                 },
                 Err(error) => {
                     eprintln!("recording: could not start {}: {error}", path.display());
-                    Recording::Off
+                    Self::Off
                 }
             };
         }
-        if let Recording::Writing { writer, flushed_at } = &mut self.recording {
+        if let Self::Writing {
+            writer, flushed_at, ..
+        } = self
+        {
             let due = envelope.ts.saturating_sub(*flushed_at) >= RECORDING_FLUSH_MS;
             let written = writer.write(envelope).and_then(|()| {
                 if due {
@@ -167,17 +172,30 @@ impl State {
             });
             if let Err(error) = written {
                 eprintln!("recording: stopped, could not write: {error}");
-                self.recording = Recording::Off;
+                *self = Self::Off;
             }
+        }
+    }
+
+    /// Ends the current Recording, if any; the next envelope starts a new one.
+    fn finish(&mut self) {
+        let Self::Writing { dir, .. } = self else {
+            return;
+        };
+        let idle = Self::Idle(dir.clone());
+        if let Self::Writing { writer, .. } = std::mem::replace(self, idle)
+            && let Err(error) = writer.finish()
+        {
+            eprintln!("recording: could not finish: {error}");
         }
     }
 }
 
 fn start_recording(
-    dir: &std::path::Path,
-    path: &std::path::Path,
-) -> Result<RecordingWriter<BufWriter<File>>, Box<dyn std::error::Error>> {
+    dir: &Path,
+    path: &Path,
+) -> Result<RecordingWriter<BufWriter<File>>, RecordingError> {
     std::fs::create_dir_all(dir)?;
     let file = BufWriter::new(File::create(path)?);
-    Ok(RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))?)
+    RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))
 }

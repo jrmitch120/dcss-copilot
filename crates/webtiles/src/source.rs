@@ -56,7 +56,7 @@ impl WebtilesSource {
         let game = self.tabs.entry(key.clone()).or_default();
         game.apply(&envelope.msg);
 
-        let Some(identity) = game.identity(envelope) else {
+        let Some(identity) = game.identify(envelope) else {
             return Vec::new();
         };
         let visible = game.player.visible.clone();
@@ -103,8 +103,9 @@ impl TabGame {
         self.reported = None;
     }
 
-    /// The game's identity, once the game has named the character and species.
-    fn identity(&mut self, envelope: &Envelope) -> Option<GameIdentity> {
+    /// The game's identity, once the game has named the character and species. The first call
+    /// that succeeds fixes when the game was first seen.
+    fn identify(&mut self, envelope: &Envelope) -> Option<GameIdentity> {
         let (Some(name), Some(species)) = (&self.player.name, &self.player.species) else {
             return None;
         };

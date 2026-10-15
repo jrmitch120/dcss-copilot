@@ -2,8 +2,8 @@
 
 import {
   type AppFrame,
-  type Capture,
   type ExtensionFrame,
+  type PageEnvelope,
   type PageReport,
   RELAY_PROTOCOL_VERSION,
 } from "./protocol";
@@ -30,7 +30,7 @@ export interface AppLink {
 
 /**
  * Links the tabs' pages to the app. Once the app welcomes this browser, every known tab replays its
- * buffer, and a tab's live captures are forwarded only after its replay, so nothing arrives twice or
+ * buffer, and a tab's live envelopes are forwarded only after its replay, so nothing arrives twice or
  * out of order.
  */
 export function createAppLink(options: {
@@ -49,8 +49,8 @@ export function createAppLink(options: {
     socket?.send(JSON.stringify(frame));
   }
 
-  function forward(tab: number, capture: Capture): void {
-    send({ type: "envelope", envelope: { ...capture, tab } });
+  function forward(tab: number, envelope: PageEnvelope): void {
+    send({ type: "envelope", envelope: { ...envelope, tab } });
   }
 
   function askForReplay(tab: number): void {
@@ -95,10 +95,10 @@ export function createAppLink(options: {
       if (!welcomed) return;
       if (report.kind === "replay") {
         if (report.overflowed) send({ type: "overflow", origin: report.origin, tab });
-        for (const capture of report.captures) forward(tab, capture);
+        for (const envelope of report.envelopes) forward(tab, envelope);
         known.replayed = true;
       } else if (known.replayed) {
-        forward(tab, report.capture);
+        forward(tab, report.envelope);
       }
     },
 
