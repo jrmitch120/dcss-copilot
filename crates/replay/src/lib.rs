@@ -20,6 +20,8 @@ pub struct Replay {
     pub identity: Option<GameIdentity>,
     /// The followed game's Visible State at the end.
     pub visible: VisibleState,
+    /// The Recording was cut short, so this is only what was saved before it ended.
+    pub truncated: bool,
 }
 
 /// Feeds a Recording through the webtiles Game Source and the core, in process, as if a browser
@@ -48,5 +50,6 @@ pub fn replay(recording: impl Read) -> Result<Replay, RecordingError> {
         view_models,
         identity: advisor.identity().cloned(),
         visible: advisor.visible().clone(),
+        truncated: recording.truncated,
     })
 }

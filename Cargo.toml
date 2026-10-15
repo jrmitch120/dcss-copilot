@@ -20,7 +20,8 @@ copilot-webtiles = { path = "crates/webtiles" }
 anyhow = "1"
 insta = { version = "1", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+# preserve_order: relayed messages keep their key order, so Recordings hold them unchanged.
+serde_json = { version = "1", features = ["preserve_order"] }
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 specta-typescript = "=0.0.12"
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
