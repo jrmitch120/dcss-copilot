@@ -5,6 +5,7 @@ use copilot_gk::{Bundle, Library};
 use serde_json::Value;
 
 use crate::Envelope;
+use crate::inventory::Inventory;
 use crate::map::LevelMap;
 
 /// The webtiles Game Source: decodes relayed envelopes into source-neutral events.
@@ -47,6 +48,8 @@ struct PlayerFields {
     hp: Option<i32>,
     hp_max: Option<i32>,
     turn: Option<u32>,
+    /// `None` until a `player` message has carried the inventory.
+    inventory: Option<Inventory>,
 }
 
 impl WebtilesSource {
@@ -127,6 +130,11 @@ impl TabGame {
             hp_max: self.player.hp_max,
             turn: self.player.turn,
             monsters: self.map.monsters_in_view(knowledge),
+            inventory: self
+                .player
+                .inventory
+                .as_ref()
+                .map(|inventory| inventory.items(knowledge)),
         }
     }
 
@@ -153,6 +161,9 @@ impl TabGame {
 impl PlayerFields {
     /// Merges a `player` delta: a field is sent only when it changed.
     fn merge(&mut self, msg: &Value) {
+        if let Some(inv) = msg.get("inv") {
+            self.inventory.get_or_insert_default().merge(inv);
+        }
         if let Some(name) = string(msg, "name") {
             self.name = Some(name);
         }

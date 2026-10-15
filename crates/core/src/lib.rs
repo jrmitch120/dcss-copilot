@@ -7,7 +7,7 @@ mod view_model;
 
 pub use advisor::Advisor;
 pub use game_source::{
-    CrawlVersion, GameIdentity, Role, SourceEvent, VisibleMonster, VisibleState,
+    CrawlVersion, GameIdentity, InventoryItem, Role, SourceEvent, VisibleMonster, VisibleState,
 };
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,

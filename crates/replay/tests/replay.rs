@@ -75,6 +75,20 @@ fn monsters_in_view_are_decoded_through_the_game_knowledge_for_the_crawl_version
 }
 
 #[test]
+fn inventory_items_are_decoded_through_the_game_knowledge_for_the_crawl_version() {
+    let replay = replay(MONSTERS).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.inventory);
+}
+
+#[test]
+fn without_game_knowledge_for_the_crawl_version_items_keep_only_their_names() {
+    let replay = replay(NO_GAME_KNOWLEDGE).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.inventory);
+}
+
+#[test]
 fn without_game_knowledge_for_the_crawl_version_monsters_keep_only_their_names() {
     let replay = replay(NO_GAME_KNOWLEDGE).unwrap();
 
