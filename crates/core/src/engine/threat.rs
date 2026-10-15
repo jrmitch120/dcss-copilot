@@ -4,8 +4,8 @@
 use copilot_gk::{Formulas, Monster};
 
 use super::melee::{
-    self, ENERGY_THRESHOLD, apply_ac, attack_reach, energy_gained, evasion_margin, monster_damage,
-    monster_to_hit, shield_blocks, starting_energy,
+    self, Attack, ENERGY_THRESHOLD, apply_ac, attack_reach, energy_gained, evasion_margin,
+    monster_damage, monster_to_hit, shield_blocks, starting_energy,
 };
 use super::rng::Rng;
 
@@ -129,10 +129,8 @@ fn one_action(
             // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`).
             // An attack only made with a weapon (`AT_WEAP_ONLY`) is counted, as the Advisor can't
             // see what monsters wield.
-            for attack in &monster.attacks {
-                if attack.kind.0 == "AT_NONE"
-                    || attack_reach(formulas.monster_reach, attack) < distance
-                {
+            for attack in attacks(monster) {
+                if attack_reach(formulas.monster_reach, attack) < distance {
                     continue;
                 }
                 let to_hit =
@@ -157,13 +155,16 @@ fn one_action(
 /// How far the monster's melee reaches: its farthest-reaching attack that deals damage, as
 /// `monster::reach_range` (`monster.cc:6224`). 0 when it has no melee attack.
 fn reach(formulas: Formulas, monster: &Monster) -> i32 {
-    monster
-        .attacks
-        .iter()
-        .filter(|attack| attack.kind.0 != "AT_NONE" && attack.damage > 0)
+    attacks(monster)
+        .filter(|attack| attack.damage > 0)
         .map(|attack| attack_reach(formulas.monster_reach, attack))
         .max()
         .unwrap_or(0)
+}
+
+/// The attacks the monster makes in one melee action, in crawl's order.
+fn attacks(monster: &Monster) -> impl Iterator<Item = Attack> + '_ {
+    monster.attacks.iter().filter_map(Attack::of)
 }
 
 fn speed(monster: &Monster) -> i32 {

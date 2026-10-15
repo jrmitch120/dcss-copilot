@@ -15,6 +15,52 @@ use copilot_gk::{
 
 use super::rng::Rng;
 
+/// One of a monster's melee attacks, as the formulas below tell attacks apart: classified once
+/// from crawl's `attack_type` and `attack_flavour` identifiers in its Game Knowledge.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Attack {
+    /// What the attack does besides its damage, as far as the formulas care.
+    pub(crate) flavour: Flavour,
+    /// The most damage it deals before armour.
+    pub(crate) damage: i32,
+}
+
+/// The attack flavours the ported formulas treat differently. Every other flavour only adds an
+/// effect the Threat Level doesn't model.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Flavour {
+    /// `AF_CRUSH`: it grabs, and deals no damage itself.
+    Crush,
+    /// `AF_REACH`, `AF_REACH_STING`, `AF_REACH_TONGUE` and `AF_REACH_CLEAVE_UGLY`: crawl's
+    /// `flavour_has_reach` (`mon-util.cc:2209`).
+    Reaching,
+    /// `AF_RIFT`: it reaches through a rift.
+    Rift,
+    /// Any other flavour.
+    Other,
+}
+
+impl Attack {
+    /// The attack `attack` describes, or `None` for the empty attack slot `AT_NONE`.
+    pub(crate) fn of(attack: &MonsterAttack) -> Option<Self> {
+        if attack.kind.0 == "AT_NONE" {
+            return None;
+        }
+        let flavour = match attack.flavour.0.as_str() {
+            "AF_CRUSH" => Flavour::Crush,
+            "AF_REACH" | "AF_REACH_STING" | "AF_REACH_TONGUE" | "AF_REACH_CLEAVE_UGLY" => {
+                Flavour::Reaching
+            }
+            "AF_RIFT" => Flavour::Rift,
+            _ => Flavour::Other,
+        };
+        Some(Self {
+            flavour,
+            damage: i32::try_from(attack.damage).unwrap_or(i32::MAX),
+        })
+    }
+}
+
 /// `AUTOMATIC_HIT` (`defines.h:141`): a to-hit this high never misses.
 const AUTOMATIC_HIT: i32 = 1500;
 
@@ -124,17 +170,16 @@ pub(crate) struct RolledDamage {
 pub(crate) fn monster_damage(
     variant: MonsterDamage,
     rng: &mut Rng,
-    attack: &MonsterAttack,
+    attack: Attack,
 ) -> RolledDamage {
     match variant {
         MonsterDamage::Crawl034 => {
-            if attack.flavour.0 == "AF_CRUSH" {
+            if attack.flavour == Flavour::Crush {
                 return RolledDamage { damage: 0, max: 0 };
             }
-            let attk_damage = i32::try_from(attack.damage).unwrap_or(i32::MAX);
             RolledDamage {
-                damage: 1 + rng.random2(attk_damage),
-                max: attk_damage,
+                damage: 1 + rng.random2(attack.damage),
+                max: attack.damage,
             }
         }
     }
@@ -167,12 +212,12 @@ fn gdr_percent(ac: i32) -> i32 {
 /// for an unarmed monster, where an attack reaches past adjacent squares only when its flavour
 /// does (`flavour_has_reach`, `mon-util.cc:2209`), and a rift reaches three
 /// (`monster::reach_range`, `monster.cc:6224`).
-pub(crate) fn attack_reach(variant: MonsterReach, attack: &MonsterAttack) -> i32 {
+pub(crate) fn attack_reach(variant: MonsterReach, attack: Attack) -> i32 {
     match variant {
-        MonsterReach::Crawl034 => match attack.flavour.0.as_str() {
-            "AF_RIFT" => 3,
-            "AF_REACH" | "AF_REACH_STING" | "AF_REACH_TONGUE" | "AF_REACH_CLEAVE_UGLY" => 2,
-            _ => 1,
+        MonsterReach::Crawl034 => match attack.flavour {
+            Flavour::Rift => 3,
+            Flavour::Reaching => 2,
+            Flavour::Crush | Flavour::Other => 1,
         },
     }
 }
@@ -225,12 +270,13 @@ mod tests {
         f64::from(u32::try_from(count).unwrap()) / f64::from(TRIALS)
     }
 
-    fn attack(flavour: &str, damage: u32) -> MonsterAttack {
-        MonsterAttack {
+    fn attack(flavour: &str, damage: u32) -> Attack {
+        Attack::of(&MonsterAttack {
             kind: EnumId("AT_HIT".to_owned()),
             flavour: EnumId(flavour.to_owned()),
             damage,
-        }
+        })
+        .unwrap()
     }
 
     /// `mon_to_hit_pct(to_land, scaled_ev)` (`fight.cc:251`): crawl's own estimate of a monster's
@@ -327,7 +373,7 @@ mod tests {
     fn a_monster_attack_deals_one_to_its_damage_before_armour() {
         let mut rng = rng();
         let rolls: Vec<_> = (0..10_000)
-            .map(|_| monster_damage(MonsterDamage::Crawl034, &mut rng, &attack("AF_PLAIN", 5)))
+            .map(|_| monster_damage(MonsterDamage::Crawl034, &mut rng, attack("AF_PLAIN", 5)))
             .collect();
         assert!(rolls.iter().all(|roll| roll.max == 5));
         assert_eq!(rolls.iter().map(|roll| roll.damage).min(), Some(1));
@@ -336,7 +382,7 @@ mod tests {
 
     #[test]
     fn a_crushing_attack_deals_nothing_as_it_grabs() {
-        let roll = monster_damage(MonsterDamage::Crawl034, &mut rng(), &attack("AF_CRUSH", 20));
+        let roll = monster_damage(MonsterDamage::Crawl034, &mut rng(), attack("AF_CRUSH", 20));
         assert_eq!(roll, RolledDamage { damage: 0, max: 0 });
     }
 
@@ -371,7 +417,7 @@ mod tests {
 
     #[test]
     fn reaching_flavours_reach_two_squares_and_a_rift_three() {
-        let reach = |flavour| attack_reach(MonsterReach::Crawl034, &attack(flavour, 5));
+        let reach = |flavour| attack_reach(MonsterReach::Crawl034, attack(flavour, 5));
         assert_eq!(reach("AF_PLAIN"), 1);
         assert_eq!(reach("AF_REACH"), 2);
         assert_eq!(reach("AF_REACH_STING"), 2);
