@@ -120,6 +120,24 @@ _Avoid_: Loot alert, rare drop
 Factual lookups the player asks for or that are surfaced alongside play, such as monster details or a resistance breakdown. Not a recommendation.
 _Avoid_: Advice (when no recommendation is made)
 
+### Panel
+
+**Now Pill**:
+The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level it says so, rather than show CALM.
+_Avoid_: Status bar, banner
+
+**Focus Card**:
+The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
+_Avoid_: Main card, hero card
+
+**Run Plan Rail**:
+The Run Plan summarised along the bottom of the panel, one row per part of the plan.
+_Avoid_: Plan bar, sidebar
+
+**Appearance**:
+The player's choice to draw monsters and items as DCSS tiles (the default) or as glyphs in DCSS's colours. Tiles are drawn only at whole-number scales; anything without a tile is drawn as its glyph.
+_Avoid_: Theme, skin, tileset
+
 ### Cost
 
 **Quick Model**:

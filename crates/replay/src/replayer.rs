@@ -3,7 +3,7 @@
 
 use std::ops::Range;
 
-use copilot_core::{Advisor, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, Connection, ViewModel};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
 use crate::Recording;
@@ -112,15 +112,17 @@ impl Replayer {
         &self.game.advisor
     }
 
-    /// What the panel would show, with the browser connected.
+    /// What the panel would show, with the browser connected and the default Appearance.
     #[must_use]
     pub fn view_model(&self) -> ViewModel {
-        let connection = Connection::Connected {
-            buffer_overflowed: false,
-        };
-        self.game
-            .advisor
-            .view_model(&self.recording.header.app_version, connection)
+        ViewModel {
+            app_version: self.recording.header.app_version.clone(),
+            connection: Connection::Connected {
+                buffer_overflowed: false,
+            },
+            appearance: Appearance::default(),
+            game: self.game.advisor.game_view(),
+        }
     }
 
     /// Applies the next envelope, if any.

@@ -2,11 +2,12 @@
 
 mod live;
 pub mod relay;
+mod settings;
 
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 
-use copilot_core::ViewModel;
+use copilot_core::{Appearance, ViewModel};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, RunEvent, State};
 use tauri_specta::{Builder, Event, collect_commands, collect_events};
@@ -15,6 +16,7 @@ use tokio::sync::mpsc;
 
 use crate::live::Live;
 use crate::relay::{BrowserApprovals, RELAY_PORT};
+use crate::settings::Settings;
 
 /// Where the generated TypeScript bindings for the webview live.
 const BINDINGS_PATH: &str = "../src/lib/bindings.ts";
@@ -44,9 +46,27 @@ fn answer_browser(allow: bool, app: AppHandle, live: State<'_, Live>) -> Result<
     answered
 }
 
+/// The player chose to draw monsters and items as tiles or glyphs.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_appearance(
+    appearance: Appearance,
+    app: AppHandle,
+    live: State<'_, Live>,
+) -> Result<(), String> {
+    let saved = live.set_appearance(appearance);
+    push_view_model(&app, &live);
+    saved.map_err(|error| error.to_string())
+}
+
 fn specta_builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
-        .commands(collect_commands![view_model, answer_browser])
+        .commands(collect_commands![
+            view_model,
+            answer_browser,
+            set_appearance
+        ])
         .events(collect_events![ViewModelChanged])
 }
 
@@ -76,7 +96,13 @@ pub fn run() {
             } else {
                 None
             };
-            app.manage(Live::new(env!("CARGO_PKG_VERSION"), recordings));
+            let settings_path = app.path().app_config_dir()?.join("settings.json");
+            // An unreadable settings file is replaced by the defaults the next time one changes.
+            let settings = Settings::load(&settings_path).unwrap_or_else(|error| {
+                eprintln!("{error}; using the default settings");
+                Settings::defaults(&settings_path)
+            });
+            app.manage(Live::new(env!("CARGO_PKG_VERSION"), recordings, settings));
             let approvals = app.path().app_config_dir()?.join("browsers.json");
             tauri::async_runtime::spawn(run_relay(app.handle().clone(), approvals));
             Ok(())

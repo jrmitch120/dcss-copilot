@@ -1,7 +1,7 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
 use crate::game_source::{GameIdentity, SourceEvent, VisibleState};
-use crate::view_model::{Character, Connection, ViewModel};
+use crate::view_model::{AskBox, Character, FocusCard, GameView, NowPill, RunPlanRail};
 
 /// Follows one Game Source's game and turns what it learns into the view model.
 #[derive(Debug, Clone, Default)]
@@ -37,19 +37,25 @@ impl Advisor {
         &self.visible
     }
 
-    /// Everything the panel shows, given the app's version and its connection to the browser.
+    /// The panel for the followed game, once a Game Source has identified it.
+    ///
+    /// Each part shows only what the Advisor can tell: it can't yet judge a Threat Level, read
+    /// monsters or make a Run Plan, so it says so rather than guess.
     #[must_use]
-    pub fn view_model(&self, app_version: &str, connection: Connection) -> ViewModel {
-        ViewModel {
-            app_version: app_version.to_owned(),
-            connection,
-            character: self.identity.as_ref().map(|identity| Character {
+    pub fn game_view(&self) -> Option<GameView> {
+        let identity = self.identity.as_ref()?;
+        Some(GameView {
+            character: Character {
                 name: identity.character.clone(),
                 species: identity.species.clone(),
                 hp: self.visible.hp,
                 hp_max: self.visible.hp_max,
                 turn: self.visible.turn,
-            }),
-        }
+            },
+            now: NowPill::Unrated,
+            focus: FocusCard::InView { monsters: None },
+            run_plan: RunPlanRail::NotPlanned,
+            ask: AskBox::NeedsModel,
+        })
     }
 }

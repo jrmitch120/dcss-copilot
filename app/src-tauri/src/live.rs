@@ -5,11 +5,12 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-use copilot_core::{Advisor, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, Connection, ViewModel};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
 use crate::relay::{ApprovalRequest, RelayEvent};
+use crate::settings::{Settings, SettingsError};
 
 /// Everything the app knows about the browser connection and the game it relays.
 pub struct Live {
@@ -26,6 +27,7 @@ struct State {
     buffer_overflowed: bool,
     relay_unavailable: Option<String>,
     recorder: Recorder,
+    settings: Settings,
 }
 
 /// How often, in game-page milliseconds, a Recording is flushed, so a crash loses at most this much.
@@ -46,8 +48,9 @@ enum Recorder {
 }
 
 impl Live {
-    /// Starts with no browser connected, writing a Recording into `recordings` if given.
-    pub fn new(app_version: &'static str, recordings: Option<PathBuf>) -> Self {
+    /// Starts with no browser connected and the player's `settings`, writing a Recording into
+    /// `recordings` if given.
+    pub fn new(app_version: &'static str, recordings: Option<PathBuf>, settings: Settings) -> Self {
         let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
         Self {
             app_version,
@@ -59,6 +62,7 @@ impl Live {
                 buffer_overflowed: false,
                 relay_unavailable: None,
                 recorder,
+                settings,
             }),
         }
     }
@@ -81,7 +85,12 @@ impl Live {
         } else {
             Connection::NoBrowser
         };
-        state.advisor.view_model(self.app_version, connection)
+        ViewModel {
+            app_version: self.app_version.to_owned(),
+            connection,
+            appearance: state.settings.appearance(),
+            game: state.advisor.game_view(),
+        }
     }
 
     /// Takes in something the relay reported.
@@ -121,6 +130,14 @@ impl Live {
             Some(request) => request.answer(allow).map_err(|error| error.to_string()),
             None => Ok(()),
         }
+    }
+
+    /// The player chose how monsters and items are drawn.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_appearance(&self, appearance: Appearance) -> Result<(), SettingsError> {
+        self.lock().settings.set_appearance(appearance)
     }
 
     /// The relay couldn't start, so no browser can connect.
@@ -210,7 +227,15 @@ fn start_recording(
 mod tests {
     use serde_json::json;
 
+    use copilot_core::Appearance;
+
     use super::*;
+    use crate::settings::Settings;
+
+    fn live() -> Live {
+        let path = std::env::temp_dir().join("dcss-copilot-unused-settings.json");
+        Live::new("1.2.3", None, Settings::defaults(&path))
+    }
 
     fn envelope(msg: serde_json::Value) -> RelayEvent {
         RelayEvent::Envelope(Envelope {
@@ -224,17 +249,31 @@ mod tests {
 
     #[test]
     fn a_browser_connecting_when_none_is_starts_afresh_because_its_tabs_replay_from_the_start() {
-        let live = Live::new("1.2.3", None);
+        let live = live();
         live.handle(RelayEvent::Connected);
         live.handle(envelope(json!({ "msg": "game_started" })));
         live.handle(envelope(
             json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": 500 }),
         ));
-        assert!(live.view_model().character.is_some());
+        assert!(live.view_model().game.is_some());
 
         live.handle(RelayEvent::Disconnected);
         live.handle(RelayEvent::Connected);
 
-        assert_eq!(live.view_model().character, None);
+        assert_eq!(live.view_model().game, None);
+    }
+
+    #[test]
+    fn the_players_appearance_reaches_the_panel_and_is_remembered_across_restarts() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(live.view_model().appearance, Appearance::Tiles);
+
+        live.set_appearance(Appearance::Glyphs).unwrap();
+        assert_eq!(live.view_model().appearance, Appearance::Glyphs);
+
+        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
     }
 }

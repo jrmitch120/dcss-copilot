@@ -1,0 +1,26 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.view_models.last().unwrap().game
+---
+{
+  "character": {
+    "name": "Mira",
+    "species": "Minotaur",
+    "hp": 15,
+    "hpMax": 18,
+    "turn": 4
+  },
+  "now": {
+    "state": "unrated"
+  },
+  "focus": {
+    "card": "inView",
+    "monsters": null
+  },
+  "runPlan": {
+    "state": "notPlanned"
+  },
+  "ask": {
+    "state": "needsModel"
+  }
+}
