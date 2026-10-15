@@ -91,7 +91,8 @@ impl Capture {
     }
 }
 
-fn msg_type(msg: &Value) -> Option<&str> {
+/// A webtiles message's type, its `msg` field.
+pub fn msg_type(msg: &Value) -> Option<&str> {
     msg.get("msg").and_then(Value::as_str)
 }
 

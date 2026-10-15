@@ -4,11 +4,11 @@ Tests and evals replay real games. Short, hand-made Recordings live in the main 
 
 | What | Where | Tagged with its Crawl Version in |
 |---|---|---|
-| Test Recordings: small, often hand-built | `crates/replay/tests/recordings/` | the test that replays it |
+| Test Recordings: small, often hand-built | `crates/replay/tests/recordings/` | `TAGGED` in `crates/replay/tests/replay.rs`, which must list every one |
 | Scenarios: wizard-mode games set up to reach one moment | `crates/replay/tests/scenarios/` | its manifest, `crawl_version` |
 | Full games: about 20 seeded qw games per stable release, plus our own | release assets of [`jrmitch120/dcss-copilot-corpus`](https://github.com/jrmitch120/dcss-copilot-corpus), listed in `crates/replay/corpus.toml` | its manifest entry, `crawl_version`, and its release, `crawl-<version>` |
 
-A manifest's `crawl_version` is checked whenever the Recording is replayed: every game in the Recording must report exactly that Crawl Version, or the replay fails.
+The tag is checked whenever the Recording is replayed: its games must report exactly the Crawl Versions it is tagged with, or the replay fails.
 
 ## Full games
 
@@ -49,7 +49,7 @@ A scenario is a Recording plus a manifest beside it, `<name>.toml`:
 description = "A Minotaur Berserker enters wizard mode and creates an ogre beside them"
 recording = "ogre-beside-a-new-minotaur.dcssrec"
 crawl_version = "0.34.1"
-snapshot_turns = [0]       # snapshot these turns as they ended, besides the end
+snapshot_turns = [0]       # snapshot these turns as they ended
 
 [setup]                    # how to record it again
 rc = """
@@ -71,7 +71,7 @@ rule = "leave-by-stairs"
 - Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name.
 - `alerts` and `suggested_actions` are refused until the Advisor raises them (#37, #38), rather than being silently ignored.
 
-`crates/replay/tests/scenarios.rs` plays every scenario in the directory and snapshots each with `insta`, so a new scenario needs no new test. Review its snapshot like any other.
+Playing a scenario snapshots the Fact Sheet and the panel at each turn in `snapshot_turns` as it ended, at each level the game arrives on as its first turn there ended, and at the end of the Recording. `crates/replay/tests/scenarios.rs` plays every scenario in the directory and snapshots each with `insta`, so a new scenario needs no new test. Review its snapshot like any other.
 
 ## Recording on local webtiles
 

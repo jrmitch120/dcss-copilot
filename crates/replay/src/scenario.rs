@@ -4,10 +4,10 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use copilot_core::{FactSheet, GameIdentity, GameView};
+use copilot_core::{CrawlVersion, FactSheet, GameIdentity, GameView, Place};
 use serde::{Deserialize, Serialize};
 
-use crate::{Recording, ReplayError, Replayer};
+use crate::{CrawlVersionMismatch, Recording, ReplayError, Replayer};
 
 /// The file extension scenario manifests are saved with, beside their Recording.
 pub const SCENARIO_EXTENSION: &str = "toml";
@@ -22,10 +22,10 @@ pub struct Scenario {
     /// The Recording, resolved against the manifest's directory.
     pub recording: PathBuf,
     /// The Crawl Version the Recording was made on, which its game must report.
-    pub crawl_version: String,
+    pub crawl_version: CrawlVersion,
     /// How to record the scenario again.
     pub setup: Setup,
-    /// Turns to snapshot as they ended, besides the end of the Recording.
+    /// Turns to snapshot as they ended, besides each new level and the end of the Recording.
     #[serde(default)]
     pub snapshot_turns: Vec<u32>,
     /// The Alerts the Advisor should raise, in order.
@@ -75,8 +75,12 @@ pub struct ExpectedSuggestedAction {
 pub struct ScenarioReplay {
     /// The followed game's identity at the end.
     pub identity: Option<GameIdentity>,
-    /// Each turn the manifest lists as it ended, then the end of the Recording.
-    pub snapshots: Vec<Snapshot>,
+    /// Each turn the manifest lists, as it ended.
+    pub turns: Vec<Snapshot>,
+    /// Each level the game arrived on, as its first turn there ended.
+    pub new_levels: Vec<Snapshot>,
+    /// The end of the Recording, which is the end of the game if it ended.
+    pub end: Snapshot,
 }
 
 /// What the Advisor computed and showed at one point of a scenario.
@@ -85,6 +89,8 @@ pub struct ScenarioReplay {
 pub struct Snapshot {
     /// The followed game's turn.
     pub turn: Option<u32>,
+    /// Where the character is.
+    pub place: Option<Place>,
     /// The Fact Sheet.
     pub fact_sheet: FactSheet,
     /// The panel's view of the game.
@@ -119,13 +125,8 @@ pub enum ScenarioError {
         source: ReplayError,
     },
     /// The Recording's games report another Crawl Version than the manifest is tagged with.
-    #[error("scenario is tagged with Crawl Version {tagged} but its games report {reported:?}")]
-    CrawlVersionMismatch {
-        /// The manifest's tag.
-        tagged: String,
-        /// What the Recording's games reported.
-        reported: Vec<String>,
-    },
+    #[error("scenario is {0}")]
+    CrawlVersionMismatch(#[from] CrawlVersionMismatch),
     /// The manifest asks for a snapshot on a turn the followed game never reported.
     #[error("scenario asks for a snapshot on turn {0}, which the game never reported")]
     TurnNeverReached(u32),
@@ -183,36 +184,48 @@ impl Scenario {
         let recording = Recording::read(file).map_err(|error| replay_error(error.into()))?;
         let mut replayer = Replayer::new(recording).map_err(|error| replay_error(error.into()))?;
 
-        let reported: Vec<String> = replayer
-            .crawl_versions()
-            .iter()
-            .map(|version| version.0.clone())
-            .collect();
-        if reported != [self.crawl_version.clone()] {
-            return Err(ScenarioError::CrawlVersionMismatch {
-                tagged: self.crawl_version.clone(),
-                reported,
-            });
-        }
+        replayer.check_crawl_version(&self.crawl_version)?;
 
-        let mut by_turn: Vec<Option<Snapshot>> = vec![None; self.snapshot_turns.len()];
+        let mut turns: Vec<Option<Snapshot>> = vec![None; self.snapshot_turns.len()];
+        let mut new_levels: Vec<Snapshot> = Vec::new();
+        let mut place = None;
+        // The last new level's first turn hasn't ended yet.
+        let mut arriving = false;
         while !replayer.at_end() {
             replayer.step();
+            let snapshot = Snapshot::of(&replayer);
             // The last snapshot taken on a turn is that turn as it ended.
-            for (wanted, snapshot) in self.snapshot_turns.iter().zip(&mut by_turn) {
-                if replayer.turn() == Some(*wanted) {
-                    *snapshot = Some(Snapshot::of(&replayer));
+            for (wanted, taken) in self.snapshot_turns.iter().zip(&mut turns) {
+                if snapshot.turn == Some(*wanted) {
+                    *taken = Some(snapshot.clone());
                 }
             }
+            // The first place reported is where the game starts, not a level it arrived on.
+            let moved = matches!((&place, &snapshot.place), (Some(was), Some(now)) if was != now);
+            if moved {
+                new_levels.push(snapshot.clone());
+                arriving = true;
+            } else if arriving {
+                match new_levels.last_mut() {
+                    Some(arrived) if arrived.turn == snapshot.turn => *arrived = snapshot.clone(),
+                    _ => arriving = false,
+                }
+            }
+            if snapshot.place.is_some() {
+                place.clone_from(&snapshot.place);
+            }
         }
-        let mut snapshots = Vec::with_capacity(by_turn.len() + 1);
-        for (wanted, snapshot) in self.snapshot_turns.iter().zip(by_turn) {
-            snapshots.push(snapshot.ok_or(ScenarioError::TurnNeverReached(*wanted))?);
-        }
-        snapshots.push(Snapshot::of(&replayer));
+        let turns = self
+            .snapshot_turns
+            .iter()
+            .zip(turns)
+            .map(|(wanted, taken)| taken.ok_or(ScenarioError::TurnNeverReached(*wanted)))
+            .collect::<Result<_, _>>()?;
         Ok(ScenarioReplay {
             identity: replayer.advisor().identity().cloned(),
-            snapshots,
+            turns,
+            new_levels,
+            end: Snapshot::of(&replayer),
         })
     }
 }
@@ -221,6 +234,7 @@ impl Snapshot {
     fn of(replayer: &Replayer) -> Self {
         Self {
             turn: replayer.turn(),
+            place: replayer.advisor().visible().place.clone(),
             fact_sheet: replayer.advisor().fact_sheet().clone(),
             game: replayer.view_model().game,
         }

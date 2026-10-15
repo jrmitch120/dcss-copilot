@@ -13,9 +13,13 @@ expression: replay
     "wizard": true,
     "role": "playing"
   },
-  "snapshots": [
+  "turns": [
     {
       "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
       "factSheet": {
         "threat": {
           "state": "rated",
@@ -84,77 +88,82 @@ expression: replay
           "state": "needsModel"
         }
       }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 2,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
     },
-    {
-      "turn": 2,
-      "factSheet": {
-        "threat": {
-          "state": "rated",
-          "level": "lethal",
-          "hp": 19,
-          "death": {
-            "times": 200,
-            "trials": 10000
-          },
-          "worstHit": 19,
-          "hostilesInView": 1,
-          "acting": [
-            {
-              "name": "ogre",
-              "position": {
-                "x": 0,
-                "y": 1
-              },
-              "distance": 1
-            }
-          ],
-          "notModelled": [
-            "monsterEquipment",
-            "attackFlavours",
-            "rangedAndSpells",
-            "statuses",
-            "paths",
-            "awareness"
-          ]
-        }
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 19,
+        "death": {
+          "times": 200,
+          "trials": 10000
+        },
+        "worstHit": 19,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "rangedAndSpells",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz94713139",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 2
       },
-      "game": {
-        "character": {
-          "name": "wiz94713139",
-          "species": "Minotaur",
-          "hp": 19,
-          "hpMax": 19,
-          "turn": 2
-        },
-        "now": {
-          "state": "rated",
-          "level": "lethal",
-          "line": "Ogre can attack before your next action.",
-          "detail": "Death 2.0% · worst hit 19 of 19 HP"
-        },
-        "focus": {
-          "card": "inView",
-          "monsters": [
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "O",
-                  "colour": "brown"
-                },
-                "tile": "mon/humanoids/ogre"
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "line": "Ogre can attack before your next action.",
+        "detail": "Death 2.0% · worst hit 19 of 19 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
               },
-              "name": "ogre",
-              "detail": null
-            }
-          ]
-        },
-        "runPlan": {
-          "state": "notPlanned"
-        },
-        "ask": {
-          "state": "needsModel"
-        }
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "ogre",
+            "detail": null
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
       }
     }
-  ]
+  }
 }

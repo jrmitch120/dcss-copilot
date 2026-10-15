@@ -1,7 +1,9 @@
 //! What a Game Source adapter tells the core. Source-neutral: nothing here knows how a game was read.
 
 use copilot_gk::{Bundle, Library};
-use serde::Serialize;
+use std::fmt;
+
+use serde::{Deserialize, Serialize};
 
 use crate::screen::ScreenRead;
 use crate::visible_state::VisibleState;
@@ -88,8 +90,14 @@ impl GameIdentity {
 }
 
 /// The exact build of DCSS a game runs on, such as `0.34.1` or a trunk build like `0.35-a0-123-gabc1234`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CrawlVersion(pub String);
+
+impl fmt::Display for CrawlVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 /// How the player relates to the game being followed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

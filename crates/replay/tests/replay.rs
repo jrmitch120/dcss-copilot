@@ -513,14 +513,63 @@ fn a_worn_shield_read_off_the_character_overview_blocks_as_often_as_crawl_lets_i
     insta::assert_json_snapshot!(by_turn);
 }
 
-#[test]
-fn a_replay_names_each_crawl_version_its_games_reported_in_the_order_first_seen() {
-    let versions: Vec<_> = replay(TWO_TABS)
-        .unwrap()
-        .crawl_versions
-        .into_iter()
-        .map(|version| version.0)
-        .collect();
+/// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
+/// first seen.
+const TAGGED: [(&str, &[u8], &[&str]); 12] = [
+    ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
+    (
+        "spectating-trunk-wizard",
+        SPECTATING,
+        &["0.35-a0-412-g28a137d"],
+    ),
+    ("two-tabs-and-a-new-game", TWO_TABS, &["0.34.1", "0.33.1"]),
+    ("monsters-in-view", MONSTERS, &["0.34.1"]),
+    (
+        "monsters-without-game-knowledge",
+        NO_GAME_KNOWLEDGE,
+        &["0.35-a0-512-g1a2b3c4"],
+    ),
+    ("kobold-on-d3", KOBOLD, &["0.34.1"]),
+    ("screens-tiv-opens", SCREENS, &["0.34.1"]),
+    ("screens-watched-mid-menu", WATCHED_SCREENS, &["0.34.1"]),
+    ("session-tiv-reloads-saves-and-dies", SESSION, &["0.34.1"]),
+    (
+        "session-tiv-reloads-and-crashes-before-naming-the-game",
+        STOPPED_UNNAMED,
+        &["0.34.1"],
+    ),
+    ("jackals-close-in", JACKALS, &["0.34.1"]),
+    ("rook-reads-his-kite-shield", KITE_SHIELD, &["0.34.1"]),
+];
 
-    assert_eq!(versions, ["0.34.1", "0.33.1"]);
+#[test]
+fn every_test_recording_reports_the_crawl_versions_it_is_tagged_with() {
+    for (name, recording, tagged) in TAGGED {
+        let reported: Vec<_> = replay(recording)
+            .unwrap()
+            .crawl_versions
+            .into_iter()
+            .map(|version| version.0)
+            .collect();
+
+        assert_eq!(reported, tagged, "{name}");
+    }
+}
+
+#[test]
+fn every_test_recording_is_tagged() {
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/recordings");
+    let mut committed: Vec<String> = std::fs::read_dir(dir)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter_map(|path| Some(path.file_stem()?.to_str()?.to_owned()))
+        .collect();
+    committed.sort();
+    let mut tagged: Vec<String> = TAGGED
+        .iter()
+        .map(|(name, _, _)| (*name).to_owned())
+        .collect();
+    tagged.sort();
+
+    assert_eq!(committed, tagged);
 }

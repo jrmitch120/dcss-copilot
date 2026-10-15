@@ -3,6 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
+use copilot_core::CrawlVersion;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
@@ -33,7 +34,7 @@ pub struct CorpusGame {
     pub sha256: String,
     /// The Crawl Version the game was played on, which its Recording must report. The asset is
     /// kept in the release `crawl-<version>`.
-    pub crawl_version: String,
+    pub crawl_version: CrawlVersion,
     /// Who played it.
     pub played_by: PlayedBy,
     /// The dungeon seed, for a seeded game.

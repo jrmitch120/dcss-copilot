@@ -15,7 +15,7 @@ use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
-use crate::capture::Capture;
+use crate::capture::{Capture, msg_type};
 
 /// The browser tab every recorded game is played in.
 const TAB: i64 = 1;
@@ -176,7 +176,7 @@ impl Session {
         let mut types = Vec::with_capacity(captured.envelopes.len());
         for envelope in &captured.envelopes {
             self.recording.write(envelope)?;
-            let msg = envelope.msg.get("msg").and_then(Value::as_str);
+            let msg = msg_type(&envelope.msg);
             match msg {
                 Some("go_lobby") => self.game_over = true,
                 Some("msgs") if self.lua_error.is_none() => {
@@ -222,7 +222,8 @@ fn page_origin(url: &str) -> anyhow::Result<String> {
     Ok(format!("{scheme}://{host}"))
 }
 
-fn now_ms() -> u64 {
+/// Now, in Unix milliseconds.
+pub fn now_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| {

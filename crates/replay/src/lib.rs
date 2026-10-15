@@ -13,7 +13,7 @@ pub use fake_extension::{
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
-pub use replayer::{Applied, Moment, Replayer};
+pub use replayer::{Applied, CrawlVersionMismatch, Moment, Replayer};
 pub use scenario::{
     ExpectedAlert, ExpectedSuggestedAction, SCENARIO_EXTENSION, Scenario, ScenarioError,
     ScenarioReplay, Setup, Snapshot,

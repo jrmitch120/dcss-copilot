@@ -78,11 +78,8 @@ fn every_corpus_game_replays_on_the_crawl_version_it_is_tagged_with() {
         assert!(!recording.truncated, "{} is cut short", game.file);
         let replayer = Replayer::new(recording).unwrap();
 
-        let reported: Vec<_> = replayer
-            .crawl_versions()
-            .iter()
-            .map(|v| v.0.as_str())
-            .collect();
-        assert_eq!(reported, [game.crawl_version.as_str()], "{}", game.file);
+        if let Err(mismatch) = replayer.check_crawl_version(&game.crawl_version) {
+            panic!("{} is {mismatch}", game.file);
+        }
     }
 }

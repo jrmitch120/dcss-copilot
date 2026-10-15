@@ -27,6 +27,28 @@ pub struct Replayer {
     game: Game,
 }
 
+/// A Recording's games report another Crawl Version than the one it is tagged with, or more than
+/// one.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error(
+    "tagged with Crawl Version {tagged} but its games report [{}]",
+    list(reported)
+)]
+pub struct CrawlVersionMismatch {
+    /// The tag.
+    pub tagged: CrawlVersion,
+    /// What the Recording's games reported, in the order first seen.
+    pub reported: Vec<CrawlVersion>,
+}
+
+fn list(versions: &[CrawlVersion]) -> String {
+    versions
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 /// What a move applied: the envelopes delivered, in Recording order, and whether the game was
 /// rebuilt from the start first, as every backward move is.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -131,6 +153,22 @@ impl Replayer {
     #[must_use]
     pub fn crawl_versions(&self) -> &[CrawlVersion] {
         &self.crawl_versions
+    }
+
+    /// Checks the Recording's games all report `tagged`, the Crawl Version a manifest tags it
+    /// with.
+    ///
+    /// # Errors
+    /// If they report any other, or none.
+    pub fn check_crawl_version(&self, tagged: &CrawlVersion) -> Result<(), CrawlVersionMismatch> {
+        if self.crawl_versions == [tagged.clone()] {
+            Ok(())
+        } else {
+            Err(CrawlVersionMismatch {
+                tagged: tagged.clone(),
+                reported: self.crawl_versions.clone(),
+            })
+        }
     }
 
     /// The Recording being replayed.

@@ -18,7 +18,7 @@ You are the steward of this codebase. Build it thoughtfully and purposefully, wi
 | Path | What lives there |
 |---|---|
 | `crates/core` | Visible State, Accumulated State, the engine, detectors and the renderer. Pure: no IO, no clocks, no network. |
-| `crates/webtiles` | The webtiles Game Source adapter. The only code that knows the webtiles protocol. |
+| `crates/webtiles` | The webtiles Game Source adapter. The only code that decodes the webtiles protocol. |
 | `crates/gk` | The Game Knowledge bundle schema, shared by the extractor and `core`. |
 | `crates/llm` | The `LlmProvider` trait, provider adapters, and LLM sidecar record and replay. |
 | `crates/store` | SQLite persistence. |
@@ -30,7 +30,7 @@ You are the steward of this codebase. Build it thoughtfully and purposefully, wi
 
 Each crate is a deep module: a small public surface over a lot of behaviour. Add a new crate only when it brings a separate binary or a dependency that must stay out of `core`; grow existing modules otherwise.
 
-The webtiles protocol stays behind the Game Source seam: everything past `crates/webtiles` speaks source-neutral types.
+The webtiles protocol stays behind the Game Source seam: everything past `crates/webtiles` speaks source-neutral types. The extension and `tools/corpus` stand where a browser does: they know how the page frames messages, and the corpus recorder logs in, starts a game and types as a player would, but neither reads what a game message means.
 
 ## Domain language
 

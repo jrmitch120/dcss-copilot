@@ -6,6 +6,7 @@
 
 use std::path::{Path, PathBuf};
 
+use copilot_core::CrawlVersion;
 use copilot_replay::{SCENARIO_EXTENSION, Scenario, ScenarioError};
 
 fn scenarios_dir() -> PathBuf {
@@ -62,8 +63,8 @@ fn a_scenario_whose_game_reports_another_crawl_version_than_its_tag_is_refused()
     assert!(
         matches!(
             &error,
-            ScenarioError::CrawlVersionMismatch { tagged, reported }
-                if tagged == "0.33.1" && reported == &["0.34.1"]
+            ScenarioError::CrawlVersionMismatch(mismatch)
+                if mismatch.tagged.0 == "0.33.1" && mismatch.reported == [CrawlVersion("0.34.1".to_owned())]
         ),
         "{error}"
     );

@@ -10,7 +10,7 @@ mod capture;
 mod session;
 
 use std::path::{Path, PathBuf};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use anyhow::{Context, bail};
 use copilot_replay::{Corpus, Recording, Replayer, Scenario, sha256_hex};
@@ -142,14 +142,14 @@ async fn record_scenario(manifest: &Path, server: &str, game: &str) -> anyhow::R
     }
     session.finish().await?;
 
-    let versions = crawl_versions(&scenario.recording)?;
-    if versions != [scenario.crawl_version.clone()] {
-        bail!(
-            "{} is tagged with Crawl Version {} but the server played {versions:?}: update its crawl_version",
-            manifest.display(),
-            scenario.crawl_version
-        );
-    }
+    open_replayer(&scenario.recording)?
+        .check_crawl_version(&scenario.crawl_version)
+        .with_context(|| {
+            format!(
+                "{} doesn't match the server: update its crawl_version",
+                manifest.display()
+            )
+        })?;
     println!("recorded {}", scenario.recording.display());
     Ok(())
 }
@@ -193,8 +193,9 @@ async fn record_qw(
         eprintln!("qw was still playing after {minutes} minutes: the Recording stops there");
     }
 
-    let versions = crawl_versions(&partial)?;
-    let [version] = versions.as_slice() else {
+    let replayer = open_replayer(&partial)?;
+    let versions = replayer.crawl_versions();
+    let [version] = versions else {
         bail!(
             "{} reports Crawl Versions {versions:?}, not one",
             partial.display()
@@ -212,24 +213,16 @@ async fn record_qw(
     Ok(())
 }
 
-/// The Crawl Versions the Recording at `path` reports.
-fn crawl_versions(path: &Path) -> anyhow::Result<Vec<String>> {
+/// The Recording at `path`, ready to replay.
+fn open_replayer(path: &Path) -> anyhow::Result<Replayer> {
     let file =
         std::fs::File::open(path).with_context(|| format!("couldn't read {}", path.display()))?;
-    let replayer = Replayer::new(Recording::read(file)?)?;
-    Ok(replayer
-        .crawl_versions()
-        .iter()
-        .map(|version| version.0.clone())
-        .collect())
+    Ok(Replayer::new(Recording::read(file)?)?)
 }
 
 /// A new account name: crawl allows letters and digits, at most 15 of them.
 fn account(prefix: &str) -> String {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |elapsed| elapsed.as_millis());
-    format!("{prefix}{}", now % 1_000_000_000)
+    format!("{prefix}{}", session::now_ms() % 1_000_000_000)
 }
 
 /// Command-line arguments: one positional and `--name value` options, each used once.
