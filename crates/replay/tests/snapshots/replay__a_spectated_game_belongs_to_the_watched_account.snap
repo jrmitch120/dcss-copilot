@@ -1,0 +1,14 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.identity
+---
+{
+  "server": "http://localhost:8080",
+  "account": "tester",
+  "character": "Wizzy",
+  "species": "Deep Elf",
+  "firstSeenMs": 1760486500120,
+  "crawlVersion": "0.35-a0-412-g28a137d",
+  "wizard": true,
+  "role": "spectating"
+}
