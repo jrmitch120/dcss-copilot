@@ -42,6 +42,10 @@ _Avoid_: Wiki data, database
 The exact build of DCSS a game is played on: a stable release such as 0.34.1, or a particular trunk build.
 _Avoid_: Game version, release (when trunk is included)
 
+**Community Statistics**:
+What finished games on public servers show for one major release, measured among games that reached the same point, such as the share of games entering a level that died there. Shown as evidence alongside advice, never as a reason on its own, because it reflects who chose to go where rather than cause.
+_Avoid_: Win rates, meta, server stats
+
 ### Analysis
 
 **Fact Sheet**:
