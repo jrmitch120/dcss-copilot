@@ -12,10 +12,9 @@ const ONE_GAME: &str = r#"
 repository = "jrmitch120/dcss-copilot-corpus"
 
 [[game]]
-file = "qw-0.34.1-seed-7.dcssrec"
+file = "player-0.34.1-seed-7.dcssrec"
 sha256 = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
 crawl_version = "0.34.1"
-played_by = "qw"
 seed = 7
 "#;
 
@@ -39,7 +38,7 @@ fn a_game_is_fetched_from_the_release_named_for_its_crawl_version() {
 
     assert_eq!(
         corpus.url(&corpus.games[0]),
-        "https://github.com/jrmitch120/dcss-copilot-corpus/releases/download/crawl-0.34.1/qw-0.34.1-seed-7.dcssrec"
+        "https://github.com/jrmitch120/dcss-copilot-corpus/releases/download/crawl-0.34.1/player-0.34.1-seed-7.dcssrec"
     );
 }
 

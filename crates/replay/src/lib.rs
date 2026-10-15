@@ -6,7 +6,7 @@ mod recording;
 mod replayer;
 mod scenario;
 
-pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame, PlayedBy, sha256_hex};
+pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame};
 pub use fake_extension::{
     FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
 };

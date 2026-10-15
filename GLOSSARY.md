@@ -21,7 +21,7 @@ A short Recording of a wizard-mode game set up by hand to reach one moment, kept
 _Avoid_: Fixture, test case
 
 **Corpus**:
-The games tests and evals replay: Scenarios and short Recordings in the main repo, and full games, such as seeded games played by the bot qw, kept as release assets of a separate corpus repo and pinned by hash. Every one is tagged with its Crawl Version.
+The games tests and evals replay: Scenarios and short Recordings in the main repo, and full games played by people, kept as release assets of a separate corpus repo and pinned by hash. Every one is tagged with its Crawl Version.
 _Avoid_: Dataset, test data
 
 **LLM Sidecar**:

@@ -1,6 +1,6 @@
 [package]
 name = "corpus"
-description = "Builds and fetches the test corpus: qw games and wizard-mode scenarios recorded on local webtiles"
+description = "Fetches the test corpus, and records wizard-mode Scenarios on local webtiles"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

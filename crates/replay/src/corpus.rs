@@ -35,21 +35,9 @@ pub struct CorpusGame {
     /// The Crawl Version the game was played on, which its Recording must report. The asset is
     /// kept in the release `crawl-<version>`.
     pub crawl_version: CrawlVersion,
-    /// Who played it.
-    pub played_by: PlayedBy,
     /// The dungeon seed, for a seeded game.
     #[serde(default)]
     pub seed: Option<u64>,
-}
-
-/// Who played a corpus game.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum PlayedBy {
-    /// The bot qw, on local webtiles.
-    Qw,
-    /// A person.
-    Player,
 }
 
 /// Why the corpus couldn't be read.
@@ -178,7 +166,7 @@ impl CorpusGame {
 
 /// The SHA-256 of `bytes` in lowercase hex, as a corpus manifest pins it.
 #[must_use]
-pub fn sha256_hex(bytes: &[u8]) -> String {
+fn sha256_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
         .iter()
         .map(|byte| format!("{byte:02x}"))

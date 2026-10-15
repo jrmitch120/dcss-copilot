@@ -36,8 +36,6 @@ pub struct Session {
     recording: RecordingWriter<std::fs::File>,
     /// The game process has stopped and the server sent the player back to the lobby.
     game_over: bool,
-    /// The first Lua error the game reported, such as from a bot in the rc file.
-    lua_error: Option<String>,
 }
 
 /// Why waiting on the server stopped.
@@ -74,7 +72,6 @@ impl Session {
             capture: Capture::new(&origin, TAB),
             recording: RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))?,
             game_over: false,
-            lua_error: None,
         })
     }
 
@@ -131,11 +128,6 @@ impl Session {
         Ok(Stopped::GameOver)
     }
 
-    /// The first Lua error the game has reported, if any.
-    pub fn lua_error(&self) -> Option<&str> {
-        self.lua_error.as_deref()
-    }
-
     /// Closes the connection and finishes the Recording.
     pub async fn finish(mut self) -> anyhow::Result<()> {
         // Closing mid-game makes the server save it, as closing the browser tab would.
@@ -177,12 +169,8 @@ impl Session {
         for envelope in &captured.envelopes {
             self.recording.write(envelope)?;
             let msg = msg_type(&envelope.msg);
-            match msg {
-                Some("go_lobby") => self.game_over = true,
-                Some("msgs") if self.lua_error.is_none() => {
-                    self.lua_error = lua_error(&envelope.msg);
-                }
-                _ => {}
+            if msg == Some("go_lobby") {
+                self.game_over = true;
             }
             types.push(msg.unwrap_or_default().to_owned());
         }
@@ -196,16 +184,6 @@ impl Session {
         self.socket.send(Message::text(msg.to_string())).await?;
         Ok(())
     }
-}
-
-/// The first line of a `msgs` message that reports a Lua error, as crawl prints it.
-fn lua_error(msg: &Value) -> Option<String> {
-    msg.get("messages")?
-        .as_array()?
-        .iter()
-        .filter_map(|line| line.get("text")?.as_str())
-        .find(|text| text.contains("Lua error:"))
-        .map(str::to_owned)
 }
 
 /// The origin of the page that serves the webtiles websocket at `url`, as the envelope's `origin`.

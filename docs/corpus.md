@@ -1,12 +1,12 @@
 # The test corpus
 
-Tests and evals replay real games. Short, hand-made Recordings live in the main repo next to the tests that use them. Full games are too big for git, so they live in the corpus repo, and the main repo pins each one by hash. Everything here is built and fetched with `tools/corpus`.
+Tests and evals replay real games. Short Recordings live in the main repo next to the tests that use them. Full games are too big for git, so they live in the corpus repo, and the main repo pins each one by hash.
 
 | What | Where | Tagged with its Crawl Version in |
 |---|---|---|
 | Test Recordings: small, often hand-built | `crates/replay/tests/recordings/` | `TAGGED` in `crates/replay/tests/replay.rs`, which must list every one |
-| Scenarios: wizard-mode games set up to reach one moment | `crates/replay/tests/scenarios/` | its manifest, `crawl_version` |
-| Full games: about 20 seeded qw games per stable release, plus our own | release assets of [`jrmitch120/dcss-copilot-corpus`](https://github.com/jrmitch120/dcss-copilot-corpus), listed in `crates/replay/corpus.toml` | its manifest entry, `crawl_version`, and its release, `crawl-<version>` |
+| Scenarios: wizard-mode games set up to reach one moment, the main regression set | `crates/replay/tests/scenarios/` | its manifest, `crawl_version` |
+| Full games: seeded games played by people, about 10 per stable release, the realism set | release assets of [`jrmitch120/dcss-copilot-corpus`](https://github.com/jrmitch120/dcss-copilot-corpus), listed in `crates/replay/corpus.toml` | its manifest entry, `crawl_version`, and its release, `crawl-<version>` |
 
 The tag is checked whenever the Recording is replayed: its games must report exactly the Crawl Versions it is tagged with, or the replay fails.
 
@@ -18,10 +18,9 @@ The tag is checked whenever the Recording is replayed: its games must report exa
 repository = "jrmitch120/dcss-copilot-corpus"
 
 [[game]]
-file = "qw-0.34.1-seed-7.dcssrec"
+file = "player-0.34.1-seed-7.dcssrec"
 sha256 = "…"                 # of the file; a changed asset is refused
 crawl_version = "0.34.1"     # kept in the release crawl-0.34.1
-played_by = "qw"             # or "player"
 seed = 7                     # for a seeded game
 ```
 
@@ -34,12 +33,27 @@ cargo test -p copilot-replay --test corpus -- --ignored
 
 `fetch` downloads only what isn't cached already, and refuses a download whose SHA-256 isn't the pinned one. No Git LFS is involved: the files are ordinary release assets. The corpus tests are `#[ignore]`d, so `cargo test` never needs the network.
 
-To add a game, record it, upload it to the release for its Crawl Version, and commit the manifest entry `record-qw` prints:
+### Recording a game
+
+Play on local webtiles (below) with the extension and a dev build of the app, which writes a Recording for each browser connection:
+
+1. Run the app with `pnpm tauri dev`, and load the extension with `pnpm --filter ./extension dev`.
+2. Open `http://localhost:8080` in that browser and register an account. Its name is in the Recording, so pick one you're happy to make public.
+3. In the lobby, **Edit rc** and set a seed, such as `game_seed = 7`, so the dungeon can be played again.
+4. Play one game, then quit the app from its menu or tray. Quitting finishes the Recording; stopping `pnpm tauri dev` with Ctrl-C leaves it cut short, and a cut-short game isn't accepted into the corpus. The Recording is named for when it started, and is in the app's data directory under `recordings/`: `~/Library/Application Support/io.github.jrmitch120.dcss-copilot/` on macOS, `~/.local/share/io.github.jrmitch120.dcss-copilot/` on Linux, `%APPDATA%\io.github.jrmitch120.dcss-copilot\` on Windows.
+
+A Recording holds everything the server sent, chat included, so keep the server to yourself.
+
+### Adding a game
+
+Name it `player-<version>-seed-<seed>.dcssrec`, upload it to the release for its Crawl Version, and add its entry to `corpus.toml` (`shasum -a 256 <file>` gives its hash):
 
 ```sh
 gh release create crawl-0.34.1 --repo jrmitch120/dcss-copilot-corpus --title "Crawl 0.34.1" --notes ""   # once per version
-gh release upload crawl-0.34.1 --repo jrmitch120/dcss-copilot-corpus target/corpus/recorded/qw-0.34.1-seed-7.dcssrec
+gh release upload crawl-0.34.1 --repo jrmitch120/dcss-copilot-corpus player-0.34.1-seed-7.dcssrec
 ```
+
+Never replace an asset in place: a game that changes is a new file with a new hash.
 
 ## Scenarios
 
@@ -68,52 +82,44 @@ rule = "leave-by-stairs"
 ```
 
 - `rc` is the new account's rc file. `combo` picks the character, weapon included so crawl asks nothing, and `game_seed` picks the dungeon.
-- Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name.
+- Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name or `d` to take the stairs down.
 - `alerts` and `suggested_actions` are refused until the Advisor raises them (#37, #38), rather than being silently ignored.
 
 Playing a scenario snapshots the Fact Sheet and the panel at each turn in `snapshot_turns` as it ended, at each level the game arrives on as its first turn there ended, and at the end of the Recording. `crates/replay/tests/scenarios.rs` plays every scenario in the directory and snapshots each with `insta`, so a new scenario needs no new test. Review its snapshot like any other.
 
-## Recording on local webtiles
+### Recording a scenario
 
-Both scenarios and qw games are recorded by playing a game on a local webtiles server from `tools/corpus`, which captures each message the way the extension does: every message the page hands `comm.handle_message`, `multi` messages split into their children, and `ping` and `close` left out. Each recording uses a fresh account, so no save carries over.
-
-Build crawl at the release's tag with webtiles, and run its server from the source directory:
+`tools/corpus` plays the scenario's setup on local webtiles and records it over the scenario's Recording, then checks its `crawl_version`:
 
 ```sh
+cargo run -p corpus -- record-scenario crates/replay/tests/scenarios/ogre-beside-a-new-minotaur.toml
+```
+
+It captures each message the way the extension does: every message the page hands `comm.handle_message`, `multi` messages split into their children, and `ping` and `close` left out. Each recording uses a fresh account, so no save carries over. `--server` points at another server (default `ws://localhost:8080/socket`), and `--game` at another game entry (default `copilot-wizard`).
+
+## Local webtiles
+
+Build crawl at the release's tag with webtiles, and run its server from the source directory. Install the server's Python requirements first: the build itself needs PyYAML.
+
+```sh
+set -e
 git clone --branch 0.34.1 --depth 1 https://github.com/crawl/crawl.git && cd crawl
-git submodule update --init --depth 1 crawl-ref/source/contrib/{sqlite,lua,pcre,zlib}
-cd crawl-ref/source && make -j4 WEBTILES=y USE_DGAMELAUNCH=y
-pip install -r webserver/requirements/base.py3.txt
+git submodule update --init --depth 1 crawl-ref/source/contrib/{sqlite,lua,pcre,zlib,libpng}
+cd crawl-ref/source
+python3 -m venv ~/crawl-venv
+~/crawl-venv/bin/pip install -r webserver/requirements/base.py3.txt
+PATH="$HOME/crawl-venv/bin:$PATH" make -j4 WEBTILES=y USE_DGAMELAUNCH=y
 cat > webserver/games.d/copilot.yaml <<'EOF'
 games:
-  - id: copilot-qw
-    template: default
-    name: qw
-    options: [-lua-max-memory, "128", -no-throttle]
   - id: copilot-wizard
     template: default
     name: Wizard
     options: [-wizard]
 EOF
-mkdir -p rcs/running rcs/ttyrecs && python3 webserver/server.py
+mkdir -p rcs/running rcs/ttyrecs
+~/crawl-venv/bin/python webserver/server.py
 ```
 
-`-wizard` lets the account enter wizard mode on a dgamelaunch build; qw needs the extra Lua memory and no throttle.
-
-Then, from this repo:
-
-```sh
-# Records the scenario's setup over its Recording, then checks its crawl_version.
-cargo run -p corpus -- record-scenario crates/replay/tests/scenarios/ogre-beside-a-new-minotaur.toml
-
-# Records qw playing seed 7 until the game ends (2 hours at most), into target/corpus/recorded/.
-cargo run -p corpus -- record-qw path/to/qw/qw-final.rc --seed 7
-```
-
-`--server` points at another server (default `ws://localhost:8080/socket`), and `--game` at another game entry.
-
-### qw
-
-qw is run, never copied: clone [crawl/qw](https://github.com/crawl/qw) and build its rc with `./make-qw.sh -r qw.rc`, which writes `qw-final.rc`. `record-qw` adds `AUTO_START`, turns off qw's delay, and sets `game_seed`. qw keeps its own `combo`. While the game is quiet it presses Escape to clear a `--more--` qw left open, such as after it dies, and it stops with an error the first time crawl reports a Lua error, since qw doesn't recover from one.
-
-**qw does not run on 0.34.1 yet.** Its last commit (July 2024) relies on Lua 5.1's implicit `arg` table, and crawl 0.34 runs Lua 5.4 with no LuaJIT option. It also expects crawl APIs that have since changed, such as `you.strength()` returning a maximum as its second value. Until qw supports 0.34, `record-qw` fails on its first turn, and the corpus has no qw games.
+- On macOS, install Xcode's command line tools first (`xcode-select --install`). libpng is only needed there; Linux builds use the system's.
+- On Windows, run all of this inside WSL: the webtiles server needs Unix sockets. A Windows browser still reaches it at `http://localhost:8080`.
+- `-wizard` lets an account enter wizard mode on a dgamelaunch build. Play your own games on any entry.
