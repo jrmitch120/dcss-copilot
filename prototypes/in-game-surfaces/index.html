@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
   PROTOTYPE, throwaway. "In-game secondary surfaces" (wayfinder ticket #21), round 2.
+  Ask box state 3 is live: type in the ask box (Tab looks up a matched name, Enter asks), or click a threat, Way Out or gear item.
   Round 2: ask box drawer covers only the focus area; no "sentence removed" notice; D toggles answer details
   (the Settings option); lookup state shows engine-only lookups from the ask box in Hints/Coach.
   Builds on round3.html (prototype/visual-direction) and round2.html (prototype/setup-settings).
@@ -140,6 +141,12 @@
   .sw.on i { background: #2ed573; } .sw.on i::after { left: 12px; }
   .vr { width: 1px; height: 16px; background: rgba(255,255,255,.12); margin: 0 4px; }
   .enter { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10.5px; color: #6f7588; pointer-events: none; }
+  .clk { cursor: pointer; border-radius: 6px; } .clk:hover { background: rgba(255,255,255,.07); outline: 1px solid rgba(255,255,255,.12); }
+  .lchipwrap { position: absolute; left: 14px; bottom: calc(100% - 2px); }
+  .lchip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 8px; border-radius: 9px; background: #1b1f2b; border: 1px solid rgba(255,255,255,.14); box-shadow: 0 6px 18px rgba(0,0,0,.5); animation: rise .15s ease-out both; }
+  .lchip:hover { border-color: rgba(255,255,255,.3); }
+  .lchip kbd { font-size: 10px; padding: 0 5px; }
+  .lq { font-size: 11px; color: #8a90a3; text-align: right; }
   .tabs { display: flex; gap: 2px; }
   .tabs button { font-size: 12px; padding: 4px 10px; border-radius: 7px; color: #8a90a3; } .tabs button.on { background: rgba(255,255,255,.1); color: #fff; }
   .strip { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; background: rgba(46,213,115,.07); border-bottom: 1px solid rgba(255,255,255,.06); }
@@ -241,8 +248,8 @@ function header({ dot = '', who = '<b>Kesh</b> · MiFi XL 13 · Orc:2', chips = 
   return `<div class="hd"><span class="dot ${dot}"></span><span class="who">${who}</span><span class="sp"></span>${chips}${right}<button class="ic" title="Collapse to pill" data-go="pill">⤡</button><button class="ic" title="Settings">⚙</button>${pop}</div>`;
 }
 const nowPill = (lab, line, sub, cls = '') => `<div class="now ${cls}"><div class="lab">${lab}</div><div class="line">${line}<small>${sub}</small></div></div>`;
-function footer({ ph = 'Ask about your run…', meter = `<button class="meter" title="Opens Settings → Budget and cost">$0.31 of $1.00</button>`, deep = true, deepOn = false, val = '', drop = '' } = {}) {
-  return `<div class="ft">${drop}<span style="flex:1;min-width:0;position:relative;display:flex"><input style="width:100%;padding-right:${val ? 92 : 10}px" class="${deepOn ? 'deep' : ''}" placeholder="${ph}" value="${val}">${val ? '<span class="enter">↵ ask Advisor</span>' : ''}</span>${deep ? `<button class="deepbtn ${deepOn ? 'on' : ''}" data-deep title="Use the Deep Model for this question">◆ Think deeper</button>` : ''}${meter}</div>`;
+function footer({ ph = 'Ask about your run…', meter = `<button class="meter" title="Opens Settings → Budget and cost">$0.31 of $1.00</button>`, deep = true, deepOn = false, val = '', live = false } = {}) {
+  return `<div class="ft">${live ? `<div id="lchip" class="lchipwrap">${chipHtml(val)}</div>` : ''}<span style="flex:1;min-width:0;position:relative;display:flex"><input ${live ? 'id="ask"' : ''} style="width:100%;padding-right:${live ? 92 : 10}px" class="${deepOn ? 'deep' : ''}" placeholder="${ph}" value="${val}">${live ? `<span class="enter" id="enterhint" style="${val.trim() ? '' : 'display:none'}">↵ ask Advisor</span>` : ''}</span>${deep ? `<button class="deepbtn ${deepOn ? 'on' : ''}" data-deep title="Use the Deep Model for this question">◆ Think deeper</button>` : ''}${meter}</div>`;
 }
 function rail({ unknown = false, inline = false, mark = false } = {}) {
   const sk = unknown
@@ -254,12 +261,13 @@ function rail({ unknown = false, inline = false, mark = false } = {}) {
   return `<div class="rail ${mark ? 'hl' : ''}"><div class="lbl" style="margin:0">Run Plan <em>${unknown ? 'planned at the first All Clear' : 'updated at XL 13'}</em></div>
     <div class="r"><span>Route</span><div>${route}</div></div>
     <div class="r"><span>Skills</span><div class="mini">${sk}</div></div>
-    <div class="r"><span>Gear</span><div class="mini"><span>+4 war axe</span><span>+2 scale mail</span><span>+1 kite shield</span></div></div>
+    <div class="r"><span>Gear</span><div class="mini"><span class="clk" data-look="war axe">+4 war axe</span><span>+2 scale mail</span><span>+1 kite shield</span></div></div>
     <div class="r"><span>Needs</span><div class="mini"><span class="no">rPois</span><span class="no">SInv</span><span>cloak</span></div></div></div>`;
 }
-const threats = () => `<div class="lbl" style="margin-top:10px">Threats</div><div class="mons">${['roka', 'priest', 'knight', 'warrior'].map(k => `<div class="mon">${mt(k)}<span>${MONS[k].n}</span><span class="muted small">${MONS[k].d}</span></div>`).join('')}</div>`;
+const TN = { roka: 'saint roka', priest: 'orc high priest', knight: 'orc knight', warrior: 'orc warrior' };
+const threats = () => `<div class="lbl" style="margin-top:10px">Threats <em>click one to look it up</em></div><div class="mons">${['roka', 'priest', 'knight', 'warrior'].map(k => `<div class="mon clk" data-look="${TN[k]}">${mt(k)}<span>${MONS[k].n}</span><span class="muted small">${MONS[k].d}</span></div>${inlineLook === TN[k] ? lookCard(TN[k], true) : ''}`).join('')}</div>`;
 const waysOut = (blinkUnknown = false) => `<div class="lbl" style="margin-top:10px">Ways out <em>computed</em></div><div class="opt">
-  <span class="ok">●</span> Corridor 3 tiles east<br><span class="ok">●</span> ${it('haste', 16)} Potion of haste ×1<br><span class="ok">●</span> ${it('tele', 16)} Scroll of teleportation ×2<br>
+  <span class="ok">●</span> Corridor 3 tiles east<br><span class="ok">●</span> <span class="clk" data-look="potion of haste">${it('haste', 16)} Potion of haste ×1</span><br><span class="ok">●</span> <span class="clk" data-look="scroll of teleportation">${it('tele', 16)} Scroll of teleportation ×2</span><br>
   ${blinkUnknown ? `<span class="muted">●</span> Blink: <span class="unk" title="Spells not read. Press I">failure rate unknown</span><br>` : ''}<span class="no">●</span> Upstairs (2 orcs in the way)</div>`;
 function fightCard({ plan = true, prose = true, ruleOnly = false, blinkUnknown = false } = {}) {
   return `<div class="moment lethal"><span class="ty tactic">tactical</span><h4>Get to the corridor east, then haste.</h4>${threats()}
@@ -368,20 +376,56 @@ function thread(st) {
       ${meta('<b>Deep · $0.041</b><span>5 lookups · simulated 2 fights</span>')}</div>`;
   const live = st === 1 ? `<div class="q">Can I take the two nagas on Snake:2 in melee?</div>
     <div class="a">${details ? `<div class="tools"><span class="ok">✓ Looked up: naga</span><span class="ok">✓ Recalled: Snake:2 monsters seen (T 25,410)</span><span><span class="spin"></span> Simulating: you vs 2× naga…</span></div>` : `<div class="muted small"><span class="spin"></span> Thinking…</div>`}<button class="btn" style="margin-top:4px">Stop</button></div>` : '';
-  const look = st === 2 ? `<div class="q">naga</div>
+  const look = '';
+  const _old = st === -1 ? `<div class="q">naga</div>
     <div class="card rise" style="padding:10px 12px"><div style="display:flex;gap:10px;align-items:center">${mt('naga', 32)}<div><b>naga</b><div class="tiny muted">monster · Snake, Lair · XL 13 threat: moderate</div></div></div>
       <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:8px"><span>HP ~30</span><span>AC 6 · EV 10</span><span>Bite 7, constrict</span><span>Spits poison (4–14)</span><span>Sees invisible</span><span>rPois</span></div>
       <div class="small" style="margin-top:6px;color:#b9bdc9"><b>vs you:</b> you kill it in ~3 hits; it needs ~11 to kill you. Poison stacks: you have no rPois.</div>
       ${details ? `<div class="meta" style="font-size:10.5px;color:#6f7588;margin-top:6px">Information · Game Knowledge 0.34.1</div>` : ''}
       <div class="acts"><button class="btn link">Ask the Advisor about nagas</button></div></div>` : '';
-  return h + live + look;
+  return h + live + look + extra.join('');
 }
-const lookDrop = `<div class="pop rise" style="top:auto;bottom:calc(100% + 4px);left:14px;right:14px;width:auto;gap:2px;padding:6px">
-  <div class="tiny muted" style="padding:2px 6px">Look up <span style="float:right"><kbd>↓</kbd> or click</span></div>
-  ${[['naga', 'monster'], ['naga warrior', 'monster'], ['naga mage', 'monster'], ['nagaraja', 'monster']].map(([n, t], i) => `<div style="display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:7px">${mt('naga', 20)}<span>${n}</span><span class="sp"></span><span class="tiny muted">${t}</span></div>`).join('')}
-</div>`;
+/* lookups: engine-only Information cards, reachable from the ask box chip (Tab) or by clicking a monster or item */
+const LOOK = {
+  'naga': { kind: 'monster · Snake, Lair', tile: () => mt('naga', 32), facts: ['HP ~30', 'AC 6 · EV 10', 'Bite 7, constrict', 'Spits poison (4–14)', 'Sees invisible', 'rPois'], vs: 'you kill it in ~3 hits; it needs ~11 to kill you. Poison stacks: you have no rPois.' },
+  'naga warrior': { kind: 'monster · Snake', tile: () => mt('naga', 32), facts: ['HP ~55', 'AC 6 · EV 10', 'Hit 21, constrict', 'Spits poison', 'rPois'], vs: 'you kill it in ~5 hits; it needs ~6 to kill you.' },
+  'naga mage': { kind: 'monster · Snake', tile: () => mt('naga', 32), facts: ['HP ~35', 'AC 6 · EV 10', 'Bolt of fire, haste self', 'Teleport self', 'rPois'], vs: 'kill it first: its fire bolt does 8–32 and you have no rF.' },
+  'nagaraja': { kind: 'monster · Snake:4', tile: () => mt('naga', 32), facts: ['HP ~90', 'AC 6 · EV 10', 'Smites, poison', 'Casts haste', 'rPois'], vs: 'out of depth for XL 13; avoid without rPois.' },
+  'ogre': { kind: 'monster · D, Orc, Lair', tile: () => mt('ogre', 32), facts: ['HP ~45', 'AC 1 · EV 4', 'Hit 30 (club)', 'Slow attack'], vs: 'you kill it in ~4 hits; it needs ~6 to kill you.' },
+  'orc knight': { kind: 'monster · Orc', tile: () => mt('knight', 32), facts: ['HP ~60', 'AC 9 · EV 11', 'Hit 8–30 (weapon)', 'Shield'], vs: 'adjacent now; you kill it in ~5 hits.' },
+  'orc high priest': { kind: 'monster · Orc', tile: () => mt('priest', 32), facts: ['HP ~55', 'AC 1 · EV 12', 'Smiting 7–17 (ignores AC)', 'Summons divine warrior', 'Heals other orcs'], vs: 'priority target: smiting ignores your AC 23.' },
+  'orc warrior': { kind: 'monster · D, Orc', tile: () => mt('warrior', 32), facts: ['HP ~35', 'AC 0 · EV 10', 'Hit 5–20 (weapon)'], vs: 'you kill it in ~3 hits.' },
+  'saint roka': { kind: 'unique · Orc', tile: () => mt('roka', 32), facts: ['HP ~110', 'AC 3 · EV 10', 'Hit 12–40 (×2)', 'Battlecry (orcs hit harder)', 'Sees invisible'], vs: 'with the battlecry up, ~4 of his hits kill you.' },
+  'ring of poison resistance': { kind: 'item · ring', tile: () => it('ring', 32), facts: ['rPois+', 'Not stackable'], vs: 'fills the rPois need on your Run Plan.' },
+  'potion of haste': { kind: 'item · potion', tile: () => it('haste', 32), facts: ['Hastes you ~40 turns', 'You have 1'], vs: 'one of your Ways Out.' },
+  'scroll of teleportation': { kind: 'item · scroll', tile: () => it('tele', 32), facts: ['Teleports you after 3–5 turns', 'You have 2'], vs: 'the delay matters: read it before HP is critical.' },
+  'war axe': { kind: 'item · axe', tile: () => it('axe', 32), facts: ['Damage 11', 'Delay 1.5 base', 'Yours: +4'], vs: 'your current weapon.' },
+  'broad axe': { kind: 'item · axe', tile: () => it('axe', 32), facts: ['Damage 13', 'Delay 1.6 base', 'Min delay at Axes 18'], vs: 'better than your war axe once Axes reaches 18.' },
+};
+const NAMES = Object.keys(LOOK);
+const disp = n => n === 'saint roka' ? 'Saint Roka' : n;
+function lookCard(n, inline = false) {
+  const L = LOOK[n];
+  return `<div class="card rise" style="padding:${inline ? '8px 10px' : '10px 12px'};${inline ? 'margin:2px 0 6px 34px' : ''}">
+    ${inline ? '' : `<div style="display:flex;gap:10px;align-items:center">${L.tile()}<div><b>${disp(n)}</b><div class="tiny muted">${L.kind}</div></div></div>`}
+    <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;${inline ? '' : 'margin-top:8px'}">${L.facts.map(f => `<span>${f}</span>`).join('')}</div>
+    <div class="small" style="margin-top:6px;color:#b9bdc9"><b>vs you:</b> ${L.vs}</div>
+    <div class="tiny muted" style="margin-top:5px">📖 Information · no LLM${inline ? ' · <a data-look-close>close</a>' : ''}</div></div>`;
+}
+function matchName(t) {
+  t = t.trim().toLowerCase();
+  if (t.length < 2 || t.split(/\s+/).length > 3 || t.includes('?') || /^(should|can|could|what|how|is|are|do|does|why|which|when|where|am|will|would|i|my|plan|tell|help)\b/.test(t)) return null;
+  for (const q of [t, t.replace(/e?s$/, '')]) {
+    const c = NAMES.filter(n => n.startsWith(q)).sort((a, b) => a.length - b.length);
+    if (!c.length) c.push(...NAMES.filter(n => n.split(' ').some(w => w.startsWith(q))));
+    if (c.length) return c[0];
+  }
+  return null;
+}
+const chipHtml = t => { const n = matchName(t); return n ? `<button class="lchip" data-lookchip="${n}">${LOOK[n].tile().replace(/width="32" height="32"/, 'width="20" height="20"')}<b>${disp(n)}</b><span class="muted">· look up, no LLM</span><kbd>Tab</kbd></button>` : ''; };
+let askVal = '', extra = [], inlineLook = null;
 const ASK = {
-  name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'lookup (no LLM)', 'danger mid-conversation'],
+  name: 'Ask box conversation', states: ['history', 'answering (tool use)', 'type or click to look up', 'danger: click a threat'],
   variants: [
     ['A', 'Drawer', 'the conversation covers only the focus area; Run Plan and ask box stay put. D toggles answer details', st => {
       const lethal = st === 3;
@@ -392,7 +436,7 @@ const ASK = {
           ${lethal ? nowPill('LETHAL', 'Get to the corridor east, then haste.', 'Death next turn 9% · worst hit 58', 'lethal') + fightCard() : nowPill('CALM', 'Orc:2 cleared.', 'No hostiles in view') + calmCard()}
           ${lethal ? `<div class="card small muted rise">Conversation tucked away while you fight. <a data-c>Open it</a></div>` : ''}</div>
           ${lethal ? '' : drawer}</div>
-          ${rail()}${footer({ deepOn, val: st === 2 ? 'nag' : '', drop: st === 2 ? lookDrop : '' })}</div>` };
+          ${rail()}${footer({ deepOn, val: askVal, live: true })}</div>` };
     }],
   ],
 };
@@ -500,6 +544,7 @@ let scen = KEYS.includes(q.get('s')) ? q.get('s') : 'join';
 let vi = 0, sti = 0;
 { const v = (q.get('variant') || '').toUpperCase(); const i = SCENS[scen].variants.findIndex(x => x[0] === v); if (i >= 0) vi = i; const s = +q.get('st'); if (s >= 0 && s < SCENS[scen].states.length) sti = s; }
 if (q.get('tiles') === '0') tiles = false;
+if (scen === 'ask' && sti === 2) askVal = 'nag';
 
 function render() {
   const S = SCENS[scen], [k, n, sub, fn] = S.variants[vi];
@@ -510,10 +555,10 @@ function render() {
   try { history.replaceState(null, '', `?s=${scen}&variant=${k}&st=${sti}${tiles ? '' : '&tiles=0'}`); } catch (e) {}
 }
 const step = d => { const n = SCENS[scen].variants.length; vi = (vi + d + n) % n; render(); };
-const cyc = () => { sti = (sti + 1) % SCENS[scen].states.length; render(); };
-const nextScen = () => { scen = KEYS[(KEYS.indexOf(scen) + 1) % KEYS.length]; vi = 0; sti = 0; render(); };
+const cyc = () => { sti = (sti + 1) % SCENS[scen].states.length; extra = []; inlineLook = null; askVal = sti === 2 ? 'nag' : ''; render(); };
+const nextScen = () => { scen = KEYS[(KEYS.indexOf(scen) + 1) % KEYS.length]; vi = 0; sti = 0; extra = []; inlineLook = null; askVal = ''; render(); };
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-step],[data-scen],[data-c],[data-tiles],[data-level],[data-deep],[data-go],[data-details]');
+  const el = e.target.closest('[data-step],[data-scen],[data-c],[data-tiles],[data-level],[data-deep],[data-go],[data-details],[data-look],[data-lookchip],[data-look-close]');
   if (!el) return;
   if (el.dataset.step) return step(+el.dataset.step);
   if ('scen' in el.dataset) return nextScen();
@@ -521,6 +566,13 @@ document.addEventListener('click', e => {
   if ('tiles' in el.dataset) { tiles = !tiles; return render(); }
   if ('deep' in el.dataset) { deepOn = !deepOn; return render(); }
   if ('details' in el.dataset) { details = !details; return render(); }
+  if (el.dataset.lookchip) return doLookup(el.dataset.lookchip, true);
+  if ('lookClose' in el.dataset) { inlineLook = null; return render(); }
+  if (el.dataset.look) {
+    if (scen !== 'ask') { scen = 'ask'; vi = 0; sti = 2; extra = []; }
+    if (sti === 3) { inlineLook = inlineLook === el.dataset.look ? null : el.dataset.look; return render(); }
+    return doLookup(el.dataset.look, false);
+  }
   if (el.dataset.go) { scen = el.dataset.go; vi = 0; sti = 0; return render(); }
   if (el.dataset.level) { level = el.dataset.level; render(); }
 });
@@ -532,6 +584,32 @@ document.addEventListener('keydown', e => {
   if (e.key === 'c' || e.key === 'C') cyc();
   if (e.key === 'g' || e.key === 'G') { tiles = !tiles; render(); }
   if (e.key === 'd' || e.key === 'D') { details = !details; render(); }
+});
+function scrollDown() { const db = document.querySelector('.drawer .db'); if (db) db.scrollTop = db.scrollHeight; }
+function focusAsk() { const a = document.getElementById('ask'); if (a) { a.focus(); a.setSelectionRange(a.value.length, a.value.length); } }
+function doLookup(n, typed) {
+  extra.push(`<div class="lq">📖 ${typed ? 'looked up' : 'clicked'}: ${disp(n)}</div>` + lookCard(n));
+  if (typed) askVal = '';
+  render(); scrollDown(); if (typed) focusAsk();
+}
+function doAsk(t) {
+  extra.push(`<div class="q">${t.replace(/</g, '&lt;')}${deepOn ? '<small>◆ Think deeper</small>' : ''}</div>`);
+  const i = extra.push(`<div class="a">${details ? '<div class="tools"><span><span class="spin"></span> Looking things up…</span></div>' : '<div class="muted small"><span class="spin"></span> Thinking…</div>'}</div>`) - 1;
+  const wasDeep = deepOn; askVal = ''; deepOn = false;
+  render(); scrollDown(); focusAsk();
+  setTimeout(() => { extra[i] = `<div class="a rise">(Prototype: a canned answer. The real one comes from the ${wasDeep ? 'Deep' : 'Quick'} Model, with Game Knowledge and your game as context.)${meta(wasDeep ? '<b>Deep · $0.038</b><span>4 lookups</span>' : '<span>Quick · $0.003</span><span>1 lookup</span>')}</div>`; render(); scrollDown(); focusAsk(); }, 1100);
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'ask') return;
+  askVal = e.target.value;
+  document.getElementById('lchip').innerHTML = chipHtml(askVal);
+  document.getElementById('enterhint').style.display = askVal.trim() ? '' : 'none';
+});
+document.addEventListener('keydown', e => {
+  if (e.target.id !== 'ask') return;
+  const n = matchName(e.target.value);
+  if (e.key === 'Tab' && n) { e.preventDefault(); doLookup(n, true); }
+  if (e.key === 'Enter' && e.target.value.trim()) { e.preventDefault(); doAsk(e.target.value.trim()); }
 });
 render();
 </script>
