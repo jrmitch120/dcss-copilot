@@ -28,7 +28,7 @@ The page keeps every envelope since it loaded, up to about 25 MB, and replays th
 
 A websocket from the extension's background to `ws://127.0.0.1:47821`. The app checks the HTTP `Origin` header before upgrading: only browser extension origins (`chrome-extension://`, `moz-extension://`) are accepted, so web pages (`http(s)://`, `null`) are rejected with 403.
 
-Every frame is one JSON text message tagged by `type`.
+Every frame is one JSON text message tagged by `type`. The Rust side of each frame lives in `copilot_webtiles::relay_protocol`, shared by the app and the fake extension.
 
 ### Extension → app
 
