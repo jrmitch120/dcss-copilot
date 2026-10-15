@@ -74,7 +74,7 @@ async fn main() -> anyhow::Result<()> {
     if recording.truncated {
         println!("This Recording was cut short; it plays up to where it ends.");
     }
-    let mut extension = FakeExtension::new(recording, &args.url, &args.origin);
+    let mut extension = FakeExtension::new(recording, &args.url, &args.origin)?;
 
     println!("{COMMANDS}");
     println!(

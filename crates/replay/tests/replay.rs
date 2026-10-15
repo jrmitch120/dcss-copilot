@@ -19,7 +19,7 @@ const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
-    Replayer::new(Recording::read(recording).unwrap())
+    Replayer::new(Recording::read(recording).unwrap()).unwrap()
 }
 
 #[test]
