@@ -19,6 +19,7 @@ const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-
 const STOPPED_UNNAMED: &[u8] =
     include_bytes!("recordings/session-tiv-reloads-and-crashes-before-naming-the-game.dcssrec");
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
+const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap()).unwrap()
@@ -205,6 +206,15 @@ fn the_character_dump_gives_the_same_resistances_as_the_overview() {
     let from_dump = resistances_on(Screen::CharacterDump);
     assert!(from_dump.is_some());
     assert_eq!(from_dump, resistances_on(Screen::CharacterOverview));
+}
+
+#[test]
+fn what_a_screen_showed_is_remembered_after_it_closes_as_of_the_turn_it_was_read() {
+    let mut replayer = replayer(SCREENS);
+    replayer.seek(6);
+    assert_eq!(replayer.advisor().visible().screen, None);
+
+    insta::assert_json_snapshot!(replayer.advisor().accumulated());
 }
 
 #[test]
@@ -456,4 +466,27 @@ fn the_now_pill_shows_the_threat_level_and_one_line() {
         .collect();
 
     insta::assert_json_snapshot!(pills);
+}
+
+#[test]
+fn a_worn_shield_read_off_the_character_overview_blocks_as_often_as_crawl_lets_it() {
+    // Turn 100: the shield isn't known, so one block is assumed. Turn 101: `%` shows a kite
+    // shield, which blocks up to three attacks. Turn 102: SH changed, so what was read is Stale.
+    let mut replayer = replayer(KITE_SHIELD);
+    let mut by_turn: Vec<serde_json::Value> = Vec::new();
+    while !replayer.at_end() {
+        replayer.step();
+        let turn = serde_json::json!({
+            "turn": replayer.turn(),
+            "wornShield": replayer.advisor().accumulated().map(|state| &state.worn_shield),
+            "factSheet": replayer.advisor().fact_sheet(),
+        });
+        // As each turn ended.
+        match by_turn.last_mut() {
+            Some(last) if last["turn"] == turn["turn"] => *last = turn,
+            _ => by_turn.push(turn),
+        }
+    }
+
+    insta::assert_json_snapshot!(by_turn);
 }

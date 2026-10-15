@@ -3,6 +3,8 @@
 
 use copilot_gk::{Formulas, Monster};
 
+use crate::accumulated_state::Shield;
+
 use super::melee::{
     self, Attack, ENERGY_THRESHOLD, apply_ac, attack_reach, energy_gained, evasion_margin,
     monster_damage, monster_to_hit, shield_blocks, starting_energy,
@@ -20,11 +22,6 @@ const SEED: (u64, u64) = (0x00dc_55c0_9170_7000, 0x0000_0000_0000_0034);
 /// The worst-case hit is the total damage at this percentile of trials (spec #24, Engine).
 const WORST_HIT_PERCENTILE: u32 = 99;
 
-/// How many attacks the player's shield can block before their next action. Crawl allows one
-/// without a shield item and two to four with one (`actor::shield_block_limit`, `actor.cc`), and
-/// the Advisor can't yet tell which shield is worn, so it assumes the fewest.
-const SHIELD_BLOCKS_PER_TURN: u32 = 1;
-
 /// The player's defences, as the game reports them.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Defender {
@@ -36,6 +33,14 @@ pub(crate) struct Defender {
     pub(crate) ev: i32,
     /// Shield class, as displayed.
     pub(crate) sh: i32,
+    /// The most attacks the shield blocks before the player's next action.
+    pub(crate) shield_blocks: u32,
+}
+
+/// The most attacks the player's shield blocks before their next action, wearing `shield`: the
+/// fewest, as without one, when it isn't known.
+pub(crate) fn shield_blocks_per_action(formulas: Formulas, shield: Option<Shield>) -> u32 {
+    melee::shield_block_limit(formulas.shield_block, shield)
 }
 
 /// A monster that may attack the player, and how far away it is.
@@ -110,7 +115,7 @@ fn one_action(
     attackers: &[Attacker<'_>],
 ) -> i32 {
     let mut total = 0;
-    let mut blocks_left = SHIELD_BLOCKS_PER_TURN;
+    let mut blocks_left = defender.shield_blocks;
     for attacker in attackers {
         let monster = attacker.monster;
         let reach = reach(formulas, monster);

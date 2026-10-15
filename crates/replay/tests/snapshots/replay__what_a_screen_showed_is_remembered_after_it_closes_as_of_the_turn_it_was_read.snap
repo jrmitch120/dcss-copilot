@@ -1,0 +1,40 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replayer.advisor().accumulated()
+---
+{
+  "resistances": {
+    "state": "known",
+    "value": {
+      "fire": {
+        "pips": 1
+      },
+      "cold": {
+        "pips": 0
+      },
+      "negative": {
+        "pips": 0
+      },
+      "poison": "immune",
+      "electricity": {
+        "pips": -1
+      },
+      "corrosion": {
+        "pips": 0
+      },
+      "seeInvisible": {
+        "pips": 1
+      },
+      "willpower": {
+        "pips": 2
+      }
+    },
+    "turn": 1234,
+    "screen": {
+      "kind": "characterOverview"
+    }
+  },
+  "wornShield": {
+    "state": "missing"
+  }
+}

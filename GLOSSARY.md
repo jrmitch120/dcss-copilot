@@ -54,6 +54,10 @@ _Avoid_: Connection state, lifecycle event
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache
 
+**Known, Stale, Missing**:
+How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
+_Avoid_: Fresh, expired, cached
+
 **Game Knowledge**:
 Static facts about DCSS itself for one Crawl Version: monster, spell, item, god and species data. When the Advisor has none for the exact Crawl Version being played, it uses the nearest it has and tells the player its advice is approximate.
 _Avoid_: Wiki data, database
@@ -143,7 +147,7 @@ _Avoid_: Advice (when no recommendation is made)
 ### Panel
 
 **Now Pill**:
-The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level it says so, rather than show CALM.
+The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level, because a Gap leaves an input it needs Missing, it shows UNRATED rather than CALM.
 _Avoid_: Status bar, banner
 
 **Focus Card**:

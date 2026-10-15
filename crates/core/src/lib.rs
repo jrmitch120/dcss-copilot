@@ -1,6 +1,7 @@
 //! Visible State, Accumulated State, engine, detectors and renderer:
 //! everything behind the Recording replay seam that does no IO.
 
+mod accumulated_state;
 mod advisor;
 mod engine;
 mod fact_sheet;
@@ -9,6 +10,7 @@ mod screen;
 mod view_model;
 mod visible_state;
 
+pub use accumulated_state::{AccumulatedState, AsOf, Remembered, Shield};
 pub use advisor::Advisor;
 pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, Gap, NotModelled, Threat, ThreatAssessment, ThreatLevel,

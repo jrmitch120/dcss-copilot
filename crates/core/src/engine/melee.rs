@@ -14,6 +14,7 @@ use copilot_gk::{
 };
 
 use super::rng::Rng;
+use crate::accumulated_state::Shield;
 
 /// One of a monster's melee attacks, as the formulas below tell attacks apart: classified once
 /// from crawl's `attack_type` and `attack_flavour` identifiers in its Game Knowledge.
@@ -148,6 +149,20 @@ pub(crate) fn shield_blocks(
             };
             pro_block >= con_block
         }
+    }
+}
+
+/// How many attacks the player's shield can block before their next action:
+/// `actor::shield_block_limit` (`actor.cc:389`), one without a shield, else the shield's
+/// `shield_block_limit` (`item-prop.cc:3135`).
+pub(crate) fn shield_block_limit(variant: ShieldBlock, shield: Option<Shield>) -> u32 {
+    match variant {
+        ShieldBlock::Crawl034 => match shield {
+            None => 1,
+            Some(Shield::Buckler) => 2,
+            Some(Shield::KiteShield) => 3,
+            Some(Shield::TowerShield) => 4,
+        },
     }
 }
 
