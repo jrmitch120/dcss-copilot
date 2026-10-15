@@ -1,0 +1,18 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replay.visible.messages
+---
+[
+  {
+    "text": "Welcome back, Tiv the Skirmisher.",
+    "turn": 1234
+  },
+  {
+    "text": "You see here a <rusty> dagger.",
+    "turn": 1234
+  },
+  {
+    "text": "The hobgoblin hits you.",
+    "turn": 1235
+  }
+]

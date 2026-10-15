@@ -7,6 +7,7 @@ use serde_json::Value;
 use crate::Envelope;
 use crate::json::string;
 use crate::map::LevelMap;
+use crate::messages::MessageLog;
 use crate::player::Player;
 
 /// The webtiles Game Source: decodes relayed envelopes into source-neutral events.
@@ -34,10 +35,18 @@ struct TabKey {
 struct TabGame {
     account: Option<String>,
     role: Option<Role>,
-    player: Player,
-    map: LevelMap,
+    /// What the game process has sent since it started.
+    shown: Shown,
     first_seen_ms: Option<u64>,
     reported: Option<(GameIdentity, VisibleState)>,
+}
+
+/// What one game process has sent, merged. A new process sends its state afresh.
+#[derive(Debug, Default)]
+struct Shown {
+    player: Player,
+    map: LevelMap,
+    messages: MessageLog,
 }
 
 impl WebtilesSource {
@@ -96,8 +105,9 @@ impl TabGame {
                 // The game belongs to the account being watched.
                 self.account = string(msg, "username");
             }
-            Some("player") => self.player.merge(msg),
-            Some("map") => self.map.merge(msg),
+            Some("player") => self.shown.player.merge(msg),
+            Some("map") => self.shown.map.merge(msg),
+            Some("msgs") => self.shown.messages.merge(msg),
             _ => {}
         }
     }
@@ -105,35 +115,40 @@ impl TabGame {
     /// A new game process sends its state in full, so nothing from the previous game carries over.
     fn start(&mut self, role: Role) {
         self.role = Some(role);
-        self.player = Player::default();
-        self.map = LevelMap::default();
+        self.shown = Shown::default();
         self.first_seen_ms = None;
         self.reported = None;
     }
 
     /// What the game reports now, with its monsters and items decoded through `knowledge`.
     fn visible(&self, knowledge: Option<&Bundle>) -> VisibleState {
+        let Shown {
+            player,
+            map,
+            messages,
+        } = &self.shown;
         VisibleState {
-            turn: self.player.turn,
-            stats: self.player.stats.clone(),
-            religion: self.player.religion(),
-            place: self.player.place(),
-            position: self.player.position,
-            statuses: self.player.statuses.clone(),
-            monsters: self.map.monsters_in_view(knowledge),
-            inventory: self
-                .player
+            turn: player.turn,
+            stats: player.stats.clone(),
+            religion: player.religion(),
+            place: player.place(),
+            position: player.position,
+            statuses: player.statuses.clone(),
+            monsters: map.monsters_in_view(knowledge),
+            inventory: player
                 .inventory
                 .as_ref()
                 .map(|inventory| inventory.items(knowledge)),
-            map: self.map.level(knowledge),
+            map: map.level(knowledge),
+            messages: messages.recent(),
         }
     }
 
     /// The game's identity, once the game has named the character and species. The first call
     /// that succeeds fixes when the game was first seen.
     fn identify(&mut self, envelope: &Envelope) -> Option<GameIdentity> {
-        let (Some(name), Some(species)) = (&self.player.name, &self.player.species) else {
+        let player = &self.shown.player;
+        let (Some(name), Some(species)) = (&player.name, &player.species) else {
             return None;
         };
         let first_seen_ms = *self.first_seen_ms.get_or_insert(envelope.ts);
@@ -144,7 +159,7 @@ impl TabGame {
             species: species.clone(),
             first_seen_ms,
             crawl_version: envelope.game_version.as_deref().and_then(crawl_version),
-            wizard: self.player.wizard,
+            wizard: player.wizard,
             role: self.role,
         })
     }

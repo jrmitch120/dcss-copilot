@@ -32,6 +32,22 @@ pub struct VisibleState {
     /// The current level as the game shows it: the squares in view and those remembered. `None`
     /// until the game has sent its map.
     pub map: Option<LevelMap>,
+    /// The most recent messages, oldest first, up to the last [`RECENT_MESSAGES`].
+    pub messages: Vec<GameMessage>,
+}
+
+/// How many of the latest messages Visible State keeps: more than one turn's worth, as the
+/// message pane shows. Older messages are history, not what the game shows now.
+pub const RECENT_MESSAGES: usize = 20;
+
+/// One line of the message log.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameMessage {
+    /// Its words, as plain text without colours.
+    pub text: String,
+    /// The turn it was given on.
+    pub turn: Option<u32>,
 }
 
 /// The current level's map: every square the game shows, in view or remembered from earlier.

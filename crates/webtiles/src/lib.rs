@@ -4,6 +4,8 @@ mod envelope;
 mod inventory;
 mod json;
 mod map;
+mod markup;
+mod messages;
 mod player;
 pub mod relay_protocol;
 mod source;

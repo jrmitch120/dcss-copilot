@@ -140,6 +140,13 @@ fn each_square_of_the_map_is_decoded_to_its_dungeon_feature() {
 }
 
 #[test]
+fn messages_are_the_recent_lines_as_plain_text_after_the_game_takes_any_back() {
+    let replay = replay(KOBOLD).unwrap();
+
+    insta::assert_json_snapshot!(replay.visible.messages);
+}
+
+#[test]
 fn the_first_visible_state_is_what_the_game_first_reports() {
     let mut replayer = replayer(MINOTAUR);
     while replayer.advisor().visible() == &VisibleState::default() && !replayer.at_end() {
