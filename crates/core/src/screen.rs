@@ -37,7 +37,7 @@ pub enum Screen {
     Other(String),
 }
 
-/// The character's resistances, as the character overview shows them. Each is `None` when the
+/// The character's resistances, as the character overview and the character dump show them. Each is `None` when the
 /// screen doesn't show it.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,10 +75,14 @@ pub enum Resistance {
 const RESIST_NAME_WIDTH: usize = 8;
 
 impl ScreenRead {
-    /// The resistances, when this is the character overview.
+    /// The resistances, when this is the character overview or the character dump, which draws
+    /// the same lines (`dump_overview_screen` in crawl's `output.cc`).
     #[must_use]
     pub fn resistances(&self) -> Option<Resistances> {
-        if self.screen != Screen::CharacterOverview {
+        if !matches!(
+            self.screen,
+            Screen::CharacterOverview | Screen::CharacterDump
+        ) {
             return None;
         }
         let mut resistances = Resistances::default();
@@ -97,6 +101,10 @@ impl ScreenRead {
                 "Will" => &mut resistances.willpower,
                 _ => continue,
             };
+            // The overview comes first in a dump; anything later named the same isn't it.
+            if field.is_some() {
+                continue;
+            }
             *field = line.get(RESIST_NAME_WIDTH..).and_then(resistance);
         }
         Some(resistances)

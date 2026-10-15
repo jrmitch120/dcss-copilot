@@ -186,6 +186,24 @@ fn the_character_overview_gives_the_resistances() {
 }
 
 #[test]
+fn the_character_dump_gives_the_same_resistances_as_the_overview() {
+    let replay = replay(SCREENS).unwrap();
+
+    let resistances_on = |screen: Screen| {
+        replay
+            .timeline
+            .iter()
+            .find_map(|moment| match &moment.event {
+                SourceEvent::ScreenRead(read) if read.screen == screen => read.resistances(),
+                _ => None,
+            })
+    };
+    let from_dump = resistances_on(Screen::CharacterDump);
+    assert!(from_dump.is_some());
+    assert_eq!(from_dump, resistances_on(Screen::CharacterOverview));
+}
+
+#[test]
 fn a_screen_is_visible_while_it_is_open() {
     let mut replayer = replayer(SCREENS);
     let open = |replayer: &Replayer| {
