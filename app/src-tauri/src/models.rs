@@ -6,8 +6,8 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Instant;
 
 use copilot_llm::{
-    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, Message, ModelChoice, ModelSlot, Provider,
-    SidecarRecorder, Thinking, complete,
+    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, Message, ModelChoice, ModelInfo, ModelSlot,
+    Provider, SidecarRecorder, Thinking, complete,
 };
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -117,7 +117,11 @@ impl ModelsAndKeys {
                 }
             }
         }
-        let (request, model_name) = key_test_request(provider);
+        let Some((request, model_name)) = key_test_request(provider.models()) else {
+            return KeyTest::Failed {
+                message: format!("{} offers no model to test the key with.", provider.name()),
+            };
+        };
         let started = Instant::now();
         match complete(live.as_ref(), request).await {
             Ok(_) => KeyTest::Works {
@@ -132,21 +136,19 @@ impl ModelsAndKeys {
     }
 }
 
-/// The call that tests a key: the provider's first model, asked for one word.
-fn key_test_request(provider: Provider) -> (LlmRequest, &'static str) {
-    let models = provider.models();
-    let (id, name, thinking) = models.first().map_or(("", "", Thinking::Off), |model| {
-        (model.id, model.name, model.suggested)
-    });
+/// The call that tests a key: the first of the provider's `models`, asked for one word, and the
+/// model's name. `None` when the provider offers no model to ask.
+fn key_test_request(models: &'static [ModelInfo]) -> Option<(LlmRequest, &'static str)> {
+    let model = models.first()?;
     let request = LlmRequest {
-        thinking,
+        thinking: model.suggested,
         ..LlmRequest::new(
-            id,
+            model.id,
             KEY_TEST_MAX_TOKENS,
             vec![Message::user("Reply with the single word OK.")],
         )
     };
-    (request, name)
+    Some((request, model.name))
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -570,6 +572,11 @@ pub(crate) mod tests {
 
         models.save_key(Provider::Anthropic, KEY).unwrap();
         assert_eq!(anthropic(&models).test, KeyTest::Untested);
+    }
+
+    #[test]
+    fn a_provider_without_models_has_no_key_test_rather_than_one_with_an_empty_model() {
+        assert_eq!(key_test_request(&[]), None);
     }
 
     #[test]
