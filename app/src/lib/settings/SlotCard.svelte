@@ -1,5 +1,6 @@
 <script lang="ts">
 import { commands, type SlotView, type ThinkingOption } from "$lib/bindings";
+import { failure } from "$lib/command";
 
 let { title, use, slot }: { title: string; use: string; slot: SlotView } = $props();
 
@@ -15,8 +16,7 @@ const THINKING: Record<ThinkingOption, string> = {
 const current = $derived(slot.models.find((m) => m.id === slot.model));
 
 async function choose(model: string, thinking: ThinkingOption) {
-  const result = await commands.setModel(slot.slot, model, thinking);
-  error = result.status === "error" ? result.error : null;
+  error = failure(await commands.setModel(slot.slot, model, thinking));
 }
 
 function chooseModel(id: string) {

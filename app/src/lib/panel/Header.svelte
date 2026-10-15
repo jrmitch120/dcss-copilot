@@ -1,10 +1,10 @@
 <script lang="ts">
 import type { Character, NowPill } from "$lib/bindings";
+import { threatTone } from "./tone";
 
 let { character, now }: { character: Character; now: NowPill } = $props();
 
-// The dot takes the Threat Level's colour, or a neutral grey while there is none.
-let tone = $derived(now.state === "rated" ? now.level : "unrated");
+let tone = $derived(threatTone(now));
 
 function stat(value: number | null): string {
   return value === null ? "?" : String(value);

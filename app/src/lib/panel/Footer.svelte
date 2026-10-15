@@ -1,5 +1,6 @@
 <script lang="ts">
 import { type Appearance, commands } from "$lib/bindings";
+import { failure } from "$lib/command";
 
 let { appVersion, appearance }: { appVersion: string; appearance: Appearance } = $props();
 
@@ -11,16 +12,13 @@ const CHOICES: [Appearance, string][] = [
 ];
 
 async function choose(choice: Appearance) {
-  const result = await commands.setAppearance(choice);
-  saveError =
-    result.status === "error"
-      ? `This choice lasts only until DCSS Copilot closes: ${result.error}`
-      : null;
+  const error = failure(await commands.setAppearance(choice));
+  saveError = error === null ? null : `This choice lasts only until DCSS Copilot closes: ${error}`;
 }
 
 async function openSettings() {
-  const result = await commands.openSettings();
-  saveError = result.status === "error" ? `Settings couldn't open: ${result.error}` : null;
+  const error = failure(await commands.openSettings());
+  saveError = error === null ? null : `Settings couldn't open: ${error}`;
 }
 </script>
 

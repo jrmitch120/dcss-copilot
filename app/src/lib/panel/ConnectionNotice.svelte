@@ -1,13 +1,13 @@
 <script lang="ts">
 import { type Connection, commands } from "$lib/bindings";
+import { failure } from "$lib/command";
 
 let { connection, following }: { connection: Connection; following: boolean } = $props();
 
 let answerError = $state<string | null>(null);
 
 async function answerBrowser(allow: boolean) {
-  const result = await commands.answerBrowser(allow);
-  answerError = result.status === "error" ? result.error : null;
+  answerError = failure(await commands.answerBrowser(allow));
 }
 </script>
 
