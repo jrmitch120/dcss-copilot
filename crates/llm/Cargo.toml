@@ -13,6 +13,8 @@ futures-util.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+# The model slot is a Settings command's argument, so its TypeScript type is generated from it.
+specta.workspace = true
 thiserror.workspace = true
 
 [lints]

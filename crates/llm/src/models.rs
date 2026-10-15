@@ -106,7 +106,7 @@ const ADAPTIVE: &[Thinking] = &[
 ];
 
 /// The two models a player chooses: one for everyday advice, one for thinking harder.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelSlot {
     /// The Quick Model: Alerts, Decision Point nudges, Coach advice and ordinary questions.

@@ -42,8 +42,8 @@ impl ModelsAndKeys {
         let keys = lock(&self.keys);
         let tests = lock(&self.tests);
         ModelsAndKeysView {
-            quick: slot_view(Slot::Quick, quick),
-            deep: slot_view(Slot::Deep, deep),
+            quick: slot_view(ModelSlot::Quick, quick),
+            deep: slot_view(ModelSlot::Deep, deep),
             keys: Provider::ALL
                 .into_iter()
                 .map(|provider| KeyView {
@@ -161,7 +161,7 @@ fn provider_view(provider: Provider) -> ProviderView {
     }
 }
 
-fn slot_view(slot: Slot, choice: &ModelChoice) -> SlotView {
+fn slot_view(slot: ModelSlot, choice: &ModelChoice) -> SlotView {
     SlotView {
         slot,
         provider: provider_view(choice.provider()),
@@ -198,31 +198,12 @@ pub struct ModelsAndKeysView {
     pub keys: Vec<KeyView>,
 }
 
-/// Which model slot.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
-pub enum Slot {
-    /// The Quick Model, for everyday advice and questions.
-    Quick,
-    /// The Deep Model, for when the player ticks "Think deeper".
-    Deep,
-}
-
-impl From<Slot> for ModelSlot {
-    fn from(slot: Slot) -> Self {
-        match slot {
-            Slot::Quick => Self::Quick,
-            Slot::Deep => Self::Deep,
-        }
-    }
-}
-
 /// One slot's model, and what it could be changed to.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SlotView {
     /// Which slot this is.
-    pub slot: Slot,
+    pub slot: ModelSlot,
     /// The slot's provider.
     pub provider: ProviderView,
     /// The model's id.
@@ -257,7 +238,8 @@ pub struct ModelOption {
     pub suggested: ThinkingOption,
 }
 
-/// A thinking setting, as the Settings window offers it.
+/// A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
+/// effort inside adaptive thinking, so it isn't `Thinking` itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ThinkingOption {

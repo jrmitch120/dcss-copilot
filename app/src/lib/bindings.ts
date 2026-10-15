@@ -16,7 +16,7 @@ export const commands = {
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
 	/**  The player chose a slot's model and how it thinks. */
-	setModel: (slot: Slot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
+	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
 	saveKey: (provider: string, key: string) => typedError<null, string>(__TAURI_INVOKE("save_key", { provider, key })),
 	/**  The player removed their key for a provider. */
@@ -206,6 +206,13 @@ export type ModelOption = {
 	suggested: ThinkingOption,
 };
 
+/**  The two models a player chooses: one for everyday advice, one for thinking harder. */
+export type ModelSlot = 
+/**  The Quick Model: Alerts, Decision Point nudges, Coach advice and ordinary questions. */
+"quick" | 
+/**  The Deep Model: questions the player asks the Advisor to think harder about. */
+"deep";
+
 /**  Settings → Models and keys, as the Settings window draws it. */
 export type ModelsAndKeysView = {
 	/**  The Quick Model slot. */
@@ -256,17 +263,10 @@ export type SettingsView = {
 	models: ModelsAndKeysView,
 };
 
-/**  Which model slot. */
-export type Slot = 
-/**  The Quick Model, for everyday advice and questions. */
-"quick" | 
-/**  The Deep Model, for when the player ticks "Think deeper". */
-"deep";
-
 /**  One slot's model, and what it could be changed to. */
 export type SlotView = {
 	/**  Which slot this is. */
-	slot: Slot,
+	slot: ModelSlot,
 	/**  The slot's provider. */
 	provider: ProviderView,
 	/**  The model's id. */
@@ -277,7 +277,10 @@ export type SlotView = {
 	models: ModelOption[],
 };
 
-/**  A thinking setting, as the Settings window offers it. */
+/**
+ *  A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
+ *  effort inside adaptive thinking, so it isn't `Thinking` itself.
+ */
 export type ThinkingOption = 
 /**  No thinking. */
 "off" | 

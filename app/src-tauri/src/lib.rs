@@ -19,7 +19,7 @@ use tokio::sync::mpsc;
 
 use crate::keys::{Keys, OsKeychain};
 use crate::live::Live;
-use crate::models::{ModelsAndKeys, ModelsAndKeysView, Slot, ThinkingOption};
+use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
 use crate::relay::{BrowserApprovals, RELAY_PORT};
 use crate::settings::Settings;
 
@@ -119,13 +119,12 @@ fn settings_view(live: State<'_, Live>, models: State<'_, ModelsAndKeys>) -> Set
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
 fn set_model(
-    slot: Slot,
+    slot: ModelSlot,
     model: String,
     thinking: ThinkingOption,
     app: AppHandle,
     live: State<'_, Live>,
 ) -> Result<(), String> {
-    let slot = ModelSlot::from(slot);
     let provider = live.model(slot).provider();
     let choice =
         ModelChoice::new(provider, &model, thinking.into()).map_err(|error| error.to_string())?;
