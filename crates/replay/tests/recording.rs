@@ -6,11 +6,10 @@
 use copilot_replay::{Recording, RecordingWriter};
 use copilot_webtiles::Envelope;
 
+const COMMITTED: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
+
 fn envelopes() -> Vec<Envelope> {
-    include_str!("recordings/minotaur-first-steps.jsonl")
-        .lines()
-        .map(|line| serde_json::from_str(line).unwrap())
-        .collect()
+    Recording::read(COMMITTED).unwrap().envelopes
 }
 
 #[test]
@@ -61,22 +60,22 @@ fn a_file_that_is_not_a_recording_is_refused() {
 
 #[test]
 fn a_recording_is_zstd_json_lines_a_header_then_the_envelopes_as_relayed() {
-    let mut writer = RecordingWriter::new(Vec::new(), "1.2.3").unwrap();
+    let committed = String::from_utf8(zstd::decode_all(COMMITTED).unwrap()).unwrap();
+    let mut lines = committed.lines();
+    assert_eq!(
+        lines.next(),
+        Some(r#"{"format":"dcssrec","formatVersion":1,"appVersion":"0.0.0-test"}"#)
+    );
+    assert!(lines.next().unwrap().starts_with(
+        r#"{"origin":"https://crawl.example.org","tab":7,"ts":1760486400000,"gameVersion":null,"msg":{"msg":"login_success","#
+    ));
+
+    let mut writer = RecordingWriter::new(Vec::new(), "0.0.0-test").unwrap();
     for envelope in &envelopes() {
         writer.write(envelope).unwrap();
     }
+    let rewritten =
+        String::from_utf8(zstd::decode_all(&writer.finish().unwrap()[..]).unwrap()).unwrap();
 
-    let text = String::from_utf8(zstd::decode_all(&writer.finish().unwrap()[..]).unwrap()).unwrap();
-
-    let mut lines = text.lines();
-    assert_eq!(
-        lines.next(),
-        Some(r#"{"format":"dcssrec","formatVersion":1,"appVersion":"1.2.3"}"#)
-    );
-    assert_eq!(
-        lines.collect::<Vec<_>>(),
-        include_str!("recordings/minotaur-first-steps.jsonl")
-            .lines()
-            .collect::<Vec<_>>()
-    );
+    assert_eq!(rewritten, committed);
 }
