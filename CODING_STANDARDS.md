@@ -2,6 +2,17 @@
 
 How code in this repo is laid out and written. Vocabulary comes from `GLOSSARY.md`; architecture decisions live in `docs/adr/`.
 
+## Craftsmanship
+
+You are the steward of this codebase. Build it thoughtfully and purposefully, with a clear vision towards maintenance and longevity. Write for the next reader: someone arriving cold, with only the code, the glossary and the ADRs.
+
+- **Types carry the rules.** Encode invariants so the compiler enforces them: a Fact Sheet number always has its source; a Stale fact can't be read as Known.
+- **Fail loudly, label approximations.** Every fallback, unknown and approximation is visible to the caller and, where it matters, the player. The code is as honest as the Advisor.
+- **Crawl changes land as data.** Version-specific knowledge lives in Game Knowledge bundles and formula variants.
+- **Every dependency earns its place.** Prefer the standard library and what the workspace already uses; justify a new dependency in its commit message.
+- **Delete what's dead** in the code you touch: unused code, flags and stale comments.
+- **File improvements outside the change's subject as issues.**
+
 ## Layout
 
 | Path | What lives there |
@@ -24,6 +35,20 @@ The webtiles protocol stays behind the Game Source seam: everything past `crates
 ## Domain language
 
 Name types and functions with glossary terms: `FactSheet`, `ThreatLevel`, `WayOut`, `CandidateAction`, `DecisionPoint`, `RunPlan`, `Gap`. When code needs a concept the glossary lacks, add the term to `GLOSSARY.md` in the same change.
+
+## Prefer the cleaner design over the smaller diff
+
+When a task could be implemented either by tacking onto existing code or by first restructuring it slightly, choose the restructuring. "Minimal change" is not a goal in itself; a readable final state is. Make the change easy, then make the easy change: land the refactor as its own commit, then the behaviour change on top of it.
+
+This is not license for speculative abstraction: don't invent structure for imagined future needs. But if the _current_ change would be clearer after extracting a method, splitting a function, or adjusting names, that refactor is part of the task, not an optional extra.
+
+If you catch yourself thinking any of these, stop and refactor first:
+
+- "This does a bit of wasted work, but it's harmless."
+- "I'll just add the new behavior alongside the old."
+- "The existing method does more than I need, but calling it is fine."
+
+_Adapted from [lazygit's AGENTS.md](https://github.com/jesseduffield/lazygit/blob/master/AGENTS.md#prefer-the-cleaner-design-over-the-smaller-diff) (MIT)._
 
 ## Testing
 
@@ -53,7 +78,7 @@ Write a unit test only for logic a seam test can't reach precisely, such as a pr
 
 ## Before you're done
 
-Every one of these passes:
+Every changed snapshot is intended: inspect each snapshot diff and explain it in the commit message, never accept in bulk. `GLOSSARY.md` and docs match the code, and every one of these passes:
 
 ```sh
 cargo fmt --all --check

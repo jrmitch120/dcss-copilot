@@ -2,7 +2,7 @@
 
 A read-only companion to Dungeon Crawl Stone Soup. The v1 spec is GitHub issue #24.
 
-Before writing or reviewing code, read `docs/coding-standards.md`: layout, test seams, Rust and TypeScript rules, and the checks that must pass.
+Before writing or reviewing code, read `CODING_STANDARDS.md`: layout, test seams, Rust and TypeScript rules, and the checks that must pass.
 
 ## Agent skills
 
