@@ -6,7 +6,7 @@ use std::path::Path;
 use copilot_gk::{Energy, EnumId, Monster, MonsterAttack, Species, Will};
 use serde::Deserialize;
 
-use crate::tiles::TileFiles;
+use crate::tiles::ShippedTiles;
 use crate::{ExtractError, in_range, read};
 
 /// A `dat/mons/*.yaml` file: the fields the bundle keeps. `util/mon-gen.py` defines the format.
@@ -108,7 +108,7 @@ const FIGHTER_FLAG: &str = "fighter";
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
-    tiles: &TileFiles,
+    tiles: &mut ShippedTiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
     let values: HashMap<&str, i64> = monster_type
@@ -145,9 +145,7 @@ pub fn monsters(
                 });
             }
         };
-        let tile = tiles
-            .file(&tile_enum(&id, monster.tile.as_deref()))
-            .map(str::to_owned);
+        let tile = tiles.ship(&tile_enum(&id, monster.tile.as_deref()));
         monsters.insert(
             in_range(&id, value)?,
             Monster {

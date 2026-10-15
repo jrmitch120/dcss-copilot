@@ -9,14 +9,14 @@ mod cpp;
 mod tiles;
 mod yaml;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::{Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, Spell};
 
 use crate::cpp::Source;
-use crate::tiles::TileFiles;
+pub use crate::tiles::ShippedTiles;
 
 /// Crawl's copyright and license, recorded in every bundle (ADR 0002).
 const CRAWL_LICENSE: &str = "Dungeon Crawl Stone Soup, copyright the DCSS devteam and \
@@ -231,16 +231,26 @@ pub enum ExtractError {
     },
 }
 
-/// Extracts the bundle for `release` from the crawl checkout at `crawl`.
+/// What the extractor makes of a crawl release.
+#[derive(Debug)]
+pub struct Extraction {
+    /// The Game Knowledge bundle.
+    pub bundle: Bundle,
+    /// The tiles the bundle names, for the app to ship.
+    pub tiles: ShippedTiles,
+}
+
+/// Extracts the bundle for `release`, and the tiles it names, from the crawl checkout at `crawl`.
 ///
 /// # Errors
 /// If the extractor knows no formula variants for the release, or a file can't be read or isn't
 /// in a form the extractor understands.
-pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractError> {
+pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, ExtractError> {
     let formulas = release.formulas()?;
     let crawl = Crawl::open(crawl)?;
     let item_names = crawl.item_names()?;
-    Ok(Bundle {
+    let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
+    let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
             commit: release.commit.clone(),
@@ -249,7 +259,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractEr
         monsters: yaml::monsters(
             &crawl.source,
             &crawl.enumeration("monster-type.h", "monster_type")?,
-            &TileFiles::read(&crawl.source.join(RLTILES_DIR))?,
+            &mut tiles,
             crawl.tag_major,
         )?,
         item_classes: crawl.item_classes(&item_names)?,
@@ -263,33 +273,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Bundle, ExtractEr
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
         formulas,
-    })
-}
-
-/// Copies the tile of every monster in `bundle` from the crawl checkout at `crawl` into `out`, at
-/// the path the bundle names with `.png` added, and returns how many tiles it copied.
-///
-/// # Errors
-/// If a tile can't be read or written.
-pub fn copy_tiles(crawl: &Path, bundle: &Bundle, out: &Path) -> Result<usize, ExtractError> {
-    let rltiles = crawl.join(SOURCE_DIR).join(RLTILES_DIR);
-    let tiles: BTreeSet<&str> = bundle
-        .monsters
-        .values()
-        .filter_map(|monster| monster.tile.as_deref())
-        .collect();
-    for tile in &tiles {
-        let to = out.join(format!("{tile}.png"));
-        let io = |source| ExtractError::Io {
-            path: to.clone(),
-            source,
-        };
-        if let Some(dir) = to.parent() {
-            std::fs::create_dir_all(dir).map_err(io)?;
-        }
-        std::fs::copy(rltiles.join(format!("{tile}.png")), &to).map_err(io)?;
-    }
-    Ok(tiles.len())
+    };
+    Ok(Extraction { bundle, tiles })
 }
 
 /// A crawl checkout, read as one release's webtiles build compiles it.

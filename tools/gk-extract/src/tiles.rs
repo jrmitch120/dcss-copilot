@@ -1,12 +1,13 @@
 //! Monster tiles from crawl's `rltiles`: which image file crawl's tile build draws each monster
-//! tile from, read from the tile lists as `rltiles/tool/tile_list_processor.cc` reads them.
+//! tile from, read from the tile lists as `rltiles/tool/tile_list_processor.cc` reads them, and
+//! the tiles a bundle names, written out for the app to ship.
 //!
 //! Only a tile drawn straight from one image file is named. A tile the build recolours, mirrors,
 //! composes onto a background or turns into a corpse has no file of its own, so it is left out.
 //! The black rim the build draws around some tiles (`%rim`) isn't in the file, so those tiles
 //! ship without it.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 
 use crate::{ExtractError, read};
@@ -30,19 +31,67 @@ const IGNORED_DIRECTIVES: &[&str] = &[
     "repeat_ctg",
 ];
 
+/// The tiles a bundle names, which the app ships under `tiles/`, gathered as the bundle is
+/// extracted.
+#[derive(Debug)]
+pub struct ShippedTiles {
+    files: TileFiles,
+    shipped: BTreeSet<String>,
+}
+
+impl ShippedTiles {
+    /// No tiles yet, to be picked from the tile lists in `rltiles`.
+    ///
+    /// # Errors
+    /// If a list can't be read, or uses a directive the extractor doesn't understand.
+    pub(crate) fn new(rltiles: &Path) -> Result<Self, ExtractError> {
+        Ok(Self {
+            files: TileFiles::read(rltiles)?,
+            shipped: BTreeSet::new(),
+        })
+    }
+
+    /// Ships the tile enum such as `TILEP_MONS_JACKAL`, returning the tile the bundle names it
+    /// by: its file's path in `rltiles` without the extension, such as `mon/animals/jackal`.
+    /// `None` for a tile with no file of its own.
+    pub(crate) fn ship(&mut self, tile: &str) -> Option<String> {
+        let file = self.files.file(tile)?;
+        self.shipped.insert(file.to_owned());
+        Some(file.to_owned())
+    }
+
+    /// Writes every tile shipped into `out`, at the path the bundle names it by with `.png`
+    /// added, from the crawl checkout at `crawl`, and returns how many it wrote.
+    ///
+    /// # Errors
+    /// If a tile can't be read or written.
+    pub fn write(&self, crawl: &Path, out: &Path) -> Result<usize, ExtractError> {
+        let rltiles = crawl.join(crate::SOURCE_DIR).join(crate::RLTILES_DIR);
+        for file in &self.shipped {
+            let to = out.join(format!("{file}.png"));
+            let io = |source| ExtractError::Io {
+                path: to.clone(),
+                source,
+            };
+            if let Some(dir) = to.parent() {
+                std::fs::create_dir_all(dir).map_err(io)?;
+            }
+            std::fs::copy(rltiles.join(format!("{file}.png")), &to).map_err(io)?;
+        }
+        Ok(self.shipped.len())
+    }
+}
+
 /// The image file of each tile in crawl's player tile list, by its enum without the prefix.
 #[derive(Debug, Default)]
-pub struct TileFiles {
+struct TileFiles {
     /// `None` for a tile with no file of its own.
     files: HashMap<String, Option<String>>,
 }
 
 impl TileFiles {
     /// Reads the tile lists in `rltiles`.
-    ///
-    /// # Errors
-    /// If a list can't be read, or uses a directive the extractor doesn't understand.
-    pub fn read(rltiles: &Path) -> Result<Self, ExtractError> {
+    fn read(rltiles: &Path) -> Result<Self, ExtractError> {
         let mut list = TileList {
             rltiles,
             prefix: String::new(),
@@ -67,7 +116,7 @@ impl TileFiles {
 
     /// The file a tile enum such as `TILEP_MONS_JACKAL` is drawn from, as its path in `rltiles`
     /// without the extension, such as `mon/animals/jackal`.
-    pub fn file(&self, tile: &str) -> Option<&str> {
+    fn file(&self, tile: &str) -> Option<&str> {
         let name = tile.strip_prefix(PLAYER_PREFIX)?.strip_prefix('_')?;
         self.files.get(name)?.as_deref()
     }

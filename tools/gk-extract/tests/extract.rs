@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::Bundle;
-use gk_extract::{CrawlRelease, ExtractError, copy_tiles, extract};
+use gk_extract::{CrawlRelease, ExtractError, extract};
 
 /// The crawl release the fixture and the shipped bundle come from.
 fn release() -> CrawlRelease {
@@ -27,7 +27,7 @@ fn fixture() -> PathBuf {
 
 #[test]
 fn a_bundle_holds_the_monsters_items_spells_species_features_and_monster_states_of_its_crawl_tag() {
-    let bundle = extract(&fixture(), &release()).unwrap();
+    let bundle = extract(&fixture(), &release()).unwrap().bundle;
 
     insta::assert_json_snapshot!(bundle);
 }
@@ -53,10 +53,10 @@ fn files_under(dir: &Path) -> Vec<(String, Vec<u8>)> {
 
 #[test]
 fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
-    let bundle = extract(&fixture(), &release()).unwrap();
+    let extraction = extract(&fixture(), &release()).unwrap();
     let out = tempfile::tempdir().unwrap();
 
-    let copied = copy_tiles(&fixture(), &bundle, out.path()).unwrap();
+    let written = extraction.tiles.write(&fixture(), out.path()).unwrap();
 
     let files = files_under(out.path());
     let names: Vec<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
@@ -73,7 +73,7 @@ fn the_tiles_a_bundle_names_are_copied_from_crawls_rltiles() {
             "mon/humanoids/goblin_rider.png",
         ]
     );
-    assert_eq!(copied, names.len());
+    assert_eq!(written, names.len());
     let rltiles = fixture().join("crawl-ref/source/rltiles");
     for (name, bytes) in &files {
         assert_eq!(bytes, &std::fs::read(rltiles.join(name)).unwrap(), "{name}");
@@ -188,17 +188,20 @@ fn the_shipped_bundle_is_what_the_extractor_makes_of_its_crawl_tag() {
     let expected = release();
     let release = CrawlRelease::checked_out(Path::new(&crawl), &expected.tag, &expected.commit)
         .expect("DCSS_CRAWL_SOURCE is crawl checked out at the shipped bundle's tag");
-    let extracted = extract(Path::new(&crawl), &release).unwrap();
+    let extraction = extract(Path::new(&crawl), &release).unwrap();
 
-    assert_eq!(shipped.crawl, extracted.crawl);
+    assert_eq!(shipped.crawl, extraction.bundle.crawl);
     assert!(
-        shipped == extracted,
+        shipped == extraction.bundle,
         "the shipped bundle is stale: regenerate it with gk-extract (see docs/game-knowledge.md)"
     );
     let tiles = tempfile::tempdir().unwrap();
-    copy_tiles(Path::new(&crawl), &extracted, tiles.path()).unwrap();
+    extraction
+        .tiles
+        .write(Path::new(&crawl), tiles.path())
+        .unwrap();
     assert!(
         files_under(&manifest_dir().join("../../app/static/tiles")) == files_under(tiles.path()),
-        "the shipped tiles are stale: copy them again with gk-extract (see docs/game-knowledge.md)"
+        "the shipped tiles are stale: write them again with gk-extract (see docs/game-knowledge.md)"
     );
 }
