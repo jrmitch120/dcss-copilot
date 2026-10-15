@@ -46,6 +46,10 @@ _Avoid_: History, memory, cache
 Static facts about DCSS itself for one Crawl Version: monster, spell, item, god and species data. When the Advisor has none for the exact Crawl Version being played, it uses the nearest it has and tells the player its advice is approximate.
 _Avoid_: Wiki data, database
 
+**Game Knowledge bundle**:
+The Game Knowledge for one Crawl Version as one file, extracted from crawl's source at that version's tag and shipped with the app. It records the crawl commit it came from, and holds the version's own enum numbering, so a Game Source decodes a game through the bundle for its Crawl Version.
+_Avoid_: Data pack, dataset
+
 **Crawl Version**:
 The exact build of DCSS a game is played on: a stable release such as 0.34.1, or a particular trunk build.
 _Avoid_: Game version, release (when trunk is included)

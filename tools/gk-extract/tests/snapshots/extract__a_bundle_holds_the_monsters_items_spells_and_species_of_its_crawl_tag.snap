@@ -1,0 +1,329 @@
+---
+source: tools/gk-extract/tests/extract.rs
+expression: bundle
+---
+{
+  "crawl": {
+    "tag": "0.34.1",
+    "commit": "381d86c47a17a7f29770cf5e6f7bd9b60642aab6",
+    "license": "Dungeon Crawl Stone Soup, copyright the DCSS devteam and contributors (https://github.com/crawl/crawl), licensed under the GNU General Public License, version 2 or later."
+  },
+  "monsters": {
+    "6": {
+      "id": "MONS_BAT",
+      "name": "bat",
+      "glyph": "b",
+      "hd": 1,
+      "hp10x": 35,
+      "ac": 1,
+      "ev": 14,
+      "will": {
+        "value": 0
+      },
+      "speed": 30,
+      "description": "A large grey bat that, despite being herbivorous, is quite aggressive. It is\nmyopic and uses echolocation to navigate."
+    },
+    "9": {
+      "id": "MONS_ADDER",
+      "name": "adder",
+      "glyph": "S",
+      "hd": 2,
+      "hp10x": 110,
+      "ac": 1,
+      "ev": 15,
+      "will": {
+        "value": 10
+      },
+      "speed": 13,
+      "description": "A common dungeon snake, a species of troglodytic reptile commonly found in\nsubterranean spaces."
+    },
+    "14": {
+      "id": "MONS_RAT",
+      "name": "rat",
+      "glyph": "r",
+      "hd": 1,
+      "hp10x": 25,
+      "ac": 1,
+      "ev": 10,
+      "will": {
+        "value": 0
+      },
+      "speed": 10,
+      "description": "A dirty rodent that has grown large and aggressive in the dungeon environment."
+    },
+    "19": {
+      "id": "MONS_QUOKKA",
+      "name": "quokka",
+      "glyph": "r",
+      "hd": 1,
+      "hp10x": 55,
+      "ac": 2,
+      "ev": 13,
+      "will": {
+        "value": 0
+      },
+      "speed": 12,
+      "description": null
+    },
+    "21": {
+      "id": "MONS_JACKAL",
+      "name": "jackal",
+      "glyph": "h",
+      "hd": 1,
+      "hp10x": 55,
+      "ac": 2,
+      "ev": 12,
+      "will": {
+        "value": 0
+      },
+      "speed": 14,
+      "description": "A small canine scavenger. Packs of jackals roam the underworld, searching for\ncarrion to devour."
+    }
+  },
+  "itemClasses": {
+    "0": {
+      "id": "OBJ_WEAPONS",
+      "subTypes": {
+        "0": {
+          "id": "WPN_CLUB",
+          "name": "club"
+        },
+        "3": {
+          "id": "WPN_MACE",
+          "name": "mace"
+        },
+        "6": {
+          "id": "WPN_SPIKED_FLAIL",
+          "name": "old spiked flail"
+        }
+      }
+    },
+    "1": {
+      "id": "OBJ_MISSILES",
+      "subTypes": {
+        "0": {
+          "id": "MI_DART",
+          "name": "dart"
+        },
+        "5": {
+          "id": "MI_STONE",
+          "name": "stone"
+        }
+      }
+    },
+    "2": {
+      "id": "OBJ_ARMOUR",
+      "subTypes": {
+        "0": {
+          "id": "ARM_ROBE",
+          "name": "robe"
+        },
+        "16": {
+          "id": "ARM_ANIMAL_SKIN",
+          "name": "animal skin"
+        },
+        "27": {
+          "id": "ARM_STORM_DRAGON_HIDE",
+          "name": "removed storm dragon hide"
+        },
+        "28": {
+          "id": "ARM_STORM_DRAGON_ARMOUR",
+          "name": "storm dragon scales"
+        }
+      }
+    },
+    "3": {
+      "id": "OBJ_WANDS",
+      "subTypes": {
+        "0": {
+          "id": "WAND_FLAME",
+          "name": "flame"
+        },
+        "6": {
+          "id": "WAND_PARALYSIS",
+          "name": "paralysis"
+        }
+      }
+    },
+    "4": {
+      "id": "OBJ_FOOD",
+      "subTypes": {}
+    },
+    "5": {
+      "id": "OBJ_SCROLLS",
+      "subTypes": {
+        "0": {
+          "id": "SCR_IDENTIFY",
+          "name": "identify"
+        },
+        "1": {
+          "id": "SCR_TELEPORTATION",
+          "name": "teleportation"
+        },
+        "21": {
+          "id": "SCR_HOLY_WORD",
+          "name": "holy word"
+        }
+      }
+    },
+    "6": {
+      "id": "OBJ_JEWELLERY",
+      "subTypes": {
+        "1": {
+          "id": "RING_PROTECTION",
+          "name": "protection"
+        },
+        "45": {
+          "id": "AMU_FAITH",
+          "name": "faith"
+        }
+      }
+    },
+    "7": {
+      "id": "OBJ_POTIONS",
+      "subTypes": {
+        "0": {
+          "id": "POT_CURING",
+          "name": "curing"
+        },
+        "1": {
+          "id": "POT_HEAL_WOUNDS",
+          "name": "heal wounds"
+        }
+      }
+    },
+    "8": {
+      "id": "OBJ_BOOKS",
+      "subTypes": {
+        "0": {
+          "id": "BOOK_MINOR_MAGIC",
+          "name": "Minor Magic"
+        },
+        "1": {
+          "id": "BOOK_CONJURATIONS",
+          "name": "Conjurations"
+        }
+      }
+    },
+    "9": {
+      "id": "OBJ_STAVES",
+      "subTypes": {
+        "0": {
+          "id": "STAFF_WIZARDRY",
+          "name": "wizardry"
+        },
+        "2": {
+          "id": "STAFF_FIRE",
+          "name": "fire"
+        }
+      }
+    },
+    "10": {
+      "id": "OBJ_ORBS",
+      "subTypes": {}
+    },
+    "11": {
+      "id": "OBJ_MISCELLANY",
+      "subTypes": {
+        "5": {
+          "id": "MISC_HORN_OF_GERYON",
+          "name": "horn of Geryon"
+        },
+        "6": {
+          "id": "MISC_BOX_OF_BEASTS",
+          "name": "box of beasts"
+        }
+      }
+    },
+    "12": {
+      "id": "OBJ_CORPSES",
+      "subTypes": {}
+    },
+    "13": {
+      "id": "OBJ_GOLD",
+      "subTypes": {}
+    },
+    "14": {
+      "id": "OBJ_RODS",
+      "subTypes": {}
+    },
+    "15": {
+      "id": "OBJ_RUNES",
+      "subTypes": {
+        "7": {
+          "id": "RUNE_DIS",
+          "name": "iron"
+        },
+        "8": {
+          "id": "RUNE_GEHENNA",
+          "name": "obsidian"
+        }
+      }
+    },
+    "16": {
+      "id": "OBJ_TALISMANS",
+      "subTypes": {
+        "0": {
+          "id": "TALISMAN_QUILL",
+          "name": "quill talisman"
+        },
+        "16": {
+          "id": "TALISMAN_INKWELL",
+          "name": "inkwell talisman"
+        }
+      }
+    },
+    "17": {
+      "id": "OBJ_GEMS",
+      "subTypes": {}
+    },
+    "18": {
+      "id": "OBJ_GIZMOS",
+      "subTypes": {}
+    },
+    "19": {
+      "id": "OBJ_BAUBLES",
+      "subTypes": {}
+    }
+  },
+  "spells": {
+    "2": {
+      "id": "SPELL_CAUSE_FEAR",
+      "name": "Cause Fear"
+    },
+    "3": {
+      "id": "SPELL_MAGIC_DART",
+      "name": "Magic Dart"
+    },
+    "4": {
+      "id": "SPELL_FIREBALL",
+      "name": "Fireball"
+    },
+    "39": {
+      "id": "SPELL_BOLT_OF_INACCURACY",
+      "name": "Bolt of Inaccuracy"
+    },
+    "220": {
+      "id": "SPELL_AURA_OF_ABJURATION",
+      "name": "Aura of Abjuration"
+    },
+    "328": {
+      "id": "SPELL_CHANT_FIRE_STORM",
+      "name": "Chant Fire Storm"
+    }
+  },
+  "species": [
+    {
+      "id": "SP_CENTAUR",
+      "name": "Centaur"
+    },
+    {
+      "id": "SP_HUMAN",
+      "name": "Human"
+    },
+    {
+      "id": "SP_MINOTAUR",
+      "name": "Minotaur"
+    }
+  ]
+}
