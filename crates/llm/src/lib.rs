@@ -5,6 +5,7 @@
 
 mod anthropic;
 mod key;
+mod models;
 mod provider;
 mod request;
 mod response;
@@ -12,6 +13,7 @@ mod sidecar;
 
 pub use anthropic::AnthropicProvider;
 pub use key::ApiKey;
+pub use models::{ModelChoice, ModelChoiceError, ModelInfo, ModelSlot, Provider};
 pub use provider::{LlmError, LlmProvider, LlmStream, complete};
 pub use request::{
     CacheHint, Effort, LlmRequest, Message, OutputSchema, Part, Role, SystemBlock, Thinking,
