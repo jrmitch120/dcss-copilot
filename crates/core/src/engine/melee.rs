@@ -9,8 +9,8 @@
 //! what that leaves out.
 
 use copilot_gk::{
-    Armour, EvasionRoll, MonsterAttack, MonsterDamage, MonsterEnergy, MonsterReach, MonsterToHit,
-    ShieldBlock,
+    Armour, EvasionRoll, Formulas, MonsterAttack, MonsterDamage, MonsterEnergy, MonsterReach,
+    MonsterToHit, ShieldBlock,
 };
 
 use super::rng::Rng;
@@ -221,6 +221,67 @@ fn gdr_percent(ac: i32) -> i32 {
     #[allow(clippy::cast_possible_truncation)]
     let gdr = (16.0 * f64::from(ac.max(0)).sqrt().sqrt()) as i32;
     gdr
+}
+
+/// The player's defences against melee, as the game displays them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Defences {
+    /// Armour class.
+    pub(crate) ac: i32,
+    /// Evasion.
+    pub(crate) ev: i32,
+    /// Shield class.
+    pub(crate) sh: i32,
+}
+
+/// How one monster attack on the player went.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Swing {
+    /// The attack's rolled accuracy.
+    pub(crate) to_hit: i32,
+    /// Whether it got past the player's evasion.
+    pub(crate) hits: bool,
+    /// Whether the player's shield blocked it, which it does whether or not it would have hit.
+    pub(crate) blocked: bool,
+    /// What the player took: 0 unless it landed.
+    pub(crate) damage: i32,
+}
+
+impl Swing {
+    /// Whether the attack landed: it hit and the shield didn't block it.
+    pub(crate) fn landed(self) -> bool {
+        self.hits && !self.blocked
+    }
+}
+
+/// One monster attack on the player, rolled in the order `melee_attack::attack`
+/// (`melee-attack.cc:1898`) rolls it: accuracy, evasion, the shield, then damage and armour for an
+/// attack that lands. `can_block` is whether the shield has a block left before the player's next
+/// action (`actor::shield_exhausted`, `actor.cc:397`).
+pub(crate) fn swing(
+    formulas: Formulas,
+    rng: &mut Rng,
+    hit_dice: i32,
+    fighter: bool,
+    attack: Attack,
+    defences: Defences,
+    can_block: bool,
+) -> Swing {
+    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, hit_dice, fighter);
+    let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences.ev) >= 0;
+    let blocked =
+        shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences.sh) && can_block;
+    let mut swing = Swing {
+        to_hit,
+        hits,
+        blocked,
+        damage: 0,
+    };
+    if swing.landed() {
+        let rolled = monster_damage(formulas.monster_damage, rng, attack);
+        swing.damage = apply_ac(formulas.armour, rng, rolled, defences.ac);
+    }
+    swing
 }
 
 /// How many squares away this attack reaches: `melee_attack::can_reach` (`melee-attack.cc:97`)

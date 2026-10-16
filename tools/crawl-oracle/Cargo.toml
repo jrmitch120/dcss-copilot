@@ -10,6 +10,11 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+copilot-core.workspace = true
+copilot-gk.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true
