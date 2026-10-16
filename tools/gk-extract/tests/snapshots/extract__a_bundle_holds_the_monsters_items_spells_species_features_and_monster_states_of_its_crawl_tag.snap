@@ -1084,6 +1084,9 @@ expression: bundle
     "monsterSpellPower": "crawl-0.34",
     "monsterSpellBeam": "crawl-0.34",
     "beamHit": "crawl-0.34",
-    "beamDamage": "crawl-0.34"
+    "beamDamage": "crawl-0.34",
+    "monsterFire": "crawl-0.34",
+    "missileAttack": "crawl-0.34",
+    "monsterWand": "crawl-0.34"
   }
 }

@@ -189,6 +189,15 @@ pub struct Formulas {
     pub beam_hit: BeamHit,
     /// A beam's damage after armour: `zap_damage`, `dice_def::roll` and `bolt::apply_AC`.
     pub beam_damage: BeamDamage,
+    /// Whether a monster shoots or throws at the player this action, and the energy it takes:
+    /// `handle_throw` and `mons_throw`.
+    pub monster_fire: MonsterFire,
+    /// A monster's missile's accuracy and damage before armour: `ranged_attack`,
+    /// `attack::calc_to_hit` and `attack::calc_damage`.
+    pub missile_attack: MissileAttack,
+    /// Whether a monster zaps its wand this action, with what power, and the energy it takes:
+    /// `_handle_wand` and `mons_wand_power`.
+    pub monster_wand: MonsterWand,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -288,6 +297,30 @@ pub enum BeamDamage {
     Crawl034,
 }
 
+/// The variants of whether a monster shoots or throws.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterFire {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's missile attack.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MissileAttack {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster zapping a wand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterWand {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -303,6 +336,9 @@ impl Formulas {
         monster_spell_beam: MonsterSpellBeam::Crawl034,
         beam_hit: BeamHit::Crawl034,
         beam_damage: BeamDamage::Crawl034,
+        monster_fire: MonsterFire::Crawl034,
+        missile_attack: MissileAttack::Crawl034,
+        monster_wand: MonsterWand::Crawl034,
     };
 }
 
