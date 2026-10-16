@@ -20,7 +20,8 @@ expression: focus
           "tile": "mon/animals/jackal"
         },
         "name": "jackal",
-        "detail": null
+        "detail": null,
+        "count": 1
       },
       {
         "depiction": {
@@ -31,7 +32,8 @@ expression: focus
           "tile": "mon/humanoids/goblin"
         },
         "name": "goblin",
-        "detail": null
+        "detail": null,
+        "count": 1
       }
     ]
   },
@@ -47,7 +49,8 @@ expression: focus
           "tile": "mon/animals/jackal"
         },
         "name": "jackal",
-        "detail": null
+        "detail": null,
+        "count": 1
       },
       {
         "depiction": {
@@ -58,7 +61,8 @@ expression: focus
           "tile": "mon/humanoids/goblin"
         },
         "name": "goblin",
-        "detail": null
+        "detail": null,
+        "count": 1
       }
     ]
   },
@@ -74,7 +78,8 @@ expression: focus
           "tile": "mon/animals/jackal"
         },
         "name": "jackal",
-        "detail": null
+        "detail": null,
+        "count": 1
       }
     ]
   },
@@ -90,7 +95,8 @@ expression: focus
           "tile": "mon/animals/jackal"
         },
         "name": "jackal",
-        "detail": null
+        "detail": null,
+        "count": 1
       }
     ]
   },
@@ -106,7 +112,8 @@ expression: focus
           "tile": "mon/animals/jackal"
         },
         "name": "jackal",
-        "detail": null
+        "detail": null,
+        "count": 1
       },
       {
         "depiction": {
@@ -117,7 +124,8 @@ expression: focus
           "tile": "mon/animals/adder"
         },
         "name": "adder",
-        "detail": null
+        "detail": null,
+        "count": 1
       }
     ]
   }

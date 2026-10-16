@@ -85,79 +85,14 @@ expression: replay
             {
               "depiction": {
                 "glyph": {
-                  "text": "P",
-                  "colour": "lightGrey"
-                },
-                "tile": "mon/fungi_plants/fungus1"
-              },
-              "name": "fungus",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "P",
-                  "colour": "lightGreen"
-                },
-                "tile": "mon/fungi_plants/toadstool_left"
-              },
-              "name": "toadstool",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "P",
-                  "colour": "lightGrey"
-                },
-                "tile": "mon/fungi_plants/fungus1"
-              },
-              "name": "fungus",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
                   "text": "h",
                   "colour": "brown"
                 },
                 "tile": "mon/animals/jackal"
               },
               "name": "jackal",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "P",
-                  "colour": "green"
-                },
-                "tile": "mon/fungi_plants/plant_01"
-              },
-              "name": "plant",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "P",
-                  "colour": "lightGrey"
-                },
-                "tile": "mon/fungi_plants/fungus1"
-              },
-              "name": "fungus",
-              "detail": null
-            },
-            {
-              "depiction": {
-                "glyph": {
-                  "text": "h",
-                  "colour": "brown"
-                },
-                "tile": "mon/animals/jackal"
-              },
-              "name": "jackal",
-              "detail": null
+              "detail": null,
+              "count": 2
             }
           ]
         },
@@ -242,79 +177,14 @@ expression: replay
           {
             "depiction": {
               "glyph": {
-                "text": "P",
-                "colour": "lightGrey"
-              },
-              "tile": "mon/fungi_plants/fungus1"
-            },
-            "name": "fungus",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
-                "text": "P",
-                "colour": "lightGreen"
-              },
-              "tile": "mon/fungi_plants/toadstool_left"
-            },
-            "name": "toadstool",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
-                "text": "P",
-                "colour": "lightGrey"
-              },
-              "tile": "mon/fungi_plants/fungus1"
-            },
-            "name": "fungus",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
                 "text": "h",
                 "colour": "brown"
               },
               "tile": "mon/animals/jackal"
             },
             "name": "jackal",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
-                "text": "P",
-                "colour": "green"
-              },
-              "tile": "mon/fungi_plants/plant_01"
-            },
-            "name": "plant",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
-                "text": "P",
-                "colour": "lightGrey"
-              },
-              "tile": "mon/fungi_plants/fungus1"
-            },
-            "name": "fungus",
-            "detail": null
-          },
-          {
-            "depiction": {
-              "glyph": {
-                "text": "h",
-                "colour": "brown"
-              },
-              "tile": "mon/animals/jackal"
-            },
-            "name": "jackal",
-            "detail": null
+            "detail": null,
+            "count": 2
           }
         ]
       },

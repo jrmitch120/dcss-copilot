@@ -4,6 +4,7 @@
 #![allow(clippy::unwrap_used)]
 
 use copilot_core::{Position, Screen, SessionEvent, SourceEvent, VisibleState};
+use copilot_gk::Library;
 use copilot_replay::{Applied, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
@@ -21,6 +22,7 @@ const STOPPED_UNNAMED: &[u8] =
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
+const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
 fn replayer(recording: &[u8]) -> Replayer {
     Replayer::new(Recording::read(recording).unwrap()).unwrap()
@@ -95,6 +97,15 @@ fn the_panel_lists_the_monsters_in_view_by_name() {
         .map(|view| view.game.map(|game| game.focus))
         .collect();
     insta::assert_json_snapshot!(focus);
+}
+
+#[test]
+fn without_game_knowledge_for_the_crawl_version_no_monster_in_view_is_taken_for_firewood() {
+    let mut replayer =
+        Replayer::with_knowledge(Recording::read(AMONG_FUNGI).unwrap(), Library::default());
+    replayer.seek(usize::MAX);
+
+    insta::assert_json_snapshot!(replayer.view_model().game.unwrap().focus);
 }
 
 #[test]

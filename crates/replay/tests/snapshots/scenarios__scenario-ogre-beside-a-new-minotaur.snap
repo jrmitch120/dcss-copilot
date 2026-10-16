@@ -80,7 +80,8 @@ expression: replay
                 "tile": "mon/humanoids/ogre"
               },
               "name": "ogre",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -160,7 +161,8 @@ expression: replay
               "tile": "mon/humanoids/ogre"
             },
             "name": "ogre",
-            "detail": null
+            "detail": null,
+            "count": 1
           }
         ]
       },

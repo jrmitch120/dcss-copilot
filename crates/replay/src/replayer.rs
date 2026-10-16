@@ -121,7 +121,13 @@ impl Replayer {
     /// # Errors
     /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
     pub fn new(recording: Recording) -> Result<Self, BundleError> {
-        let knowledge = Library::shipped()?;
+        Ok(Self::with_knowledge(recording, Library::shipped()?))
+    }
+
+    /// Starts before the Recording's first envelope, with only the Game Knowledge in
+    /// `knowledge`, such as none at all.
+    #[must_use]
+    pub fn with_knowledge(recording: Recording, knowledge: Library) -> Self {
         let mut game = Game::new(&knowledge);
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
         turns.push(None);
@@ -138,14 +144,14 @@ impl Replayer {
                 crawl_versions.push(version.clone());
             }
         }
-        Ok(Self {
+        Self {
             recording,
             turns,
             crawl_versions,
             position: 0,
             game: Game::new(&knowledge),
             knowledge,
-        })
+        }
     }
 
     /// Every Crawl Version the Recording's followed games report, in the order first seen: what

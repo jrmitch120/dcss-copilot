@@ -83,7 +83,8 @@ expression: replay
                 "tile": "mon/fungi_plants/oklob_plant"
               },
               "name": "oklob plant",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -164,7 +165,8 @@ expression: replay
                 "tile": "mon/fungi_plants/oklob_plant"
               },
               "name": "oklob plant",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -245,7 +247,8 @@ expression: replay
                 "tile": "mon/fungi_plants/oklob_plant"
               },
               "name": "oklob plant",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -328,7 +331,8 @@ expression: replay
               "tile": "mon/fungi_plants/oklob_plant"
             },
             "name": "oklob plant",
-            "detail": null
+            "detail": null,
+            "count": 1
           }
         ]
       },

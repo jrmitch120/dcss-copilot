@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use copilot_gk::{Bundle, Library};
+use copilot_gk::{Bundle, Library, Monster};
 
 use crate::accumulated_state::AccumulatedState;
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment};
@@ -142,12 +142,11 @@ impl Advisor {
             },
             now: now_pill(&self.fact_sheet.threat),
             focus: FocusCard::InView {
-                monsters: self.visible.monsters.as_ref().map(|monsters| {
-                    monsters
-                        .iter()
-                        .map(|monster| listing(monster, self.game_knowledge()))
-                        .collect()
-                }),
+                monsters: self
+                    .visible
+                    .monsters
+                    .as_ref()
+                    .map(|monsters| in_view(monsters, self.game_knowledge())),
             },
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
@@ -231,18 +230,28 @@ fn capitalised(name: &str) -> String {
     })
 }
 
-/// A monster's row in the panel, with its tile when `knowledge` names one.
-fn listing(monster: &VisibleMonster, knowledge: Option<&Bundle>) -> Listing {
-    let tile = monster
-        .id
-        .as_ref()
-        .and_then(|id| knowledge?.monster_by_id(id)?.tile.clone());
+/// The rows listing `monsters` in view: Firewood left out, since the player sees it as scenery,
+/// and identical monsters in one row. Without `knowledge` nothing is known to be Firewood, so
+/// nothing is left out.
+fn in_view(monsters: &[VisibleMonster], knowledge: Option<&Bundle>) -> Vec<Listing> {
+    Listing::grouped(monsters.iter().filter_map(|monster| {
+        let kind = monster
+            .id
+            .as_ref()
+            .and_then(|id| knowledge?.monster_by_id(id));
+        (!kind.is_some_and(|kind| kind.firewood)).then(|| listing(monster, kind))
+    }))
+}
+
+/// A monster's row in the panel, with its tile when its `kind` names one.
+fn listing(monster: &VisibleMonster, kind: Option<&Monster>) -> Listing {
     Listing {
         depiction: Depiction {
             glyph: monster.glyph.clone(),
-            tile: tile.map(TileName),
+            tile: kind.and_then(|kind| kind.tile.clone()).map(TileName),
         },
         name: monster.name.clone(),
         detail: None,
+        count: 1,
     }
 }

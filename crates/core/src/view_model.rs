@@ -137,8 +137,9 @@ pub enum NowPill {
 pub enum FocusCard {
     /// Nothing calls for a decision: the card lists what is in view.
     InView {
-        /// The monsters in view, or `None` while the Advisor can't read monsters, which is
-        /// not the same as there being none.
+        /// The monsters in view, identical ones in one row, without Firewood when Game
+        /// Knowledge says which monsters are Firewood. `None` while the Advisor can't read
+        /// monsters, which is not the same as there being none.
         monsters: Option<Vec<Listing>>,
     },
 }
@@ -159,16 +160,41 @@ pub enum AskBox {
     NeedsModel,
 }
 
-/// One row of a list in the panel, such as a monster in view.
+/// One row of a list in the panel, such as a monster in view, standing for one thing or several
+/// identical ones.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Listing {
     /// How the thing is drawn.
     pub depiction: Depiction,
-    /// Its name, as the game names it.
+    /// Its name, as the game names one of it.
     pub name: String,
     /// A short fact beside the name, if any.
     pub detail: Option<String>,
+    /// How many identical things the row stands for, such as 4 for a pack of jackals.
+    pub count: u32,
+}
+
+impl Listing {
+    /// Whether `other` lists the same kind of thing, drawn and described alike, so the two can
+    /// be one row.
+    fn lists_alike(&self, other: &Self) -> bool {
+        self.depiction == other.depiction && self.name == other.name && self.detail == other.detail
+    }
+
+    /// The rows for `listings`, each run of identical ones made one row with their count, in the
+    /// order each was first listed.
+    #[must_use]
+    pub fn grouped(listings: impl IntoIterator<Item = Self>) -> Vec<Self> {
+        let mut rows: Vec<Self> = Vec::new();
+        for listing in listings {
+            match rows.iter_mut().find(|row| row.lists_alike(&listing)) {
+                Some(row) => row.count += listing.count,
+                None => rows.push(listing),
+            }
+        }
+        rows
+    }
 }
 
 /// How a monster or item is drawn: always as a glyph, and as a tile too when one is known.
