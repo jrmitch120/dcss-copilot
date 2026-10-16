@@ -1,7 +1,8 @@
 //! The Threat Level's Monte Carlo: every monster that can reach the player before their next
-//! standard-speed action, fighting in melee through crawl's own dice, many times over.
+//! standard-speed action, casting its spells and fighting in melee through crawl's own dice, many
+//! times over.
 
-use copilot_gk::{Formulas, Monster};
+use copilot_gk::{Bundle, Formulas, Monster, MonsterSpells};
 
 use crate::accumulated_state::Shield;
 
@@ -9,6 +10,7 @@ use super::melee::{
     self, Attack, Defences, ENERGY_THRESHOLD, attack_reach, energy_gained, starting_energy,
 };
 use super::rng::Rng;
+use super::spells::{self, DamagingSpell, Prospect, Reach};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -38,13 +40,59 @@ pub(crate) fn shield_blocks_per_action(formulas: Formulas, shield: Option<Shield
     melee::shield_block_limit(formulas.shield_block, shield)
 }
 
-/// A monster that may attack the player, and how far away it is.
-#[derive(Debug, Clone, Copy)]
+/// A monster that may attack the player, how far away it is, and the spells it casts that the
+/// engine ports.
+#[derive(Debug, Clone)]
 pub(crate) struct Attacker<'a> {
     /// Its Game Knowledge.
     pub(crate) monster: &'a Monster,
     /// Squares between it and the player, counting diagonals as one, as crawl's `grid_distance`.
     pub(crate) distance: i32,
+    /// The damaging spells of its book that the engine ports, in book order, as it casts them.
+    pub(crate) spells: Vec<Cast<'a>>,
+}
+
+/// A damaging spell as a particular monster casts it.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Cast<'a> {
+    /// The spell.
+    pub(crate) spell: DamagingSpell<'a>,
+    /// The power the monster casts it with.
+    power: i32,
+    /// How far it reaches.
+    pub(crate) reach: Reach,
+}
+
+impl<'a> Attacker<'a> {
+    /// `monster`, `distance` squares from the player, with the spells of its book the engine
+    /// ports, looked up in `bundle`. A spell its book names that the bundle lacks is left out.
+    pub(crate) fn new(bundle: &'a Bundle, monster: &'a Monster, distance: i32) -> Self {
+        let formulas = bundle.formulas;
+        let hit_dice = i32::try_from(monster.hd).unwrap_or(i32::MAX);
+        let book = match &monster.spells {
+            MonsterSpells::Book { spells } => spells.as_slice(),
+            MonsterSpells::PerMonster => &[],
+        };
+        let spells = book
+            .iter()
+            .filter_map(|slot| {
+                let spell = bundle.spell_by_id(&slot.spell)?;
+                let damaging = spells::damaging(formulas.monster_spell_beam, slot, spell)?;
+                let power = spells::power(formulas.monster_spell_power, &spell.id, hit_dice);
+                let range = spells::range(formulas.monster_spell_power, spell.range?, power);
+                Some(Cast {
+                    spell: damaging,
+                    power,
+                    reach: spells::reach(formulas.monster_spell_beam, &damaging, range),
+                })
+            })
+            .collect();
+        Self {
+            monster,
+            distance,
+            spells,
+        }
+    }
 }
 
 /// What playing out the player's next action many times showed.
@@ -59,18 +107,29 @@ pub(crate) struct Outcome {
 }
 
 /// Whether `attacker` can attack before the player's next standard-speed action at all: with the
-/// most energy it could have, it closes the distance and still has an action left.
+/// most energy it could have, it closes the distance, unless it never moves, and still has an
+/// action left to strike the player in melee or with a spell.
 pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
     let reach = reach(formulas, monster);
-    if reach == 0 {
+    let spell_reach = attacker
+        .spells
+        .iter()
+        .map(|cast| cast.reach.strikes)
+        .max()
+        .unwrap_or(0);
+    let strikes_from = reach.max(spell_reach);
+    if strikes_from == 0 {
         return false;
     }
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
     let mut distance = attacker.distance;
     while energy >= ENERGY_THRESHOLD {
-        if distance <= reach {
+        if distance <= strikes_from {
             return true;
+        }
+        if monster.stationary {
+            return false;
         }
         distance -= 1;
         energy -= cost(monster.energy.walk);
@@ -118,10 +177,41 @@ fn one_action(
         let mut distance = attacker.distance;
         let mut energy = starting_energy(formulas.monster_energy, rng)
             + energy_gained(formulas.monster_energy, rng, speed(monster));
-        while energy >= ENERGY_THRESHOLD && reach > 0 {
-            if distance > reach {
-                // It walks straight at the player: walls and other monsters aren't modelled.
-                distance -= 1;
+        // Once it breathes, it can't again until a turn has passed (`setup_breath_timeout`).
+        let mut breathed = false;
+        while energy >= ENERGY_THRESHOLD && (reach > 0 || !attacker.spells.is_empty()) {
+            // A monster tries its spells before anything else (`_mons_take_special_action`,
+            // `mon-act.cc:1840`).
+            if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, breathed) {
+                if cast.reach.strikes >= distance {
+                    let bolt = spells::bolt(formulas.beam_damage, rng, &cast.spell, cast.power);
+                    let shot = spells::shoot(
+                        formulas.beam_hit,
+                        formulas.beam_damage,
+                        rng,
+                        bolt,
+                        defender.defences,
+                        blocks_left > 0,
+                    );
+                    if shot.blocked {
+                        blocks_left -= 1;
+                    }
+                    total += shot.damage;
+                }
+                breathed |= cast.spell.breath;
+                // An instant spell takes no time, and the monster goes on to act
+                // (`handle_mon_spell`, `mon-cast.cc:5228`).
+                if !cast.spell.instant {
+                    energy -= cost(monster.energy.spell);
+                    continue;
+                }
+            }
+            if reach == 0 || distance > reach {
+                // It walks straight at the player, unless it never moves: walls and other
+                // monsters aren't modelled.
+                if !monster.stationary && distance > 1 {
+                    distance -= 1;
+                }
                 energy -= cost(monster.energy.walk);
                 continue;
             }
@@ -151,6 +241,36 @@ fn one_action(
         }
     }
     total
+}
+
+/// The spell `attacker` casts this action, if any, `distance` squares from the player. A breath
+/// can't be cast again once breathed this action: crawl drops it from the usable spells
+/// (`_find_usable_spells`).
+fn choose_cast<'c, 'a>(
+    formulas: Formulas,
+    rng: &mut Rng,
+    casts: &'c [Cast<'a>],
+    distance: i32,
+    breathed: bool,
+) -> Option<&'c Cast<'a>> {
+    let usable: Vec<&Cast<'a>> = casts
+        .iter()
+        .filter(|cast| !(breathed && cast.spell.breath))
+        .collect();
+    // With no usable spell, crawl rolls for none (`handle_mon_spell`).
+    if usable.is_empty() {
+        return None;
+    }
+    let prospects: Vec<Prospect> = usable
+        .iter()
+        .map(|cast| Prospect {
+            frequency: cast.spell.frequency,
+            when: cast.spell.when,
+            in_range: cast.reach.casts >= distance,
+        })
+        .collect();
+    spells::choose(formulas.monster_spell_choice, rng, &prospects, distance)
+        .and_then(|i| usable.get(i).copied())
 }
 
 /// How far the monster's melee reaches: its farthest-reaching attack that deals damage, as

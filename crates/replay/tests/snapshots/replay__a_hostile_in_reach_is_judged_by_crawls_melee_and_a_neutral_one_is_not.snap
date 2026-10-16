@@ -20,13 +20,14 @@ expression: replayer.advisor().fact_sheet()
           "x": 1,
           "y": -1
         },
-        "distance": 1
+        "distance": 1,
+        "casts": [],
+        "spellsNotModelled": []
       }
     ],
     "notModelled": [
       "monsterEquipment",
       "attackFlavours",
-      "rangedAndSpells",
       "statuses",
       "paths",
       "awareness"

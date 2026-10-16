@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::Bundle;
+use copilot_gk::{Bundle, MonsterSpells};
 use serde::Serialize;
 use specta::Type;
 
@@ -128,35 +128,53 @@ pub struct ActingMonster {
     pub position: Position,
     /// Squares between it and the player.
     pub distance: i32,
+    /// The spells it may cast at the player that the simulation plays out, by name.
+    pub casts: Vec<String>,
+    /// The other spells of its book, by name: the simulation assumes it doesn't cast them.
+    pub spells_not_modelled: Vec<String>,
 }
 
 /// Something the Threat Level's simulation doesn't model.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
-    /// Monsters fight as if unarmed and unarmoured, with no weapon damage or brands.
+    /// Monsters fight as if they carry nothing: no weapon damage or brands, no armour, and no
+    /// wands or missiles to shoot.
     MonsterEquipment,
-    /// Attack flavours count only their base damage: no poison, fire, draining and the like.
+    /// Attacks and spells count only their damage as they land: no poison, burning, draining,
+    /// clouds left behind and the like.
     AttackFlavours,
-    /// Only melee: no spells, breath, wands or missiles.
-    RangedAndSpells,
     /// Statuses on either side, such as haste, might or confusion.
     Statuses,
     /// Monsters walk straight at the player, through walls and each other.
     Paths,
     /// Monsters are assumed awake and hunting the player.
     Awareness,
+    /// A monster in reach has spells the simulation doesn't play out, such as summons, hexes,
+    /// self-buffs and spells that aren't a single bolt or explosion: it is assumed never to cast
+    /// them, and to fight instead.
+    OtherSpells,
+    /// A monster in view is given its own spells when it is made, such as a player ghost, so
+    /// which it has isn't known, and none are played out.
+    SpellsPerMonster,
+    /// A draconian in view breathes by its colour, which isn't played out.
+    DraconianBreath,
+    /// Spells land as if the player resists nothing, because the Advisor doesn't read the
+    /// player's resistances yet.
+    PlayerResistances,
+    /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
+    /// crawl's casters weigh that, and often hold off up close.
+    CasterSafety,
     /// The player's shield is assumed to block at most one attack before their next action, as
     /// without a shield, because the Advisor doesn't know which shield is worn. The character
     /// overview (`%`) tells it.
     WornShield,
 }
 
-/// What the melee simulation leaves out, whatever is in view.
-const MELEE_NOT_MODELLED: [NotModelled; 6] = [
+/// What the simulation leaves out, whatever is in view.
+const ALWAYS_NOT_MODELLED: [NotModelled; 5] = [
     NotModelled::MonsterEquipment,
     NotModelled::AttackFlavours,
-    NotModelled::RangedAndSpells,
     NotModelled::Statuses,
     NotModelled::Paths,
     NotModelled::Awareness,
@@ -280,9 +298,22 @@ fn threat(
 
     let formulas = bundle.formulas;
     let worn_shield = remembered.and_then(|state| state.worn_shield.known().copied());
-    let mut not_modelled = MELEE_NOT_MODELLED.to_vec();
+    let mut not_modelled = ALWAYS_NOT_MODELLED.to_vec();
     if sh > 0 && worn_shield.is_none() {
         not_modelled.push(NotModelled::WornShield);
+    }
+    if hostile
+        .iter()
+        .any(|(_, monster)| monster.spells == MonsterSpells::PerMonster)
+    {
+        not_modelled.push(NotModelled::SpellsPerMonster);
+    }
+    // Crawl gives a draconian of a colour its breath outside its book (`drac_breath`).
+    if hostile
+        .iter()
+        .any(|(_, monster)| monster.id.0.contains("DRACONIAN"))
+    {
+        not_modelled.push(NotModelled::DraconianBreath);
     }
     let defender = Defender {
         hp,
@@ -293,15 +324,39 @@ fn threat(
     let acting: Vec<(&VisibleMonster, Attacker<'_>)> = hostile
         .into_iter()
         .map(|(seen, monster)| {
-            let attacker = Attacker {
-                monster,
-                distance: distance(player, seen.position),
-            };
+            let attacker = Attacker::new(bundle, monster, distance(player, seen.position));
             (seen, attacker)
         })
         .filter(|(_, attacker)| threat::can_attack(formulas, attacker))
         .collect();
-    let attackers: Vec<Attacker<'_>> = acting.iter().map(|(_, attacker)| *attacker).collect();
+    let acting: Vec<(&VisibleMonster, Attacker<'_>, Vec<String>)> = acting
+        .into_iter()
+        .map(|(seen, attacker)| {
+            let others = spells_not_modelled(bundle, &attacker);
+            (seen, attacker, others)
+        })
+        .collect();
+    if acting.iter().any(|(_, _, others)| !others.is_empty()) {
+        not_modelled.push(NotModelled::OtherSpells);
+    }
+    if acting
+        .iter()
+        .any(|(_, attacker, _)| !attacker.spells.is_empty())
+    {
+        not_modelled.push(NotModelled::PlayerResistances);
+    }
+    if acting.iter().any(|(_, attacker, _)| {
+        attacker
+            .spells
+            .iter()
+            .any(|cast| cast.reach.casts > cast.reach.strikes || cast.spell.zap.explodes)
+    }) {
+        not_modelled.push(NotModelled::CasterSafety);
+    }
+    let attackers: Vec<Attacker<'_>> = acting
+        .iter()
+        .map(|(_, attacker, _)| attacker.clone())
+        .collect();
     let outcome = if attackers.is_empty() {
         Outcome {
             deaths: 0,
@@ -322,15 +377,43 @@ fn threat(
         worst_hit: outcome.worst_hit,
         hostiles_in_view,
         acting: acting
-            .iter()
-            .map(|(seen, attacker)| ActingMonster {
+            .into_iter()
+            .map(|(seen, attacker, others)| ActingMonster {
                 name: seen.name.clone(),
                 position: seen.position,
                 distance: attacker.distance,
+                casts: attacker
+                    .spells
+                    .iter()
+                    .map(|cast| cast.spell.spell.name.clone())
+                    .collect(),
+                spells_not_modelled: others,
             })
             .collect(),
         not_modelled,
     }))
+}
+
+/// The spells of `attacker`'s book the simulation doesn't play out, by name: its Game
+/// Knowledge's name, or crawl's identifier for a spell the bundle lacks.
+fn spells_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> Vec<String> {
+    let MonsterSpells::Book { spells } = &attacker.monster.spells else {
+        return Vec::new();
+    };
+    spells
+        .iter()
+        .filter(|slot| {
+            !attacker
+                .spells
+                .iter()
+                .any(|cast| cast.spell.spell.id == slot.spell)
+        })
+        .map(|slot| {
+            bundle
+                .spell_by_id(&slot.spell)
+                .map_or_else(|| slot.spell.0.clone(), |spell| spell.name.clone())
+        })
+        .collect()
 }
 
 /// The Threat Level for a chance of death and a worst-case hit against `hp`.

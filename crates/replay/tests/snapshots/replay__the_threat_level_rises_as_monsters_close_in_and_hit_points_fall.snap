@@ -36,7 +36,6 @@ expression: fact_sheets_by_turn(JACKALS)
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness"
@@ -64,7 +63,9 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": -1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -72,7 +73,9 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": 0
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -80,13 +83,14 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": 1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           }
         ],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness"
@@ -114,7 +118,9 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": -1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -122,7 +128,9 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": 0
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -130,13 +138,14 @@ expression: fact_sheets_by_turn(JACKALS)
               "x": 1,
               "y": 1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           }
         ],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness"
