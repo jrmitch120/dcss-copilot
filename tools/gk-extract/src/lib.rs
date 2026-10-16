@@ -6,6 +6,7 @@
 //! the enum values match what webtiles sends.
 
 mod cpp;
+mod gear;
 mod image;
 mod spells;
 mod tiles;
@@ -27,11 +28,25 @@ const CRAWL_LICENSE: &str = "Dungeon Crawl Stone Soup, copyright the DCSS devtea
 contributors (https://github.com/crawl/crawl), licensed under the GNU General Public License, \
 version 2 or later.";
 
-/// The variants of the ported formulas each crawl release series uses, by series: a release tag
-/// such as `0.34.1` is in series `0.34`. A release in no series here, such as a newer stable, a
-/// beta or trunk, fails to extract rather than being given another release's variants; nightly
-/// drift detection flags a ported function whose code changed within a series.
-const FORMULA_VARIANTS: &[(&str, Formulas)] = &[("0.34", Formulas::CRAWL_0_34)];
+/// What is ported from each crawl release series, by series: a release tag such as `0.34.1` is
+/// in series `0.34`. A release in no series here, such as a newer stable, a beta or trunk, fails
+/// to extract rather than being given another release's; the crawl oracle flags ported code that
+/// changed within a series.
+const SERIES: &[Series] = &[Series {
+    name: "0.34",
+    formulas: Formulas::CRAWL_0_34,
+    gear: &gear::GEAR_RULES_0_34,
+}];
+
+/// What is ported from one crawl release series.
+struct Series {
+    /// The series, such as `0.34`.
+    name: &'static str,
+    /// The variants of the ported formulas it uses.
+    formulas: Formulas,
+    /// Its code that gives monsters missiles and wands.
+    gear: &'static gear::GearRules,
+}
 
 /// Where crawl's game source lives inside a crawl checkout.
 const SOURCE_DIR: &str = "crawl-ref/source";
@@ -129,18 +144,17 @@ impl CrawlRelease {
         })
     }
 
-    /// The formula variants this release uses, from its release series.
-    fn formulas(&self) -> Result<Formulas, ExtractError> {
+    /// What is ported from this release's series.
+    fn series(&self) -> Result<&'static Series, ExtractError> {
         let series = self
             .tag
             .splitn(3, '.')
             .take(2)
             .collect::<Vec<_>>()
             .join(".");
-        FORMULA_VARIANTS
+        SERIES
             .iter()
-            .find(|(known, _)| *known == series)
-            .map(|&(_, formulas)| formulas)
+            .find(|known| known.name == series)
             .ok_or_else(|| ExtractError::NoFormulaVariants {
                 tag: self.tag.clone(),
             })
@@ -218,8 +232,8 @@ pub enum ExtractError {
         /// The changed files, as `git status --porcelain` lists them.
         files: String,
     },
-    /// The extractor knows no formula variants for the release, so it can't say which the
-    /// engine should use.
+    /// The extractor knows no formula variants or gear rules for the release's series, so it
+    /// can't say which the engine should use.
     #[error("no ported formula variants are known for crawl {tag}")]
     NoFormulaVariants {
         /// The release tag.
@@ -250,9 +264,17 @@ pub struct Extraction {
 /// If the extractor knows no formula variants for the release, or a file can't be read or isn't
 /// in a form the extractor understands.
 pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, ExtractError> {
-    let formulas = release.formulas()?;
+    let series = release.series()?;
     let crawl = Crawl::open(crawl)?;
     let item_names = crawl.item_names()?;
+    let item_prop = crawl.parse("item-prop.cc")?;
+    let missile_weapons = gear::missile_weapons(&item_prop, "item-prop.cc")?;
+    let gear = gear::Gear::read(
+        series.gear,
+        &crawl.parse("mon-gear.cc")?,
+        &item_prop,
+        missile_weapons.clone(),
+    )?;
     let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
     let bundle = Bundle {
         crawl: CrawlSource {
@@ -264,11 +286,14 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &crawl.source,
             &crawl.enumeration("monster-type.h", "monster_type")?,
             &crawl.spellbooks()?,
+            &gear,
             &mut tiles,
             crawl.tag_major,
         )?,
         item_classes: crawl.item_classes(&item_names)?,
         spells: crawl.spells()?,
+        missile_weapons,
+        wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,
         features: crawl.values(
             "dungeon-feature-type.h",
@@ -277,7 +302,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
-        formulas,
+        formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })
 }

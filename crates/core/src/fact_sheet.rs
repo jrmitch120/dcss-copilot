@@ -71,9 +71,9 @@ pub struct ThreatAssessment {
     /// The monsters that can attack before the player's next standard-speed action, in map
     /// order.
     pub acting: Vec<ActingMonster>,
-    /// The hostiles in view, acting or not, whose kind can be made with missiles or a wand: the
-    /// simulation doesn't play shooting or zapping out, so these may reach the player when it
-    /// says nothing can, or hit harder than it says.
+    /// The hostiles in view, acting or not, whose kind crawl may make with a launcher, throwing
+    /// missiles or a wand: the simulation doesn't play shooting or zapping out, so these may
+    /// reach the player when it says nothing can, or hit harder than it says.
     pub may_shoot: Vec<MayShoot>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
@@ -342,7 +342,7 @@ fn threat(
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
     let may_shoot: Vec<MayShoot> = hostile
         .iter()
-        .filter(|(_, monster)| monster.item_use.may_carry_ranged())
+        .filter(|(_, monster)| monster.gear.may_shoot_or_zap())
         .map(|(seen, _)| MayShoot {
             name: seen.name.clone(),
             position: seen.position,

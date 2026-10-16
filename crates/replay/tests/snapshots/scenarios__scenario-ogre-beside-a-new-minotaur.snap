@@ -43,16 +43,7 @@ expression: replay
               "spellsNotModelled": []
             }
           ],
-          "mayShoot": [
-            {
-              "name": "ogre",
-              "position": {
-                "x": 0,
-                "y": 1
-              },
-              "distance": 1
-            }
-          ],
+          "mayShoot": [],
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -74,7 +65,7 @@ expression: replay
           "state": "rated",
           "level": "lethal",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 2.0% · worst hit 19 of 19 HP · Ogre may shoot or zap: not counted"
+          "detail": "Death 2.0% · worst hit 19 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -131,16 +122,7 @@ expression: replay
             "spellsNotModelled": []
           }
         ],
-        "mayShoot": [
-          {
-            "name": "ogre",
-            "position": {
-              "x": 0,
-              "y": 1
-            },
-            "distance": 1
-          }
-        ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -162,7 +144,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Ogre can attack before your next action.",
-        "detail": "Death 2.0% · worst hit 19 of 19 HP · Ogre may shoot or zap: not counted"
+        "detail": "Death 2.0% · worst hit 19 of 19 HP"
       },
       "focus": {
         "card": "inView",

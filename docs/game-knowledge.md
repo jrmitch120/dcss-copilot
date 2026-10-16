@@ -1,6 +1,6 @@
 # Game Knowledge bundles
 
-A Game Knowledge bundle is the static facts about DCSS for one Crawl Version, as one JSON file: monsters with their melee attacks and action costs, item classes and sub-types, spells, species, dungeon features, the values crawl gives a monster's attitude and threat rating, and which variant of each ported crawl formula the version uses. `crates/gk` defines the format and `tools/gk-extract` builds it from crawl's source at a release tag. The app ships the bundles in `crates/gk/bundles/`, built into the binary.
+A Game Knowledge bundle is the static facts about DCSS for one Crawl Version, as one JSON file: monsters with their melee attacks, action costs and the gear they may be made with, item classes and sub-types, launchers, missiles and wands, spells, species, dungeon features, the values crawl gives a monster's attitude and threat rating, and which variant of each ported crawl formula the version uses. `crates/gk` defines the format and `tools/gk-extract` builds it from crawl's source at a release tag. The app ships the bundles in `crates/gk/bundles/`, built into the binary.
 
 Webtiles sends monster, item and dungeon feature types, and a monster's attitude and threat rating, as crawl's C++ enum values, which crawl renumbers between versions. A bundle keys everything by its own version's values, so the webtiles Game Source decodes a game's monsters and items through the bundle for that game's Crawl Version. With no bundle for the version, nothing is decoded: monsters keep the name the game sends, and the Advisor knows nothing more about them.
 
@@ -10,7 +10,10 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 
 | Bundle part | From |
 |---|---|
-| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter` and `stationary` flags, energy costs, spellbook and tile read as `util/mon-gen.py` reads them |
+| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter`, `stationary`, `archer` and `prefer_ranged` flags, energy costs, spellbook and tile read as `util/mon-gen.py` reads them |
+| monster gear | what `give_item` (`mon-gear.cc`) may make a monster of each kind with to shoot, throw or zap, by chance: a launcher from the weapon specs `make_mons_weapon` draws from, throwing missiles, and a wand it will zap. The code around those tables is ported by hand for each release series (below) |
+| launchers and missiles | `Weapon_prop` (the weapons trained by `SK_RANGED_WEAPONS`) and `Missile_prop` in `item-prop.cc`: damage and accuracy |
+| wands | the spell each wand zaps, from `_wand_spells` in `spl-book.cc`, and the item sets crawl picks one wand of per game, from `item_sets` in `item-prop.cc` |
 | monster spellbooks | `mspell_list` in `mon-spell.h`: each book's spells, how often each is picked and its slot flags. A book of `MST_GHOST` means each monster of the kind is given its own spells when made, which the bundle can't know |
 | monster tiles | the tile lists in `rltiles/`, from `dc-player.txt`, read as crawl's tile build (`rltiles/tool`) reads them |
 | item classes | `object_class_type` in `object-class-type.h` |
@@ -22,9 +25,11 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 | monster attitudes | `mon_attitude_type` in `mon-attitude-type.h` |
 | monster threat ratings | `mon_threat_level_type` in `mon-util.h` |
 
-A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit or for which spell a monster picks, so the engine picks its code by name and never compares version strings. The extractor picks them by the release's series, so `0.34.1` gets the variants ported from crawl 0.34. A release in a series it has no variants for, such as a newer stable, a beta or trunk, stops the extraction rather than being read as 0.34, and so does a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know. Adding a series means porting its formulas and naming them in `FORMULA_VARIANTS` in `tools/gk-extract`.
+A monster's gear is given as crawl gives it to a monster made on D:3 or deeper, outside the Orcish Mines and not in a band: a goblin is then made with a sling one time in 12, which it never is on D:1, and an orc warrior with boomerangs one time in 20 rather than one in 9 in the Mines. Crawl's code around the gear tables, the cases of `make_mons_weapon`'s `switch` that give a ranged item, `_give_ammo` and `_give_wand` with what it calls, is ported by hand for each release series (`GearRules` in `tools/gk-extract`), and the crawl oracle's gear cases check the outcome against crawl's own `give_item`.
 
-It understands only what those files use: `#if TAG_MAJOR_VERSION` conditionals, function-like macros that build table entries, enum initializers that are literals or earlier enumerators, table entries built by `_mon_hex_zap`, and damage and accuracy calculators whose template arguments are literals or integer `#define`s. Anything else stops the extraction with an error naming the file, rather than producing a wrong bundle.
+A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit or for which spell a monster picks, so the engine picks its code by name and never compares version strings. The extractor picks them by the release's series, so `0.34.1` gets the variants ported from crawl 0.34. A release in a series it has no variants for, such as a newer stable, a beta or trunk, stops the extraction rather than being read as 0.34, and so does a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know. Adding a series means porting its formulas and gear code and naming them in `SERIES` in `tools/gk-extract`.
+
+It understands only what those files use: `#if TAG_MAJOR_VERSION` conditionals, function-like macros that build table entries, enum initializers that are literals or earlier enumerators, `static const` maps and lists initialized in braces, table entries built by `_mon_hex_zap`, and damage and accuracy calculators whose template arguments are literals or integer `#define`s. Anything else stops the extraction with an error naming the file, rather than producing a wrong bundle.
 
 ## Building a bundle
 
