@@ -182,10 +182,10 @@ impl Listing {
         self.depiction == other.depiction && self.name == other.name && self.detail == other.detail
     }
 
-    /// The rows for `listings`, each run of identical ones made one row with their count, in the
-    /// order each was first listed.
+    /// The rows for `listings`, all identical ones made one row with their count, wherever they
+    /// are listed, in the order each was first listed.
     #[must_use]
-    pub fn grouped(listings: impl IntoIterator<Item = Self>) -> Vec<Self> {
+    pub(crate) fn grouped(listings: impl IntoIterator<Item = Self>) -> Vec<Self> {
         let mut rows: Vec<Self> = Vec::new();
         for listing in listings {
             match rows.iter_mut().find(|row| row.lists_alike(&listing)) {

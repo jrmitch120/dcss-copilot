@@ -75,7 +75,7 @@ The Game Knowledge for one Crawl Version as one file, extracted from crawl's sou
 _Avoid_: Data pack, dataset
 
 **Firewood**:
-Crawl's name for a harmless monster that never moves and gives no experience, such as a fungus, a plant or a toadstool. Game Knowledge says which monsters are firewood; the panel treats them as scenery and leaves them out of what is in view, though the engine still sees them, such as as obstacles.
+Crawl's name for a harmless monster that never moves and gives no experience, such as a fungus, a plant or a toadstool. Game Knowledge says which monsters are firewood; the panel treats them as scenery and leaves them out of what is in view, though the engine still sees them, as obstacles for instance.
 _Avoid_: Scenery monster, plant (for the whole group)
 
 **Crawl Version**:

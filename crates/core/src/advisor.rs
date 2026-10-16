@@ -234,13 +234,19 @@ fn capitalised(name: &str) -> String {
 /// and identical monsters in one row. Without `knowledge` nothing is known to be Firewood, so
 /// nothing is left out.
 fn in_view(monsters: &[VisibleMonster], knowledge: Option<&Bundle>) -> Vec<Listing> {
-    Listing::grouped(monsters.iter().filter_map(|monster| {
-        let kind = monster
-            .id
-            .as_ref()
-            .and_then(|id| knowledge?.monster_by_id(id));
-        (!kind.is_some_and(|kind| kind.firewood)).then(|| listing(monster, kind))
-    }))
+    Listing::grouped(
+        monsters
+            .iter()
+            .map(|monster| {
+                let kind = monster
+                    .id
+                    .as_ref()
+                    .and_then(|id| knowledge?.monster_by_id(id));
+                (monster, kind)
+            })
+            .filter(|(_, kind)| kind.is_none_or(|kind| !kind.firewood))
+            .map(|(monster, kind)| listing(monster, kind)),
+    )
 }
 
 /// A monster's row in the panel, with its tile when its `kind` names one.
