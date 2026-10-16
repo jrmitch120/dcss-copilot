@@ -12,6 +12,7 @@ mod visible_state;
 
 pub use accumulated_state::{AccumulatedState, AsOf, Remembered, Shield};
 pub use advisor::Advisor;
+pub use engine::oracle;
 pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, Gap, NotModelled, Threat, ThreatAssessment, ThreatLevel,
 };

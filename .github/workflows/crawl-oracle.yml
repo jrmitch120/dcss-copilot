@@ -1,0 +1,63 @@
+name: Crawl oracle
+
+# The engine's ported formulas, diffed against crawl's own code at each shipped stable bundle's
+# commit (tools/crawl-oracle). Runs whenever the engine, the bundles or the oracle change.
+on:
+  pull_request:
+    paths:
+      - crates/core/src/engine/**
+      - crates/gk/**
+      - tools/crawl-oracle/**
+      - .github/workflows/crawl-oracle.yml
+  push:
+    branches: [main]
+    paths:
+      - crates/core/src/engine/**
+      - crates/gk/**
+      - tools/crawl-oracle/**
+      - .github/workflows/crawl-oracle.yml
+  workflow_dispatch:
+
+concurrency:
+  group: crawl-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  oracle:
+    name: Crawl oracle (${{ matrix.bundle }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bundle: ["0.34.1"]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Crawl build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncursesw5-dev bison flex libsqlite3-dev libz-dev pkg-config python3-yaml
+      - name: The bundle's crawl commit
+        id: crawl
+        run: echo "commit=$(jq -r .crawl.commit crates/gk/bundles/${{ matrix.bundle }}.json)" >> "$GITHUB_OUTPUT"
+      # The checkout with crawl's objects, so only the harness is rebuilt. Keyed by the crawl
+      # commit alone: the harness is rebuilt from this repo on every run.
+      - name: Cached crawl build
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/crawl
+          key: crawl-oracle-${{ runner.os }}-${{ steps.crawl.outputs.commit }}
+      - name: Crawl at the bundle's commit
+        run: |
+          crawl="$RUNNER_TEMP/crawl"
+          if [ ! -d "$crawl" ]; then
+            git clone --depth 1 --branch ${{ matrix.bundle }} https://github.com/crawl/crawl "$crawl"
+            git -C "$crawl" submodule update --init --depth 1 crawl-ref/source/contrib/lua crawl-ref/source/contrib/pcre crawl-ref/source/contrib/sqlite crawl-ref/source/contrib/zlib
+          fi
+          test "$(git -C "$crawl" rev-parse HEAD)" = "${{ steps.crawl.outputs.commit }}"
+      - name: Rust toolchain (from rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: tools/crawl-oracle/oracle.sh "$RUNNER_TEMP/crawl"

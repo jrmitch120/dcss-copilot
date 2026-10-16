@@ -55,7 +55,7 @@ _Adapted from [lazygit's AGENTS.md](https://github.com/jesseduffield/lazygit/blo
 Tests drive the system through its seams and assert on what comes out. The seams, in order of preference:
 
 1. **Recording replay**: a Recording (plus its LLM sidecar) goes in; the view model, timeline, Fact Sheet snapshots and rendered prompts come out. Most behaviour is tested here.
-2. **Crawl oracle**: ported formulas diffed against a crawl build.
+2. **Crawl oracle**: ported formulas diffed against a crawl build (`docs/crawl-oracle.md`).
 3. **Offline builders**: fixed input files in, output files out.
 4. **Extension relay**: a fake page `comm` in, envelopes out.
 
