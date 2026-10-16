@@ -1,0 +1,329 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz194017476",
+    "character": "wiz194017476",
+    "species": "Minotaur",
+    "firstSeenMs": 1792194018748,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 5,
+          "hostilesInView": 7,
+          "acting": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": 1,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": 2,
+                "y": 2
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "mayShoot": [],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz194017476",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "2 monsters can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGrey"
+                },
+                "tile": "mon/fungi_plants/fungus1"
+              },
+              "name": "fungus",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGreen"
+                },
+                "tile": "mon/fungi_plants/toadstool_left"
+              },
+              "name": "toadstool",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGrey"
+                },
+                "tile": "mon/fungi_plants/fungus1"
+              },
+              "name": "fungus",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "green"
+                },
+                "tile": "mon/fungi_plants/plant_01"
+              },
+              "name": "plant",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGrey"
+                },
+                "tile": "mon/fungi_plants/fungus1"
+              },
+              "name": "fungus",
+              "detail": null
+            },
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 0,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 5,
+        "hostilesInView": 7,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 2,
+              "y": 2
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "mayShoot": [],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz194017476",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 0
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "2 monsters can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "lightGrey"
+              },
+              "tile": "mon/fungi_plants/fungus1"
+            },
+            "name": "fungus",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "lightGreen"
+              },
+              "tile": "mon/fungi_plants/toadstool_left"
+            },
+            "name": "toadstool",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "lightGrey"
+              },
+              "tile": "mon/fungi_plants/fungus1"
+            },
+            "name": "fungus",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "green"
+              },
+              "tile": "mon/fungi_plants/plant_01"
+            },
+            "name": "plant",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "lightGrey"
+              },
+              "tile": "mon/fungi_plants/fungus1"
+            },
+            "name": "fungus",
+            "detail": null
+          },
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
