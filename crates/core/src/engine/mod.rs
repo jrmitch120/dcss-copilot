@@ -3,4 +3,5 @@
 pub(crate) mod melee;
 pub mod oracle;
 mod rng;
+pub(crate) mod spells;
 pub(crate) mod threat;

@@ -112,6 +112,13 @@ impl Bundle {
         self.monsters.values().find(|monster| monster.id == *id)
     }
 
+    /// The spell with this `spell_type` identifier, such as `SPELL_MAGIC_DART`, if this version
+    /// defines one.
+    #[must_use]
+    pub fn spell_by_id(&self, id: &EnumId) -> Option<&Spell> {
+        self.spells.values().find(|spell| spell.id == *id)
+    }
+
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
     #[must_use]
     pub fn feature(&self, value: u16) -> Option<&EnumId> {
@@ -165,6 +172,18 @@ pub struct Formulas {
     /// How often a monster acts in one player turn: `_monster_add_energy` and the energy
     /// threshold in `monster::has_action_energy`.
     pub monster_energy: MonsterEnergy,
+    /// Which spell a monster picks to cast: `_choose_spell_to_cast` and `_find_spell_prospect`.
+    pub monster_spell_choice: MonsterSpellChoice,
+    /// The power a monster casts a spell with, and so its range: `mons_power_for_hd` and
+    /// `calc_spell_range`.
+    pub monster_spell_power: MonsterSpellPower,
+    /// Which of a monster's spells it fires as one plain zap, set up from the zap's data:
+    /// `mons_spell_beam`, `zappy` and `mons_cast`.
+    pub monster_spell_beam: MonsterSpellBeam,
+    /// Whether a beam gets past the player's shield and evasion: `bolt::misses_player`.
+    pub beam_hit: BeamHit,
+    /// A beam's damage after armour: `zap_damage`, `dice_def::roll` and `bolt::apply_AC`.
+    pub beam_damage: BeamDamage,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -224,6 +243,46 @@ pub enum MonsterEnergy {
     Crawl034,
 }
 
+/// The variants of a monster's choice of spell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellChoice {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's spell power and range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellPower {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of which spells a monster fires as one plain zap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellBeam {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a beam's roll against the player's shield and evasion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BeamHit {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a beam's damage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BeamDamage {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -234,6 +293,11 @@ impl Formulas {
         shield_block: ShieldBlock::Crawl034,
         monster_reach: MonsterReach::Crawl034,
         monster_energy: MonsterEnergy::Crawl034,
+        monster_spell_choice: MonsterSpellChoice::Crawl034,
+        monster_spell_power: MonsterSpellPower::Crawl034,
+        monster_spell_beam: MonsterSpellBeam::Crawl034,
+        beam_hit: BeamHit::Crawl034,
+        beam_damage: BeamDamage::Crawl034,
     };
 }
 
@@ -281,6 +345,15 @@ pub struct Monster {
     pub attacks: Vec<MonsterAttack>,
     /// It has crawl's `fighter` flag, which makes its attacks more accurate.
     pub fighter: bool,
+    /// It has crawl's `stationary` flag: it never moves.
+    pub stationary: bool,
+    /// Its genus, as a `monster_type` identifier such as `MONS_DRACONIAN`: the kind crawl
+    /// counts it as for rules that apply to a whole family (`mons_genus`).
+    pub genus: EnumId,
+    /// Which items it can use: crawl's `mon_itemuse_type`.
+    pub item_use: ItemUse,
+    /// The spells it casts. Monster abilities such as breath are spells here.
+    pub spells: MonsterSpells,
     /// How much energy each kind of action costs it, where 10 is a normal action.
     pub energy: Energy,
     /// The tile webtiles draws it with, as its image's path in crawl's `rltiles` without the
@@ -289,6 +362,32 @@ pub struct Monster {
     pub tile: Option<String>,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,
+}
+
+/// Which items a kind of monster can use: crawl's `mon_itemuse_type`, as `dat/mons` sets `uses`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ItemUse {
+    /// `MONUSE_NOTHING`: none.
+    Nothing,
+    /// `MONUSE_OPEN_DOORS`: none, though it opens doors.
+    OpenDoors,
+    /// `MONUSE_STARTING_EQUIPMENT`: what it is given when it is made, such as a weapon,
+    /// missiles or a wand.
+    StartingEquipment,
+    /// `MONUSE_WEAPONS_ARMOUR`: what it is given, and weapons and armour it picks up.
+    WeaponsArmour,
+}
+
+impl ItemUse {
+    /// Whether a monster of this kind may carry missiles or a wand: it uses at least what it is
+    /// made with. This is wider than crawl, whose gear tables (`mon-gear.cc`) give missiles to
+    /// some of these kinds only, such as centaurs, and wands mostly to uniques; it errs towards
+    /// warning until those tables are in Game Knowledge.
+    #[must_use]
+    pub fn may_carry_ranged(self) -> bool {
+        self >= Self::StartingEquipment
+    }
 }
 
 /// One of a monster's melee attacks, as `dat/mons` defines it.
@@ -301,6 +400,37 @@ pub struct MonsterAttack {
     pub flavour: EnumId,
     /// The most damage it deals before armour, its "damage" in `dat/mons`.
     pub damage: u32,
+}
+
+/// The spells a kind of monster casts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum MonsterSpells {
+    /// The spells of its kind's spellbook (`mspell_list` in `mon-spell.h`), in crawl's order:
+    /// empty for a monster with none.
+    Book {
+        /// The book's slots.
+        spells: Vec<MonsterSpell>,
+    },
+    /// Each monster of its kind is given its own spells when it is made (`MST_GHOST`), such as a
+    /// player ghost or an orc apostle, so the Game Knowledge doesn't know them.
+    PerMonster,
+}
+
+/// One slot of a monster's spellbook, as `mon-spell.h` defines it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonsterSpell {
+    /// Its `spell_type` identifier, such as `SPELL_MAGIC_DART`.
+    pub spell: EnumId,
+    /// How often the monster picks it: the chance in 200 of each roll for a spell.
+    pub frequency: u32,
+    /// Its `mon_spell_slot_flag` identifiers, such as `MON_SPELL_WIZARD` or `MON_SPELL_BREATH`.
+    pub flags: Vec<EnumId>,
 }
 
 /// What each kind of action costs a monster, in energy: crawl's `mon_energy_usage`. A monster
@@ -371,6 +501,84 @@ pub struct Spell {
     pub id: EnumId,
     /// Its name, such as `Magic Dart`.
     pub name: String,
+    /// How far it reaches, or `None` for a spell without a range.
+    pub range: Option<SpellRange>,
+    /// The zap it fires, from `_spl_zaps` in `spl-zap.cc`, when it fires one.
+    pub zap: Option<Zap>,
+}
+
+/// How far a spell reaches, from `spl-data.h`: between `min` and `max` squares, rising with
+/// power up to `power_cap`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpellRange {
+    /// Its range at no power.
+    pub min: i32,
+    /// Its range at `power_cap`.
+    pub max: i32,
+    /// The power past which it grows no stronger.
+    pub power_cap: i32,
+}
+
+/// A zap: a bolt, beam or explosion as `zap_data` in `zap-data.h` defines it, with what it does
+/// when a monster fires it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Zap {
+    /// Its `zap_type` identifier, such as `ZAP_MAGIC_DART`.
+    pub id: EnumId,
+    /// Its `beam_type` identifier, such as `BEAM_FIRE`: what it is made of, which decides the
+    /// resistance and armour that apply.
+    pub flavour: EnumId,
+    /// It is an enchantment, such as a hex, rather than something that deals damage.
+    pub enchantment: bool,
+    /// It passes through what it hits (`can_beam`).
+    pub pierces: bool,
+    /// It explodes where it lands (`is_explosion`).
+    pub explodes: bool,
+    /// The damage it deals when a monster fires it, by power; `None` when it deals none.
+    pub monster_damage: Option<ZapDamage>,
+    /// Its accuracy when a monster fires it, by power; `None` when it has none.
+    pub monster_to_hit: Option<ZapToHit>,
+}
+
+/// A zap's damage dice at a power: crawl's `dicedef_calculator` and `calcdice_calculator`.
+/// `dice` dice of `adder + power * per_power / per` sides, or, when `spread`, `dice` dice that
+/// together reach that many (`calc_dice`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ZapDamage {
+    /// How many dice.
+    pub dice: i32,
+    /// Sides, or the total reach when `spread`, at no power.
+    pub adder: i32,
+    /// What power adds, `per_power` for every `per`.
+    pub per_power: i32,
+    /// See `per_power`.
+    pub per: i32,
+    /// The dice share a total between them, as `calc_dice` splits it.
+    pub spread: bool,
+}
+
+/// A zap's accuracy at a power: crawl's `tohit_calculator`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum ZapToHit {
+    /// It never misses: `AUTOMATIC_HIT`.
+    Automatic,
+    /// `adder + power * per_power / per`.
+    ByPower {
+        /// Accuracy at no power.
+        adder: i32,
+        /// What power adds, `per_power` for every `per`.
+        per_power: i32,
+        /// See `per_power`.
+        per: i32,
+    },
 }
 
 /// A species' definition, from `dat/species/*.yaml`.

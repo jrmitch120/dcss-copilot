@@ -43,7 +43,9 @@ expression: by_turn
               "x": 1,
               "y": -1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -51,7 +53,9 @@ expression: by_turn
               "x": 1,
               "y": 0
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -59,13 +63,15 @@ expression: by_turn
               "x": 1,
               "y": 1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           }
         ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness",
@@ -102,7 +108,9 @@ expression: by_turn
               "x": 1,
               "y": -1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -110,7 +118,9 @@ expression: by_turn
               "x": 1,
               "y": 0
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -118,13 +128,15 @@ expression: by_turn
               "x": 1,
               "y": 1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           }
         ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness"
@@ -160,7 +172,9 @@ expression: by_turn
               "x": 1,
               "y": -1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -168,7 +182,9 @@ expression: by_turn
               "x": 1,
               "y": 0
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           },
           {
             "name": "jackal",
@@ -176,13 +192,15 @@ expression: by_turn
               "x": 1,
               "y": 1
             },
-            "distance": 1
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": []
           }
         ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
-          "rangedAndSpells",
           "statuses",
           "paths",
           "awareness",

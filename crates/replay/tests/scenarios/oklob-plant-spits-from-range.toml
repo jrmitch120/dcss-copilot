@@ -1,0 +1,23 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, rises to XL 14 so a spit of acid can't kill them, creates an oklob plant beside them on D:1 and walks two squares away: the plant never moves, and spits acid at them from range"
+recording = "oklob-plant-spits-from-range.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0, 1, 2]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Set the experience level to 14, for the hit points to survive the acid.
+  "l", "14\r",
+  # Create a monster by name: an oklob plant.
+  "&", "m", "oklob plant\r",
+  # Step north-west, then north onto the up staircase, out of the plant's reach in melee.
+  # Escape clears the --more-- crawl shows when it marks the plant's surroundings as unsafe.
+  "y", "\u001b", "k", "\u001b",
+  # Wait two turns while it spits.
+  ".", ".",
+]

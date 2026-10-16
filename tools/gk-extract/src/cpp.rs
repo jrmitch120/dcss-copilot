@@ -103,6 +103,46 @@ impl Source {
         Ok(entries)
     }
 
+    /// Each entry of the array initializer `<name>[] = { ... }`, split into its fields: the
+    /// comma-separated parts of a braced entry, or the arguments of an entry built by calling a
+    /// function, as `_mon_hex_zap(ZAP_SLOW, BEAM_SLOW)`, with the function's name as the first.
+    pub fn entries(&self, name: &str) -> Result<Vec<Vec<Vec<Token>>>, ExtractError> {
+        let start = self
+            .find(&[
+                Token::Ident(name.into()),
+                Token::Punct('['),
+                Token::Punct(']'),
+                Token::Punct('='),
+                Token::Punct('{'),
+            ])
+            .ok_or_else(|| self.missing(&format!("the table {name}")))?;
+        let open = start + 4;
+        let close = self.matching_brace(open)?;
+        let mut entries = Vec::new();
+        for entry in split_top_level(&self.tokens[open + 1..close]) {
+            let fields = match entry.as_slice() {
+                [] => continue,
+                [Token::Punct('{'), inner @ .., Token::Punct('}')] => split_top_level(inner),
+                [
+                    Token::Ident(function),
+                    Token::Punct('('),
+                    inner @ ..,
+                    Token::Punct(')'),
+                ] => {
+                    let mut fields = vec![vec![Token::Ident(function.clone())]];
+                    fields.extend(split_top_level(inner));
+                    fields
+                }
+                _ => return Err(self.unreadable(&format!("an entry of {name}"))),
+            };
+            entries.push(fields);
+        }
+        if entries.is_empty() {
+            return Err(self.unreadable(&format!("the entries of {name}")));
+        }
+        Ok(entries)
+    }
+
     /// The `(identifier, name)` pairs of `case IDENT: return "name";` in the body of the
     /// function `<name>(...)`. Cases that fall through to the same return all get its name, and
     /// an identifier's first case wins.
@@ -216,7 +256,61 @@ impl Source {
     }
 }
 
-fn number(text: &str) -> Option<i64> {
+/// `tokens` split at the commas outside any brackets. A `<` straight after a `..._calculator`
+/// opens template arguments, the only angle brackets crawl's tables nest commas in.
+pub fn split_top_level(tokens: &[Token]) -> Vec<Vec<Token>> {
+    let mut parts = vec![Vec::new()];
+    // The closing bracket each open one waits for.
+    let mut open: Vec<char> = Vec::new();
+    let mut previous: Option<&Token> = None;
+    for token in tokens {
+        match token {
+            Token::Punct('{') => open.push('}'),
+            Token::Punct('(') => open.push(')'),
+            Token::Punct('[') => open.push(']'),
+            Token::Punct('<') if matches!(previous, Some(Token::Ident(ident)) if ident.ends_with("_calculator")) =>
+            {
+                open.push('>');
+            }
+            Token::Punct(c) if open.last() == Some(c) => {
+                open.pop();
+            }
+            Token::Punct(',') if open.is_empty() => {
+                parts.push(Vec::new());
+                previous = Some(token);
+                continue;
+            }
+            _ => {}
+        }
+        if let Some(part) = parts.last_mut() {
+            part.push(token.clone());
+        }
+        previous = Some(token);
+    }
+    if parts.last().is_some_and(Vec::is_empty) {
+        parts.pop();
+    }
+    parts
+}
+
+/// The integer object-like macros a file defines, such as `#define LOS_RADIUS 8`.
+pub fn integer_defines(text: &str) -> HashMap<String, i64> {
+    strip_comments(text)
+        .lines()
+        .filter_map(|line| {
+            let mut words = line.trim_start().strip_prefix('#')?.split_whitespace();
+            let (Some("define"), Some(name), Some(value), None) =
+                (words.next(), words.next(), words.next(), words.next())
+            else {
+                return None;
+            };
+            Some((name.to_owned(), number(value)?))
+        })
+        .collect()
+}
+
+/// A literal integer, as written: decimal or hex, with any suffix.
+pub fn number(text: &str) -> Option<i64> {
     let digits = text.trim_end_matches(['u', 'U', 'l', 'L']);
     match digits
         .strip_prefix("0x")

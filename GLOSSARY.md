@@ -96,6 +96,10 @@ _Avoid_: Danger score, threat score
 The total damage the player could take before their next action, as bad as it gets barring one time in a hundred (the 99th percentile of the Threat Level's simulation). It counts every monster that can attack, not only the hardest single blow.
 _Avoid_: Max damage, max hit
 
+**Not Modelled**:
+What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, monsters that may shoot missiles or zap wands, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
+_Avoid_: Unsupported, ignored, edge cases
+
 **Formula Variant**:
 One version of a crawl formula as the engine ports it, such as a monster's to-hit as crawl 0.34 computes it. A Game Knowledge bundle names the variant of each formula its Crawl Version uses, so the engine picks its code by name and never compares version strings.
 _Avoid_: Formula version, ruleset

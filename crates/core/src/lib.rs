@@ -14,7 +14,8 @@ pub use accumulated_state::{AccumulatedState, AsOf, Remembered, Shield};
 pub use advisor::Advisor;
 pub use engine::oracle;
 pub use fact_sheet::{
-    ActingMonster, Chance, FactSheet, Gap, NotModelled, Threat, ThreatAssessment, ThreatLevel,
+    ActingMonster, Chance, FactSheet, Gap, MayShoot, NotModelled, Threat, ThreatAssessment,
+    ThreatLevel,
 };
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{Resistance, Resistances, Screen, ScreenRead};

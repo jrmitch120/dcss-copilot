@@ -1,0 +1,339 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz128432600",
+    "character": "wiz128432600",
+    "species": "Minotaur",
+    "firstSeenMs": 1792128433825,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 102,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 34,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "casts": [
+                "Spit Acid"
+              ],
+              "spellsNotModelled": []
+            }
+          ],
+          "mayShoot": [],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "playerResistances"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz128432600",
+          "species": "Minotaur",
+          "hp": 102,
+          "hpMax": 102,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Oklob plant can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 34 of 102 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGreen"
+                },
+                "tile": "mon/fungi_plants/oklob_plant"
+              },
+              "name": "oklob plant",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "dangerous",
+          "hp": 71,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 34,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 3,
+              "casts": [
+                "Spit Acid"
+              ],
+              "spellsNotModelled": []
+            }
+          ],
+          "mayShoot": [],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "playerResistances"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz128432600",
+          "species": "Minotaur",
+          "hp": 71,
+          "hpMax": 102,
+          "turn": 1
+        },
+        "now": {
+          "state": "rated",
+          "level": "dangerous",
+          "line": "Oklob plant can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 34 of 71 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGreen"
+                },
+                "tile": "mon/fungi_plants/oklob_plant"
+              },
+              "name": "oklob plant",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "dangerous",
+          "hp": 52,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 36,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 3,
+              "casts": [
+                "Spit Acid"
+              ],
+              "spellsNotModelled": []
+            }
+          ],
+          "mayShoot": [],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "playerResistances"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz128432600",
+          "species": "Minotaur",
+          "hp": 52,
+          "hpMax": 102,
+          "turn": 2
+        },
+        "now": {
+          "state": "rated",
+          "level": "dangerous",
+          "line": "Oklob plant can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 36 of 52 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "P",
+                  "colour": "lightGreen"
+                },
+                "tile": "mon/fungi_plants/oklob_plant"
+              },
+              "name": "oklob plant",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 4,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 28,
+        "death": {
+          "times": 814,
+          "trials": 10000
+        },
+        "worstHit": 36,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "oklob plant",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 3,
+            "casts": [
+              "Spit Acid"
+            ],
+            "spellsNotModelled": []
+          }
+        ],
+        "mayShoot": [],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "playerResistances"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz128432600",
+        "species": "Minotaur",
+        "hp": 28,
+        "hpMax": 102,
+        "turn": 4
+      },
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "line": "Oklob plant can attack before your next action.",
+        "detail": "Death 8.1% · worst hit 36 of 28 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "P",
+                "colour": "lightGreen"
+              },
+              "tile": "mon/fungi_plants/oklob_plant"
+            },
+            "name": "oklob plant",
+            "detail": null
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
