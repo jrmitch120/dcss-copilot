@@ -49,6 +49,16 @@ expression: replay
               ]
             }
           ],
+          "mayShoot": [
+            {
+              "name": "orc wizard",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1
+            }
+          ],
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -72,7 +82,7 @@ expression: replay
           "state": "rated",
           "level": "dangerous",
           "line": "Orc wizard can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+          "detail": "Death under 0.1% · worst hit 10 of 19 HP · Orc wizard may shoot or zap: not counted"
         },
         "focus": {
           "card": "inView",
@@ -133,6 +143,16 @@ expression: replay
               ]
             }
           ],
+          "mayShoot": [
+            {
+              "name": "orc wizard",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1
+            }
+          ],
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -156,7 +176,7 @@ expression: replay
           "state": "rated",
           "level": "dangerous",
           "line": "Orc wizard can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+          "detail": "Death under 0.1% · worst hit 10 of 19 HP · Orc wizard may shoot or zap: not counted"
         },
         "focus": {
           "card": "inView",
@@ -219,6 +239,16 @@ expression: replay
             ]
           }
         ],
+        "mayShoot": [
+          {
+            "name": "orc wizard",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1
+          }
+        ],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -242,7 +272,7 @@ expression: replay
         "state": "rated",
         "level": "dangerous",
         "line": "Orc wizard can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 10 of 16 HP"
+        "detail": "Death under 0.1% · worst hit 10 of 16 HP · Orc wizard may shoot or zap: not counted"
       },
       "focus": {
         "card": "inView",

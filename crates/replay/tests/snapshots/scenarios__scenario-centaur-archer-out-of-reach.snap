@@ -1,0 +1,244 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz129128749",
+    "character": "wiz129128749",
+    "species": "Minotaur",
+    "firstSeenMs": 1792129130071,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 102,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 1,
+          "acting": [],
+          "mayShoot": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 5
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz129128749",
+          "species": "Minotaur",
+          "hp": 102,
+          "hpMax": 102,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
+          "detail": "Centaur may shoot or zap: not counted"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "c",
+                  "colour": "brown"
+                },
+                "tile": "mon/demihumanoids/taurs/centaur"
+              },
+              "name": "centaur",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 93,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 1,
+          "acting": [],
+          "mayShoot": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 5
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz129128749",
+          "species": "Minotaur",
+          "hp": 93,
+          "hpMax": 102,
+          "turn": 1
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
+          "detail": "Centaur may shoot or zap: not counted"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "c",
+                  "colour": "brown"
+                },
+                "tile": "mon/demihumanoids/taurs/centaur"
+              },
+              "name": "centaur",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 3,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 84,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 1,
+        "acting": [],
+        "mayShoot": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 5
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz129128749",
+        "species": "Minotaur",
+        "hp": 84,
+        "hpMax": 102,
+        "turn": 3
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
+        "detail": "Centaur may shoot or zap: not counted"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "centaur",
+            "detail": null
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

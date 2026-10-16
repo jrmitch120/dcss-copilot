@@ -1,0 +1,24 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, rises to XL 14, creates a centaur beside them on D:1 and blinks away from it and shouts to wake it: the centaur is too far to reach them in melee, but crawl made it with a bow"
+recording = "centaur-archer-out-of-reach.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0, 1]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Set the experience level to 14, for the hit points to survive arrows.
+  "l", "14\r",
+  # Create a monster by name: a centaur.
+  "&", "m", "centaur\r",
+  # Blink, moving the target five squares west, then confirming it.
+  "&", "b", "h", "h", "h", "h", "h", ".",
+  # Shout, to wake it: crawl makes it asleep.
+  "\u001b", "t", "t",
+  # Wait two turns while it acts; Escape clears any --more--.
+  "\u001b", ".", "\u001b", ".",
+]

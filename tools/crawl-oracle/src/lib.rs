@@ -19,7 +19,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{
-    self, MeleeCase, MeleeTally, SpellCase, SpellCaseError, SpellChoiceCase, SpellTally,
+    self, AUTOMATIC_HIT, MeleeCase, MeleeTally, SpellCase, SpellCaseError, SpellChoiceCase,
+    SpellTally,
 };
 use copilot_gk::{Bundle, BundleError, Library};
 use serde::Deserialize;
@@ -397,9 +398,6 @@ fn compare_choice(
         [(Measure::SpellChosen, case.chosen.clone(), engine)],
     ))
 }
-
-/// The to-hit the harness prints for a beam that never misses: crawl's `AUTOMATIC_HIT`.
-const AUTOMATIC_HIT: i32 = 1500;
 
 /// A rate as a two-value tally: how many of the trials it happened in, and how many not.
 fn rate(case: u64, trials: u32, count: u32) -> Result<BTreeMap<i32, u32>, DiffError> {

@@ -380,7 +380,10 @@ pub enum ItemUse {
 }
 
 impl ItemUse {
-    /// Whether a monster of this kind can be given missiles or a wand when it is made.
+    /// Whether a monster of this kind may carry missiles or a wand: it uses at least what it is
+    /// made with. This is wider than crawl, whose gear tables (`mon-gear.cc`) give missiles to
+    /// some of these kinds only, such as centaurs, and wands mostly to uniques; it errs towards
+    /// warning until those tables are in Game Knowledge.
     #[must_use]
     pub fn may_carry_ranged(self) -> bool {
         self >= Self::StartingEquipment

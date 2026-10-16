@@ -33,6 +33,7 @@ expression: replay
           "worstHit": 0,
           "hostilesInView": 1,
           "acting": [],
+          "mayShoot": [],
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -98,6 +99,7 @@ expression: replay
           "worstHit": 0,
           "hostilesInView": 0,
           "acting": [],
+          "mayShoot": [],
           "notModelled": []
         }
       },
@@ -146,6 +148,7 @@ expression: replay
         "worstHit": 0,
         "hostilesInView": 0,
         "acting": [],
+        "mayShoot": [],
         "notModelled": []
       }
     },

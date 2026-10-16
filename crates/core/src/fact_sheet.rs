@@ -24,6 +24,9 @@ const DANGEROUS_DEATHS_PER_MILLE: u32 = 5;
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
 const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
 
+/// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
+const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
+
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -68,6 +71,10 @@ pub struct ThreatAssessment {
     /// The monsters that can attack before the player's next standard-speed action, in map
     /// order.
     pub acting: Vec<ActingMonster>,
+    /// The hostiles in view, acting or not, whose kind can be made with missiles or a wand: the
+    /// simulation doesn't play shooting or zapping out, so these may reach the player when it
+    /// says nothing can, or hit harder than it says.
+    pub may_shoot: Vec<MayShoot>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
 }
@@ -132,6 +139,18 @@ pub struct ActingMonster {
     pub casts: Vec<String>,
     /// The other spells of its book, by name: the simulation assumes it doesn't cast them.
     pub spells_not_modelled: Vec<String>,
+}
+
+/// A hostile in view that may shoot missiles or zap a wand, which the simulation doesn't play out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MayShoot {
+    /// Its name, as the game names it.
+    pub name: String,
+    /// The square it is on.
+    pub position: Position,
+    /// Squares between it and the player.
+    pub distance: i32,
 }
 
 /// Something the Threat Level's simulation doesn't model.
@@ -292,6 +311,7 @@ fn threat(
             worst_hit: 0,
             hostiles_in_view: 0,
             acting: Vec::new(),
+            may_shoot: Vec::new(),
             not_modelled: Vec::new(),
         }));
     };
@@ -308,10 +328,9 @@ fn threat(
     {
         not_modelled.push(NotModelled::SpellsPerMonster);
     }
-    // Crawl gives a draconian of a colour its breath outside its book (`drac_breath`).
     if hostile
         .iter()
-        .any(|(_, monster)| monster.id.0.contains("DRACONIAN"))
+        .any(|(_, monster)| monster.genus.0 == DRACONIAN_GENUS)
     {
         not_modelled.push(NotModelled::DraconianBreath);
     }
@@ -321,31 +340,32 @@ fn threat(
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
-    let acting: Vec<(&VisibleMonster, Attacker<'_>)> = hostile
-        .into_iter()
-        .map(|(seen, monster)| {
-            let attacker = Attacker::new(bundle, monster, distance(player, seen.position));
-            (seen, attacker)
-        })
-        .filter(|(_, attacker)| threat::can_attack(formulas, attacker))
-        .collect();
-    let acting: Vec<(&VisibleMonster, Attacker<'_>, Vec<String>)> = acting
-        .into_iter()
-        .map(|(seen, attacker)| {
-            let others = spells_not_modelled(bundle, &attacker);
-            (seen, attacker, others)
+    let may_shoot: Vec<MayShoot> = hostile
+        .iter()
+        .filter(|(_, monster)| monster.item_use.may_carry_ranged())
+        .map(|(seen, _)| MayShoot {
+            name: seen.name.clone(),
+            position: seen.position,
+            distance: distance(player, seen.position),
         })
         .collect();
-    if acting.iter().any(|(_, _, others)| !others.is_empty()) {
+    // The monsters that can attack, each with the spells of its book not played out.
+    let mut acting: Vec<(&VisibleMonster, Vec<String>)> = Vec::new();
+    let mut attackers: Vec<Attacker<'_>> = Vec::new();
+    for (seen, monster) in hostile {
+        let attacker = Attacker::new(bundle, monster, distance(player, seen.position));
+        if threat::can_attack(formulas, &attacker) {
+            acting.push((seen, spells_not_modelled(bundle, &attacker)));
+            attackers.push(attacker);
+        }
+    }
+    if acting.iter().any(|(_, others)| !others.is_empty()) {
         not_modelled.push(NotModelled::OtherSpells);
     }
-    if acting
-        .iter()
-        .any(|(_, attacker, _)| !attacker.spells.is_empty())
-    {
+    if attackers.iter().any(|attacker| !attacker.spells.is_empty()) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
-    if acting.iter().any(|(_, attacker, _)| {
+    if attackers.iter().any(|attacker| {
         attacker
             .spells
             .iter()
@@ -353,10 +373,6 @@ fn threat(
     }) {
         not_modelled.push(NotModelled::CasterSafety);
     }
-    let attackers: Vec<Attacker<'_>> = acting
-        .iter()
-        .map(|(_, attacker, _)| attacker.clone())
-        .collect();
     let outcome = if attackers.is_empty() {
         Outcome {
             deaths: 0,
@@ -378,7 +394,8 @@ fn threat(
         hostiles_in_view,
         acting: acting
             .into_iter()
-            .map(|(seen, attacker, others)| ActingMonster {
+            .zip(&attackers)
+            .map(|((seen, others), attacker)| ActingMonster {
                 name: seen.name.clone(),
                 position: seen.position,
                 distance: attacker.distance,
@@ -390,6 +407,7 @@ fn threat(
                 spells_not_modelled: others,
             })
             .collect(),
+        may_shoot,
         not_modelled,
     }))
 }

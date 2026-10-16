@@ -12,11 +12,8 @@ use copilot_gk::{
     MonsterSpellPower, Spell, SpellRange, Zap, ZapDamage, ZapToHit,
 };
 
-use super::melee::Defences;
+use super::melee::{AUTOMATIC_HIT, Defences};
 use super::rng::Rng;
-
-/// `AUTOMATIC_HIT` (`defines.h:141`): an accuracy this high never misses.
-const AUTOMATIC_HIT: i32 = 1500;
 
 /// `LOS_DEFAULT_RANGE` (`defines.h:115`): how far a player normally sees, which caps a spell's
 /// range (`calc_spell_range`, `spl-util.cc:1068`).
@@ -116,7 +113,7 @@ pub(crate) enum SlotRange {
 
 impl SlotRange {
     fn of(flags: &[EnumId]) -> Self {
-        let has = |flag: &str| flags.iter().any(|f| f.0 == flag);
+        let has = |flag| has_flag(flags, flag);
         if has("MON_SPELL_EMERGENCY") {
             Self::Emergency
         } else if has("MON_SPELL_SHORT_RANGE") {
@@ -152,6 +149,12 @@ pub(crate) fn is_ported(variant: MonsterSpellBeam, spell: &Spell) -> bool {
         })
 }
 
+/// Whether a spell slot's `flags` include `flag`, a `mon_spell_slot_flag` such as
+/// `MON_SPELL_BREATH`.
+fn has_flag(flags: &[EnumId], flag: &str) -> bool {
+    flags.iter().any(|f| f.0 == flag)
+}
+
 /// `slot` as a spell the engine ports, if it is one ([`is_ported`]).
 pub(crate) fn damaging<'a>(
     variant: MonsterSpellBeam,
@@ -162,7 +165,7 @@ pub(crate) fn damaging<'a>(
         return None;
     }
     let zap = spell.zap.as_ref()?;
-    let has = |flag: &str| slot.flags.iter().any(|f| f.0 == flag);
+    let has = |flag| has_flag(&slot.flags, flag);
     Some(DamagingSpell {
         spell,
         zap,

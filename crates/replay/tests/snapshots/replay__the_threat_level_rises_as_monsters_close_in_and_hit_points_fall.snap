@@ -33,6 +33,7 @@ expression: fact_sheets_by_turn(JACKALS)
         "worstHit": 0,
         "hostilesInView": 3,
         "acting": [],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -88,6 +89,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "spellsNotModelled": []
           }
         ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -143,6 +145,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "spellsNotModelled": []
           }
         ],
+        "mayShoot": [],
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",

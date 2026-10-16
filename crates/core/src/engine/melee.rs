@@ -62,8 +62,8 @@ impl Attack {
     }
 }
 
-/// `AUTOMATIC_HIT` (`defines.h:141`): a to-hit this high never misses.
-const AUTOMATIC_HIT: i32 = 1500;
+/// `AUTOMATIC_HIT` (`defines.h:141`): a to-hit or a beam's accuracy this high never misses.
+pub const AUTOMATIC_HIT: i32 = 1500;
 
 /// `MIN_HIT_MISS_PERCENTAGE` (`defines.h:147`): the chance in 100 that an attack ignores
 /// evasion, hitting or missing outright with equal odds.

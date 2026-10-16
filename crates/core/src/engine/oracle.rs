@@ -10,6 +10,8 @@ use super::melee::{self, Attack, Defences, Flavour};
 use super::rng::Rng;
 use super::spells;
 
+pub use super::melee::AUTOMATIC_HIT;
+
 /// One monster attack on the player, in the terms the ported formulas take.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MeleeCase {
