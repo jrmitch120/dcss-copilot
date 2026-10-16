@@ -12,7 +12,7 @@ mod spells;
 mod tiles;
 mod yaml;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -20,7 +20,7 @@ use copilot_gk::{
     Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, MonsterSpell, Spell,
 };
 
-use crate::cpp::Source;
+use crate::cpp::{Source, Token};
 pub use crate::tiles::ShippedTiles;
 
 /// Crawl's copyright and license, recorded in every bundle (ADR 0002).
@@ -36,6 +36,7 @@ const SERIES: &[Series] = &[Series {
     name: "0.34",
     formulas: Formulas::CRAWL_0_34,
     gear: &gear::GEAR_RULES_0_34,
+    test_monsters: &["MONS_TEST_SPAWNER", "MONS_TEST_STATUE", "MONS_TEST_BLOB"],
 }];
 
 /// What is ported from one crawl release series.
@@ -46,10 +47,18 @@ struct Series {
     formulas: Formulas,
     /// Its code that gives monsters missiles and wands.
     gear: &'static gear::GearRules,
+    /// Its test monsters, which are never firewood: `mons_class_is_test`.
+    test_monsters: &'static [&'static str],
 }
 
 /// Where crawl's game source lives inside a crawl checkout.
 const SOURCE_DIR: &str = "crawl-ref/source";
+
+/// The tables of `mon-tentacle.cc` naming crawl's tentacles and their segments, with how many
+/// leading fields of each row name something else: `_head_child_segment` starts each row with
+/// the monster the tentacle grows from.
+const TENTACLE_TABLES: &[(&str, usize)] =
+    &[("_head_child_segment", 1), ("_solo_tentacle_to_segment", 0)];
 
 /// Where crawl's tiles live inside its game source.
 const RLTILES_DIR: &str = "rltiles";
@@ -276,6 +285,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         missile_weapons.clone(),
     )?;
     let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
+    let monster_type = crawl.enumeration("monster-type.h", "monster_type")?;
+    let never_firewood = crawl.never_firewood(series, &monster_type)?;
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -284,9 +295,10 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         },
         monsters: yaml::monsters(
             &crawl.source,
-            &crawl.enumeration("monster-type.h", "monster_type")?,
+            &monster_type,
             &crawl.spellbooks()?,
             &gear,
+            &never_firewood,
             &mut tiles,
             crawl.tag_major,
         )?,
@@ -454,6 +466,44 @@ impl Crawl {
             );
         }
         Ok(spells)
+    }
+
+    /// The monsters crawl never counts as firewood whatever their flags
+    /// (`mons_class_is_firewood`): the series' test monsters, and every tentacle and tentacle
+    /// segment (`mons_is_tentacle_or_tentacle_segment`). Each must be in `monster_type`, so a
+    /// renamed one fails rather than turns into firewood.
+    fn never_firewood(
+        &self,
+        series: &Series,
+        monster_type: &[(String, i64)],
+    ) -> Result<BTreeSet<String>, ExtractError> {
+        let file = "mon-tentacle.cc";
+        let source = self.parse(file)?;
+        let mut never = BTreeSet::new();
+        for &(table, skipped) in TENTACLE_TABLES {
+            for row in source.entries(table)? {
+                for field in row.iter().skip(skipped) {
+                    let [Token::Ident(id)] = field.as_slice() else {
+                        return Err(ExtractError::Unreadable {
+                            file: file.to_owned(),
+                            what: format!("a row of {table}"),
+                        });
+                    };
+                    never.insert(id.clone());
+                }
+            }
+        }
+        never.extend(series.test_monsters.iter().map(|&id| id.to_owned()));
+        if let Some(unknown) = never
+            .iter()
+            .find(|id| !monster_type.iter().any(|(known, _)| known == *id))
+        {
+            return Err(ExtractError::Missing {
+                file: "monster-type.h".to_owned(),
+                what: unknown.clone(),
+            });
+        }
+        Ok(never)
     }
 
     /// Every monster spellbook, by its `mon_spellbook_type` identifier.

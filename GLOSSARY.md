@@ -74,6 +74,10 @@ _Avoid_: Wiki data, database
 The Game Knowledge for one Crawl Version as one file, extracted from crawl's source at that version's tag and shipped with the app. It records the crawl commit it came from, and holds the version's own enum numbering, so a Game Source decodes a game through the bundle for its Crawl Version.
 _Avoid_: Data pack, dataset
 
+**Firewood**:
+Crawl's name for a harmless monster that never moves and gives no experience, such as a fungus, a plant or a toadstool. Game Knowledge says which monsters are firewood; the panel treats them as scenery and leaves them out of what is in view, though the engine still sees them, such as as obstacles.
+_Avoid_: Scenery monster, plant (for the whole group)
+
 **Crawl Version**:
 The exact build of DCSS a game is played on: a stable release such as 0.34.1, or a particular trunk build.
 _Avoid_: Game version, release (when trunk is included)

@@ -389,6 +389,9 @@ pub struct Monster {
     pub fighter: bool,
     /// It has crawl's `stationary` flag: it never moves.
     pub stationary: bool,
+    /// It is crawl's firewood (`mons_class_is_firewood`): a harmless monster that never moves
+    /// and gives no experience, such as a fungus or a plant, which the player sees as scenery.
+    pub firewood: bool,
     /// It has crawl's `archer` flag, which makes its missiles more accurate and harder hitting.
     pub archer: bool,
     /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.

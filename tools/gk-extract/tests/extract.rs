@@ -100,9 +100,11 @@ fn the_tiles_a_bundle_names_are_written_as_crawls_tile_build_draws_them() {
             "mon/animals/rat.png",
             "mon/animals/snapping_turtle.png",
             "mon/demihumanoids/taurs/centaur.png",
+            "mon/fungi_plants/fungus1.png",
             "mon/humanoids/goblin_rider.png",
             "mon/humanoids/kobold.png",
             "mon/humanoids/orcs/orc_wizard.png",
+            "mon/statues/test_statue.png",
             "mon/unique/maurice.png",
         ]
     );
