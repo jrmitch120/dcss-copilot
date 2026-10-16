@@ -6,8 +6,7 @@ use copilot_gk::{Formulas, Monster};
 use crate::accumulated_state::Shield;
 
 use super::melee::{
-    self, Attack, ENERGY_THRESHOLD, apply_ac, attack_reach, energy_gained, evasion_margin,
-    monster_damage, monster_to_hit, shield_blocks, starting_energy,
+    self, Attack, Defences, ENERGY_THRESHOLD, attack_reach, energy_gained, starting_energy,
 };
 use super::rng::Rng;
 
@@ -27,12 +26,8 @@ const WORST_HIT_PERCENTILE: u32 = 99;
 pub(crate) struct Defender {
     /// Current hit points.
     pub(crate) hp: i32,
-    /// Armour class, as displayed.
-    pub(crate) ac: i32,
-    /// Evasion, as displayed.
-    pub(crate) ev: i32,
-    /// Shield class, as displayed.
-    pub(crate) sh: i32,
+    /// AC, EV and SH, as displayed.
+    pub(crate) defences: Defences,
     /// The most attacks the shield blocks before the player's next action.
     pub(crate) shield_blocks: u32,
 }
@@ -138,18 +133,19 @@ fn one_action(
                 if attack_reach(formulas.monster_reach, attack) < distance {
                     continue;
                 }
-                let to_hit =
-                    monster_to_hit(formulas.monster_to_hit, rng, hit_dice, monster.fighter);
-                let margin = evasion_margin(formulas.evasion_roll, rng, to_hit, defender.ev);
-                let blocked =
-                    shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defender.sh)
-                        && blocks_left > 0;
-                if blocked {
+                let swing = melee::swing(
+                    formulas,
+                    rng,
+                    hit_dice,
+                    monster.fighter,
+                    attack,
+                    defender.defences,
+                    blocks_left > 0,
+                );
+                if swing.blocked {
                     blocks_left -= 1;
-                } else if margin >= 0 {
-                    let rolled = monster_damage(formulas.monster_damage, rng, attack);
-                    total += apply_ac(formulas.armour, rng, rolled, defender.ac);
                 }
+                total += swing.damage;
             }
             energy -= cost(monster.energy.attack);
         }
