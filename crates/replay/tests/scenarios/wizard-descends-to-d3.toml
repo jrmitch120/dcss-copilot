@@ -1,0 +1,18 @@
+description = "A Minotaur Berserker enters wizard mode and takes the stairs down twice, from D:1 to D:3"
+recording = "wizard-descends-to-d3.dcssrec"
+crawl_version = "0.34.1"
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Go down the nearest stairs.
+  "d",
+  # Wait a turn on D:2, then go down again.
+  ".", "&", "d",
+  ".",
+]

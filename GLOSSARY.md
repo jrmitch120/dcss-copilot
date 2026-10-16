@@ -16,6 +16,14 @@ _Avoid_: Integration, connector, backend
 A saved copy of everything a Game Source sent during one game, which can be replayed to reproduce what the Advisor saw. The player can opt in to recording and export a game to report a problem.
 _Avoid_: Log, trace, capture (when meaning the saved file)
 
+**Scenario**:
+A short Recording of a wizard-mode game set up by hand to reach one moment, kept beside the tests with a manifest naming its Crawl Version, the keystrokes that set it up (so it can be recorded again), the turns to snapshot, and the advice the Advisor should give.
+_Avoid_: Fixture, test case
+
+**Corpus**:
+The games tests and evals replay: Scenarios and short Recordings in the main repo, and full games played by people, kept as release assets of a separate corpus repo and pinned by hash. Every one is tagged with its Crawl Version.
+_Avoid_: Dataset, test data
+
 **LLM Sidecar**:
 The LLM calls made while a Recording was made, saved beside it and looked up by each request's hash, so a replay gets the same answers without calling a model.
 _Avoid_: Cassette, fixture, mock

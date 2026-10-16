@@ -1,20 +1,27 @@
-//! Recording format, in-process replayer and fake-extension front end.
+//! Recording format, in-process replayer, fake-extension front end, scenarios and the corpus.
 
+mod corpus;
 mod fake_extension;
 mod recording;
 mod replayer;
+mod scenario;
 
+pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame};
 pub use fake_extension::{
     FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
 };
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
-pub use replayer::{Applied, Moment, Replayer};
+pub use replayer::{Applied, CrawlVersionMismatch, Moment, Replayer};
+pub use scenario::{
+    ExpectedAlert, ExpectedSuggestedAction, SCENARIO_EXTENSION, Scenario, ScenarioError,
+    ScenarioReplay, Setup, Snapshot,
+};
 
 use std::io::Read;
 
-use copilot_core::{GameIdentity, ViewModel, VisibleState};
+use copilot_core::{CrawlVersion, GameIdentity, ViewModel, VisibleState};
 use copilot_gk::BundleError;
 
 /// What the core made of a replayed Recording.
@@ -24,6 +31,8 @@ pub struct Replay {
     pub view_models: Vec<ViewModel>,
     /// The followed game's identity at the end.
     pub identity: Option<GameIdentity>,
+    /// Every Crawl Version a followed game reported, in the order first seen.
+    pub crawl_versions: Vec<CrawlVersion>,
     /// The followed game's Visible State at the end.
     pub visible: VisibleState,
     /// The screen reads and session events, in order.
@@ -60,6 +69,7 @@ pub fn replay(recording: impl Read) -> Result<Replay, ReplayError> {
     Ok(Replay {
         view_models,
         identity: replayer.advisor().identity().cloned(),
+        crawl_versions: replayer.crawl_versions().to_vec(),
         visible: replayer.advisor().visible().clone(),
         timeline: replayer.timeline().to_vec(),
         truncated: replayer.recording().truncated,

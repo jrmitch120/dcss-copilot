@@ -1,0 +1,179 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz95793985",
+    "character": "wiz95793985",
+    "species": "Minotaur",
+    "firstSeenMs": 1792095795551,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 2
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 1,
+          "acting": [],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "rangedAndSpells",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz95793985",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Nothing hostile can reach you before your next action.",
+          "detail": null
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "S",
+                  "colour": "green"
+                },
+                "tile": "mon/animals/ball_python"
+              },
+              "name": "ball python",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 3
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 0,
+          "acting": [],
+          "notModelled": []
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz95793985",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 1
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "No hostiles in view.",
+          "detail": null
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": []
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "end": {
+    "turn": 2,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 3
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 0,
+        "acting": [],
+        "notModelled": []
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz95793985",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 2
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "No hostiles in view.",
+        "detail": null
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
