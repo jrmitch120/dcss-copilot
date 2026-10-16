@@ -152,7 +152,7 @@ fn a_crawl_release_without_known_formula_variants_is_refused_rather_than_read_as
         let refused = extract(&fixture(), &release);
 
         assert!(
-            matches!(&refused, Err(ExtractError::NoFormulaVariants { tag: refused }) if refused == tag),
+            matches!(&refused, Err(ExtractError::UnknownSeries { tag: refused }) if refused == tag),
             "{tag}: {refused:?}"
         );
     }

@@ -56,7 +56,7 @@ pub(crate) struct Attacker<'a> {
     pub(crate) missiles: Draw<Missile<'a>>,
     /// The wands it may carry whose spells the engine ports, by the odds crawl makes its kind
     /// with. A wand whose spell isn't ported counts as none: it is assumed never to zap it.
-    pub(crate) wands: Draw<Zap<'a>>,
+    pub(crate) wands: Draw<WandZap<'a>>,
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -74,7 +74,7 @@ pub(crate) struct Cast<'a> {
 
 /// A wand as a particular monster zaps it.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Zap<'a> {
+pub(crate) struct WandZap<'a> {
     /// The wand.
     pub(crate) wand: &'a Wand,
     /// The spell it zaps.
@@ -104,6 +104,11 @@ impl<T: Copy> Draw<T> {
                 .filter_map(|weighted| Some((item(&weighted.item)?, weighted.weight)))
                 .collect(),
         }
+    }
+
+    /// Whether it is never any item.
+    pub(crate) fn is_empty(&self) -> bool {
+        self.items.is_empty()
     }
 
     /// Every item it may be, whatever its chance.
@@ -152,7 +157,11 @@ impl<'a> Attacker<'a> {
             })
             .collect();
         let missiles = Draw::new(&monster.gear.missile, |id| {
-            Some(Missile::of(id, bundle.missile_weapons.get(id)?))
+            Some(Missile::of(
+                formulas.missile_attack,
+                id,
+                bundle.missile_weapons.get(id)?,
+            ))
         });
         let wands = Draw::new(&monster.gear.wand, |id| {
             let wand = bundle.wands.get(id)?;
@@ -165,7 +174,7 @@ impl<'a> Attacker<'a> {
                 hit_dice,
             );
             let range = spells::range(formulas.monster_spell_power, spell.range?, power);
-            Some(Zap {
+            Some(WandZap {
                 wand,
                 spell: damaging,
                 power,
@@ -185,7 +194,7 @@ impl<'a> Attacker<'a> {
     /// or a missile, if its kind may carry them.
     fn strikes_from(&self, formulas: Formulas, distance: i32) -> bool {
         let monster = self.monster;
-        let shoots = self.missiles.items().next().is_some()
+        let shoots = !self.missiles.is_empty()
             && distance <= MISSILE_RANGE
             && (distance > 1 || monster.prefers_ranged);
         distance >= 1
@@ -272,14 +281,7 @@ fn one_action(
             + energy_gained(formulas.monster_energy, rng, speed(monster));
         let missile = attacker.missiles.draw(rng);
         let wand = attacker.wands.draw(rng);
-        let shooter = Shooter {
-            hit_dice,
-            archer: monster.archer,
-            first_attack: monster
-                .attacks
-                .first()
-                .map_or(0, |attack| i32::try_from(attack.damage).unwrap_or(i32::MAX)),
-        };
+        let shooter = Shooter::of(monster, hit_dice);
         // Once it breathes, it can't again until a turn has passed (`setup_breath_timeout`).
         let mut breathed = false;
         while energy >= ENERGY_THRESHOLD

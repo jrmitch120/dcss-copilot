@@ -387,7 +387,7 @@ fn threat(
     }
     if attackers
         .iter()
-        .any(|attacker| !attacker.spells.is_empty() || attacker.wands.items().next().is_some())
+        .any(|attacker| !attacker.spells.is_empty() || !attacker.wands.is_empty())
     {
         not_modelled.push(NotModelled::PlayerResistances);
     }

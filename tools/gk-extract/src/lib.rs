@@ -155,7 +155,7 @@ impl CrawlRelease {
         SERIES
             .iter()
             .find(|known| known.name == series)
-            .ok_or_else(|| ExtractError::NoFormulaVariants {
+            .ok_or_else(|| ExtractError::UnknownSeries {
                 tag: self.tag.clone(),
             })
     }
@@ -234,8 +234,8 @@ pub enum ExtractError {
     },
     /// The extractor knows no formula variants or gear rules for the release's series, so it
     /// can't say which the engine should use.
-    #[error("no ported formula variants are known for crawl {tag}")]
-    NoFormulaVariants {
+    #[error("no formula variants or gear rules are ported for crawl {tag}'s release series")]
+    UnknownSeries {
         /// The release tag.
         tag: String,
     },

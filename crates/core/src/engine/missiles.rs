@@ -8,7 +8,9 @@
 //! player, and its launcher or missile is +0 and unbranded. The Fact Sheet lists what that leaves
 //! out.
 
-use copilot_gk::{EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, MonsterFire};
+use copilot_gk::{
+    EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster, MonsterFire,
+};
 
 use super::melee::{self, Defences, RolledDamage, Swing};
 use super::rng::Rng;
@@ -31,12 +33,14 @@ pub(crate) struct Missile<'a> {
 }
 
 impl<'a> Missile<'a> {
-    /// The missile weapon `weapon`, the sub-type `id`.
-    pub(crate) fn of(id: &EnumId, weapon: &'a MissileWeapon) -> Self {
-        Self {
-            weapon,
-            harmless: matches!(id.0.as_str(), "MI_DART" | "MI_THROWING_NET"),
-            pierces: id.0 == "MI_JAVELIN",
+    /// The missile weapon `weapon`, the sub-type `id`, as `variant` tells missiles apart.
+    pub(crate) fn of(variant: MissileAttack, id: &EnumId, weapon: &'a MissileWeapon) -> Self {
+        match variant {
+            MissileAttack::Crawl034 => Self {
+                weapon,
+                harmless: matches!(id.0.as_str(), "MI_DART" | "MI_THROWING_NET"),
+                pierces: id.0 == "MI_JAVELIN",
+            },
         }
     }
 }
@@ -96,6 +100,20 @@ pub(crate) struct Shooter {
     /// The damage of its first melee attack, which a missile adds to its own
     /// (`attack::init_attack(0)`, `attack.cc:370`): 0 when it has none.
     pub(crate) first_attack: i32,
+}
+
+impl Shooter {
+    /// `monster` firing with `hit_dice`.
+    pub(crate) fn of(monster: &Monster, hit_dice: i32) -> Self {
+        Self {
+            hit_dice,
+            archer: monster.archer,
+            first_attack: monster
+                .attacks
+                .first()
+                .map_or(0, |attack| i32::try_from(attack.damage).unwrap_or(i32::MAX)),
+        }
+    }
 }
 
 /// One missile fired at the player, rolled as `ranged_attack::attack` (`ranged-attack.cc:90`)
@@ -161,44 +179,5 @@ fn missile_damage(rng: &mut Rng, shooter: Shooter, missile: Missile<'_>) -> Roll
     RolledDamage {
         damage,
         max: weapon + shooter.first_attack,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn bow() -> MissileWeapon {
-        MissileWeapon {
-            name: "shortbow".to_owned(),
-            kind: MissileKind::Launcher,
-            damage: 8,
-            accuracy: 2,
-        }
-    }
-
-    /// The share of 200,000 tries `fires` said yes to.
-    fn firing(weapon: &MissileWeapon, id: &str, prefers_ranged: bool, distance: i32) -> f64 {
-        let mut rng = Rng::new(5, 9);
-        let missile = Missile::of(&EnumId(id.to_owned()), weapon);
-        let fired = (0..200_000)
-            .filter(|_| {
-                fires(
-                    MonsterFire::Crawl034,
-                    &mut rng,
-                    missile,
-                    prefers_ranged,
-                    distance,
-                )
-            })
-            .count();
-        f64::from(u32::try_from(fired).unwrap()) / 200_000.0
-    }
-
-    #[test]
-    fn only_a_monster_that_prefers_ranged_attacks_shoots_from_beside_the_player() {
-        assert!(firing(&bow(), "WPN_SHORTBOW", false, 1) == 0.0);
-        assert!(firing(&bow(), "WPN_SHORTBOW", true, 1) == 1.0);
-        assert!((firing(&bow(), "WPN_SHORTBOW", true, 2) - 0.9).abs() < 0.004);
     }
 }

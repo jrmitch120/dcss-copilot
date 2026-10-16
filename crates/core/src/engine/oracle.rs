@@ -109,6 +109,9 @@ pub enum CaseError {
     /// The bundle has no launcher or missile with this sub-type identifier.
     #[error("the Game Knowledge has no launcher or missile {0}")]
     NoMissileWeapon(String),
+    /// The engine doesn't port the spell a wand zaps.
+    #[error("the engine doesn't port spell {0}, zapped from a wand")]
+    WandNotPorted(u16),
     /// The spell isn't one the engine ports, or not in the monster's spellbook.
     #[error("the engine doesn't port spell {spell} as monster {monster} casts it")]
     NotPorted {
@@ -386,14 +389,7 @@ pub fn missile(
     trials: u32,
 ) -> Result<AttackTally, CaseError> {
     let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
-    let shooter = Shooter {
-        hit_dice: case.hit_dice,
-        archer: monster.archer,
-        first_attack: monster
-            .attacks
-            .first()
-            .map_or(0, |attack| i32::try_from(attack.damage).unwrap_or(i32::MAX)),
-    };
+    let shooter = Shooter::of(monster, case.hit_dice);
     let defences = Defences {
         ac: case.ac,
         ev: case.ev,
@@ -562,12 +558,15 @@ fn shooter<'b>(
         .missile_weapons
         .get(weapon)
         .ok_or_else(|| CaseError::NoMissileWeapon(weapon.0.clone()))?;
-    Ok((known, Missile::of(weapon, missile)))
+    Ok((
+        known,
+        Missile::of(bundle.formulas.missile_attack, weapon, missile),
+    ))
 }
 
 /// The spell numbered `spell`, as the engine ports it, which a wand zaps.
 fn wand_spell(bundle: &Bundle, spell: u16) -> Result<DamagingSpell<'_>, CaseError> {
     let known = bundle.spells.get(&spell).ok_or(CaseError::NoSpell(spell))?;
     spells::damaging(bundle.formulas.monster_spell_beam, known)
-        .ok_or(CaseError::NotPorted { monster: 0, spell })
+        .ok_or(CaseError::WandNotPorted(spell))
 }
