@@ -347,6 +347,11 @@ pub struct Monster {
     pub fighter: bool,
     /// It has crawl's `stationary` flag: it never moves.
     pub stationary: bool,
+    /// Its genus, as a `monster_type` identifier such as `MONS_DRACONIAN`: the kind crawl
+    /// counts it as for rules that apply to a whole family (`mons_genus`).
+    pub genus: EnumId,
+    /// Which items it can use: crawl's `mon_itemuse_type`.
+    pub item_use: ItemUse,
     /// The spells it casts. Monster abilities such as breath are spells here.
     pub spells: MonsterSpells,
     /// How much energy each kind of action costs it, where 10 is a normal action.
@@ -357,6 +362,29 @@ pub struct Monster {
     pub tile: Option<String>,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,
+}
+
+/// Which items a kind of monster can use: crawl's `mon_itemuse_type`, as `dat/mons` sets `uses`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ItemUse {
+    /// `MONUSE_NOTHING`: none.
+    Nothing,
+    /// `MONUSE_OPEN_DOORS`: none, though it opens doors.
+    OpenDoors,
+    /// `MONUSE_STARTING_EQUIPMENT`: what it is given when it is made, such as a weapon,
+    /// missiles or a wand.
+    StartingEquipment,
+    /// `MONUSE_WEAPONS_ARMOUR`: what it is given, and weapons and armour it picks up.
+    WeaponsArmour,
+}
+
+impl ItemUse {
+    /// Whether a monster of this kind can be given missiles or a wand when it is made.
+    #[must_use]
+    pub fn may_carry_ranged(self) -> bool {
+        self >= Self::StartingEquipment
+    }
 }
 
 /// One of a monster's melee attacks, as `dat/mons` defines it.

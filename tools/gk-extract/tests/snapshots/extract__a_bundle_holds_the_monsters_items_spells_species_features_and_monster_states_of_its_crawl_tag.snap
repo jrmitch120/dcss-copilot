@@ -30,6 +30,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_BAT",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -65,6 +67,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_SNAKE",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -100,6 +104,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_RAT",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -135,6 +141,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_QUOKKA",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -170,6 +178,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_HOUND",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -205,6 +215,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_SNAPPING_TURTLE",
+      "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
@@ -240,6 +252,8 @@ expression: bundle
       ],
       "fighter": true,
       "stationary": false,
+      "genus": "MONS_GOBLIN",
+      "itemUse": "startingEquipment",
       "spells": {
         "kind": "book",
         "spells": []
@@ -275,6 +289,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_ORC",
+      "itemUse": "weaponsArmour",
       "spells": {
         "kind": "book",
         "spells": [
@@ -339,6 +355,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "genus": "MONS_DRACONIAN",
+      "itemUse": "weaponsArmour",
       "spells": {
         "kind": "book",
         "spells": []

@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
-    Energy, EnumId, Monster, MonsterAttack, MonsterSpell, MonsterSpells, Species, Will,
+    Energy, EnumId, ItemUse, Monster, MonsterAttack, MonsterSpell, MonsterSpells, Species, Will,
 };
 use serde::Deserialize;
 
@@ -32,6 +32,12 @@ struct MonsterFile {
     energy: Option<EnergyField>,
     /// Its spellbook, named as `mon-spell.h` names it without the `MST_` prefix.
     spells: Option<String>,
+    /// The monster it is a kind of, by name: its `species` unless set.
+    genus: Option<String>,
+    /// Its species, by name: itself unless set.
+    species: Option<String>,
+    /// Which items it can use, as `mon_itemuse_type` names it without the `MONUSE_` prefix.
+    uses: Option<String>,
     /// The tile it is drawn with, when not the one named after its enum.
     tile: Option<String>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
@@ -158,6 +164,16 @@ pub fn monsters(
             }
         };
         let tile = tiles.ship(&tile_enum(&id, monster.tile.as_deref()))?;
+        // As `util/mon-gen.py` defaults them: genus to species, species to the monster itself.
+        let genus = match monster.genus.or(monster.species) {
+            Some(name) => format!("MONS_{}", name.to_uppercase()),
+            None => id.clone(),
+        };
+        let item_use =
+            item_use(monster.uses.as_deref()).ok_or_else(|| ExtractError::Unreadable {
+                file: file.clone(),
+                what: "uses".to_owned(),
+            })?;
         // As `util/mon-gen.py` names the book.
         let spells = match monster
             .spells
@@ -204,6 +220,8 @@ pub fn monsters(
                     .collect(),
                 fighter: monster.flags.iter().any(|flag| flag == FIGHTER_FLAG),
                 stationary: monster.flags.iter().any(|flag| flag == STATIONARY_FLAG),
+                genus: EnumId(genus),
+                item_use,
                 spells,
                 energy: monster.energy.map_or(
                     Energy {
@@ -219,6 +237,18 @@ pub fn monsters(
         );
     }
     Ok(monsters)
+}
+
+/// A monster's `uses`, as `parse_use` in `util/mon-gen.py` reads it: `nothing` when unset, and
+/// `None` for a value it refuses.
+fn item_use(uses: Option<&str>) -> Option<ItemUse> {
+    match uses.unwrap_or("nothing") {
+        "nothing" => Some(ItemUse::Nothing),
+        "open_doors" => Some(ItemUse::OpenDoors),
+        "starting_equipment" => Some(ItemUse::StartingEquipment),
+        "weapons_armour" => Some(ItemUse::WeaponsArmour),
+        _ => None,
+    }
 }
 
 /// The tile enum a monster is drawn with, as `base_tile` in `util/mon-gen.py` names it: its own
