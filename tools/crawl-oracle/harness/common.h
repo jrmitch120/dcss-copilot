@@ -177,6 +177,23 @@ static void _remove(monster &mon)
     invalidate_agrid(true);
 }
 
+// The player, unhurt and unaffected, as the next action starts: what hit them may have
+// poisoned, corroded, blinded, burnt or mutated them, laid a bane on them, which changes the
+// monsters they meet, or left them liable to teleport, which stops a sojourning bolt being cast
+// at them again.
+static void _restore_player()
+{
+    you.hp = you.hp_max;
+    for (int &duration : you.duration)
+        duration = 0;
+    you.banes.init(0);
+    you.mutation.init(0);
+    you.temp_mutation.init(0);
+    you.props.erase(CORROSION_KEY);
+    you.props.erase(TELEPORTITIS_SOURCE);
+    you.redraw_armour_class = true;
+}
+
 static string _histogram(const map<int, int> &counts)
 {
     string out = "{";

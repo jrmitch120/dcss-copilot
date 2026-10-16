@@ -106,6 +106,14 @@ impl<T: Copy> Draw<T> {
         }
     }
 
+    /// No item, ever.
+    pub(crate) fn none() -> Self {
+        Self {
+            out_of: 1,
+            items: Vec::new(),
+        }
+    }
+
     /// Whether it is never any item.
     pub(crate) fn is_empty(&self) -> bool {
         self.items.is_empty()
@@ -190,6 +198,15 @@ impl<'a> Attacker<'a> {
         }
     }
 
+    /// The same monster, carrying nothing to shoot, throw or zap.
+    pub(crate) fn without_gear(self) -> Self {
+        Self {
+            missiles: Draw::none(),
+            wands: Draw::none(),
+            ..self
+        }
+    }
+
     /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand
     /// or a missile, if its kind may carry them.
     fn strikes_from(&self, formulas: Formulas, distance: i32) -> bool {
@@ -198,7 +215,7 @@ impl<'a> Attacker<'a> {
             && distance <= MISSILE_RANGE
             && (distance > 1 || monster.prefers_ranged);
         distance >= 1
-            && (distance <= reach(formulas, monster)
+            && (distance <= melee_reach(formulas, monster)
                 || self
                     .spells
                     .iter()
@@ -270,122 +287,144 @@ fn one_action(
     defender: Defender,
     attackers: &[Attacker<'_>],
 ) -> i32 {
-    let mut total = 0;
     let mut blocks_left = defender.shield_blocks;
-    for attacker in attackers {
-        let monster = attacker.monster;
-        let reach = reach(formulas, monster);
-        let hit_dice = hit_dice(monster);
-        let mut distance = attacker.distance;
-        let mut energy = starting_energy(formulas.monster_energy, rng)
-            + energy_gained(formulas.monster_energy, rng, speed(monster));
-        let missile = attacker.missiles.draw(rng);
-        let wand = attacker.wands.draw(rng);
-        let shooter = Shooter::of(monster, hit_dice);
-        // Once it breathes, it can't again until a turn has passed (`setup_breath_timeout`).
-        let mut breathed = false;
-        while energy >= ENERGY_THRESHOLD
-            && (reach > 0 || !attacker.spells.is_empty() || missile.is_some() || wand.is_some())
-        {
-            // A monster tries its spells before anything else, then its wand, then its missiles
-            // (`_mons_take_special_action`, `mon-act.cc:1840`).
-            if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, breathed) {
-                if cast.reach.strikes >= distance {
-                    total += fire_beam(
-                        formulas,
-                        rng,
-                        &cast.spell,
-                        cast.power,
-                        defender.defences,
-                        &mut blocks_left,
-                    );
-                }
-                breathed |= cast.slot.breath;
-                // An instant spell takes no time, and the monster goes on to act
-                // (`handle_mon_spell`, `mon-cast.cc:5228`).
-                if !cast.slot.instant {
-                    energy -= cost(monster.energy.spell);
-                    continue;
-                }
-            }
-            // Its tracer must find the player (`_handle_wand`).
-            if let Some(zap) = wand
-                && wands::zaps(formulas.monster_wand, rng)
-                && zap.reach.casts >= distance
-            {
-                if zap.reach.strikes >= distance {
-                    total += fire_beam(
-                        formulas,
-                        rng,
-                        &zap.spell,
-                        zap.power,
-                        defender.defences,
-                        &mut blocks_left,
-                    );
-                }
-                energy -= wands::energy(formulas.monster_wand);
-                continue;
-            }
-            if let Some(missile) = missile
-                && missiles::fires(
-                    formulas.monster_fire,
-                    rng,
-                    missile,
-                    monster.prefers_ranged,
-                    distance,
-                )
-            {
-                let shot = missiles::shoot(
-                    formulas,
-                    rng,
-                    shooter,
-                    missile,
-                    defender.defences,
-                    blocks_left > 0,
-                );
-                if shot.blocked {
-                    blocks_left -= 1;
-                }
-                total += shot.damage;
-                energy -=
-                    missiles::fire_energy(formulas.monster_fire, rng, cost(monster.energy.missile));
-                continue;
-            }
-            if reach == 0 || distance > reach {
-                // It walks straight at the player, unless it never moves: walls and other
-                // monsters aren't modelled.
-                if !monster.stationary && distance > 1 {
-                    distance -= 1;
-                }
-                energy -= cost(monster.energy.walk);
-                continue;
-            }
-            // Every attack it has, as one melee action makes them
-            // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`).
-            // An attack only made with a weapon (`AT_WEAP_ONLY`) is counted, as the Advisor can't
-            // see what monsters wield.
-            for attack in attacks(monster) {
-                if attack_reach(formulas.monster_reach, attack) < distance {
-                    continue;
-                }
-                let swing = melee::swing(
-                    formulas,
-                    rng,
-                    hit_dice,
-                    monster.fighter,
-                    attack,
-                    defender.defences,
-                    blocks_left > 0,
-                );
-                if swing.blocked {
-                    blocks_left -= 1;
-                }
-                total += swing.damage;
-            }
-            energy -= cost(monster.energy.attack);
+    attackers
+        .iter()
+        .map(|attacker| turn(formulas, rng, attacker, defender.defences, &mut blocks_left).damage)
+        .sum()
+}
+
+/// What one monster did before the player's next standard-speed action, in one trial.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct Turn {
+    /// The damage it dealt the player.
+    pub(crate) damage: i32,
+    /// The melee actions it took against the player.
+    pub(crate) melee: i32,
+    /// The spells it cast.
+    pub(crate) casts: i32,
+    /// The squares it closed on the player.
+    pub(crate) closed: i32,
+}
+
+/// Plays out `attacker`'s actions before the player's next standard-speed action against a
+/// player with `defences`, whose shield has `blocks_left` blocks left this action.
+pub(crate) fn turn(
+    formulas: Formulas,
+    rng: &mut Rng,
+    attacker: &Attacker<'_>,
+    defences: Defences,
+    blocks_left: &mut u32,
+) -> Turn {
+    let monster = attacker.monster;
+    let reach = melee_reach(formulas, monster);
+    let hit_dice = hit_dice(monster);
+    let mut distance = attacker.distance;
+    let mut energy = starting_energy(formulas.monster_energy, rng)
+        + energy_gained(formulas.monster_energy, rng, speed(monster));
+    let missile = attacker.missiles.draw(rng);
+    let wand = attacker.wands.draw(rng);
+    let shooter = Shooter::of(monster, hit_dice);
+    let mut turn = Turn::default();
+    // The actions left before it can breathe again.
+    let mut breath_timeout: u32 = 0;
+    let mut first_action = true;
+    while energy >= ENERGY_THRESHOLD
+        && (reach > 0 || !attacker.spells.is_empty() || missile.is_some() || wand.is_some())
+    {
+        // It catches its breath after each action (`_post_monster_move`, `mon-act.cc:2569`).
+        if !first_action {
+            breath_timeout = breath_timeout.saturating_sub(1);
         }
+        first_action = false;
+        // A monster tries its spells before anything else, then its wand, then its missiles
+        // (`_mons_take_special_action`, `mon-act.cc:1840`).
+        let can_breathe = breath_timeout == 0;
+        if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, can_breathe) {
+            turn.casts += 1;
+            if cast.reach.strikes >= distance {
+                turn.damage += fire_beam(
+                    formulas,
+                    rng,
+                    &cast.spell,
+                    cast.power,
+                    defences,
+                    blocks_left,
+                );
+            }
+            if cast.slot.breath {
+                breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
+            }
+            // An instant spell takes no time, and the monster goes on to act
+            // (`handle_mon_spell`, `mon-cast.cc:5228`).
+            if !cast.slot.instant {
+                energy -= cost(monster.energy.spell);
+                continue;
+            }
+        }
+        // Its tracer must find the player (`_handle_wand`).
+        if let Some(zap) = wand
+            && wands::zaps(formulas.monster_wand, rng)
+            && zap.reach.casts >= distance
+        {
+            if zap.reach.strikes >= distance {
+                turn.damage +=
+                    fire_beam(formulas, rng, &zap.spell, zap.power, defences, blocks_left);
+            }
+            energy -= wands::energy(formulas.monster_wand);
+            continue;
+        }
+        if let Some(missile) = missile
+            && missiles::fires(
+                formulas.monster_fire,
+                rng,
+                missile,
+                monster.prefers_ranged,
+                distance,
+            )
+        {
+            let shot = missiles::shoot(formulas, rng, shooter, missile, defences, *blocks_left > 0);
+            if shot.blocked {
+                *blocks_left -= 1;
+            }
+            turn.damage += shot.damage;
+            energy -=
+                missiles::fire_energy(formulas.monster_fire, rng, cost(monster.energy.missile));
+            continue;
+        }
+        if reach == 0 || distance > reach {
+            // It walks straight at the player, unless it never moves: walls and other
+            // monsters aren't modelled.
+            if !monster.stationary && distance > 1 {
+                distance -= 1;
+                turn.closed += 1;
+            }
+            energy -= cost(monster.energy.walk);
+            continue;
+        }
+        turn.melee += 1;
+        // Every attack it has, as one melee action makes them
+        // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`).
+        // An attack only made with a weapon (`AT_WEAP_ONLY`) is counted, as the Advisor can't
+        // see what monsters wield.
+        for (_, attack) in attacks_from(formulas, monster, distance) {
+            let swing = melee::swing(
+                formulas,
+                rng,
+                hit_dice,
+                monster.fighter,
+                attack,
+                defences,
+                *blocks_left > 0,
+            );
+            if swing.blocked {
+                *blocks_left -= 1;
+            }
+            turn.damage += swing.damage;
+        }
+        energy -= cost(monster.energy.attack);
     }
-    total
+    turn
 }
 
 /// The damage a beam of `spell` at `power` deals the player, using up a block of their shield
@@ -414,18 +453,18 @@ fn fire_beam(
 }
 
 /// The spell `attacker` casts this action, if any, `distance` squares from the player. A breath
-/// can't be cast again once breathed this action: crawl drops it from the usable spells
+/// can't be cast while it is catching its breath: crawl drops it from the usable spells
 /// (`_find_usable_spells`).
 fn choose_cast<'c, 'a>(
     formulas: Formulas,
     rng: &mut Rng,
     casts: &'c [Cast<'a>],
     distance: i32,
-    breathed: bool,
+    can_breathe: bool,
 ) -> Option<&'c Cast<'a>> {
     let usable: Vec<&Cast<'a>> = casts
         .iter()
-        .filter(|cast| !(breathed && cast.slot.breath))
+        .filter(|cast| can_breathe || !cast.slot.breath)
         .collect();
     // With no usable spell, crawl rolls for none (`handle_mon_spell`).
     if usable.is_empty() {
@@ -445,17 +484,34 @@ fn choose_cast<'c, 'a>(
 
 /// How far the monster's melee reaches: its farthest-reaching attack that deals damage, as
 /// `monster::reach_range` (`monster.cc:6224`). 0 when it has no melee attack.
-fn reach(formulas: Formulas, monster: &Monster) -> i32 {
+pub(crate) fn melee_reach(formulas: Formulas, monster: &Monster) -> i32 {
     attacks(monster)
-        .filter(|attack| attack.damage > 0)
-        .map(|attack| attack_reach(formulas.monster_reach, attack))
+        .filter(|(_, attack)| attack.damage > 0)
+        .map(|(_, attack)| attack_reach(formulas.monster_reach, attack))
         .max()
         .unwrap_or(0)
 }
 
-/// The attacks the monster makes in one melee action, in crawl's order.
-fn attacks(monster: &Monster) -> impl Iterator<Item = Attack> + '_ {
-    monster.attacks.iter().filter_map(Attack::of)
+/// The attacks the monster makes in one melee action from `distance` squares, in crawl's order,
+/// each with its slot among the monster's attacks: none from beyond its reach.
+pub(crate) fn attacks_from(
+    formulas: Formulas,
+    monster: &Monster,
+    distance: i32,
+) -> impl Iterator<Item = (usize, Attack)> + '_ {
+    let in_reach = distance <= melee_reach(formulas, monster);
+    attacks(monster).filter(move |&(_, attack)| {
+        in_reach && melee::reaches_from(formulas.monster_reach, attack, distance)
+    })
+}
+
+/// The monster's attacks, each with its slot, in crawl's order.
+fn attacks(monster: &Monster) -> impl Iterator<Item = (usize, Attack)> + '_ {
+    monster
+        .attacks
+        .iter()
+        .enumerate()
+        .filter_map(|(slot, attack)| Some((slot, Attack::of(attack)?)))
 }
 
 fn hit_dice(monster: &Monster) -> i32 {

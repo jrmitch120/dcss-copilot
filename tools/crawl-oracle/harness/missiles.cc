@@ -274,17 +274,6 @@ static void _missile_case(int index, int trials)
     _remove(*mon);
 }
 
-// The player, unhurt and unaffected, as the next action starts: what hit them may have
-// poisoned, corroded, blinded or burnt them.
-static void _restore_player()
-{
-    you.hp = you.hp_max;
-    for (int &duration : you.duration)
-        duration = 0;
-    you.props.erase(CORROSION_KEY);
-    you.redraw_armour_class = true;
-}
-
 static void _fire_case(int index, int trials)
 {
     const int distance = 1 + random2(LOS_DEFAULT_RANGE);

@@ -1,6 +1,7 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
-//! randomised monster attackers and player defenders, 20,000 attacks each, 24 spell cases and 25
-//! missile, gear and wand cases (all seed 34).
+//! randomised monster attackers and player defenders, 20,000 attacks each, 24 spell cases, 25
+//! missile, gear and wand cases, and the turn harness's block and reach cases with 24 turn cases
+//! (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -181,4 +182,63 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
         energy.insert("10".to_owned(), (fired + held - held / 2).into());
     });
     assert_eq!(caught(&dump), [(2, Measure::Energy)]);
+}
+
+/// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
+/// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
+/// and 24 monsters playing out the player's next action 20,000 times each, taking turns at the
+/// rules they exercise (seed 34).
+const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
+
+#[test]
+fn the_engine_agrees_with_crawl_on_every_block_reach_and_turn_case() {
+    let report = diff(TURNS).unwrap();
+    assert_eq!(report.cases, 544);
+    assert!(report.mismatches.is_empty(), "{report}");
+}
+
+#[test]
+fn a_shield_that_blocks_one_more_attack_is_caught() {
+    // Case 1, a buckler, which blocks two attacks before the player's next action.
+    let dump = with_changed(TURNS, 1, |case| case["limit"] = 3.into());
+    assert_eq!(caught(&dump), [(1, Measure::BlockLimit)]);
+}
+
+#[test]
+fn a_reaching_attack_held_to_two_squares_is_caught() {
+    // Case 461, a starflower, whose lash follows its rift three squares: counted as two.
+    let dump = with_changed(TURNS, 461, |case| {
+        case["attacks_from"]["3"] = serde_json::json!([0]);
+    });
+    assert_eq!(caught(&dump), [(461, Measure::AttacksFrom)]);
+}
+
+#[test]
+fn a_monster_reaching_one_square_too_far_is_caught() {
+    // Case 201, an orange demon, whose sting reaches two squares.
+    let dump = with_changed(TURNS, 201, |case| case["reach"] = 3.into());
+    assert_eq!(caught(&dump), [(201, Measure::Reach)]);
+}
+
+#[test]
+fn a_monster_attacking_once_more_than_crawl_lets_it_is_caught() {
+    // Case 539, a sun demon two squares away at speed 12, which closes in and fights one time in
+    // five.
+    let dump = with_changed(TURNS, 539, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(539, Measure::MeleeActions)]);
+}
+
+#[test]
+fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
+    // Case 523, the Killer Klown seven squares away at speed 13, who closes one or two.
+    let dump = with_changed(TURNS, 523, |case| case["closed"] = shifted(&case["closed"]));
+    assert_eq!(caught(&dump), [(523, Measure::Closed)]);
+}
+
+#[test]
+fn a_monster_the_threat_level_leaves_out_that_crawl_shows_fighting_is_caught() {
+    // Case 539, the sun demon, counted twenty squares away, too far to reach the player before
+    // their next action, while crawl shows it fighting.
+    let dump = with_changed(TURNS, 539, |case| case["distance"] = 20.into());
+    assert!(caught(&dump).contains(&(539, Measure::CanAttack)));
 }

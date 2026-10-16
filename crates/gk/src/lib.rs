@@ -243,8 +243,9 @@ pub enum ShieldBlock {
 /// The variants of a monster's melee reach.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MonsterReach {
-    /// As in crawl 0.34: an attack reaches two squares when its flavour does, such as
-    /// `AF_REACH`, and `AF_RIFT` reaches three.
+    /// As in crawl 0.34: a monster reaches two squares when one of its attacks' flavours does,
+    /// such as `AF_REACH`, and three with `AF_RIFT`; from there it makes every attack whose
+    /// flavour reaches.
     #[serde(rename = "crawl-0.34")]
     Crawl034,
 }
