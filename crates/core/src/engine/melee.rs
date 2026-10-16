@@ -243,8 +243,15 @@ pub(crate) struct Swing {
     pub(crate) hits: bool,
     /// Whether the player's shield blocked it, which it does whether or not it would have hit.
     pub(crate) blocked: bool,
-    /// What the player took: 0 unless it hit and wasn't blocked.
+    /// What the player took: 0 unless it landed.
     pub(crate) damage: i32,
+}
+
+impl Swing {
+    /// Whether the attack landed: it hit and the shield didn't block it.
+    pub(crate) fn landed(self) -> bool {
+        self.hits && !self.blocked
+    }
 }
 
 /// One monster attack on the player, rolled in the order `melee_attack::attack`
@@ -264,18 +271,17 @@ pub(crate) fn swing(
     let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences.ev) >= 0;
     let blocked =
         shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences.sh) && can_block;
-    let damage = if hits && !blocked {
-        let rolled = monster_damage(formulas.monster_damage, rng, attack);
-        apply_ac(formulas.armour, rng, rolled, defences.ac)
-    } else {
-        0
-    };
-    Swing {
+    let mut swing = Swing {
         to_hit,
         hits,
         blocked,
-        damage,
+        damage: 0,
+    };
+    if swing.landed() {
+        let rolled = monster_damage(formulas.monster_damage, rng, attack);
+        swing.damage = apply_ac(formulas.armour, rng, rolled, defences.ac);
     }
+    swing
 }
 
 /// How many squares away this attack reaches: `melee_attack::can_reach` (`melee-attack.cc:97`)

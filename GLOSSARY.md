@@ -100,6 +100,10 @@ _Avoid_: Max damage, max hit
 One version of a crawl formula as the engine ports it, such as a monster's to-hit as crawl 0.34 computes it. A Game Knowledge bundle names the variant of each formula its Crawl Version uses, so the engine picks its code by name and never compares version strings.
 _Avoid_: Formula version, ruleset
 
+**Crawl Oracle**:
+Real crawl, built at a Game Knowledge bundle's commit, used to check the engine's Formula Variants: a harness runs crawl's own code for randomised attackers and defenders, and the engine must roll the same distributions. `docs/crawl-oracle.md` covers it.
+_Avoid_: Reference implementation, ground truth
+
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
 _Avoid_: Escape (when meaning the whole list), panic button

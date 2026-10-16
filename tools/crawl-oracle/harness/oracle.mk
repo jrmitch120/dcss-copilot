@@ -13,5 +13,6 @@ crawl-oracle-melee.o: $(ORACLE_DIR)melee.cc | $(GENERATED_HEADERS) $(TILEDEFHDRS
 crawl-oracle-melee: crawl-oracle-melee.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
 	$(CXX) $(LDFLAGS) crawl-oracle-melee.o $(OBJECTS) $(EXTRA_OBJECTS) -o $@ $(LIBS)
 
-.PHONY: crawl-oracle
-crawl-oracle: crawl-oracle-melee
+.PHONY: crawl-oracle-objects
+# Crawl's own objects, without the harness: what CI caches.
+crawl-oracle-objects: $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)

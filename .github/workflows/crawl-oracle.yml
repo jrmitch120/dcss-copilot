@@ -39,16 +39,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libncursesw5-dev bison flex libsqlite3-dev libz-dev pkg-config python3-yaml
-      - name: The bundle's crawl commit
+      - name: The bundle's crawl commit and the runner's OS image
         id: crawl
-        run: echo "commit=$(jq -r .crawl.commit crates/gk/bundles/${{ matrix.bundle }}.json)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "commit=$(jq -r .crawl.commit crates/gk/bundles/${{ matrix.bundle }}.json)" >> "$GITHUB_OUTPUT"
+          echo "image=$ImageOS" >> "$GITHUB_OUTPUT"
       # The checkout with crawl's objects, so only the harness is rebuilt. Keyed by the crawl
-      # commit alone: the harness is rebuilt from this repo on every run.
+      # commit and the runner's OS image, whose compiler built the objects; the harness is
+      # rebuilt from this repo on every run.
       - name: Cached crawl build
-        uses: actions/cache@v4
+        id: cache
+        uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/crawl
-          key: crawl-oracle-${{ runner.os }}-${{ steps.crawl.outputs.commit }}
+          key: crawl-oracle-${{ steps.crawl.outputs.image }}-${{ steps.crawl.outputs.commit }}
       - name: Crawl at the bundle's commit
         run: |
           crawl="$RUNNER_TEMP/crawl"
@@ -60,4 +64,16 @@ jobs:
       - name: Rust toolchain (from rust-toolchain.toml)
         run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
+      - name: Build crawl
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          make -C "$RUNNER_TEMP/crawl/crawl-ref/source" -f Makefile -f "$PWD/tools/crawl-oracle/harness/oracle.mk" \
+            -j"$(nproc)" WEBTILES=y USE_DGAMELAUNCH=y crawl-oracle-objects
+      # Saved before the oracle runs, so a run that finds a mismatch doesn't rebuild crawl next time.
+      - name: Save the crawl build
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/crawl
+          key: ${{ steps.cache.outputs.cache-primary-key }}
       - run: tools/crawl-oracle/oracle.sh "$RUNNER_TEMP/crawl"

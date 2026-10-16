@@ -7,7 +7,7 @@
 //! with the formula variants the crawl version's Game Knowledge bundle names, and each tally is
 //! compared with a chi-squared test. Both sides are seeded, so the verdict is the same every run.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{self, MeleeCase, MeleeTally};
@@ -40,6 +40,9 @@ pub enum DiffError {
     /// The shipped Game Knowledge doesn't read.
     #[error(transparent)]
     Bundle(#[from] BundleError),
+    /// A case counts more hits or blocks than it ran trials.
+    #[error("case {0} counts more hits or blocks than trials")]
+    Overcounted(u64),
     /// No shipped bundle is for the crawl the dump came from.
     #[error(
         "no Game Knowledge bundle is shipped for crawl {0}, so its formula variants are unknown"
@@ -75,7 +78,7 @@ impl fmt::Display for Measure {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Mismatch {
     /// The case's index in the dump.
-    pub case: usize,
+    pub case: u64,
     /// The attacking monster.
     pub monster: String,
     /// What differs.
@@ -127,9 +130,11 @@ struct Header {
 
 #[derive(Deserialize)]
 struct Case {
-    case: usize,
+    #[serde(rename = "case")]
+    index: u64,
     monster: String,
-    hd: i32,
+    #[serde(rename = "hd")]
+    hit_dice: i32,
     fighter: bool,
     attack: CaseAttack,
     player: CasePlayer,
@@ -178,7 +183,7 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             source,
         })?;
         let input = MeleeCase {
-            hit_dice: case.hd,
+            hit_dice: case.hit_dice,
             fighter: case.fighter,
             damage: case.attack.damage,
             crushes: case.attack.crush,
@@ -186,9 +191,13 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             ev: case.player.ev,
             sh: case.player.sh,
         };
-        let seed = (header.seed, u64::try_from(case.case).unwrap_or(u64::MAX));
-        let engine = oracle::melee(bundle.formulas, &input, seed, case.trials);
-        mismatches.extend(compare(&case, &engine));
+        let engine = oracle::melee(
+            bundle.formulas,
+            &input,
+            (header.seed, case.index),
+            case.trials,
+        );
+        mismatches.extend(compare(&case, &engine)?);
         cases += 1;
     }
     Ok(Report {
@@ -199,41 +208,49 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
 }
 
 /// Every measure of `case` on which crawl and the `engine` differ.
-fn compare(case: &Case, engine: &MeleeTally) -> Vec<Mismatch> {
-    let rate = |count: u32| BTreeMap::from([(1, count), (0, case.trials - count)]);
-    let engine_rate = |count: u32| BTreeMap::from([(1, count), (0, case.trials - count)]);
-    [
+fn compare(case: &Case, engine: &MeleeTally) -> Result<Vec<Mismatch>, DiffError> {
+    // A rate as a two-value tally: how many of the trials it happened in, and how many not.
+    let rate = |count: u32| {
+        let rest = case
+            .trials
+            .checked_sub(count)
+            .ok_or(DiffError::Overcounted(case.index))?;
+        Ok::<_, DiffError>(BTreeMap::from([(1, count), (0, rest)]))
+    };
+    let measures = [
         (Measure::ToHit, case.to_hit.clone(), engine.to_hit.clone()),
-        (Measure::Hits, rate(case.hits), engine_rate(engine.hits)),
-        (
-            Measure::Blocks,
-            rate(case.blocks),
-            engine_rate(engine.blocks),
-        ),
+        (Measure::Hits, rate(case.hits)?, rate(engine.hits)?),
+        (Measure::Blocks, rate(case.blocks)?, rate(engine.blocks)?),
         (Measure::Damage, case.damage.clone(), engine.damage.clone()),
-    ]
-    .into_iter()
-    .filter_map(|(measure, crawl, ours)| {
-        let z = homogeneity_z(&crawl, &ours);
-        (z > Z_LIMIT).then(|| Mismatch {
-            case: case.case,
-            monster: case.monster.clone(),
-            measure,
-            z,
-            crawl_mean: mean(&crawl),
-            engine_mean: mean(&ours),
+    ];
+    Ok(measures
+        .into_iter()
+        .filter_map(|(measure, crawl, ours)| {
+            let z = homogeneity_z(&crawl, &ours);
+            (z > Z_LIMIT).then(|| Mismatch {
+                case: case.index,
+                monster: case.monster.clone(),
+                measure,
+                z,
+                crawl_mean: mean(&crawl),
+                engine_mean: mean(&ours),
+            })
         })
-    })
-    .collect()
+        .collect())
 }
 
 /// How many standard deviations past chance the two samples' difference is: Pearson's
 /// chi-squared test that both came from one distribution, over pooled values, turned into a
-/// standard normal score by the Wilson-Hilferty approximation.
+/// standard normal score by the Wilson-Hilferty approximation. Infinite when only one side
+/// counted anything.
 fn homogeneity_z(a: &BTreeMap<i32, u32>, b: &BTreeMap<i32, u32>) -> f64 {
     let cells = pooled(a, b);
     let total_a: f64 = cells.iter().map(|&(x, _)| f64::from(x)).sum();
     let total_b: f64 = cells.iter().map(|&(_, y)| f64::from(y)).sum();
+    // One side never saw what the other saw plenty of: as far from chance as it gets.
+    if (total_a == 0.0) != (total_b == 0.0) && total_a + total_b >= f64::from(MIN_POOLED) {
+        return f64::INFINITY;
+    }
     if cells.len() < 2 || total_a == 0.0 || total_b == 0.0 {
         return 0.0;
     }
@@ -248,8 +265,7 @@ fn homogeneity_z(a: &BTreeMap<i32, u32>, b: &BTreeMap<i32, u32>) -> f64 {
                 + (f64::from(y) - expect_b).powi(2) / expect_b
         })
         .sum();
-    #[allow(clippy::cast_precision_loss)]
-    let df = (cells.len() - 1) as f64;
+    let df = f64::from(u32::try_from(cells.len() - 1).unwrap_or(u32::MAX));
     let spread = 2.0 / (9.0 * df);
     ((chi2 / df).cbrt() - (1.0 - spread)) / spread.sqrt()
 }
@@ -257,7 +273,7 @@ fn homogeneity_z(a: &BTreeMap<i32, u32>, b: &BTreeMap<i32, u32>) -> f64 {
 /// The two samples' counts side by side, value by value, with neighbouring values pooled until
 /// each cell holds at least [`MIN_POOLED`]; a short last cell joins the one before it.
 fn pooled(a: &BTreeMap<i32, u32>, b: &BTreeMap<i32, u32>) -> Vec<(u32, u32)> {
-    let values: std::collections::BTreeSet<i32> = a.keys().chain(b.keys()).copied().collect();
+    let values: BTreeSet<i32> = a.keys().chain(b.keys()).copied().collect();
     let mut cells: Vec<(u32, u32)> = Vec::new();
     let mut open = (0, 0);
     for value in values {

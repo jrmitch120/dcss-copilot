@@ -69,12 +69,13 @@ pub fn melee(formulas: Formulas, case: &MeleeCase, seed: (u64, u64), trials: u32
             case.fighter,
             attack,
             defences,
+            // The harness resets crawl's shield blocks before every attack.
             true,
         );
         *tally.to_hit.entry(swing.to_hit).or_default() += 1;
         tally.hits += u32::from(swing.hits);
         tally.blocks += u32::from(swing.blocked);
-        if swing.hits && !swing.blocked {
+        if swing.landed() {
             *tally.damage.entry(swing.damage).or_default() += 1;
         }
     }

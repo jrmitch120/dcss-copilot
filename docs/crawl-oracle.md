@@ -1,6 +1,6 @@
 # The crawl oracle
 
-The crawl oracle proves the engine's ported formulas against real crawl, so the engine's numbers can be trusted for each shipped Game Knowledge bundle. It is seam 2 in `CODING_STANDARDS.md`. It covers a monster's melee attack on the player: the monster's to-hit, the roll against the player's evasion, the shield block, and damage after armour. Spell failure comes with #34.
+The crawl oracle proves the engine's ported formulas against real crawl, so the engine's numbers can be trusted for each shipped Game Knowledge bundle. It is seam 2 in `CODING_STANDARDS.md`. It covers a monster's melee attack on the player: the monster's to-hit, the roll against the player's evasion, the shield block, and damage after armour. Spell failure comes with #34. The engine's other melee formulas aren't diffed yet: reach, the shield's block limit, and monster energy.
 
 ## How it works
 
@@ -12,7 +12,7 @@ The crawl oracle proves the engine's ported formulas against real crawl, so the 
 
 It prints a JSON line per case with the inputs the ported formulas take and the tallies: how often each to-hit came up, hits, blocks, and how often each amount of damage was taken.
 
-`crawl-oracle` reads that, runs each case as many times through `copilot_core::oracle::melee`, using the formula variants named in the bundle for that crawl version, and compares each tally with a chi-squared test. A tally more than five standard deviations past chance is a mismatch, and any mismatch fails the run. Both sides are seeded, so the verdict is the same every run. An off-by-one in any of the four formulas fails dozens of the 500 cases.
+`crawl-oracle` reads that, runs each case as many times through `copilot_core::oracle::melee`, using the formula variants named in the bundle for that crawl version, and compares each tally with a chi-squared test. A tally more than five standard deviations past chance is a mismatch, and any mismatch fails the run. Both sides are seeded, so the verdict is the same every run. When it was built, an off-by-one put into each of the four formulas in turn failed between 11 and 175 of the 500 cases; `cargo test` checks this for to-hit.
 
 The harness leaves out what the engine doesn't model: monsters that wield items, are animated objects, or carry a halo or umbra, which changes their to-hit against the player (#78). It also leaves out players whose AC, EV or SH carries a fraction the display drops (#77).
 
@@ -28,7 +28,7 @@ tools/crawl-oracle/oracle.sh /tmp/crawl
 
 The checkout must be at the bundle's commit (`crawl.commit` in `crates/gk/bundles/<tag>.json`). Crawl builds as webtiles and needs crawl's Linux build dependencies (`crawl-ref/INSTALL.md`). The first build takes a few minutes; later runs rebuild only the harness.
 
-The `Crawl oracle` workflow runs this for each stable bundle whenever the engine, the bundles or the oracle change, and caches the crawl build by commit.
+The `Crawl oracle` workflow runs this for each stable bundle whenever the engine, the bundles or the oracle change, and caches the crawl build by commit and runner OS image, saving it before the diff runs so a failing diff doesn't rebuild crawl next time.
 
 `cargo test -p crawl-oracle` diffs a small dump the harness printed (`tools/crawl-oracle/tests/fixtures/melee-0.34.1.jsonl`), so every engine change is checked against crawl even without a crawl build. Regenerate the dump whenever the harness or its output changes:
 
