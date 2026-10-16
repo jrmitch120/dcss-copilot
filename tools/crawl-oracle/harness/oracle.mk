@@ -32,3 +32,11 @@ crawl-oracle-missiles.o: $(ORACLE_DIR)missiles.cc $(ORACLE_DIR)common.h | $(GENE
 
 crawl-oracle-missiles: crawl-oracle-missiles.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
 	$(CXX) $(LDFLAGS) crawl-oracle-missiles.o $(filter-out mon-act.o,$(OBJECTS)) $(EXTRA_OBJECTS) -o $@ $(LIBS)
+
+# The turn harness includes mon-act.cc, to count what a monster does as it calls into the code
+# that does it, so it links without mon-act.o.
+crawl-oracle-turns.o: $(ORACLE_DIR)turns.cc $(ORACLE_DIR)common.h | $(GENERATED_HEADERS) $(TILEDEFHDRS)
+	$(CXX) $(STDFLAG) $(ALL_CFLAGS) -fno-access-control -c $< -o $@
+
+crawl-oracle-turns: crawl-oracle-turns.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
+	$(CXX) $(LDFLAGS) crawl-oracle-turns.o $(filter-out mon-act.o,$(OBJECTS)) $(EXTRA_OBJECTS) -o $@ $(LIBS)

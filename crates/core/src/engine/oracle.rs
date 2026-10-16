@@ -1,17 +1,20 @@
 //! The crawl oracle's seam (`CODING_STANDARDS.md`, Testing): the engine's ported melee, spell,
-//! missile and wand formulas, and the gear Game Knowledge says monsters are made with, run on the
-//! inputs a crawl harness reports, tallied as the harness tallies crawl's own rolls, so
+//! missile and wand formulas, the gear Game Knowledge says monsters are made with, and the
+//! Threat Level's play of a monster's turns before the player's next action, run on the inputs a
+//! crawl harness reports, tallied as the harness tallies crawl's own rolls, so
 //! `tools/crawl-oracle` can diff the two.
 
 use std::collections::BTreeMap;
 
 use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
 
+use crate::accumulated_state::Shield;
+
 use super::melee::{self, Attack, Defences, Flavour, Swing};
 use super::missiles::{self, Missile, Shooter};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell};
-use super::threat::Draw;
+use super::threat::{self, Attacker, Draw};
 use super::wands;
 
 pub use super::melee::AUTOMATIC_HIT;
@@ -109,6 +112,9 @@ pub enum CaseError {
     /// The bundle has no launcher or missile with this sub-type identifier.
     #[error("the Game Knowledge has no launcher or missile {0}")]
     NoMissileWeapon(String),
+    /// The armour isn't a shield.
+    #[error("{0} isn't a shield")]
+    NotAShield(String),
     /// The engine doesn't port the spell a wand zaps.
     #[error("the engine doesn't port spell {0}, zapped from a wand")]
     WandNotPorted(u16),
@@ -569,4 +575,123 @@ fn wand_spell(bundle: &Bundle, spell: u16) -> Result<DamagingSpell<'_>, CaseErro
     let known = bundle.spells.get(&spell).ok_or(CaseError::NoSpell(spell))?;
     spells::damaging(bundle.formulas.monster_spell_beam, known)
         .ok_or(CaseError::WandNotPorted(spell))
+}
+
+/// The most attacks a shield blocks before the player's next action, by the `armour_type`
+/// identifier of the shield worn, `None` for none.
+///
+/// # Errors
+/// If the armour isn't a shield.
+pub fn shield_block_limit(bundle: &Bundle, shield: Option<&EnumId>) -> Result<u32, CaseError> {
+    let shield = shield
+        .map(|id| Shield::of_armour(id).ok_or_else(|| CaseError::NotAShield(id.0.clone())))
+        .transpose()?;
+    Ok(threat::shield_blocks_per_action(bundle.formulas, shield))
+}
+
+/// How far a monster's melee reaches, and which of its attacks it makes from each distance
+/// within that.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct MeleeReach {
+    /// The most squares from which it attacks in melee: 0 when it has no damaging attack.
+    pub reach: i32,
+    /// From each distance up to its reach, the slots of the attacks it makes, as its Game
+    /// Knowledge numbers them from 0.
+    pub attacks_from: BTreeMap<i32, Vec<usize>>,
+}
+
+/// How far the monster numbered `monster` reaches in melee, and with which attacks.
+///
+/// # Errors
+/// If the bundle has no monster numbered `monster`.
+pub fn melee_reach(bundle: &Bundle, monster: u16) -> Result<MeleeReach, CaseError> {
+    let formulas = bundle.formulas;
+    let known = bundle
+        .monster(monster)
+        .ok_or(CaseError::NoMonster(monster))?;
+    let reach = threat::melee_reach(formulas, known);
+    let attacks_from = (1..=reach)
+        .map(|distance| {
+            let slots = threat::attacks_from(formulas, known, distance)
+                .map(|(slot, _)| slot)
+                .collect();
+            (distance, slots)
+        })
+        .collect();
+    Ok(MeleeReach {
+        reach,
+        attacks_from,
+    })
+}
+
+/// A monster some squares from the player, carrying nothing, as the player starts a
+/// standard-speed action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TurnCase {
+    /// The monster's `monster_type` value.
+    pub monster: u16,
+    /// Its hit dice.
+    pub hit_dice: u32,
+    /// Its speed.
+    pub speed: u32,
+    /// Squares between it and the player.
+    pub distance: i32,
+}
+
+/// What a monster did before the player's next standard-speed action, over many trials: how
+/// many trials it did each thing in each number of times.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TurnTally {
+    /// The melee actions it took against the player.
+    pub melee: BTreeMap<i32, u32>,
+    /// The spells it cast.
+    pub casts: BTreeMap<i32, u32>,
+    /// The squares it closed on the player.
+    pub closed: BTreeMap<i32, u32>,
+    /// Whether it struck the player in any trial.
+    pub struck: bool,
+    /// Whether the Threat Level counts it at all: [`threat::can_attack`].
+    pub can_attack: bool,
+}
+
+/// Plays out `case`'s monster's actions before the player's next standard-speed action
+/// `trials` times, as the Threat Level's trial does, from a generator seeded with `seed`.
+///
+/// # Errors
+/// If the bundle lacks the monster.
+pub fn turn(
+    bundle: &Bundle,
+    case: &TurnCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<TurnTally, CaseError> {
+    let formulas = bundle.formulas;
+    let mut monster = bundle
+        .monster(case.monster)
+        .ok_or(CaseError::NoMonster(case.monster))?
+        .clone();
+    monster.hd = case.hit_dice;
+    monster.speed = case.speed;
+    let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
+    // Undefended, so whatever strikes the player deals damage.
+    let defences = Defences {
+        ac: 0,
+        ev: 0,
+        sh: 0,
+    };
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = TurnTally {
+        can_attack: threat::can_attack(formulas, &attacker),
+        ..TurnTally::default()
+    };
+    for _ in 0..trials {
+        // The undefended player has no shield to block with.
+        let mut blocks_left = 0;
+        let turn = threat::turn(formulas, &mut rng, &attacker, defences, &mut blocks_left);
+        *tally.melee.entry(turn.melee).or_default() += 1;
+        *tally.casts.entry(turn.casts).or_default() += 1;
+        *tally.closed.entry(turn.closed).or_default() += 1;
+        tally.struck |= turn.damage > 0;
+    }
+    Ok(tally)
 }

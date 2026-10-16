@@ -287,10 +287,9 @@ pub(crate) fn swing(
     swing
 }
 
-/// How many squares away this attack reaches: `melee_attack::can_reach` (`melee-attack.cc:97`)
-/// for an unarmed monster, where an attack reaches past adjacent squares only when its flavour
-/// does (`flavour_has_reach`, `mon-util.cc:2209`), and a rift reaches three
-/// (`monster::reach_range`, `monster.cc:6224`).
+/// How many squares away this attack lets an unarmed monster strike from: two when its flavour
+/// reaches (`flavour_has_reach`, `mon-util.cc:2209`) and three for a rift, as
+/// `monster::reach_range` (`monster.cc:6224`) counts the attacks that deal damage.
 pub(crate) fn attack_reach(variant: MonsterReach, attack: Attack) -> i32 {
     match variant {
         MonsterReach::Crawl034 => match attack.flavour {
@@ -298,6 +297,18 @@ pub(crate) fn attack_reach(variant: MonsterReach, attack: Attack) -> i32 {
             Flavour::Reaching => 2,
             Flavour::Crush | Flavour::Other => 1,
         },
+    }
+}
+
+/// Whether an unarmed monster striking from `distance` squares, within its reach, makes this
+/// attack: `melee_attack::can_reach` (`melee-attack.cc:97`), where an attack whose flavour
+/// reaches is made from anywhere the monster reaches, so a starflower's `AF_REACH` lash
+/// follows its rift three squares away, and any other only from beside the player.
+pub(crate) fn reaches_from(variant: MonsterReach, attack: Attack, distance: i32) -> bool {
+    match variant {
+        MonsterReach::Crawl034 => {
+            distance <= 1 || matches!(attack.flavour, Flavour::Reaching | Flavour::Rift)
+        }
     }
 }
 

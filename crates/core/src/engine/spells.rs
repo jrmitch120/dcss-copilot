@@ -96,8 +96,8 @@ pub(crate) struct Slot {
     pub(crate) frequency: u32,
     /// Its slot flags that decide when it can be picked.
     pub(crate) when: SlotRange,
-    /// It is a breath (`MON_SPELL_BREATH`): once breathed, the monster can't breathe again until
-    /// at least a turn has passed (`setup_breath_timeout`, `mon-cast.cc:5943`).
+    /// It is a breath (`MON_SPELL_BREATH`): once breathed, the monster can't breathe again for
+    /// some of its actions ([`breath_timeout`]).
     pub(crate) breath: bool,
     /// It takes no time (`MON_SPELL_INSTANT`), so the monster acts again straight after.
     pub(crate) instant: bool,
@@ -275,6 +275,16 @@ pub(crate) struct Prospect {
     pub(crate) when: SlotRange,
     /// The player is within its range.
     pub(crate) in_range: bool,
+}
+
+/// How many of its actions, counting the one it breathes in, a monster can't breathe again
+/// after breathing: `setup_breath_timeout` (`mon-cast.cc:5943`) rolls 1d5 turns, and
+/// `catch_breath` (`mon-act.cc:2428`) takes a turn off after each of its actions, so a fast
+/// monster may breathe twice before the player's next action.
+pub(crate) fn breath_timeout(variant: MonsterSpellChoice, rng: &mut Rng) -> u32 {
+    match variant {
+        MonsterSpellChoice::Crawl034 => u32::try_from(rng.roll_dice(1, 5)).unwrap_or(0),
+    }
 }
 
 /// Which of `prospects`, if any, a monster `distance` squares from the player casts this action:

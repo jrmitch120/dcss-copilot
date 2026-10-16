@@ -1,7 +1,7 @@
 //! Accumulated State: what the Advisor remembers of one game that the game no longer shows, each
 //! fact with where it came from and how recent it is.
 
-use copilot_gk::ItemKind;
+use copilot_gk::{EnumId, ItemKind};
 use serde::Serialize;
 
 use crate::screen::{Resistances, Screen, ScreenRead};
@@ -70,7 +70,12 @@ impl Shield {
         if kind.class.0 != "OBJ_ARMOUR" {
             return None;
         }
-        match kind.sub_type.as_ref()?.0.as_str() {
+        Self::of_armour(kind.sub_type.as_ref()?)
+    }
+
+    /// The shield a kind of armour is, by its `armour_type` identifier, if it is one.
+    pub(crate) fn of_armour(sub_type: &EnumId) -> Option<Self> {
+        match sub_type.0.as_str() {
             "ARM_BUCKLER" => Some(Self::Buckler),
             "ARM_KITE_SHIELD" => Some(Self::KiteShield),
             "ARM_TOWER_SHIELD" => Some(Self::TowerShield),
