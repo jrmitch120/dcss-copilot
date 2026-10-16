@@ -38,7 +38,7 @@ jobs:
       - name: Crawl build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncursesw5-dev bison flex libsqlite3-dev libz-dev pkg-config python3-yaml
+          sudo apt-get install -y build-essential libncursesw5-dev bison flex libsqlite3-dev libz-dev libpng-dev pkg-config python3-yaml
       - name: The bundle's crawl commit and the runner's OS image
         id: crawl
         run: |
