@@ -46,7 +46,8 @@ expression: replay
               "spellsNotModelled": [
                 "Confuse",
                 "Invisibility"
-              ]
+              ],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -131,7 +132,8 @@ expression: replay
               "spellsNotModelled": [
                 "Confuse",
                 "Invisibility"
-              ]
+              ],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -218,7 +220,8 @@ expression: replay
             "spellsNotModelled": [
               "Confuse",
               "Invisibility"
-            ]
+            ],
+            "shoots": []
           }
         ],
         "mayShoot": [],

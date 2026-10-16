@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "beam.h"
 #include "item-prop.h"
 #include "items.h"
 #include "item-name.h"
@@ -28,8 +29,10 @@
 #include "los.h"
 #include "mapdef.h"
 #include "message.h"
+#include "mon-cast.h"
 #include "mon-util.h"
 #include "monster.h"
+#include "ouch.h"
 #include "player.h"
 #include "player-equip.h"
 #include "skills.h"
@@ -186,3 +189,54 @@ static string _histogram(const map<int, int> &counts)
     return out + "}";
 }
 
+// What many beams a monster cast or zapped at the player came to.
+struct beam_tally
+{
+    // The beam's accuracy, AUTOMATIC_HIT when it never misses.
+    int hit = 0;
+    int hits = 0;
+    int blocks = 0;
+    map<int, int> damage;
+};
+
+// Casts `spell` at the player `trials` times, or zaps it from a wand when `evoke`, each set up by
+// crawl's setup_mons_cast and rolled as bolt::affect_player rolls it: bolt::misses_player for the
+// shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists. The beam's
+// flight (bolt::fire) is skipped.
+static beam_tally _cast_at_player(monster &mon, spell_type spell, bool evoke, int trials)
+{
+    beam_tally tally;
+    for (int t = 0; t < trials; ++t)
+    {
+        bolt beam;
+        beam.target = you.pos();
+        setup_mons_cast(&mon, beam, spell, evoke);
+        beam.source = mon.pos();
+        // As bolt::fire aims it; a block ends the beam where its ray has got to.
+        find_ray(beam.source, beam.target, beam.ray, opc_solid_see);
+        beam.chose_ray = true;
+        tally.hit = beam.hit;
+
+        you.shield_blocks = 0;
+        const bool missed = beam.misses_player();
+        if (you.shield_blocks > 0)
+            ++tally.blocks;
+        if (missed)
+            continue;
+        ++tally.hits;
+        // bolt::affect_player's damage, without what the hit sets off.
+        int taken = beam.apply_AC(&you, beam.damage.roll());
+        taken = check_your_resists(max(0, taken), beam.flavour, "", &beam, false);
+        ++tally.damage[taken];
+    }
+    return tally;
+}
+
+// A beam tally's fields, as the oracle reads them.
+static string _beam_json(const beam_tally &tally, int trials)
+{
+    return make_stringf("\"to_hit\":%s,\"trials\":%d,\"hits\":%d,\"blocks\":%d,\"damage\":%s",
+                        tally.hit == AUTOMATIC_HIT ? "null"
+                                                   : make_stringf("%d", tally.hit).c_str(),
+                        trials, tally.hits, tally.blocks, _histogram(tally.damage).c_str());
+}

@@ -27,11 +27,26 @@ expression: replay
           "hp": 102,
           "death": {
             "times": 0,
-            "trials": 0
+            "trials": 10000
           },
-          "worstHit": 0,
+          "worstHit": 26,
           "hostilesInView": 1,
-          "acting": [],
+          "acting": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 5,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": [
+                "orcbow",
+                "shortbow"
+              ]
+            }
+          ],
           "mayShoot": [
             {
               "name": "centaur",
@@ -47,7 +62,8 @@ expression: replay
             "attackFlavours",
             "statuses",
             "paths",
-            "awareness"
+            "awareness",
+            "carriedGear"
           ]
         }
       },
@@ -62,8 +78,8 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
-          "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
-          "detail": "Centaur may shoot or zap: not counted"
+          "line": "Centaur can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 26 of 102 HP · Gear guessed from kind: centaur"
         },
         "focus": {
           "card": "inView",
@@ -102,11 +118,26 @@ expression: replay
           "hp": 93,
           "death": {
             "times": 0,
-            "trials": 0
+            "trials": 10000
           },
-          "worstHit": 0,
+          "worstHit": 26,
           "hostilesInView": 1,
-          "acting": [],
+          "acting": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 5,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": [
+                "orcbow",
+                "shortbow"
+              ]
+            }
+          ],
           "mayShoot": [
             {
               "name": "centaur",
@@ -122,7 +153,8 @@ expression: replay
             "attackFlavours",
             "statuses",
             "paths",
-            "awareness"
+            "awareness",
+            "carriedGear"
           ]
         }
       },
@@ -137,8 +169,8 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
-          "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
-          "detail": "Centaur may shoot or zap: not counted"
+          "line": "Centaur can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 26 of 93 HP · Gear guessed from kind: centaur"
         },
         "focus": {
           "card": "inView",
@@ -179,11 +211,26 @@ expression: replay
         "hp": 84,
         "death": {
           "times": 0,
-          "trials": 0
+          "trials": 10000
         },
-        "worstHit": 0,
+        "worstHit": 26,
         "hostilesInView": 1,
-        "acting": [],
+        "acting": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 5,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": [
+              "orcbow",
+              "shortbow"
+            ]
+          }
+        ],
         "mayShoot": [
           {
             "name": "centaur",
@@ -199,7 +246,8 @@ expression: replay
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness"
+          "awareness",
+          "carriedGear"
         ]
       }
     },
@@ -214,8 +262,8 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
-        "line": "Nothing hostile can reach you in melee or with a spell before your next action.",
-        "detail": "Centaur may shoot or zap: not counted"
+        "line": "Centaur can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 26 of 84 HP · Gear guessed from kind: centaur"
       },
       "focus": {
         "card": "inView",

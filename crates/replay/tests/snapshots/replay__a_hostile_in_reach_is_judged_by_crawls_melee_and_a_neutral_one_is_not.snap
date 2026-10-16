@@ -22,7 +22,8 @@ expression: replayer.advisor().fact_sheet()
         },
         "distance": 1,
         "casts": [],
-        "spellsNotModelled": []
+        "spellsNotModelled": [],
+        "shoots": []
       }
     ],
     "mayShoot": [],

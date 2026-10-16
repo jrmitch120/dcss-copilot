@@ -1,7 +1,9 @@
 //! The engine: crawl's formulas, ported, and what the Advisor computes with them.
 
 pub(crate) mod melee;
+pub(crate) mod missiles;
 pub mod oracle;
 mod rng;
 pub(crate) mod spells;
 pub(crate) mod threat;
+pub(crate) mod wands;

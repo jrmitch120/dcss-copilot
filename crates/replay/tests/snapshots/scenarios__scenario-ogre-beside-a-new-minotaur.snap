@@ -40,7 +40,8 @@ expression: replay
               },
               "distance": 1,
               "casts": [],
-              "spellsNotModelled": []
+              "spellsNotModelled": [],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -119,7 +120,8 @@ expression: replay
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],

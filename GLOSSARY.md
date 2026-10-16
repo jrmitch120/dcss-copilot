@@ -97,7 +97,7 @@ The total damage the player could take before their next action, as bad as it ge
 _Avoid_: Max damage, max hit
 
 **Not Modelled**:
-What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, monsters that may shoot missiles or zap wands, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
+What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
 _Avoid_: Unsupported, ignored, edge cases
 
 **Formula Variant**:

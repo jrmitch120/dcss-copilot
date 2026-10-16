@@ -9,6 +9,7 @@ use specta::Type;
 
 use crate::accumulated_state::AccumulatedState;
 use crate::engine::melee::Defences;
+use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 
@@ -72,8 +73,8 @@ pub struct ThreatAssessment {
     /// order.
     pub acting: Vec<ActingMonster>,
     /// The hostiles in view, acting or not, whose kind crawl may make with a launcher, throwing
-    /// missiles or a wand: the simulation doesn't play shooting or zapping out, so these may
-    /// reach the player when it says nothing can, or hit harder than it says.
+    /// missiles or a wand. The simulation plays out what crawl may make their kind with, by its
+    /// odds, rather than what each carries, which the Advisor can't see (#83).
     pub may_shoot: Vec<MayShoot>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
@@ -139,9 +140,12 @@ pub struct ActingMonster {
     pub casts: Vec<String>,
     /// The other spells of its book, by name: the simulation assumes it doesn't cast them.
     pub spells_not_modelled: Vec<String>,
+    /// The launchers, throwing missiles and wands crawl may make its kind with that the
+    /// simulation plays out, by name, such as `shortbow` or `wand of flame`.
+    pub shoots: Vec<String>,
 }
 
-/// A hostile in view that may shoot missiles or zap a wand, which the simulation doesn't play out.
+/// A hostile in view whose kind crawl may make with something to shoot, throw or zap.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MayShoot {
@@ -157,11 +161,11 @@ pub struct MayShoot {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
-    /// Monsters fight as if they carry nothing: no weapon damage or brands, no armour, and no
-    /// wands or missiles to shoot.
+    /// Monsters fight in melee as if they wield nothing, with no weapon damage or brands, and
+    /// wear no armour.
     MonsterEquipment,
-    /// Attacks and spells count only their damage as they land: no poison, burning, draining,
-    /// clouds left behind and the like.
+    /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
+    /// draining, nets, clouds left behind and the like.
     AttackFlavours,
     /// Statuses on either side, such as haste, might or confusion.
     Statuses,
@@ -184,6 +188,13 @@ pub enum NotModelled {
     /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
     /// crawl's casters weigh that, and often hold off up close.
     CasterSafety,
+    /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by the odds
+    /// crawl makes its kind with, its launcher or missiles +0 and unbranded, as the Advisor can't
+    /// see what it carries (#83).
+    CarriedGear,
+    /// A monster in reach may carry a wand the simulation doesn't play out, such as paralysis or
+    /// polymorph: it is assumed never to zap it, and to shoot or fight instead.
+    OtherWands,
     /// The player's shield is assumed to block at most one attack before their next action, as
     /// without a shield, because the Advisor doesn't know which shield is worn. The character
     /// overview (`%`) tells it.
@@ -334,6 +345,12 @@ fn threat(
     {
         not_modelled.push(NotModelled::DraconianBreath);
     }
+    if hostile
+        .iter()
+        .any(|(_, monster)| monster.gear.may_shoot_or_zap())
+    {
+        not_modelled.push(NotModelled::CarriedGear);
+    }
     let defender = Defender {
         hp,
         defences: Defences { ac, ev, sh },
@@ -362,14 +379,30 @@ fn threat(
     if acting.iter().any(|(_, others)| !others.is_empty()) {
         not_modelled.push(NotModelled::OtherSpells);
     }
-    if attackers.iter().any(|attacker| !attacker.spells.is_empty()) {
+    if attackers
+        .iter()
+        .any(|attacker| wands_not_modelled(bundle, attacker))
+    {
+        not_modelled.push(NotModelled::OtherWands);
+    }
+    if attackers
+        .iter()
+        .any(|attacker| !attacker.spells.is_empty() || attacker.wands.items().next().is_some())
+    {
         not_modelled.push(NotModelled::PlayerResistances);
     }
     if attackers.iter().any(|attacker| {
+        let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
+            reach.casts > reach.strikes || spell.zap.explodes
+        };
         attacker
             .spells
             .iter()
-            .any(|cast| cast.reach.casts > cast.reach.strikes || cast.spell.zap.explodes)
+            .any(|cast| unsafe_reach(cast.reach, &cast.spell))
+            || attacker
+                .wands
+                .items()
+                .any(|zap| unsafe_reach(zap.reach, &zap.spell))
     }) {
         not_modelled.push(NotModelled::CasterSafety);
     }
@@ -405,6 +438,7 @@ fn threat(
                     .map(|cast| cast.spell.spell.name.clone())
                     .collect(),
                 spells_not_modelled: others,
+                shoots: shoots(attacker),
             })
             .collect(),
         may_shoot,
@@ -432,6 +466,33 @@ fn spells_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> Vec<String> 
                 .map_or_else(|| slot.spell.0.clone(), |spell| spell.name.clone())
         })
         .collect()
+}
+
+/// The launchers, missiles and wands of `attacker`'s kind that the simulation plays out, by
+/// name.
+fn shoots(attacker: &Attacker<'_>) -> Vec<String> {
+    attacker
+        .missiles
+        .items()
+        .map(|missile| missile.weapon.name.clone())
+        .chain(
+            attacker
+                .wands
+                .items()
+                .map(|zap| format!("wand of {}", zap.wand.name)),
+        )
+        .collect()
+}
+
+/// Whether `attacker`'s kind may carry a wand whose spell the simulation doesn't play out.
+fn wands_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> bool {
+    attacker.monster.gear.wand.items.iter().any(|weighted| {
+        weighted.weight > 0
+            && bundle
+                .wands
+                .get(&weighted.item)
+                .is_none_or(|wand| !attacker.wands.items().any(|zap| zap.wand == wand))
+    })
 }
 
 /// The Threat Level for a chance of death and a worst-case hit against `hp`.

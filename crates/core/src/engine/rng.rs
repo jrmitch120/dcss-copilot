@@ -98,6 +98,11 @@ impl Rng {
         self.random2(y) < x
     }
 
+    /// `one_chance_in(a)` (`random.cc:430`).
+    pub(crate) fn one_chance_in(&mut self, a: i32) -> bool {
+        self.random2(a) == 0
+    }
+
     /// `roll_dice(num, size)` (`random.cc:266`): the sum of `num` dice numbered 1 to `size`.
     pub(crate) fn roll_dice(&mut self, num: i32, size: i32) -> i32 {
         if num <= 0 || size <= 0 {

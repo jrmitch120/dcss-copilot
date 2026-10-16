@@ -24,3 +24,11 @@ crawl-oracle-spells.o: $(ORACLE_DIR)spells.cc $(ORACLE_DIR)common.h | $(GENERATE
 
 crawl-oracle-spells: crawl-oracle-spells.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
 	$(CXX) $(LDFLAGS) crawl-oracle-spells.o $(filter-out mon-cast.o,$(OBJECTS)) $(EXTRA_OBJECTS) -o $@ $(LIBS)
+
+# The missile harness includes mon-act.cc for its static _handle_wand, so it links without
+# mon-act.o.
+crawl-oracle-missiles.o: $(ORACLE_DIR)missiles.cc $(ORACLE_DIR)common.h | $(GENERATED_HEADERS) $(TILEDEFHDRS)
+	$(CXX) $(STDFLAG) $(ALL_CFLAGS) -fno-access-control -c $< -o $@
+
+crawl-oracle-missiles: crawl-oracle-missiles.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
+	$(CXX) $(LDFLAGS) crawl-oracle-missiles.o $(filter-out mon-act.o,$(OBJECTS)) $(EXTRA_OBJECTS) -o $@ $(LIBS)

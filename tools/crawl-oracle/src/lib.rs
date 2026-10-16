@@ -1,5 +1,6 @@
-//! The crawl oracle: diffs what crawl's own melee and spell code rolled, as its harnesses
-//! (`harness/`) report it, against the engine's ported formulas on the same inputs.
+//! The crawl oracle: diffs what crawl's own melee, spell, missile and wand code rolled, and the
+//! gear it made monsters with, as its harnesses (`harness/`) report it, against the engine's
+//! ported formulas and Game Knowledge on the same inputs.
 //!
 //! A harness prints a header line naming the crawl version and seed, then one line per case, with
 //! the inputs the ported formulas take and tallies of what crawl rolled:
@@ -9,7 +10,17 @@
 //! - a beam case (`"kind":"beam"`): a monster casting one spell at the player many times, run
 //!   through [`copilot_core::oracle::spell`];
 //! - a choice case (`"kind":"choice"`): a monster picking a spell many times, run through
-//!   [`copilot_core::oracle::spell_choice`].
+//!   [`copilot_core::oracle::spell_choice`];
+//! - a gear case (`"kind":"gear"`): a kind of monster made many times, against
+//!   [`copilot_core::oracle::gear`];
+//! - a missile case (`"kind":"missile"`): a monster shooting or throwing at the player many
+//!   times, run through [`copilot_core::oracle::missile`];
+//! - a fire case (`"kind":"fire"`): a monster deciding many times whether to shoot or throw,
+//!   run through [`copilot_core::oracle::fire`];
+//! - a wand case (`"kind":"wand"`): a monster zapping a wand at the player many times, run
+//!   through [`copilot_core::oracle::wand`];
+//! - a zap case (`"kind":"zap"`): a monster deciding many times whether to zap its wand, run
+//!   through [`copilot_core::oracle::zap`].
 //!
 //! Each case runs with the formula variants the crawl version's Game Knowledge bundle names.
 //! Values the formulas fix, such as a spell's power, must be equal; each tally is compared with a
@@ -19,10 +30,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{
-    self, AUTOMATIC_HIT, MeleeCase, MeleeTally, SpellCase, SpellCaseError, SpellChoiceCase,
-    SpellTally,
+    self, AUTOMATIC_HIT, AttackTally, CaseError, FireCase, MeleeCase, MissileCase, SpellCase,
+    SpellChoiceCase, SpellTally, WandCase, ZapCase,
 };
-use copilot_gk::{Bundle, BundleError, Library};
+use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
 
 /// How far, in standard deviations, a tally's chi-squared statistic may sit above what chance
@@ -54,13 +65,21 @@ pub enum DiffError {
     /// A case counts more hits or blocks than it ran trials.
     #[error("case {0} counts more hits or blocks than trials")]
     Overcounted(u64),
-    /// A spell case names a monster or spell the engine can't run.
+    /// A case names a monster, spell or item the engine can't run.
     #[error("case {case}: {source}")]
-    Spell {
+    Case {
         /// The case's index in the dump.
         case: u64,
         /// Why it can't run.
-        source: SpellCaseError,
+        source: CaseError,
+    },
+    /// A case names an item the Game Knowledge doesn't have.
+    #[error("case {case}: the Game Knowledge has no item {item}")]
+    NoItem {
+        /// The case's index in the dump.
+        case: u64,
+        /// The item, as `<object_class_type>:<sub_type>`.
+        item: String,
     },
     /// No shipped bundle is for the crawl the dump came from.
     #[error(
@@ -88,6 +107,12 @@ pub enum Measure {
     BeamToHit,
     /// Which spell a monster chose.
     SpellChosen,
+    /// Which launcher or throwing missile a monster was made with.
+    MissileMade,
+    /// Which wand a monster was made with.
+    WandMade,
+    /// The energy a monster's action took, 0 when it didn't shoot or zap.
+    Energy,
 }
 
 impl fmt::Display for Measure {
@@ -101,6 +126,9 @@ impl fmt::Display for Measure {
             Self::Range => "spell range",
             Self::BeamToHit => "beam to-hit",
             Self::SpellChosen => "spell chosen",
+            Self::MissileMade => "missile weapon made with",
+            Self::WandMade => "wand made with",
+            Self::Energy => "energy spent",
         })
     }
 }
@@ -230,6 +258,63 @@ struct ChoiceLine {
 }
 
 #[derive(Deserialize)]
+struct GearLine {
+    #[serde(rename = "case")]
+    index: u64,
+    monster: u16,
+    name: String,
+    trials: u32,
+    /// By item, as `<object_class_type>:<sub_type>`, `none` or `both`.
+    missile: BTreeMap<String, u32>,
+    wand: BTreeMap<String, u32>,
+}
+
+#[derive(Deserialize)]
+struct MissileLine {
+    #[serde(rename = "case")]
+    index: u64,
+    monster: u16,
+    name: String,
+    #[serde(rename = "hd")]
+    hit_dice: i32,
+    weapon: String,
+    weapon_name: String,
+    player: CasePlayer,
+    trials: u32,
+    to_hit: BTreeMap<i32, u32>,
+    hits: u32,
+    blocks: u32,
+    damage: BTreeMap<i32, u32>,
+}
+
+#[derive(Deserialize)]
+struct FireLine {
+    #[serde(rename = "case")]
+    index: u64,
+    monster: u16,
+    name: String,
+    weapon: String,
+    weapon_name: String,
+    distance: i32,
+    trials: u32,
+    energy: BTreeMap<i32, u32>,
+}
+
+#[derive(Deserialize)]
+struct ZapLine {
+    #[serde(rename = "case")]
+    index: u64,
+    name: String,
+    #[serde(rename = "hd")]
+    hit_dice: i32,
+    spell: u16,
+    spell_name: String,
+    distance: i32,
+    trials: u32,
+    energy: BTreeMap<i32, u32>,
+}
+
+#[derive(Deserialize)]
 struct CasePlayer {
     ac: i32,
     ev: i32,
@@ -271,6 +356,26 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
                 let case: ChoiceLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_choice(bundle, seed, &case)?);
             }
+            Some("gear") => {
+                let case: GearLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_gear(bundle, seed, &case)?);
+            }
+            Some("missile") => {
+                let case: MissileLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_missile(bundle, seed, &case)?);
+            }
+            Some("fire") => {
+                let case: FireLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_fire(bundle, seed, &case)?);
+            }
+            Some("wand") => {
+                let case: BeamLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_wand(bundle, seed, &case)?);
+            }
+            Some("zap") => {
+                let case: ZapLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_zap(bundle, seed, &case)?);
+            }
             _ => {
                 let case: Case = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_melee(bundle, seed, &case)?);
@@ -296,7 +401,7 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         ev: case.player.ev,
         sh: case.player.sh,
     };
-    let engine: MeleeTally =
+    let engine: AttackTally =
         oracle::melee(bundle.formulas, &input, (seed, case.index), case.trials);
     let measures = [
         (Measure::ToHit, case.to_hit.clone(), engine.to_hit),
@@ -326,11 +431,40 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
         sh: case.player.sh,
     };
     let engine: SpellTally = oracle::spell(bundle, &input, (seed, case.index), case.trials)
-        .map_err(|source| DiffError::Spell {
+        .map_err(|source| DiffError::Case {
             case: case.index,
             source,
         })?;
     let who = format!("{} casting {}", case.name, case.spell_name);
+    beam_mismatches(case, &engine, &who)
+}
+
+/// Every measure of a wand `case` on which crawl and the engine differ.
+fn compare_wand(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Mismatch>, DiffError> {
+    let input = WandCase {
+        spell: case.spell,
+        hit_dice: case.hit_dice,
+        ac: case.player.ac,
+        ev: case.player.ev,
+        sh: case.player.sh,
+    };
+    let engine =
+        oracle::wand(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    let who = format!("{} zapping a wand of {}", case.name, case.spell_name);
+    beam_mismatches(case, &engine, &who)
+}
+
+/// Every measure on which crawl's beams in `case` and the engine's `engine` differ.
+fn beam_mismatches(
+    case: &BeamLine,
+    engine: &SpellTally,
+    who: &str,
+) -> Result<Vec<Mismatch>, DiffError> {
     // What the formulas fix for the case must be equal: any difference is as far from chance as
     // it gets.
     let mut mismatches: Vec<Mismatch> = [
@@ -346,7 +480,7 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
     .filter(|(_, crawl, ours)| crawl != ours)
     .map(|(measure, crawl, ours)| Mismatch {
         case: case.index,
-        monster: who.clone(),
+        monster: who.to_owned(),
         measure,
         z: f64::INFINITY,
         crawl_mean: f64::from(crawl),
@@ -364,10 +498,179 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
             rate(case.index, case.trials, case.blocks)?,
             rate(case.index, case.trials, engine.blocks)?,
         ),
+        (Measure::Damage, case.damage.clone(), engine.damage.clone()),
+    ];
+    mismatches.extend(differing(case.index, who, measures));
+    Ok(mismatches)
+}
+
+/// Every measure of a gear `case` on which crawl and the engine differ.
+fn compare_gear(bundle: &Bundle, seed: u64, case: &GearLine) -> Result<Vec<Mismatch>, DiffError> {
+    let engine =
+        oracle::gear(bundle, case.monster, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    // Each item numbered as crawl names it, `none` as -1 and `both` as -2.
+    let crawl = |tally: &BTreeMap<String, u32>| -> BTreeMap<i32, u32> {
+        tally
+            .iter()
+            .map(|(item, &count)| (item_code(item), count))
+            .collect()
+    };
+    let ours = |tally: BTreeMap<Option<EnumId>, u32>| -> BTreeMap<i32, u32> {
+        tally
+            .into_iter()
+            .map(|(item, count)| {
+                let code = item
+                    .and_then(|id| item_key(bundle, &id))
+                    .map_or(-1, |key| item_code(&key));
+                (code, count)
+            })
+            .collect()
+    };
+    Ok(differing(
+        case.index,
+        &case.name,
+        [
+            (
+                Measure::MissileMade,
+                crawl(&case.missile),
+                ours(engine.missile),
+            ),
+            (Measure::WandMade, crawl(&case.wand), ours(engine.wand)),
+        ],
+    ))
+}
+
+/// Every measure of a missile `case` on which crawl and the engine differ.
+fn compare_missile(
+    bundle: &Bundle,
+    seed: u64,
+    case: &MissileLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let input = MissileCase {
+        monster: case.monster,
+        weapon: item_id(bundle, case.index, &case.weapon)?,
+        hit_dice: case.hit_dice,
+        ac: case.player.ac,
+        ev: case.player.ev,
+        sh: case.player.sh,
+    };
+    let engine: AttackTally = oracle::missile(bundle, &input, (seed, case.index), case.trials)
+        .map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
+    let who = format!("{} firing a {}", case.name, case.weapon_name);
+    let measures = [
+        (Measure::ToHit, case.to_hit.clone(), engine.to_hit),
+        (
+            Measure::Hits,
+            rate(case.index, case.trials, case.hits)?,
+            rate(case.index, case.trials, engine.hits)?,
+        ),
+        (
+            Measure::Blocks,
+            rate(case.index, case.trials, case.blocks)?,
+            rate(case.index, case.trials, engine.blocks)?,
+        ),
         (Measure::Damage, case.damage.clone(), engine.damage),
     ];
-    mismatches.extend(differing(case.index, &who, measures));
-    Ok(mismatches)
+    Ok(differing(case.index, &who, measures))
+}
+
+/// Every measure of a fire `case` on which crawl and the engine differ.
+fn compare_fire(bundle: &Bundle, seed: u64, case: &FireLine) -> Result<Vec<Mismatch>, DiffError> {
+    let input = FireCase {
+        monster: case.monster,
+        weapon: item_id(bundle, case.index, &case.weapon)?,
+        distance: case.distance,
+    };
+    let engine =
+        oracle::fire(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    let who = format!(
+        "{} with a {} at {} squares",
+        case.name, case.weapon_name, case.distance
+    );
+    Ok(differing(
+        case.index,
+        &who,
+        [(Measure::Energy, case.energy.clone(), engine)],
+    ))
+}
+
+/// Every measure of a zap `case` on which crawl and the engine differ.
+fn compare_zap(bundle: &Bundle, seed: u64, case: &ZapLine) -> Result<Vec<Mismatch>, DiffError> {
+    let input = ZapCase {
+        spell: case.spell,
+        hit_dice: case.hit_dice,
+        distance: case.distance,
+    };
+    let engine =
+        oracle::zap(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    let who = format!(
+        "{} with a wand of {} at {} squares",
+        case.name, case.spell_name, case.distance
+    );
+    Ok(differing(
+        case.index,
+        &who,
+        [(Measure::Energy, case.energy.clone(), engine)],
+    ))
+}
+
+/// The item `id` as a harness names it, `<object_class_type>:<sub_type>`, if the bundle numbers
+/// it.
+fn item_key(bundle: &Bundle, id: &EnumId) -> Option<String> {
+    bundle.item_classes.iter().find_map(|(class, known)| {
+        known
+            .sub_types
+            .iter()
+            .find(|(_, sub_type)| sub_type.id == *id)
+            .map(|(sub_type, _)| format!("{class}:{sub_type}"))
+    })
+}
+
+/// The sub-type identifier of the item a harness names `key`.
+fn item_id(bundle: &Bundle, case: u64, key: &str) -> Result<EnumId, DiffError> {
+    let no_item = || DiffError::NoItem {
+        case,
+        item: key.to_owned(),
+    };
+    let (class, sub_type) = key.split_once(':').ok_or_else(no_item)?;
+    let (Ok(class), Ok(sub_type)) = (class.parse(), sub_type.parse()) else {
+        return Err(no_item());
+    };
+    bundle
+        .item(class, Some(sub_type))
+        .and_then(|item| item.sub_type)
+        .ok_or_else(no_item)
+}
+
+/// An item as a harness names it, numbered for a tally: `class * 1000 + sub_type`, -1 for
+/// `none`, and -2 for anything else, such as `both`.
+fn item_code(key: &str) -> i32 {
+    if key == "none" {
+        return -1;
+    }
+    key.split_once(':')
+        .and_then(|(class, sub_type)| {
+            Some(class.parse::<i32>().ok()? * 1000 + sub_type.parse::<i32>().ok()?)
+        })
+        .unwrap_or(-2)
 }
 
 /// Every measure of a choice `case` on which crawl and the engine differ.
@@ -382,7 +685,7 @@ fn compare_choice(
         distance: case.distance,
     };
     let engine = oracle::spell_choice(bundle, &input, (seed, case.index), case.trials).map_err(
-        |source| DiffError::Spell {
+        |source| DiffError::Case {
             case: case.index,
             source,
         },

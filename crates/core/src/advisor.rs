@@ -175,10 +175,6 @@ fn now_pill(threat: &Threat) -> NowPill {
 fn threat_line(assessment: &ThreatAssessment) -> String {
     match assessment.acting.as_slice() {
         [] if assessment.hostiles_in_view == 0 => "No hostiles in view.".to_owned(),
-        [] if !assessment.may_shoot.is_empty() => {
-            "Nothing hostile can reach you in melee or with a spell before your next action."
-                .to_owned()
-        }
         [] => "Nothing hostile can reach you before your next action.".to_owned(),
         [one] => format!(
             "{} can attack before your next action.",
@@ -191,8 +187,8 @@ fn threat_line(assessment: &ThreatAssessment) -> String {
     }
 }
 
-/// The numbers behind the level when anything can attack, and which monsters may shoot or zap,
-/// which they leave out.
+/// The numbers behind the level when anything can attack, and which monsters' gear they guess
+/// from their kind.
 fn threat_detail(assessment: &ThreatAssessment) -> Option<String> {
     let numbers = (!assessment.acting.is_empty()).then(|| {
         let percent = assessment.death.percent();
@@ -213,7 +209,8 @@ fn threat_detail(assessment: &ThreatAssessment) -> Option<String> {
     }
 }
 
-/// Which monsters may shoot or zap, which the numbers leave out: each kind named once.
+/// Which monsters may shoot or zap, whose gear the numbers guess from what crawl gives their
+/// kind: each kind named once.
 fn may_shoot_note(assessment: &ThreatAssessment) -> Option<String> {
     let mut names: Vec<&str> = Vec::new();
     for monster in &assessment.may_shoot {
@@ -221,13 +218,10 @@ fn may_shoot_note(assessment: &ThreatAssessment) -> Option<String> {
             names.push(&monster.name);
         }
     }
-    let (last, rest) = names.split_last()?;
-    let who = if rest.is_empty() {
-        capitalised(last)
-    } else {
-        format!("{} or {last}", capitalised(&rest.join(", ")))
-    };
-    Some(format!("{who} may shoot or zap: not counted"))
+    if names.is_empty() {
+        return None;
+    }
+    Some(format!("Gear guessed from kind: {}", names.join(", ")))
 }
 
 fn capitalised(name: &str) -> String {
