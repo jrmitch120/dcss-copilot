@@ -82,7 +82,7 @@ rule = "leave-by-stairs"
 ```
 
 - `rc` is the new account's rc file. `combo` picks the character, weapon included so crawl asks nothing, and `game_seed` picks the dungeon.
-- Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name or `d` to take the stairs down.
+- Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name or `d` to take the stairs down. `l` sets the experience level, so a character can survive a threat that would otherwise kill it outright. A `--more--` swallows the next key, so follow a move that may raise one with `"\u001b"` (Escape), which is harmless when there is none.
 - `alerts` and `suggested_actions` are refused until the Advisor raises them (#37, #38), rather than being silently ignored.
 
 Playing a scenario snapshots the Fact Sheet and the panel at each turn in `snapshot_turns` as it ended, at each level the game arrives on as its first turn there ended, and at the end of the Recording. `crates/replay/tests/scenarios.rs` plays every scenario in the directory and snapshots each with `insta`, so a new scenario needs no new test. Review its snapshot like any other.

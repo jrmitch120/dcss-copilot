@@ -1,0 +1,271 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz119717324",
+    "character": "wiz119717324",
+    "species": "Minotaur",
+    "firstSeenMs": 1792119718585,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "dangerous",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 10,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "orc wizard",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [
+                "Magic Dart",
+                "Throw Flame"
+              ],
+              "spellsNotModelled": [
+                "Confuse",
+                "Invisibility"
+              ]
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "otherSpells",
+            "playerResistances"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz119717324",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "dangerous",
+          "line": "Orc wizard can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "o",
+                  "colour": "magenta"
+                },
+                "tile": "mon/humanoids/orcs/orc_wizard"
+              },
+              "name": "orc wizard",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "dangerous",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 10,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "orc wizard",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [
+                "Magic Dart",
+                "Throw Flame"
+              ],
+              "spellsNotModelled": [
+                "Confuse",
+                "Invisibility"
+              ]
+            }
+          ],
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "otherSpells",
+            "playerResistances"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz119717324",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 1
+        },
+        "now": {
+          "state": "rated",
+          "level": "dangerous",
+          "line": "Orc wizard can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "o",
+                  "colour": "magenta"
+                },
+                "tile": "mon/humanoids/orcs/orc_wizard"
+              },
+              "name": "orc wizard",
+              "detail": null
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 2,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "dangerous",
+        "hp": 16,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 10,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "orc wizard",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [
+              "Magic Dart",
+              "Throw Flame"
+            ],
+            "spellsNotModelled": [
+              "Confuse",
+              "Invisibility"
+            ]
+          }
+        ],
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "otherSpells",
+          "playerResistances"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz119717324",
+        "species": "Minotaur",
+        "hp": 16,
+        "hpMax": 19,
+        "turn": 2
+      },
+      "now": {
+        "state": "rated",
+        "level": "dangerous",
+        "line": "Orc wizard can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 10 of 16 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "magenta"
+              },
+              "tile": "mon/humanoids/orcs/orc_wizard"
+            },
+            "name": "orc wizard",
+            "detail": null
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
