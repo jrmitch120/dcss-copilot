@@ -10,7 +10,7 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 
 | Bundle part | From |
 |---|---|
-| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter` flag, energy costs, spellbook and tile read as `util/mon-gen.py` reads them |
+| monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter` and `stationary` flags, energy costs, spellbook and tile read as `util/mon-gen.py` reads them |
 | monster spellbooks | `mspell_list` in `mon-spell.h`: each book's spells, how often each is picked and its slot flags. A book of `MST_GHOST` means each monster of the kind is given its own spells when made, which the bundle can't know |
 | monster tiles | the tile lists in `rltiles/`, from `dc-player.txt`, read as crawl's tile build (`rltiles/tool`) reads them |
 | item classes | `object_class_type` in `object-class-type.h` |
@@ -22,7 +22,7 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 | monster attitudes | `mon_attitude_type` in `mon-attitude-type.h` |
 | monster threat ratings | `mon_threat_level_type` in `mon-util.h` |
 
-A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit, so the engine picks its code by name and never compares version strings. The extractor picks them by the release's series, so `0.34.1` gets the variants ported from crawl 0.34. A release in a series it has no variants for, such as a newer stable, a beta or trunk, stops the extraction rather than being read as 0.34, and so does a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know. Adding a series means porting its formulas and naming them in `FORMULA_VARIANTS` in `tools/gk-extract`.
+A bundle also names the variant of each ported crawl formula its version uses, such as `crawl-0.34` for a monster's to-hit or for which spell a monster picks, so the engine picks its code by name and never compares version strings. The extractor picks them by the release's series, so `0.34.1` gets the variants ported from crawl 0.34. A release in a series it has no variants for, such as a newer stable, a beta or trunk, stops the extraction rather than being read as 0.34, and so does a crawl whose monster data has changed shape, such as an attack with a field `mon-gen.py` 0.34 doesn't know. Adding a series means porting its formulas and naming them in `FORMULA_VARIANTS` in `tools/gk-extract`.
 
 It understands only what those files use: `#if TAG_MAJOR_VERSION` conditionals, function-like macros that build table entries, enum initializers that are literals or earlier enumerators, table entries built by `_mon_hex_zap`, and damage and accuracy calculators whose template arguments are literals or integer `#define`s. Anything else stops the extraction with an error naming the file, rather than producing a wrong bundle.
 

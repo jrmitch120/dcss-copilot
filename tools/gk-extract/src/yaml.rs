@@ -105,6 +105,9 @@ const DEFAULT_SPEED: u32 = 10;
 /// `util/mon-gen.py`'s default energy cost of every action, crawl's `DEFAULT_ENERGY`.
 const DEFAULT_ENERGY: u32 = 10;
 
+/// The flag `dat/mons` gives a monster that never moves: crawl's `M_STATIONARY`.
+const STATIONARY_FLAG: &str = "stationary";
+
 /// The spellbook of monsters given their own spells when they are made: crawl's `MST_GHOST`,
 /// which `mspell_list` has no entry for.
 const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
@@ -200,6 +203,7 @@ pub fn monsters(
                     })
                     .collect(),
                 fighter: monster.flags.iter().any(|flag| flag == FIGHTER_FLAG),
+                stationary: monster.flags.iter().any(|flag| flag == STATIONARY_FLAG),
                 spells,
                 energy: monster.energy.map_or(
                     Energy {

@@ -172,6 +172,18 @@ pub struct Formulas {
     /// How often a monster acts in one player turn: `_monster_add_energy` and the energy
     /// threshold in `monster::has_action_energy`.
     pub monster_energy: MonsterEnergy,
+    /// Which spell a monster picks to cast: `_choose_spell_to_cast` and `_find_spell_prospect`.
+    pub monster_spell_choice: MonsterSpellChoice,
+    /// The power a monster casts a spell with, and so its range: `mons_power_for_hd` and
+    /// `calc_spell_range`.
+    pub monster_spell_power: MonsterSpellPower,
+    /// Which of a monster's spells it fires as one plain zap, set up from the zap's data:
+    /// `mons_spell_beam`, `zappy` and `mons_cast`.
+    pub monster_spell_beam: MonsterSpellBeam,
+    /// Whether a beam gets past the player's shield and evasion: `bolt::misses_player`.
+    pub beam_hit: BeamHit,
+    /// A beam's damage after armour: `zap_damage`, `dice_def::roll` and `bolt::apply_AC`.
+    pub beam_damage: BeamDamage,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -231,6 +243,46 @@ pub enum MonsterEnergy {
     Crawl034,
 }
 
+/// The variants of a monster's choice of spell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellChoice {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's spell power and range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellPower {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of which spells a monster fires as one plain zap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterSpellBeam {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a beam's roll against the player's shield and evasion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BeamHit {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a beam's damage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BeamDamage {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -241,6 +293,11 @@ impl Formulas {
         shield_block: ShieldBlock::Crawl034,
         monster_reach: MonsterReach::Crawl034,
         monster_energy: MonsterEnergy::Crawl034,
+        monster_spell_choice: MonsterSpellChoice::Crawl034,
+        monster_spell_power: MonsterSpellPower::Crawl034,
+        monster_spell_beam: MonsterSpellBeam::Crawl034,
+        beam_hit: BeamHit::Crawl034,
+        beam_damage: BeamDamage::Crawl034,
     };
 }
 
@@ -288,6 +345,8 @@ pub struct Monster {
     pub attacks: Vec<MonsterAttack>,
     /// It has crawl's `fighter` flag, which makes its attacks more accurate.
     pub fighter: bool,
+    /// It has crawl's `stationary` flag: it never moves.
+    pub stationary: bool,
     /// The spells it casts. Monster abilities such as breath are spells here.
     pub spells: MonsterSpells,
     /// How much energy each kind of action costs it, where 10 is a normal action.

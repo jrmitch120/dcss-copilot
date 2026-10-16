@@ -29,6 +29,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -63,6 +64,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -97,6 +99,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -131,6 +134,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -165,6 +169,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -199,6 +204,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -233,6 +239,7 @@ expression: bundle
         }
       ],
       "fighter": true,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -267,6 +274,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": [
@@ -330,6 +338,7 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "stationary": false,
       "spells": {
         "kind": "book",
         "spells": []
@@ -680,6 +689,11 @@ expression: bundle
     "armour": "crawl-0.34",
     "shieldBlock": "crawl-0.34",
     "monsterReach": "crawl-0.34",
-    "monsterEnergy": "crawl-0.34"
+    "monsterEnergy": "crawl-0.34",
+    "monsterSpellChoice": "crawl-0.34",
+    "monsterSpellPower": "crawl-0.34",
+    "monsterSpellBeam": "crawl-0.34",
+    "beamHit": "crawl-0.34",
+    "beamDamage": "crawl-0.34"
   }
 }
