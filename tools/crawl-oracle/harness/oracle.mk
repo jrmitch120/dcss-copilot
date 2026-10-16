@@ -7,7 +7,7 @@
 
 ORACLE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-crawl-oracle-melee.o: $(ORACLE_DIR)melee.cc | $(GENERATED_HEADERS) $(TILEDEFHDRS)
+crawl-oracle-melee.o: $(ORACLE_DIR)melee.cc $(ORACLE_DIR)common.h | $(GENERATED_HEADERS) $(TILEDEFHDRS)
 	$(CXX) $(STDFLAG) $(ALL_CFLAGS) -fno-access-control -c $< -o $@
 
 crawl-oracle-melee: crawl-oracle-melee.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
