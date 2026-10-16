@@ -3,7 +3,9 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
-use copilot_gk::{Energy, EnumId, Monster, MonsterAttack, Species, Will};
+use copilot_gk::{
+    Energy, EnumId, Monster, MonsterAttack, MonsterSpell, MonsterSpells, Species, Will,
+};
 use serde::Deserialize;
 
 use crate::tiles::ShippedTiles;
@@ -28,6 +30,8 @@ struct MonsterFile {
     #[serde(default)]
     flags: Vec<String>,
     energy: Option<EnergyField>,
+    /// Its spellbook, named as `mon-spell.h` names it without the `MST_` prefix.
+    spells: Option<String>,
     /// The tile it is drawn with, when not the one named after its enum.
     tile: Option<String>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
@@ -101,6 +105,10 @@ const DEFAULT_SPEED: u32 = 10;
 /// `util/mon-gen.py`'s default energy cost of every action, crawl's `DEFAULT_ENERGY`.
 const DEFAULT_ENERGY: u32 = 10;
 
+/// The spellbook of monsters given their own spells when they are made: crawl's `MST_GHOST`,
+/// which `mspell_list` has no entry for.
+const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
+
 /// The flag `dat/mons` gives a monster whose melee is more accurate: crawl's `M_FIGHTER`.
 const FIGHTER_FLAG: &str = "fighter";
 
@@ -108,6 +116,7 @@ const FIGHTER_FLAG: &str = "fighter";
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
+    spellbooks: &BTreeMap<String, Vec<MonsterSpell>>,
     tiles: &mut ShippedTiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
@@ -146,6 +155,23 @@ pub fn monsters(
             }
         };
         let tile = tiles.ship(&tile_enum(&id, monster.tile.as_deref()))?;
+        // As `util/mon-gen.py` names the book.
+        let spells = match monster
+            .spells
+            .map(|book| format!("MST_{}", book.to_uppercase()))
+        {
+            None => MonsterSpells::Book { spells: Vec::new() },
+            Some(book) if book == PER_MONSTER_SPELLBOOK => MonsterSpells::PerMonster,
+            Some(book) => MonsterSpells::Book {
+                spells: spellbooks
+                    .get(&book)
+                    .cloned()
+                    .ok_or_else(|| ExtractError::Missing {
+                        file: "mon-spell.h".to_owned(),
+                        what: format!("{book}, which {file} names"),
+                    })?,
+            },
+        };
         monsters.insert(
             in_range(&id, value)?,
             Monster {
@@ -174,6 +200,7 @@ pub fn monsters(
                     })
                     .collect(),
                 fighter: monster.flags.iter().any(|flag| flag == FIGHTER_FLAG),
+                spells,
                 energy: monster.energy.map_or(
                     Energy {
                         walk: DEFAULT_ENERGY,

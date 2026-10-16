@@ -29,3 +29,5 @@ adder MONS_ADDER
 %sdir mon/humanoids
 %rim 0
 goblin_rider MONS_GOBLIN_RIDER
+%sdir mon/humanoids/orcs
+orc_wizard MONS_ORC_WIZARD

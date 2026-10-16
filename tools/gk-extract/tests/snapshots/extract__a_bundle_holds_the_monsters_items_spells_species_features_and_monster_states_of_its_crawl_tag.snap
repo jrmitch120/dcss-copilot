@@ -29,6 +29,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -59,6 +63,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 6,
@@ -89,6 +97,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -119,6 +131,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -149,6 +165,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -179,6 +199,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 6,
@@ -209,6 +233,10 @@ expression: bundle
         }
       ],
       "fighter": true,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -220,6 +248,69 @@ expression: bundle
       "description": null
     },
     "27": {
+      "id": "MONS_ORC_WIZARD",
+      "name": "orc wizard",
+      "glyph": "o",
+      "hd": 3,
+      "hp10x": 150,
+      "ac": 1,
+      "ev": 12,
+      "will": {
+        "value": 20
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 2
+        }
+      ],
+      "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": [
+          {
+            "spell": "SPELL_MAGIC_DART",
+            "frequency": 9,
+            "flags": [
+              "MON_SPELL_WIZARD"
+            ]
+          },
+          {
+            "spell": "SPELL_THROW_FLAME",
+            "frequency": 9,
+            "flags": [
+              "MON_SPELL_WIZARD"
+            ]
+          },
+          {
+            "spell": "SPELL_CONFUSE",
+            "frequency": 18,
+            "flags": [
+              "MON_SPELL_WIZARD"
+            ]
+          },
+          {
+            "spell": "SPELL_INVISIBILITY",
+            "frequency": 9,
+            "flags": [
+              "MON_SPELL_WIZARD"
+            ]
+          }
+        ]
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": "mon/humanoids/orcs/orc_wizard",
+      "description": null
+    },
+    "28": {
       "id": "MONS_BLACK_DRACONIAN",
       "name": "black draconian",
       "glyph": "d",
@@ -239,6 +330,10 @@ expression: bundle
         }
       ],
       "fighter": false,
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -459,27 +554,86 @@ expression: bundle
   "spells": {
     "2": {
       "id": "SPELL_CAUSE_FEAR",
-      "name": "Cause Fear"
+      "name": "Cause Fear",
+      "range": {
+        "min": 8,
+        "max": 8,
+        "powerCap": 200
+      },
+      "zap": null
     },
     "3": {
       "id": "SPELL_MAGIC_DART",
-      "name": "Magic Dart"
+      "name": "Magic Dart",
+      "range": {
+        "min": 8,
+        "max": 8,
+        "powerCap": 25
+      },
+      "zap": {
+        "id": "ZAP_MAGIC_DART",
+        "flavour": "BEAM_MMISSILE",
+        "enchantment": false,
+        "pierces": false,
+        "explodes": false,
+        "monsterDamage": {
+          "dice": 3,
+          "adder": 4,
+          "perPower": 1,
+          "per": 100,
+          "spread": false
+        },
+        "monsterToHit": {
+          "kind": "automatic"
+        }
+      }
     },
     "4": {
       "id": "SPELL_FIREBALL",
-      "name": "Fireball"
+      "name": "Fireball",
+      "range": {
+        "min": 5,
+        "max": 5,
+        "powerCap": 200
+      },
+      "zap": {
+        "id": "ZAP_FIREBALL",
+        "flavour": "BEAM_FIRE",
+        "enchantment": false,
+        "pierces": false,
+        "explodes": true,
+        "monsterDamage": {
+          "dice": 3,
+          "adder": 7,
+          "perPower": 1,
+          "per": 10,
+          "spread": false
+        },
+        "monsterToHit": {
+          "kind": "byPower",
+          "adder": 40,
+          "perPower": 0,
+          "per": 1
+        }
+      }
     },
     "39": {
       "id": "SPELL_BOLT_OF_INACCURACY",
-      "name": "Bolt of Inaccuracy"
+      "name": "Bolt of Inaccuracy",
+      "range": null,
+      "zap": null
     },
     "220": {
       "id": "SPELL_AURA_OF_ABJURATION",
-      "name": "Aura of Abjuration"
+      "name": "Aura of Abjuration",
+      "range": null,
+      "zap": null
     },
     "328": {
       "id": "SPELL_CHANT_FIRE_STORM",
-      "name": "Chant Fire Storm"
+      "name": "Chant Fire Storm",
+      "range": null,
+      "zap": null
     }
   },
   "species": [

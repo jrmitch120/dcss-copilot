@@ -100,6 +100,7 @@ fn the_tiles_a_bundle_names_are_written_as_crawls_tile_build_draws_them() {
             "mon/animals/rat.png",
             "mon/animals/snapping_turtle.png",
             "mon/humanoids/goblin_rider.png",
+            "mon/humanoids/orcs/orc_wizard.png",
         ]
     );
     assert_eq!(written, names.len());

@@ -7,14 +7,17 @@
 
 mod cpp;
 mod image;
+mod spells;
 mod tiles;
 mod yaml;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use copilot_gk::{Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, Spell};
+use copilot_gk::{
+    Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, MonsterSpell, Spell,
+};
 
 use crate::cpp::Source;
 pub use crate::tiles::ShippedTiles;
@@ -260,6 +263,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         monsters: yaml::monsters(
             &crawl.source,
             &crawl.enumeration("monster-type.h", "monster_type")?,
+            &crawl.spellbooks()?,
             &mut tiles,
             crawl.tag_major,
         )?,
@@ -384,27 +388,52 @@ impl Crawl {
         Ok(classes)
     }
 
-    /// Every spell in `spelldata`, by its `spell_type` value.
+    /// The integer constants crawl's tables use, such as `LOS_RADIUS` and `AUTOMATIC_HIT`.
+    fn constants(&self) -> Result<HashMap<String, i64>, ExtractError> {
+        Ok(cpp::integer_defines(&read(&self.source.join("defines.h"))?))
+    }
+
+    /// Every spell in `spelldata`, by its `spell_type` value, with the zap it fires.
     fn spells(&self) -> Result<BTreeMap<u16, Spell>, ExtractError> {
         let values: BTreeMap<String, i64> = self
             .enumeration("spell-type.h", "spell_type")?
             .into_iter()
             .collect();
+        let constants = self.constants()?;
+        let zaps = spells::zaps(&self.parse("zap-data.h")?, "zap-data.h", &constants)?;
+        let spell_zaps = spells::spell_zaps(&self.parse("spl-zap.cc")?, "spl-zap.cc")?;
         let mut spells = BTreeMap::new();
-        for (id, name) in self.parse("spl-data.h")?.table("spelldata")? {
-            let value = *values.get(&id).ok_or_else(|| ExtractError::Missing {
+        let entries = spells::spell_entries(&self.parse("spl-data.h")?, "spl-data.h", &constants)?;
+        for entry in entries {
+            let value = *values.get(&entry.id).ok_or_else(|| ExtractError::Missing {
                 file: "spell-type.h".to_owned(),
-                what: id.clone(),
+                what: entry.id.clone(),
             })?;
+            let zap = spell_zaps
+                .get(&entry.id)
+                .map(|zap| {
+                    zaps.get(zap).cloned().ok_or_else(|| ExtractError::Missing {
+                        file: "zap-data.h".to_owned(),
+                        what: format!("{zap}, which spl-zap.cc gives {}", entry.id),
+                    })
+                })
+                .transpose()?;
             spells.insert(
-                in_range(&id, value)?,
+                in_range(&entry.id, value)?,
                 Spell {
-                    id: EnumId(id),
-                    name,
+                    id: EnumId(entry.id),
+                    name: entry.name,
+                    range: entry.range,
+                    zap,
                 },
             );
         }
         Ok(spells)
+    }
+
+    /// Every monster spellbook, by its `mon_spellbook_type` identifier.
+    fn spellbooks(&self) -> Result<BTreeMap<String, Vec<MonsterSpell>>, ExtractError> {
+        spells::spellbooks(&self.parse("mon-spell.h")?, "mon-spell.h")
     }
 }
 
