@@ -74,18 +74,8 @@ impl Source {
     /// The `(identifier, name)` entries of the array initializer `<name>[] = { ... }`: each
     /// entry that starts `{ IDENT, "name"`.
     pub fn table(&self, name: &str) -> Result<Vec<(String, String)>, ExtractError> {
-        let start = self
-            .find(&[
-                Token::Ident(name.into()),
-                Token::Punct('['),
-                Token::Punct(']'),
-                Token::Punct('='),
-                Token::Punct('{'),
-            ])
-            .ok_or_else(|| self.missing(&format!("the table {name}")))?;
-        let open = start + 4;
-        let close = self.matching_brace(open)?;
-        let entries: Vec<_> = self.tokens[open + 1..close]
+        let entries: Vec<_> = self
+            .initializer(name)?
             .windows(4)
             .filter_map(|window| match window {
                 [
@@ -107,19 +97,8 @@ impl Source {
     /// comma-separated parts of a braced entry, or the arguments of an entry built by calling a
     /// function, as `_mon_hex_zap(ZAP_SLOW, BEAM_SLOW)`, with the function's name as the first.
     pub fn entries(&self, name: &str) -> Result<Vec<Vec<Vec<Token>>>, ExtractError> {
-        let start = self
-            .find(&[
-                Token::Ident(name.into()),
-                Token::Punct('['),
-                Token::Punct(']'),
-                Token::Punct('='),
-                Token::Punct('{'),
-            ])
-            .ok_or_else(|| self.missing(&format!("the table {name}")))?;
-        let open = start + 4;
-        let close = self.matching_brace(open)?;
         let mut entries = Vec::new();
-        for entry in split_top_level(&self.tokens[open + 1..close]) {
+        for entry in split_top_level(self.initializer(name)?) {
             let fields = match entry.as_slice() {
                 [] => continue,
                 [Token::Punct('{'), inner @ .., Token::Punct('}')] => split_top_level(inner),
@@ -141,6 +120,33 @@ impl Source {
             return Err(self.unreadable(&format!("the entries of {name}")));
         }
         Ok(entries)
+    }
+
+    /// The tokens inside the braces of the initializer `<name>[] = { ... }` or
+    /// `<name> = { ... }`, as a table or a `static const map` is written.
+    pub fn initializer(&self, name: &str) -> Result<&[Token], ExtractError> {
+        let array = [
+            Token::Ident(name.into()),
+            Token::Punct('['),
+            Token::Punct(']'),
+            Token::Punct('='),
+            Token::Punct('{'),
+        ];
+        let open = match self.find(&array) {
+            Some(start) => start + 4,
+            None => {
+                let value = [
+                    Token::Ident(name.into()),
+                    Token::Punct('='),
+                    Token::Punct('{'),
+                ];
+                self.find(&value)
+                    .ok_or_else(|| self.missing(&format!("the table {name}")))?
+                    + 2
+            }
+        };
+        let close = self.matching_brace(open)?;
+        Ok(&self.tokens[open + 1..close])
     }
 
     /// The `(identifier, name)` pairs of `case IDENT: return "name";` in the body of the

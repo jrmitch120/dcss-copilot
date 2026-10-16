@@ -33,9 +33,7 @@
 #include <set>
 
 #include "cloud.h"
-#include "los.h"
 #include "mon-book.h"
-#include "ouch.h"
 
 static set<spell_type> _read_ported(const char *path)
 {
@@ -118,42 +116,15 @@ static void _beam_case(int index, int trials, const set<spell_type> &ported)
     const int power = mons_spellpower(*mon, spell);
     const int range = spell_range(spell, mon, power);
 
-    int hit = 0;
-    int hits = 0, blocks = 0;
-    map<int, int> damage;
-    for (int t = 0; t < trials; ++t)
-    {
-        bolt beam;
-        beam.target = you.pos();
-        setup_mons_cast(mon, beam, spell);
-        beam.source = mon->pos();
-        // As bolt::fire aims it; a block ends the beam where its ray has got to.
-        find_ray(beam.source, beam.target, beam.ray, opc_solid_see);
-        beam.chose_ray = true;
-        hit = beam.hit;
-
-        you.shield_blocks = 0;
-        const bool missed = beam.misses_player();
-        if (you.shield_blocks > 0)
-            ++blocks;
-        if (missed)
-            continue;
-        ++hits;
-        // bolt::affect_player's damage, without what the hit sets off.
-        int taken = beam.apply_AC(&you, beam.damage.roll());
-        taken = check_your_resists(max(0, taken), beam.flavour, "", &beam, false);
-        ++damage[taken];
-    }
+    const beam_tally tally = _cast_at_player(*mon, spell, false, trials);
 
     printf("{\"case\":%d,\"kind\":\"beam\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
            "\"spell\":%d,\"spell_name\":\"%s\","
            "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},"
-           "\"power\":%d,\"range\":%d,\"to_hit\":%s,"
-           "\"trials\":%d,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
+           "\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
            spell, spell_title(spell), def.ac, def.ev, def.sh, power, range,
-           hit == AUTOMATIC_HIT ? "null" : make_stringf("%d", hit).c_str(), trials, hits,
-           blocks, _histogram(damage).c_str());
+           _beam_json(tally, trials).c_str());
 
     _remove(*mon);
 }

@@ -30,11 +30,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_BAT",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -67,11 +79,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_SNAKE",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -104,11 +128,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_RAT",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -141,11 +177,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_QUOKKA",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -178,11 +226,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_HOUND",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -215,11 +275,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_SNAPPING_TURTLE",
       "itemUse": "nothing",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -252,11 +324,23 @@ expression: bundle
       ],
       "fighter": true,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_GOBLIN",
       "itemUse": "startingEquipment",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -289,6 +373,8 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_ORC",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -324,6 +410,16 @@ expression: bundle
           }
         ]
       },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
+      },
       "energy": {
         "walk": 10,
         "swim": 10,
@@ -355,11 +451,23 @@ expression: bundle
       ],
       "fighter": false,
       "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
       "genus": "MONS_DRACONIAN",
       "itemUse": "weaponsArmour",
       "spells": {
         "kind": "book",
         "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
       },
       "energy": {
         "walk": 10,
@@ -370,6 +478,226 @@ expression: bundle
       },
       "tile": null,
       "description": "A muscular black-scaled humanoid with a reptilian tail and powerful wings."
+    },
+    "29": {
+      "id": "MONS_KOBOLD",
+      "name": "kobold",
+      "glyph": "K",
+      "hd": 1,
+      "hp10x": 35,
+      "ac": 2,
+      "ev": 12,
+      "will": {
+        "value": 0
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 1
+        }
+      ],
+      "fighter": false,
+      "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
+      "genus": "MONS_KOBOLD",
+      "itemUse": "weaponsArmour",
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 50,
+          "items": [
+            {
+              "item": "MI_DART",
+              "weight": 5
+            },
+            {
+              "item": "MI_STONE",
+              "weight": 18
+            }
+          ]
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": "mon/humanoids/kobold",
+      "description": null
+    },
+    "30": {
+      "id": "MONS_CENTAUR",
+      "name": "centaur",
+      "glyph": "c",
+      "hd": 4,
+      "hp10x": 220,
+      "ac": 3,
+      "ev": 7,
+      "will": {
+        "value": 20
+      },
+      "speed": 15,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 7
+        },
+        {
+          "kind": "AT_KICK",
+          "flavour": "AF_PLAIN",
+          "damage": 3
+        }
+      ],
+      "fighter": false,
+      "stationary": false,
+      "archer": true,
+      "prefersRanged": false,
+      "genus": "MONS_CENTAUR",
+      "itemUse": "weaponsArmour",
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 2,
+          "items": [
+            {
+              "item": "WPN_ORCBOW",
+              "weight": 1
+            },
+            {
+              "item": "WPN_SHORTBOW",
+              "weight": 1
+            }
+          ]
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": "mon/demihumanoids/taurs/centaur",
+      "description": null
+    },
+    "31": {
+      "id": "MONS_MAURICE",
+      "name": "Maurice",
+      "glyph": "f",
+      "hd": 5,
+      "hp10x": 600,
+      "ac": 1,
+      "ev": 13,
+      "will": {
+        "value": 40
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_STEAL",
+          "damage": 9
+        },
+        {
+          "kind": "AT_BITE",
+          "flavour": "AF_ANTIMAGIC",
+          "damage": 9
+        }
+      ],
+      "fighter": false,
+      "stationary": false,
+      "archer": false,
+      "prefersRanged": false,
+      "genus": "MONS_VINE_STALKER",
+      "itemUse": "weaponsArmour",
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 195,
+          "items": [
+            {
+              "item": "WAND_ACID",
+              "weight": 9
+            },
+            {
+              "item": "WAND_CHARMING",
+              "weight": 21
+            },
+            {
+              "item": "WAND_FLAME",
+              "weight": 42
+            },
+            {
+              "item": "WAND_ICEBLAST",
+              "weight": 14
+            },
+            {
+              "item": "WAND_LIGHT",
+              "weight": 9
+            },
+            {
+              "item": "WAND_MINDBURST",
+              "weight": 21
+            },
+            {
+              "item": "WAND_PARALYSIS",
+              "weight": 21
+            },
+            {
+              "item": "WAND_POLYMORPH",
+              "weight": 21
+            },
+            {
+              "item": "WAND_QUICKSILVER",
+              "weight": 9
+            },
+            {
+              "item": "WAND_ROOTS",
+              "weight": 14
+            },
+            {
+              "item": "WAND_WARPING",
+              "weight": 14
+            }
+          ]
+        }
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": "mon/unique/maurice",
+      "description": null
     }
   },
   "itemClasses": {
@@ -387,6 +715,14 @@ expression: bundle
         "6": {
           "id": "WPN_SPIKED_FLAIL",
           "name": "old spiked flail"
+        },
+        "30": {
+          "id": "WPN_SHORTBOW",
+          "name": "shortbow"
+        },
+        "57": {
+          "id": "WPN_ORCBOW",
+          "name": "orcbow"
         }
       }
     },
@@ -663,6 +999,42 @@ expression: bundle
       "zap": null
     }
   },
+  "missileWeapons": {
+    "MI_DART": {
+      "name": "dart",
+      "kind": "thrown",
+      "damage": 0,
+      "accuracy": 0
+    },
+    "MI_STONE": {
+      "name": "stone",
+      "kind": "thrown",
+      "damage": 2,
+      "accuracy": 0
+    },
+    "WPN_ORCBOW": {
+      "name": "orcbow",
+      "kind": "launcher",
+      "damage": 11,
+      "accuracy": -3
+    },
+    "WPN_SHORTBOW": {
+      "name": "shortbow",
+      "kind": "launcher",
+      "damage": 8,
+      "accuracy": 2
+    }
+  },
+  "wands": {
+    "WAND_FLAME": {
+      "name": "flame",
+      "spell": "SPELL_THROW_FLAME"
+    },
+    "WAND_PARALYSIS": {
+      "name": "paralysis",
+      "spell": "SPELL_PARALYSE"
+    }
+  },
   "species": [
     {
       "id": "SP_CENTAUR",
@@ -712,6 +1084,9 @@ expression: bundle
     "monsterSpellPower": "crawl-0.34",
     "monsterSpellBeam": "crawl-0.34",
     "beamHit": "crawl-0.34",
-    "beamDamage": "crawl-0.34"
+    "beamDamage": "crawl-0.34",
+    "monsterFire": "crawl-0.34",
+    "missileAttack": "crawl-0.34",
+    "monsterWand": "crawl-0.34"
   }
 }

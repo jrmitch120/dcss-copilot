@@ -42,7 +42,8 @@ expression: replay
               "casts": [
                 "Spit Acid"
               ],
-              "spellsNotModelled": []
+              "spellsNotModelled": [],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -122,7 +123,8 @@ expression: replay
               "casts": [
                 "Spit Acid"
               ],
-              "spellsNotModelled": []
+              "spellsNotModelled": [],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -202,7 +204,8 @@ expression: replay
               "casts": [
                 "Spit Acid"
               ],
-              "spellsNotModelled": []
+              "spellsNotModelled": [],
+              "shoots": []
             }
           ],
           "mayShoot": [],
@@ -284,7 +287,8 @@ expression: replay
             "casts": [
               "Spit Acid"
             ],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],

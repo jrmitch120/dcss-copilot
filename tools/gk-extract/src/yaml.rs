@@ -8,6 +8,7 @@ use copilot_gk::{
 };
 use serde::Deserialize;
 
+use crate::gear::{Gear, GearOf};
 use crate::tiles::ShippedTiles;
 use crate::{ExtractError, in_range, read};
 
@@ -121,11 +122,19 @@ const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
 /// The flag `dat/mons` gives a monster whose melee is more accurate: crawl's `M_FIGHTER`.
 const FIGHTER_FLAG: &str = "fighter";
 
+/// The flag `dat/mons` gives a monster whose missiles are more accurate and hit harder: crawl's
+/// `M_ARCHER`.
+const ARCHER_FLAG: &str = "archer";
+
+/// The flag `dat/mons` gives a monster that shoots more readily: crawl's `M_PREFER_RANGED`.
+const PREFER_RANGED_FLAG: &str = "prefer_ranged";
+
 /// Every monster defined in `dat/mons` for this build, by its value in `monster_type`.
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
     spellbooks: &BTreeMap<String, Vec<MonsterSpell>>,
+    gear: &Gear,
     tiles: &mut ShippedTiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
@@ -191,6 +200,13 @@ pub fn monsters(
                     })?,
             },
         };
+        let gear = gear.of(&GearOf {
+            id: &id,
+            hd: monster.hd,
+            item_use,
+            flags: &monster.flags,
+        })?;
+        let flag = |name: &str| monster.flags.iter().any(|flag| flag == name);
         monsters.insert(
             in_range(&id, value)?,
             Monster {
@@ -218,11 +234,14 @@ pub fn monsters(
                         damage: attack.damage,
                     })
                     .collect(),
-                fighter: monster.flags.iter().any(|flag| flag == FIGHTER_FLAG),
-                stationary: monster.flags.iter().any(|flag| flag == STATIONARY_FLAG),
+                fighter: flag(FIGHTER_FLAG),
+                stationary: flag(STATIONARY_FLAG),
+                archer: flag(ARCHER_FLAG),
+                prefers_ranged: flag(PREFER_RANGED_FLAG),
                 genus: EnumId(genus),
                 item_use,
                 spells,
+                gear,
                 energy: monster.energy.map_or(
                     Energy {
                         walk: DEFAULT_ENERGY,

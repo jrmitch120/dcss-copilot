@@ -1,6 +1,6 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
-//! randomised monster attackers and player defenders, 20,000 attacks each, and 24 spell cases
-//! (both seed 34).
+//! randomised monster attackers and player defenders, 20,000 attacks each, 24 spell cases and 25
+//! missile, gear and wand cases (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -44,13 +44,7 @@ fn with_to_hit_one_higher(case: usize) -> String {
 #[test]
 fn a_to_hit_off_by_one_is_caught() {
     // Case 0, a nekomata, rolls to-hit over 0..=55: one in 56 rolls lands one higher.
-    let report = diff(&with_to_hit_one_higher(0)).unwrap();
-    let caught: Vec<_> = report
-        .mismatches
-        .iter()
-        .map(|m| (m.case, m.measure))
-        .collect();
-    assert_eq!(caught, [(0, Measure::ToHit)], "{report}");
+    assert_eq!(caught(&with_to_hit_one_higher(0)), [(0, Measure::ToHit)]);
 }
 
 #[test]
@@ -106,13 +100,7 @@ fn shifted(tally: &serde_json::Value) -> serde_json::Value {
 fn a_beam_damage_off_by_one_is_caught() {
     // Case 22, a steam dragon's steam ball, which deals 3 to 30: every hit one point harder.
     let dump = with_changed(SPELLS, 22, |case| case["damage"] = shifted(&case["damage"]));
-    let report = diff(&dump).unwrap();
-    let caught: Vec<_> = report
-        .mismatches
-        .iter()
-        .map(|m| (m.case, m.measure))
-        .collect();
-    assert_eq!(caught, [(22, Measure::Damage)], "{report}");
+    assert_eq!(caught(&dump), [(22, Measure::Damage)]);
 }
 
 #[test]
@@ -120,13 +108,7 @@ fn a_spell_power_off_by_one_is_caught() {
     let dump = with_changed(SPELLS, 2, |case| {
         case["power"] = (case["power"].as_i64().unwrap() + 1).into();
     });
-    let report = diff(&dump).unwrap();
-    let caught: Vec<_> = report
-        .mismatches
-        .iter()
-        .map(|m| (m.case, m.measure))
-        .collect();
-    assert_eq!(caught, [(2, Measure::Power)], "{report}");
+    assert_eq!(caught(&dump), [(2, Measure::Power)]);
 }
 
 #[test]
@@ -139,11 +121,64 @@ fn a_spell_chosen_as_often_as_another_is_caught() {
         chosen.insert("10".to_owned(), (fire / 2).into());
         chosen.insert("-1".to_owned(), (none + fire - fire / 2).into());
     });
-    let report = diff(&dump).unwrap();
-    let caught: Vec<_> = report
+    assert_eq!(caught(&dump), [(1, Measure::SpellChosen)]);
+}
+
+/// What the missile harness printed from the same crawl build: 25 cases, taking turns at a kind
+/// of monster made with its gear, a monster shooting or throwing at a randomised player, deciding
+/// whether to fire, zapping a wand at the player and deciding whether to zap, 20,000 times each
+/// (seed 34).
+const MISSILES: &str = include_str!("fixtures/missiles-0.34.1.jsonl");
+
+#[test]
+fn the_engine_agrees_with_crawl_on_every_missile_gear_and_wand_case() {
+    let report = diff(MISSILES).unwrap();
+    assert_eq!(report.cases, 25);
+    assert!(report.mismatches.is_empty(), "{report}");
+}
+
+/// What `diff` caught in `dump`, by case and measure.
+fn caught(dump: &str) -> Vec<(u64, Measure)> {
+    diff(dump)
+        .unwrap()
         .mismatches
         .iter()
         .map(|m| (m.case, m.measure))
-        .collect();
-    assert_eq!(caught, [(1, Measure::SpellChosen)], "{report}");
+        .collect()
+}
+
+#[test]
+fn a_missile_damage_off_by_one_is_caught() {
+    // Case 21, an orc warrior's arbalest, which deals 1 to 27: every hit one point harder.
+    let dump = with_changed(MISSILES, 21, |case| {
+        case["damage"] = shifted(&case["damage"]);
+    });
+    assert_eq!(caught(&dump), [(21, Measure::Damage)]);
+}
+
+#[test]
+fn a_kind_made_with_one_bow_more_often_than_crawl_makes_it_is_caught() {
+    // Case 0, Vashnia, made with an arbalest or a longbow alike: a tenth of her arbalests
+    // counted as longbows.
+    let dump = with_changed(MISSILES, 0, |case| {
+        let missile = case["missile"].as_object_mut().unwrap();
+        let arbalest = missile["0:29"].as_u64().unwrap();
+        let longbow = missile["0:31"].as_u64().unwrap();
+        missile.insert("0:29".to_owned(), (arbalest - arbalest / 10).into());
+        missile.insert("0:31".to_owned(), (longbow + arbalest / 10).into());
+    });
+    assert_eq!(caught(&dump), [(0, Measure::MissileMade)]);
+}
+
+#[test]
+fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
+    // Case 2, a deep elf knight's shortbow, fired four times in five: counted as nine in ten.
+    let dump = with_changed(MISSILES, 2, |case| {
+        let energy = case["energy"].as_object_mut().unwrap();
+        let held = energy["0"].as_u64().unwrap();
+        let fired = energy["10"].as_u64().unwrap();
+        energy.insert("0".to_owned(), (held / 2).into());
+        energy.insert("10".to_owned(), (fired + held - held / 2).into());
+    });
+    assert_eq!(caught(&dump), [(2, Measure::Energy)]);
 }

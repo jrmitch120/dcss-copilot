@@ -45,7 +45,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -55,7 +56,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -65,7 +67,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],
@@ -110,7 +113,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -120,7 +124,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -130,7 +135,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],
@@ -174,7 +180,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -184,7 +191,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -194,7 +202,8 @@ expression: by_turn
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],

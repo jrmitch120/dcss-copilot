@@ -66,7 +66,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -76,7 +77,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -86,7 +88,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],
@@ -122,7 +125,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -132,7 +136,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           },
           {
             "name": "jackal",
@@ -142,7 +147,8 @@ expression: fact_sheets_by_turn(JACKALS)
             },
             "distance": 1,
             "casts": [],
-            "spellsNotModelled": []
+            "spellsNotModelled": [],
+            "shoots": []
           }
         ],
         "mayShoot": [],

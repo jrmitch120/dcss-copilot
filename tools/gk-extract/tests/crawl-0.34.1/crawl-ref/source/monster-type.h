@@ -71,6 +71,12 @@ enum monster_type                      // env.mons[].type
     // (trimmed for the extractor test)
     MONS_BLACK_DRACONIAN,
     // (trimmed for the extractor test)
+    MONS_KOBOLD,
+    // (trimmed for the extractor test)
+    MONS_CENTAUR,
+    // (trimmed for the extractor test)
+    MONS_MAURICE,
+    // (trimmed for the extractor test)
 
     NUM_MONSTERS,               // used for polymorph
 

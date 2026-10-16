@@ -85,6 +85,11 @@ pub struct Bundle {
     pub item_classes: BTreeMap<u8, ItemClass>,
     /// Every spell with a definition, by its `spell_type` enum value.
     pub spells: BTreeMap<u16, Spell>,
+    /// The launchers and throwing missiles monsters shoot or throw, by their sub-type
+    /// identifier, such as `WPN_SHORTBOW` or `MI_JAVELIN`.
+    pub missile_weapons: BTreeMap<EnumId, MissileWeapon>,
+    /// Every wand, by its `wand_type` identifier, such as `WAND_FLAME`.
+    pub wands: BTreeMap<EnumId, Wand>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
     /// Every dungeon feature, by its `dungeon_feature_type` enum value: a map cell's webtiles `f`.
@@ -184,6 +189,15 @@ pub struct Formulas {
     pub beam_hit: BeamHit,
     /// A beam's damage after armour: `zap_damage`, `dice_def::roll` and `bolt::apply_AC`.
     pub beam_damage: BeamDamage,
+    /// Whether a monster shoots or throws at the player this action, and the energy it takes:
+    /// `handle_throw` and `mons_throw`.
+    pub monster_fire: MonsterFire,
+    /// A monster's missile's accuracy and damage before armour: `ranged_attack`,
+    /// `attack::calc_to_hit` and `attack::calc_damage`.
+    pub missile_attack: MissileAttack,
+    /// Whether a monster zaps its wand this action, with what power, and the energy it takes:
+    /// `_handle_wand` and `mons_wand_power`.
+    pub monster_wand: MonsterWand,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -283,6 +297,30 @@ pub enum BeamDamage {
     Crawl034,
 }
 
+/// The variants of whether a monster shoots or throws.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterFire {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's missile attack.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MissileAttack {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster zapping a wand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterWand {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -298,6 +336,9 @@ impl Formulas {
         monster_spell_beam: MonsterSpellBeam::Crawl034,
         beam_hit: BeamHit::Crawl034,
         beam_damage: BeamDamage::Crawl034,
+        monster_fire: MonsterFire::Crawl034,
+        missile_attack: MissileAttack::Crawl034,
+        monster_wand: MonsterWand::Crawl034,
     };
 }
 
@@ -347,6 +388,10 @@ pub struct Monster {
     pub fighter: bool,
     /// It has crawl's `stationary` flag: it never moves.
     pub stationary: bool,
+    /// It has crawl's `archer` flag, which makes its missiles more accurate and harder hitting.
+    pub archer: bool,
+    /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.
+    pub prefers_ranged: bool,
     /// Its genus, as a `monster_type` identifier such as `MONS_DRACONIAN`: the kind crawl
     /// counts it as for rules that apply to a whole family (`mons_genus`).
     pub genus: EnumId,
@@ -354,6 +399,8 @@ pub struct Monster {
     pub item_use: ItemUse,
     /// The spells it casts. Monster abilities such as breath are spells here.
     pub spells: MonsterSpells,
+    /// What it may be made with to shoot, throw or zap.
+    pub gear: MonsterGear,
     /// How much energy each kind of action costs it, where 10 is a normal action.
     pub energy: Energy,
     /// The tile webtiles draws it with, as its image's path in crawl's `rltiles` without the
@@ -379,15 +426,99 @@ pub enum ItemUse {
     WeaponsArmour,
 }
 
-impl ItemUse {
-    /// Whether a monster of this kind may carry missiles or a wand: it uses at least what it is
-    /// made with. This is wider than crawl, whose gear tables (`mon-gear.cc`) give missiles to
-    /// some of these kinds only, such as centaurs, and wands mostly to uniques; it errs towards
-    /// warning until those tables are in Game Knowledge.
+/// What a kind of monster may be made with to shoot, throw or zap: crawl's `give_item`
+/// (`mon-gear.cc`), as it gives items to a monster made on D:3 or deeper, outside the Orcish
+/// Mines and not in a band.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonsterGear {
+    /// The launcher or throwing missile it is made with, from [`Bundle::missile_weapons`]: crawl
+    /// gives a monster at most one.
+    pub missile: Odds,
+    /// The wand it is made with, from [`Bundle::wands`], when it will zap it
+    /// (`monster::likes_wand`).
+    pub wand: Odds,
+}
+
+impl MonsterGear {
+    /// Whether a monster of this kind may be made with a launcher, a throwing missile or a wand.
     #[must_use]
-    pub fn may_carry_ranged(self) -> bool {
-        self >= Self::StartingEquipment
+    pub fn may_shoot_or_zap(&self) -> bool {
+        self.missile.is_possible() || self.wand.is_possible()
     }
+}
+
+/// Which of some items a monster is made with, by chance: each item `weight` times in `out_of`,
+/// and none of them the rest of the time.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Odds {
+    /// The chances' common denominator.
+    pub out_of: u32,
+    /// The items, each with its share of `out_of`. Their weights sum to at most `out_of`.
+    pub items: Vec<Weighted>,
+}
+
+impl Odds {
+    /// Never any of them.
+    #[must_use]
+    pub fn none() -> Self {
+        Self {
+            out_of: 1,
+            items: Vec::new(),
+        }
+    }
+
+    /// Whether any item has a chance.
+    #[must_use]
+    pub fn is_possible(&self) -> bool {
+        self.items.iter().any(|item| item.weight > 0)
+    }
+}
+
+/// One item of [`Odds`] and its share.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Weighted {
+    /// The item, by its sub-type identifier, such as `WPN_SHORTBOW`.
+    pub item: EnumId,
+    /// How many times in [`Odds::out_of`] it is the one.
+    pub weight: u32,
+}
+
+/// A launcher or a throwing missile, as `Weapon_prop` and `Missile_prop` (`item-prop.cc`) define
+/// it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MissileWeapon {
+    /// Crawl's name for it, such as `shortbow`.
+    pub name: String,
+    /// Whether it shoots or is thrown.
+    pub kind: MissileKind,
+    /// The damage it adds to a monster's own: its `PWPN_DAMAGE`.
+    pub damage: i32,
+    /// The accuracy it adds: a launcher's `PWPN_HIT`, and none for a thrown missile.
+    pub accuracy: i32,
+}
+
+/// How a [`MissileWeapon`] is used.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum MissileKind {
+    /// A launcher, which needs no ammunition: a weapon trained by `SK_RANGED_WEAPONS`.
+    Launcher,
+    /// A missile thrown by hand: an `OBJ_MISSILES` item.
+    Thrown,
+}
+
+/// A wand, as crawl names it and the spell it zaps (`_wand_spells` in `spl-book.cc`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Wand {
+    /// Crawl's name for it, such as `flame`.
+    pub name: String,
+    /// The spell it zaps, by its `spell_type` identifier.
+    pub spell: EnumId,
 }
 
 /// One of a monster's melee attacks, as `dat/mons` defines it.

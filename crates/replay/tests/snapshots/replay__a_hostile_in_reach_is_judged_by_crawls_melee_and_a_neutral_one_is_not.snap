@@ -22,19 +22,11 @@ expression: replayer.advisor().fact_sheet()
         },
         "distance": 1,
         "casts": [],
-        "spellsNotModelled": []
+        "spellsNotModelled": [],
+        "shoots": []
       }
     ],
-    "mayShoot": [
-      {
-        "name": "hobgoblin",
-        "position": {
-          "x": 1,
-          "y": -1
-        },
-        "distance": 1
-      }
-    ],
+    "mayShoot": [],
     "notModelled": [
       "monsterEquipment",
       "attackFlavours",

@@ -59,6 +59,14 @@ static const weapon_def Weapon_prop[] =
     { WPN_MACE,              "mace",                8,  3, 14,
         SK_MACES_FLAILS, SIZE_LITTLE, SIZE_LITTLE,
         DAMV_CRUSHING, 9, 0, 30, M_AND_F_BRANDS },
+
+    // Range weapons
+    { WPN_SHORTBOW,          "shortbow",            8,  2, 14,
+        SK_RANGED_WEAPONS,   SIZE_LITTLE, NUM_SIZE_LEVELS,
+        DAMV_NON_MELEE, 8, 0, 30, RANGED_BRANDS },
+    { WPN_ORCBOW,            "orcbow",             11, -3, 15,
+        SK_RANGED_WEAPONS,   SIZE_LITTLE, NUM_SIZE_LEVELS,
+        DAMV_NON_MELEE, 8, 20, 40, RANGED_BRANDS },
 };
 
 static int Staff_index[NUM_STAVES];
@@ -76,6 +84,14 @@ static const missile_def Missile_prop[] =
 {
     { MI_DART,          "dart",          0, 12, 3  },
     { MI_STONE,         "stone",         2, 8,  1  },
+};
+
+static const item_set_def item_sets[] =
+{
+    { "hex wand",           OBJ_WANDS,      { WAND_CHARMING, WAND_PARALYSIS } },
+    { "beam wand",          OBJ_WANDS,      { WAND_ACID, WAND_LIGHT, WAND_QUICKSILVER } },
+    { "blast wand",         OBJ_WANDS,      { WAND_ICEBLAST, WAND_ROOTS, WAND_WARPING } },
+    { "ally scroll",        OBJ_SCROLLS,    { SCR_SUMMONING, SCR_BUTTERFLIES } },
 };
 
 string talisman_type_name(int type)
