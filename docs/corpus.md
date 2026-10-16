@@ -40,7 +40,7 @@ Play on local webtiles (below) with the extension and a dev build of the app, wh
 1. Run the app with `pnpm tauri dev`, and load the extension with `pnpm --filter ./extension dev`.
 2. Open `http://localhost:8080` in that browser and register an account. Its name is in the Recording, so pick one you're happy to make public.
 3. In the lobby, **Edit rc** and set a seed, such as `game_seed = 7`, so the dungeon can be played again.
-4. Play one game, then quit the app from its menu or tray. Quitting finishes the Recording; stopping `pnpm tauri dev` with Ctrl-C leaves it cut short, and a cut-short game isn't accepted into the corpus. The Recording is named for when it started, and is in the app's data directory under `recordings/`: `~/Library/Application Support/io.github.jrmitch120.dcss-copilot/` on macOS, `~/.local/share/io.github.jrmitch120.dcss-copilot/` on Linux, `%APPDATA%\io.github.jrmitch120.dcss-copilot\` on Windows.
+4. Play one game, then quit the app (Cmd+Q, its menu's Quit, or close its window). Quitting finishes the Recording; stopping `pnpm tauri dev` with Ctrl-C leaves it cut short, and a cut-short game isn't accepted into the corpus. The Recording is named for when it started, and is in the app's data directory under `recordings/`: `~/Library/Application Support/io.github.jrmitch120.dcss-copilot/` on macOS, `~/.local/share/io.github.jrmitch120.dcss-copilot/` on Linux, `%APPDATA%\io.github.jrmitch120.dcss-copilot\` on Windows.
 
 A Recording holds everything the server sent, chat included, so keep the server to yourself.
 
