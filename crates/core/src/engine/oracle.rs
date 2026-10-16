@@ -239,7 +239,8 @@ pub fn spell_choice(
             .iter()
             .find(|(_, spell)| spell.id == slot.spell)
             .ok_or_else(|| SpellCaseError::UnknownSpell(slot.spell.0.clone()))?;
-        if let Some(cast) = spells::damaging(formulas.monster_spell_beam, slot, spell) {
+        if let Some(cast) = spells::damaging(formulas.monster_spell_beam, spell) {
+            let book = spells::Slot::of(slot);
             let power = spells::power(formulas.monster_spell_power, &spell.id, case.hit_dice);
             let in_range = spell.range.is_some_and(|range| {
                 let range = spells::range(formulas.monster_spell_power, range, power);
@@ -248,8 +249,8 @@ pub fn spell_choice(
             castable.push((
                 *value,
                 spells::Prospect {
-                    frequency: cast.frequency,
-                    when: cast.when,
+                    frequency: book.frequency,
+                    when: book.when,
                     in_range,
                 },
             ));
@@ -289,8 +290,8 @@ fn damaging_spell(
     let MonsterSpells::Book { spells: book } = &caster.spells else {
         return Err(not_ported);
     };
-    book.iter()
-        .find(|slot| slot.spell == known.id)
-        .and_then(|slot| spells::damaging(bundle.formulas.monster_spell_beam, slot, known))
-        .ok_or(not_ported)
+    if !book.iter().any(|slot| slot.spell == known.id) {
+        return Err(not_ported);
+    }
+    spells::damaging(bundle.formulas.monster_spell_beam, known).ok_or(not_ported)
 }

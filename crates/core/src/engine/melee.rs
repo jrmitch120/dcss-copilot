@@ -76,23 +76,26 @@ pub(crate) const ENERGY_THRESHOLD: i32 = 80;
 const BASELINE_DELAY: i32 = 10;
 
 /// A monster's accuracy for one attack: the `to_hit` that `attack::calc_to_hit` (`attack.cc:288`)
-/// rolls for a monster.
+/// rolls for a monster, `skilled` when it is a fighter in melee (`M_FIGHTER`) or an archer with
+/// missiles (`M_ARCHER`), with a +0 weapon of this `accuracy` (`PWPN_HIT`), 0 for none.
 ///
 /// The pre-roll value is `mon_to_hit_base` (`fight.cc:232`), via
-/// `melee_attack::calc_mon_to_hit_base` (`melee-attack.cc:5087`) and the monster branch of
-/// `attack::calc_pre_roll_to_hit` (`attack.cc:226`), with no weapon and no slaying. The
+/// `melee_attack::calc_mon_to_hit_base` (`melee-attack.cc:5087`) or
+/// `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`), plus the weapon's in the
+/// monster branch of `attack::calc_pre_roll_to_hit` (`attack.cc:226`), with no slaying. The
 /// post-roll modifiers (`attack.cc:244`) are all zero for a visible, unconfused monster without
 /// inaccuracy, so the monster's roll is `random2(mhit + 1)` (`attack.cc:300`).
 pub(crate) fn monster_to_hit(
     variant: MonsterToHit,
     rng: &mut Rng,
     hit_dice: i32,
-    fighter: bool,
+    skilled: bool,
+    accuracy: i32,
 ) -> i32 {
     match variant {
         MonsterToHit::Crawl034 => {
-            let hd_mult = if fighter { 5 } else { 3 };
-            let mhit = 18 + hit_dice * hd_mult / 2;
+            let hd_mult = if skilled { 5 } else { 3 };
+            let mhit = 18 + hit_dice * hd_mult / 2 + accuracy;
             rng.random2(mhit + 1)
         }
     }
@@ -267,7 +270,7 @@ pub(crate) fn swing(
     defences: Defences,
     can_block: bool,
 ) -> Swing {
-    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, hit_dice, fighter);
+    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, hit_dice, fighter, 0);
     let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences.ev) >= 0;
     let blocked =
         shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences.sh) && can_block;
@@ -385,7 +388,7 @@ mod tests {
         ] {
             let pre_roll = 18 + hd * if fighter { 5 } else { 3 } / 2;
             let ported = chance(|rng| {
-                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, hd, fighter);
+                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, hd, fighter, 0);
                 evasion_margin(EvasionRoll::Crawl034, rng, to_hit, ev) >= 0
             }) * 100.0;
             let crawl = crawl_mon_to_hit_pct(pre_roll, ev);
@@ -400,7 +403,7 @@ mod tests {
     fn one_attack_in_forty_hits_or_misses_regardless_of_evasion() {
         // Against EV 1000 only the automatic hit lands: 5% of attacks ignore evasion, half hit.
         let ported = chance(|rng| {
-            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, 1, false);
+            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, 1, false, 0);
             evasion_margin(EvasionRoll::Crawl034, rng, to_hit, 1000) >= 0
         });
         assert!((ported - 0.025).abs() < 0.002, "{ported}");

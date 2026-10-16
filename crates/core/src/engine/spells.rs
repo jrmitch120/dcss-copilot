@@ -77,13 +77,21 @@ const PLAIN_ZAPS_0_34: &[&str] = &[
     "SPELL_FREEZING_GUST",
 ];
 
-/// One of a monster's spells that the engine ports: a zap that deals damage, fired once.
+/// A spell the engine ports: a zap that deals damage, fired once, whether a monster casts it from
+/// its book or zaps it from a wand.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct DamagingSpell<'a> {
     /// The spell.
     pub(crate) spell: &'a Spell,
     /// The zap it fires.
     pub(crate) zap: &'a Zap,
+    damage: ZapDamage,
+    to_hit: ZapToHit,
+}
+
+/// How a monster's spellbook holds a spell: how often and when it is cast.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Slot {
     /// How often the monster picks it, of 200.
     pub(crate) frequency: u32,
     /// Its slot flags that decide when it can be picked.
@@ -93,8 +101,19 @@ pub(crate) struct DamagingSpell<'a> {
     pub(crate) breath: bool,
     /// It takes no time (`MON_SPELL_INSTANT`), so the monster acts again straight after.
     pub(crate) instant: bool,
-    damage: ZapDamage,
-    to_hit: ZapToHit,
+}
+
+impl Slot {
+    /// The slot `slot` of a monster's book.
+    pub(crate) fn of(slot: &MonsterSpell) -> Self {
+        let has = |flag| has_flag(&slot.flags, flag);
+        Self {
+            frequency: slot.frequency,
+            when: SlotRange::of(&slot.flags),
+            breath: has("MON_SPELL_BREATH"),
+            instant: has("MON_SPELL_INSTANT"),
+        }
+    }
 }
 
 /// At what distance from the player a spell slot can be picked: `_spell_flags_invalid_for_situation`
@@ -155,24 +174,15 @@ fn has_flag(flags: &[EnumId], flag: &str) -> bool {
     flags.iter().any(|f| f.0 == flag)
 }
 
-/// `slot` as a spell the engine ports, if it is one ([`is_ported`]).
-pub(crate) fn damaging<'a>(
-    variant: MonsterSpellBeam,
-    slot: &MonsterSpell,
-    spell: &'a Spell,
-) -> Option<DamagingSpell<'a>> {
+/// `spell` as a spell the engine ports, if it is one ([`is_ported`]).
+pub(crate) fn damaging(variant: MonsterSpellBeam, spell: &Spell) -> Option<DamagingSpell<'_>> {
     if !is_ported(variant, spell) {
         return None;
     }
     let zap = spell.zap.as_ref()?;
-    let has = |flag| has_flag(&slot.flags, flag);
     Some(DamagingSpell {
         spell,
         zap,
-        frequency: slot.frequency,
-        when: SlotRange::of(&slot.flags),
-        breath: has("MON_SPELL_BREATH"),
-        instant: has("MON_SPELL_INSTANT"),
         damage: zap.monster_damage?,
         to_hit: zap.monster_to_hit?,
     })

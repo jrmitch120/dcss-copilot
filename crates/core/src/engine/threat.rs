@@ -10,7 +10,7 @@ use super::melee::{
     self, Attack, Defences, ENERGY_THRESHOLD, attack_reach, energy_gained, starting_energy,
 };
 use super::rng::Rng;
-use super::spells::{self, DamagingSpell, Prospect, Reach};
+use super::spells::{self, DamagingSpell, Prospect, Reach, Slot};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -57,6 +57,8 @@ pub(crate) struct Attacker<'a> {
 pub(crate) struct Cast<'a> {
     /// The spell.
     pub(crate) spell: DamagingSpell<'a>,
+    /// How its book holds it.
+    slot: Slot,
     /// The power the monster casts it with.
     power: i32,
     /// How far it reaches.
@@ -77,11 +79,12 @@ impl<'a> Attacker<'a> {
             .iter()
             .filter_map(|slot| {
                 let spell = bundle.spell_by_id(&slot.spell)?;
-                let damaging = spells::damaging(formulas.monster_spell_beam, slot, spell)?;
+                let damaging = spells::damaging(formulas.monster_spell_beam, spell)?;
                 let power = spells::power(formulas.monster_spell_power, &spell.id, hit_dice);
                 let range = spells::range(formulas.monster_spell_power, spell.range?, power);
                 Some(Cast {
                     spell: damaging,
+                    slot: Slot::of(slot),
                     power,
                     reach: spells::reach(formulas.monster_spell_beam, &damaging, range),
                 })
@@ -198,10 +201,10 @@ fn one_action(
                     }
                     total += shot.damage;
                 }
-                breathed |= cast.spell.breath;
+                breathed |= cast.slot.breath;
                 // An instant spell takes no time, and the monster goes on to act
                 // (`handle_mon_spell`, `mon-cast.cc:5228`).
-                if !cast.spell.instant {
+                if !cast.slot.instant {
                     energy -= cost(monster.energy.spell);
                     continue;
                 }
@@ -255,7 +258,7 @@ fn choose_cast<'c, 'a>(
 ) -> Option<&'c Cast<'a>> {
     let usable: Vec<&Cast<'a>> = casts
         .iter()
-        .filter(|cast| !(breathed && cast.spell.breath))
+        .filter(|cast| !(breathed && cast.slot.breath))
         .collect();
     // With no usable spell, crawl rolls for none (`handle_mon_spell`).
     if usable.is_empty() {
@@ -264,8 +267,8 @@ fn choose_cast<'c, 'a>(
     let prospects: Vec<Prospect> = usable
         .iter()
         .map(|cast| Prospect {
-            frequency: cast.spell.frequency,
-            when: cast.spell.when,
+            frequency: cast.slot.frequency,
+            when: cast.slot.when,
             in_range: cast.reach.casts >= distance,
         })
         .collect();
