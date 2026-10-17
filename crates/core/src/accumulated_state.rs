@@ -103,11 +103,13 @@ impl<T> Remembered<T> {
         })
     }
 
-    /// Something seen since may have changed it.
+    /// Something seen since may have changed it. A Stale fact stays Stale, and a Missing one
+    /// Missing.
     fn go_stale(&mut self) {
-        if let Self::Known(fact) = std::mem::take(self) {
-            *self = Self::Stale(fact);
-        }
+        *self = match std::mem::take(self) {
+            Self::Known(fact) | Self::Stale(fact) => Self::Stale(fact),
+            Self::Missing => Self::Missing,
+        };
     }
 }
 
