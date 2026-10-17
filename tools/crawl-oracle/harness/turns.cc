@@ -39,8 +39,8 @@
  *   <ported spells> is a file of the spell_type values the engine ports, one per line, as
  *   `crawl-oracle ported-spells` prints them. <cases> counts the turn cases. The block and reach
  *   cases are the same every run and are printed by shard 0. Each turn case is seeded from
- *   <seed> and its index; with a shard, only the turn cases whose number leaves <shard> when
- *   divided by <count> are drawn.
+ *   <seed> and its index; with a shard, only its turn cases are drawn (common.h), by their
+ *   number among the turn cases, each rule's dealt round the shards.
  */
 
 #include "common.h"
@@ -558,7 +558,7 @@ int main(int argc, char *argv[])
     const vector<turn_rule> rules = _turn_rules(kinds);
     for (int i = 0; i < run.cases; ++i, ++index)
     {
-        if (!_in_shard(run, i))
+        if (!_in_shard(run, i, static_cast<int>(rules.size())))
             continue;
         _start_case(run, index);
         _turn_case(index, run.trials, rules[i % rules.size()]);

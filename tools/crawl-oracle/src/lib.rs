@@ -227,8 +227,8 @@ impl fmt::Display for Report {
     }
 }
 
-/// Which of a run's cases a harness drew: those whose index leaves `index` when divided by
-/// `count`, so `count` harnesses, one per shard, draw them all between them.
+/// Which share of a run's cases a harness drew: `count` harnesses, one per shard, draw them all
+/// between them (`docs/crawl-oracle.md`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub struct Shard {
     /// The shard, from 0.

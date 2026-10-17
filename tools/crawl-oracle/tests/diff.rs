@@ -48,8 +48,8 @@ fn a_to_hit_off_by_one_is_caught() {
     assert_eq!(caught(&with_to_hit_one_higher(0)), [(0, Measure::ToHit)]);
 }
 
-/// The cases of `dump` that fall in shard `index` of `count`, as a harness run with that shard
-/// prints them.
+/// A share of `dump`'s cases, every `count`th from `index`, with a header naming shard `index` of
+/// `count`, as a harness run with a shard prints it.
 fn shard_of(dump: &str, index: u64, count: u64) -> String {
     dump.lines()
         .enumerate()

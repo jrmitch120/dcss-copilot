@@ -6,8 +6,8 @@
 #
 #   tools/crawl-oracle/oracle.sh <crawl checkout> [<shard>/<count>]
 #
-# With a shard, each harness draws only the cases whose index leaves <shard> when divided by
-# <count>, so <count> runs, one per shard, diff every case between them; CI runs them side by side.
+# With a shard, each harness draws only that shard's cases, so <count> runs, one per shard, diff
+# every case between them (docs/crawl-oracle.md); CI runs them side by side.
 #
 # The checkout must be at a shipped Game Knowledge bundle's commit, with the contrib submodules
 # lua, pcre, sqlite and zlib. Crawl is built as webtiles; the code diffed is the same in every

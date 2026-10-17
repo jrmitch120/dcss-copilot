@@ -43,8 +43,8 @@
 //
 //   <seed> <cases> <trials> [<ported spells>] [<shard>/<count>]
 //
-// It draws only the cases whose index leaves `shard` when divided by `shards`, so `shards`
-// harnesses, one per shard, draw a run's cases between them. Without a shard it draws them all.
+// It draws only its shard's cases (_in_shard), so `shards` harnesses, one per shard, draw a run's
+// cases between them. Without a shard it draws them all.
 struct oracle_run
 {
     uint64_t seed;
@@ -85,10 +85,13 @@ static oracle_run _read_run(int argc, char *argv[], bool ported)
     return run;
 }
 
-// Whether case `index` falls in the run's shard.
-static bool _in_shard(const oracle_run &run, int index)
+// Whether case `index` falls in the run's shard, for a harness whose cases take turns at `kinds`
+// kinds. Each kind's cases are dealt round the shards in turn, so every shard gets its share of
+// every kind: dealing the cases themselves would hand a shard only the kinds whose turn lines up
+// with it, and some kinds take far longer than others.
+static bool _in_shard(const oracle_run &run, int index, int kinds)
 {
-    return index % run.shards == run.shard;
+    return index / kinds % run.shards == run.shard;
 }
 
 // The dump's header line, which the oracle reads first.

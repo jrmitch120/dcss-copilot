@@ -9,8 +9,8 @@
  * messages, brands and death that follow a hit. Built by oracle.mk and run by tools/crawl-oracle/oracle.sh.
  *
  * Usage: melee <seed> <cases> <trials> [<shard>/<count>]
- *   Each case is seeded from <seed> and its index; with a shard, only the cases whose index
- *   leaves <shard> when divided by <count> are drawn.
+ *   Each case is seeded from <seed> and its index; with a shard, only its cases are drawn
+ *   (common.h).
  */
 
 #include "common.h"
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     _print_header(run);
     for (int i = 0; i < run.cases; ++i)
     {
-        if (!_in_shard(run, i))
+        if (!_in_shard(run, i, 1))
             continue;
         _start_case(run, i);
         _run_case(i, run.trials);

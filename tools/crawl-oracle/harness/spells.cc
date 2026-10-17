@@ -22,7 +22,7 @@
  * Usage: spells <seed> <cases> <trials> <ported spells> [<shard>/<count>]
  *   <ported spells> is a file of the spell_type values the engine ports, one per line, as
  *   `crawl-oracle ported-spells` prints them. Each case is seeded from <seed> and its index;
- *   with a shard, only the cases whose index leaves <shard> when divided by <count> are drawn.
+ *   with a shard, only its cases are drawn (common.h).
  */
 
 #include "common.h"
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     _print_header(run);
     for (int i = 0; i < run.cases; ++i)
     {
-        if (!_in_shard(run, i))
+        if (!_in_shard(run, i, 2))
             continue;
         // A fresh level: a blocked beam ends where it was blocked, and may leave a cloud there.
         _start_case(run, i);
