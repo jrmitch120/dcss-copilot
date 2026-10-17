@@ -75,6 +75,22 @@ pub struct MapCell {
     /// The player can see the square now. Otherwise the game shows it as remembered, which may
     /// be out of date.
     pub in_view: bool,
+    /// Whether a halo lights it or an umbra darkens it.
+    pub light: SquareLight,
+}
+
+/// Whether a halo lights a square or an umbra darkens it, as the game draws it. A square in both
+/// is drawn as neither, which is how crawl's light treats it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SquareLight {
+    /// Neither.
+    #[default]
+    Plain,
+    /// A halo lights it, such as an angel's or the player's own.
+    Halo,
+    /// An umbra darkens it, such as a profane servitor's or the player's own.
+    Umbra,
 }
 
 impl LevelMap {

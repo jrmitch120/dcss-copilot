@@ -1,0 +1,179 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz277498664",
+    "character": "wiz277498664",
+    "species": "Minotaur",
+    "firstSeenMs": 1792277499844,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 19,
+          "death": {
+            "times": 4802,
+            "trials": 10000
+          },
+          "worstHit": 49,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "profane servitor",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "mayShoot": [],
+          "lighting": "umbra",
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz277498664",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "line": "Profane servitor can attack before your next action.",
+          "detail": "Death 48.0% · worst hit 49 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "A",
+                  "colour": "red"
+                },
+                "tile": "mon/undead/profane_servitor"
+              },
+              "name": "profane servitor",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 1,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 19,
+        "death": {
+          "times": 4802,
+          "trials": 10000
+        },
+        "worstHit": 49,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "profane servitor",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "mayShoot": [],
+        "lighting": "umbra",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz277498664",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 1
+      },
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "line": "Profane servitor can attack before your next action.",
+        "detail": "Death 48.0% · worst hit 49 of 19 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "A",
+                "colour": "red"
+              },
+              "tile": "mon/undead/profane_servitor"
+            },
+            "name": "profane servitor",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

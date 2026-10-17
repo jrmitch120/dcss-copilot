@@ -57,6 +57,7 @@ expression: replay
               "distance": 5
             }
           ],
+          "lighting": "normal",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -149,6 +150,7 @@ expression: replay
               "distance": 5
             }
           ],
+          "lighting": "normal",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -243,6 +245,7 @@ expression: replay
             "distance": 5
           }
         ],
+        "lighting": "normal",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",

@@ -25,5 +25,5 @@ pub use view_model::{
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,
-    RECENT_MESSAGES, Religion, Stats, Status, VisibleMonster, VisibleState,
+    RECENT_MESSAGES, Religion, SquareLight, Stats, Status, VisibleMonster, VisibleState,
 };

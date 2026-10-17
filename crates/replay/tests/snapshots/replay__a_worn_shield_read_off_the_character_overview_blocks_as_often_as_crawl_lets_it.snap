@@ -72,6 +72,7 @@ expression: by_turn
           }
         ],
         "mayShoot": [],
+        "lighting": "normal",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -140,6 +141,7 @@ expression: by_turn
           }
         ],
         "mayShoot": [],
+        "lighting": "normal",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -207,6 +209,7 @@ expression: by_turn
           }
         ],
         "mayShoot": [],
+        "lighting": "normal",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",

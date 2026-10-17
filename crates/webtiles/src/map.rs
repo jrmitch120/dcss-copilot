@@ -3,7 +3,9 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use copilot_core::{Attitude, Colour, CrawlThreat, Glyph, MapCell, Position, VisibleMonster};
+use copilot_core::{
+    Attitude, Colour, CrawlThreat, Glyph, MapCell, Position, SquareLight, VisibleMonster,
+};
 use copilot_gk::{Bundle, EnumId};
 use serde_json::Value;
 
@@ -11,6 +13,13 @@ use serde_json::Value;
 /// `tile-flags.h` (`TILE_FLAG_MM_UNSEEN | TILE_FLAG_UNSEEN`). The page's `enums.js` reads the same
 /// bits; they have held since tiles came to webtiles.
 const UNSEEN: u64 = 0x0002_0000 | 0x0004_0000;
+
+/// The tile `halo` values that mark a square lit by a halo, and the first and last that mark one
+/// in an umbra, from crawl's `tilecell.h` (`HALO_RANGE`, `HALO_UMBRA_FIRST` and
+/// `HALO_UMBRA_LAST`); the umbra's four only vary how it is drawn. The page's `enums.js` reads
+/// the same values.
+const HALO_RANGE: i64 = 1;
+const HALO_UMBRA: std::ops::RangeInclusive<i64> = 2..=5;
 
 /// What a monster is called when neither the game nor Game Knowledge has named it.
 const UNNAMED: &str = "unknown monster";
@@ -39,6 +48,9 @@ struct Cell {
     colour: Option<u8>,
     /// The tile's background flags, once the game has sent tile data for the cell.
     tile_bg: Option<u64>,
+    /// The tile's `halo` value: how a halo or umbra draws over it, 0 for neither until the game
+    /// says otherwise.
+    halo: i64,
     monster: Option<CellMonster>,
 }
 
@@ -131,6 +143,9 @@ impl LevelMap {
         if let Some(tile) = delta.get("t") {
             let bg = tile.get("bg").map(low_word);
             cell.tile_bg = Some(bg.or(cell.tile_bg).unwrap_or(0));
+            if let Some(halo) = tile.get("halo").and_then(Value::as_i64) {
+                cell.halo = halo;
+            }
         }
         if let Some(monster) = delta.get("mon") {
             let old = cell.monster.take();
@@ -197,6 +212,7 @@ impl LevelMap {
                     glyph: cell.glyph(),
                     feature: decode(cell.feature, knowledge, Bundle::feature).cloned(),
                     in_view: cell.in_view(),
+                    light: cell.light(),
                 };
                 Some((position(key)?, cell))
             },
@@ -208,6 +224,15 @@ impl Cell {
     /// The player can see the cell now.
     fn in_view(&self) -> bool {
         self.tile_bg.is_some_and(|bg| bg & UNSEEN == 0)
+    }
+
+    /// Whether a halo lights the cell or an umbra darkens it.
+    fn light(&self) -> SquareLight {
+        match self.halo {
+            HALO_RANGE => SquareLight::Halo,
+            halo if HALO_UMBRA.contains(&halo) => SquareLight::Umbra,
+            _ => SquareLight::Plain,
+        }
     }
 
     fn glyph(&self) -> Glyph {
