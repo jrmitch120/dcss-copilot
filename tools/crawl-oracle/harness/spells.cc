@@ -111,7 +111,7 @@ static monster *_random_caster(const set<spell_type> &ported, int distance)
 static void _beam_case(int index, int trials, const set<spell_type> &ported)
 {
     const defences def = _random_player();
-    _random_light(true);
+    _random_light();
     monster *mon = _random_caster(ported, 1);
     const spell_type spell = mon->spells[random2(mon->spells.size())].spell;
     const int power = mons_spellpower(*mon, spell);
@@ -124,7 +124,7 @@ static void _beam_case(int index, int trials, const set<spell_type> &ported)
            "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           spell, spell_title(spell), mon->nightvision() ? "true" : "false", def.ac, def.ev,
+           spell, spell_title(spell), _json_bool(mon->nightvision()), def.ac, def.ev,
            def.sh, _lighting(), power, range, _beam_json(tally, trials).c_str());
 
     _remove(*mon);

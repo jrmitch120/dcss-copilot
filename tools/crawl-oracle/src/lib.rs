@@ -526,28 +526,26 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         ),
         (Measure::Damage, case.damage.clone(), engine.damage),
     ];
-    let mut mismatches: Vec<Mismatch> = nightvision(
+    let mut mismatches = nightvision_mismatch(
         bundle,
         case.index,
         &case.monster,
         case.monster_type,
         case.nightvision,
-    )?
-    .into_iter()
-    .collect();
+    )?;
     mismatches.extend(differing(case.index, &case.monster, measures));
     Ok(mismatches)
 }
 
-/// A mismatch when crawl's monster numbered `monster` sees through an umbra and its Game
-/// Knowledge says it doesn't, or the other way about.
-fn nightvision(
+/// The mismatch, if any, when crawl's monster numbered `monster` sees through an umbra and its
+/// Game Knowledge says it doesn't, or the other way about: the first of a case's mismatches.
+fn nightvision_mismatch(
     bundle: &Bundle,
     case: u64,
     who: &str,
     monster: u16,
     crawl: bool,
-) -> Result<Option<Mismatch>, DiffError> {
+) -> Result<Vec<Mismatch>, DiffError> {
     let known = bundle.monster(monster).ok_or(DiffError::Case {
         case,
         source: CaseError::NoMonster(monster),
@@ -558,7 +556,9 @@ fn nightvision(
         Measure::Nightvision,
         u32::from(crawl),
         u32::from(known.nightvision),
-    ))
+    )
+    .into_iter()
+    .collect())
 }
 
 /// Every measure of a beam `case` on which crawl and the engine differ.
@@ -606,10 +606,8 @@ fn beam_mismatches(
     engine: &SpellTally,
     who: &str,
 ) -> Result<Vec<Mismatch>, DiffError> {
-    let mut mismatches: Vec<Mismatch> =
-        nightvision(bundle, case.index, who, case.monster, case.nightvision)?
-            .into_iter()
-            .collect();
+    let mut mismatches =
+        nightvision_mismatch(bundle, case.index, who, case.monster, case.nightvision)?;
     // What the formulas fix for the case must be equal.
     mismatches.extend(
         [
@@ -715,10 +713,8 @@ fn compare_missile(
         ),
         (Measure::Damage, case.damage.clone(), engine.damage),
     ];
-    let mut mismatches: Vec<Mismatch> =
-        nightvision(bundle, case.index, &who, case.monster, case.nightvision)?
-            .into_iter()
-            .collect();
+    let mut mismatches =
+        nightvision_mismatch(bundle, case.index, &who, case.monster, case.nightvision)?;
     mismatches.extend(differing(case.index, &who, measures));
     Ok(mismatches)
 }
@@ -861,7 +857,7 @@ fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Misma
         u32::from(attacks && engine.can_attack),
     )
     .into_iter()
-    .chain(nightvision(
+    .chain(nightvision_mismatch(
         bundle,
         case.index,
         &who,

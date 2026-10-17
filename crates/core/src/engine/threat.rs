@@ -6,13 +6,14 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells, Odds, Wand};
 
 use crate::accumulated_state::Shield;
 
+use super::lighting::Lighting;
 use super::melee::{
-    self, Aim, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Lighting, Target,
-    attack_reach, energy_gained, starting_energy,
+    self, Aim, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Target, attack_reach,
+    energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Shooter};
 use super::rng::Rng;
-use super::spells::{self, DamagingSpell, Prospect, Reach, Slot};
+use super::spells::{self, DamagingSpell, Firing, Prospect, Reach, Slot};
 use super::wands;
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
@@ -37,6 +38,17 @@ pub(crate) struct Defender {
     pub(crate) lighting: Lighting,
     /// The most attacks the shield blocks before the player's next action.
     pub(crate) shield_blocks: u32,
+}
+
+impl Defender {
+    /// The player as one trial's attacks meet them: in their light, with the fraction of their
+    /// defences the display drops drawn afresh ([`Defences::drawn_behind`]).
+    fn target(&self, rng: &mut Rng) -> Target {
+        Target {
+            defences: Defences::drawn_behind(self.defences, rng),
+            lighting: self.lighting,
+        }
+    }
 }
 
 /// The most attacks the player's shield blocks before their next action, wearing `shield`: the
@@ -270,10 +282,7 @@ pub(crate) fn simulate(
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
         .map(|_| {
-            let target = Target {
-                defences: Defences::drawn_behind(defender.defences, &mut rng),
-                lighting: defender.lighting,
-            };
+            let target = defender.target(&mut rng);
             one_action(
                 formulas,
                 &mut rng,
@@ -362,15 +371,12 @@ pub(crate) fn turn(
         if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, can_breathe) {
             turn.casts += 1;
             if cast.reach.strikes >= distance {
-                turn.damage += fire_beam(
-                    formulas,
-                    rng,
-                    &cast.spell,
-                    cast.power,
-                    monster.nightvision,
-                    target,
-                    blocks_left,
-                );
+                let firing = Firing {
+                    spell: &cast.spell,
+                    power: cast.power,
+                    nightvision: monster.nightvision,
+                };
+                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
             }
             if cast.slot.breath {
                 breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
@@ -388,15 +394,12 @@ pub(crate) fn turn(
             && zap.reach.casts >= distance
         {
             if zap.reach.strikes >= distance {
-                turn.damage += fire_beam(
-                    formulas,
-                    rng,
-                    &zap.spell,
-                    zap.power,
-                    monster.nightvision,
-                    target,
-                    blocks_left,
-                );
+                let firing = Firing {
+                    spell: &zap.spell,
+                    power: zap.power,
+                    nightvision: monster.nightvision,
+                };
+                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
             }
             energy -= wands::energy(formulas.monster_wand);
             continue;
@@ -452,18 +455,16 @@ pub(crate) fn turn(
     turn
 }
 
-/// The damage a beam of `spell` at `power`, cast by a monster with or without `nightvision`,
-/// deals `target`, using up a block of their shield when it blocks it.
+/// The damage the beam `firing` deals `target`, using up a block of their shield when it blocks
+/// it.
 fn fire_beam(
     formulas: Formulas,
     rng: &mut Rng,
-    spell: &DamagingSpell<'_>,
-    power: i32,
-    nightvision: bool,
+    firing: Firing<'_, '_>,
     target: Target,
     blocks_left: &mut u32,
 ) -> i32 {
-    let bolt = spells::bolt(formulas.beam_damage, rng, spell, power, nightvision);
+    let bolt = spells::bolt(formulas.beam_damage, rng, firing);
     let shot = spells::shoot(
         formulas.beam_hit,
         formulas.beam_damage,
@@ -575,7 +576,7 @@ mod tests {
                 .filter(|_| {
                     let target = Target {
                         defences: Defences::exact(ac, ev, sh),
-                        lighting: Lighting::Normal,
+                        lighting: Lighting::Plain,
                     };
                     one_action(formulas, &mut rng, target, 1, &attackers) >= hp
                 })
@@ -588,7 +589,7 @@ mod tests {
                 ev: 8,
                 sh: 4,
             },
-            lighting: Lighting::Normal,
+            lighting: Lighting::Plain,
             shield_blocks: 1,
         };
         let displayed = usize::try_from(simulate(formulas, defender, &attackers).deaths).unwrap();

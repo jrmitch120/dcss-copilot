@@ -254,27 +254,36 @@ static defences _random_player()
     exit(1);
 }
 
-// How the light falls on the player as monsters aim at them, as the engine takes it: backlit
-// (player::backlit(false)), else in an umbra (player::umbra()), else neither.
+// `value` as a JSON boolean.
+static const char *_json_bool(bool value)
+{
+    return value ? "true" : "false";
+}
+
+// The player's Lighting as monsters aim at them, as the engine takes it: backlit
+// (player::backlit(false)), else in an umbra (player::umbra()), else plain.
 static const char *_lighting()
 {
     if (you.backlit(false))
         return "backlit";
     if (you.umbra())
         return "umbra";
-    return "normal";
+    return "plain";
 }
 
-// A third of the time puts the player under a corona, which backlights them, and a third, when
-// `shadow`, gives them the Foul Shadow mutation, an umbra of their own; otherwise leaves the
-// light as the level and its monsters make it. A monster's halo or umbra reaches them on top.
-static void _random_light(bool shadow)
+// A third of the time puts the player under a corona, which backlights them, and a third makes
+// them a follower of Yredelemnul, whose umbra surrounds them at any piety (passive_t::umbra);
+// otherwise leaves the light as the level and its monsters make it. A monster's halo or umbra
+// reaches them on top. Whatever an earlier draw lit them with is put out first.
+static void _random_light()
 {
+    you.duration[DUR_CORONA] = 0;
+    you.religion = GOD_NO_GOD;
     const int roll = random2(3);
     if (roll == 0)
         you.duration[DUR_CORONA] = 1000;
-    else if (roll == 1 && shadow)
-        you.mutation[MUT_FOUL_SHADOW] = 1;
+    else if (roll == 1)
+        you.religion = GOD_YREDELEMNUL;
     invalidate_agrid(true);
 }
 

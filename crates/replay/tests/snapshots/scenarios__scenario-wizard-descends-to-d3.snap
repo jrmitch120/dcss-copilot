@@ -34,7 +34,7 @@ expression: replay
           "hostilesInView": 1,
           "acting": [],
           "mayShoot": [],
-          "lighting": "normal",
+          "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -102,7 +102,7 @@ expression: replay
           "hostilesInView": 0,
           "acting": [],
           "mayShoot": [],
-          "lighting": "normal",
+          "lighting": "plain",
           "notModelled": []
         }
       },
@@ -152,7 +152,7 @@ expression: replay
         "hostilesInView": 0,
         "acting": [],
         "mayShoot": [],
-        "lighting": "normal",
+        "lighting": "plain",
         "notModelled": []
       }
     },

@@ -81,21 +81,21 @@ fn one_shard_of_a_run_is_diffed_on_its_own() {
 #[test]
 fn a_seraphs_halo_left_out_of_its_aim_is_caught() {
     // Case 10, a seraph, whose halo backlights the player: counted as plain light.
-    let dump = with_changed(DUMP, 10, |case| case["lighting"] = "normal".into());
+    let dump = with_changed(DUMP, 10, |case| case["lighting"] = "plain".into());
     assert!(caught(&dump).contains(&(10, Measure::ToHit)));
 }
 
 #[test]
 fn an_umbra_left_out_of_the_aim_of_a_monster_without_nightvision_is_caught() {
     // Case 1, a merfolk siren, which can't see through the player's umbra: counted as plain light.
-    let dump = with_changed(DUMP, 1, |case| case["lighting"] = "normal".into());
+    let dump = with_changed(DUMP, 1, |case| case["lighting"] = "plain".into());
     assert!(caught(&dump).contains(&(1, Measure::ToHit)));
 }
 
 #[test]
 fn an_umbra_doesnt_spoil_the_aim_of_a_monster_with_nightvision() {
     // Case 21, an ancient lich, undead: the player's umbra doesn't change its rolls.
-    let dump = with_changed(DUMP, 21, |case| case["lighting"] = "normal".into());
+    let dump = with_changed(DUMP, 21, |case| case["lighting"] = "plain".into());
     assert_eq!(caught(&dump), []);
 }
 
@@ -165,7 +165,7 @@ fn a_beam_damage_off_by_one_is_caught() {
 #[test]
 fn a_backlit_player_counted_as_in_plain_light_is_caught() {
     // Case 8, a fire giant's bolt of fire at a player under a corona: counted as plain light.
-    let dump = with_changed(SPELLS, 8, |case| case["lighting"] = "normal".into());
+    let dump = with_changed(SPELLS, 8, |case| case["lighting"] = "plain".into());
     assert_eq!(caught(&dump), [(8, Measure::Hits)]);
 }
 

@@ -130,7 +130,7 @@ pub(crate) fn shoot(
     target: Target,
     can_block: bool,
 ) -> Swing {
-    let defences = target.defences;
+    let Target { defences, lighting } = target;
     match formulas.missile_attack {
         MissileAttack::Crawl034 => {
             // `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`) counts an archer as
@@ -141,7 +141,7 @@ pub(crate) fn shoot(
                 accuracy: missile.weapon.accuracy,
                 nightvision: shooter.nightvision,
             };
-            let to_hit = melee::monster_to_hit(formulas.monster_to_hit, rng, aim, target.lighting);
+            let to_hit = melee::monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
             let hits = melee::evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
             // The block is rolled even for a missile that ignores it (`attack_shield_blocked`).
             let blocked = melee::shield_blocks(

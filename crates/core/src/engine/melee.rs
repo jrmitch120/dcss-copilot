@@ -13,6 +13,7 @@ use copilot_gk::{
     MonsterToHit, ShieldBlock,
 };
 
+use super::lighting::Lighting;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
 
@@ -75,40 +76,6 @@ pub(crate) const ENERGY_THRESHOLD: i32 = 80;
 /// `BASELINE_DELAY` (`defines.h:149`): the time a standard-speed player action takes.
 const BASELINE_DELAY: i32 = 10;
 
-/// `BACKLIGHT_TO_HIT_BONUS` (`attack.h:16`): how much easier a backlit player is to hit.
-const BACKLIGHT_TO_HIT_BONUS: i32 = 5;
-
-/// `UMBRA_TO_HIT_MALUS` (`attack.h:17`): how much harder a player in an umbra is to hit, for a
-/// monster without nightvision.
-const UMBRA_TO_HIT_MALUS: i32 = -3;
-
-/// How the light falls on the player, which changes how well monsters aim at them: crawl's
-/// `player::backlit(false)` and `player::umbra()`, which never hold together.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum Lighting {
-    /// Neither backlit nor in an umbra.
-    #[default]
-    Normal,
-    /// Backlit: lit by a halo or their own glow, such as a corona.
-    Backlit,
-    /// In an umbra that no halo lights.
-    Umbra,
-}
-
-impl Lighting {
-    /// What the light adds to the to-hit of a monster aiming at the player, with or without
-    /// `nightvision`: the lighting terms of `attack::post_roll_to_hit_modifiers`
-    /// (`attack.cc:244`), which `bolt::apply_lighting` (`beam.cc:3483`) doubles.
-    pub(crate) fn to_hit_modifier(self, nightvision: bool) -> i32 {
-        match self {
-            Self::Backlit => BACKLIGHT_TO_HIT_BONUS,
-            Self::Umbra if !nightvision => UMBRA_TO_HIT_MALUS,
-            Self::Umbra | Self::Normal => 0,
-        }
-    }
-}
-
 /// The player as a monster's attack meets them: their defences, and how the light falls on them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Target {
@@ -128,7 +95,7 @@ pub(crate) struct Aim {
     pub(crate) skilled: bool,
     /// The accuracy of its +0 weapon (`PWPN_HIT`), 0 for none.
     pub(crate) accuracy: i32,
-    /// It sees through an umbra (`monster::nightvision`).
+    /// It sees through an umbra (`monster::nightvision`, `monster.cc:6545`).
     pub(crate) nightvision: bool,
 }
 
@@ -403,8 +370,8 @@ pub(crate) fn swing(
     target: Target,
     can_block: bool,
 ) -> Swing {
-    let defences = target.defences;
-    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, aim, target.lighting);
+    let Target { defences, lighting } = target;
+    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
     let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
     let blocked =
         shield_blocks(formulas.shield_block, rng, to_hit, aim.hit_dice, defences) && can_block;
@@ -541,7 +508,7 @@ mod tests {
                     accuracy: 0,
                     nightvision: false,
                 };
-                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim, Lighting::Normal);
+                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim, Lighting::Plain);
                 evasion_margin(
                     EvasionRoll::Crawl034,
                     rng,
@@ -578,7 +545,7 @@ mod tests {
 
     #[test]
     fn a_backlit_player_is_aimed_at_with_five_more_before_the_roll() {
-        assert_eq!(best_to_hit(aim(false), Lighting::Normal), 19);
+        assert_eq!(best_to_hit(aim(false), Lighting::Plain), 19);
         assert_eq!(best_to_hit(aim(false), Lighting::Backlit), 24);
         assert_eq!(best_to_hit(aim(true), Lighting::Backlit), 24);
     }
@@ -593,7 +560,7 @@ mod tests {
     fn one_attack_in_forty_hits_or_misses_regardless_of_evasion() {
         // Against EV 1000 only the automatic hit lands: 5% of attacks ignore evasion, half hit.
         let ported = chance(|rng| {
-            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim(false), Lighting::Normal);
+            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim(false), Lighting::Plain);
             evasion_margin(
                 EvasionRoll::Crawl034,
                 rng,

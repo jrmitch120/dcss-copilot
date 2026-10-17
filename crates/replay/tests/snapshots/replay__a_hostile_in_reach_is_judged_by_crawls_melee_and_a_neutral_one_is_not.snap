@@ -27,7 +27,7 @@ expression: replayer.advisor().fact_sheet()
       }
     ],
     "mayShoot": [],
-    "lighting": "normal",
+    "lighting": "plain",
     "notModelled": [
       "monsterEquipment",
       "attackFlavours",

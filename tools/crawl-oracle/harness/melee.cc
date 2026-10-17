@@ -68,7 +68,7 @@ static monster *_random_monster(int &attack_number)
 static void _run_case(int index, int trials)
 {
     const defences def = _random_player();
-    _random_light(true);
+    _random_light();
     int attack_number = 0;
     monster *mon = _random_monster(attack_number);
 
@@ -99,8 +99,8 @@ static void _run_case(int index, int trials)
            "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           mon->is_fighter() ? "true" : "false", mon->nightvision() ? "true" : "false",
-           attk.attk_damage, crush ? "true" : "false", def.ac, def.ev, def.sh, _lighting(),
+           _json_bool(mon->is_fighter()), _json_bool(mon->nightvision()),
+           attk.attk_damage, _json_bool(crush), def.ac, def.ev, def.sh, _lighting(),
            trials, _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str());
 
     _remove(*mon);

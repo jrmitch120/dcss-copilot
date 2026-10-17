@@ -353,17 +353,23 @@ pub(crate) struct Bolt {
     nightvision: bool,
 }
 
-/// The beam `spell` fires at `power`, cast by a monster with or without `nightvision`: its dice
-/// and accuracy from the zap's monster calculators (`zap_damage` and `zap_to_hit`,
-/// `beam.cc:385`), rolling `calc_dice`'s rounding for a zap whose dice share a total
-/// (`random.cc:289`).
-pub(crate) fn bolt(
-    variant: BeamDamage,
-    rng: &mut Rng,
-    spell: &DamagingSpell<'_>,
-    power: i32,
-    nightvision: bool,
-) -> Bolt {
+/// A spell's beam as a monster fires it, cast from its book or zapped from a wand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Firing<'s, 'a> {
+    /// The spell.
+    pub(crate) spell: &'s DamagingSpell<'a>,
+    /// The power it is fired at.
+    pub(crate) power: i32,
+    /// The monster sees through an umbra, which crawl's beam carries from it
+    /// (`bolt::precalc_agent_properties`, `beam.cc:707`).
+    pub(crate) nightvision: bool,
+}
+
+/// The beam `firing` sets up: its dice and accuracy from the zap's monster calculators
+/// (`zap_damage` and `zap_to_hit`, `beam.cc:385`), rolling `calc_dice`'s rounding for a zap
+/// whose dice share a total (`random.cc:289`).
+pub(crate) fn bolt(variant: BeamDamage, rng: &mut Rng, firing: Firing<'_, '_>) -> Bolt {
+    let (spell, power) = (firing.spell, firing.power);
     match variant {
         BeamDamage::Crawl034 => {
             let damage = spell.damage;
@@ -406,7 +412,7 @@ pub(crate) fn bolt(
                 explodes: zap.explodes,
                 blockable,
                 armour,
-                nightvision,
+                nightvision: firing.nightvision,
             }
         }
     }
@@ -434,7 +440,6 @@ pub(crate) fn shoot(
     target: Target,
     can_block: bool,
 ) -> Shot {
-    let defences = target.defences;
     let mut shot = Shot {
         blocked: false,
         hits: false,
@@ -445,20 +450,20 @@ pub(crate) fn shoot(
             // An explosion engulfs the player: nothing blocks or dodges it.
             if !bolt.explodes {
                 // `bolt::misses_player` reads the player's evasion and shield class first.
-                let ev = defences.evasion(rng);
-                let shield_class = defences.shield_class(rng);
+                let ev = target.defences.evasion(rng);
+                let shield_class = target.defences.shield_class(rng);
                 if let (true, true, true, Some(to_hit)) =
                     (bolt.blockable, can_block, shield_class > 0, bolt.to_hit)
                 {
                     let test_hit = rng.random2(to_hit * 130 / 100);
-                    let block = melee::shield_bonus(rng, defences);
+                    let block = melee::shield_bonus(rng, target.defences);
                     if test_hit < block {
                         shot.blocked = true;
                         return shot;
                     }
                 }
                 // `_test_beam_hit` (`beam.cc:3228`), against the accuracy the light on the player
-                // changes by twice what it changes a melee attack's (`bolt::apply_lighting`); the
+                // changes by twice what it changes a melee attack's (`bolt::apply_lighting`, `beam.cc:3483`); the
                 // block used the beam's own.
                 if let Some(to_hit) = bolt.to_hit {
                     let to_hit = to_hit + 2 * target.lighting.to_hit_modifier(bolt.nightvision);
@@ -477,7 +482,7 @@ pub(crate) fn shoot(
             let rolled = rng.roll_dice(bolt.dice, bolt.sides);
             // `actor::apply_ac` (`actor.cc:343`) without guaranteed damage reduction, which beams
             // don't get.
-            let ac = defences.armour_class(rng).max(0);
+            let ac = target.defences.armour_class(rng).max(0);
             let saved = match bolt.armour {
                 ArmourRule::None => 0,
                 ArmourRule::Normal => rng.random2(1 + ac),

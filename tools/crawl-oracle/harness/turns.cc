@@ -516,11 +516,9 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         const int hd = mon->get_hit_dice();
         const int speed = mon->speed;
         const bool nightvision = mon->nightvision();
-        // Backlit a third of the time. A foul shadow is left out: its flame burns a monster
-        // that hits the player.
-        const bool corona = one_chance_in(3);
-        if (corona)
-            you.duration[DUR_CORONA] = 1000;
+        _random_light();
+        // Restoring the player between plays ends a corona, so each play lights it again.
+        const bool corona = you.duration[DUR_CORONA] > 0;
         // As the monster starts; a halo of its own may reach the player only as it closes, which
         // changes no tally here.
         const char *lighting = _lighting();
@@ -542,7 +540,7 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
                "\"hd\":%d,\"speed\":%d,\"distance\":%d,\"nightvision\":%s,"
                "\"lighting\":\"%s\",\"trials\":%d,\"melee\":%s,\"casts\":%s,\"closed\":%s}\n",
                index, rule.name, kind.type, name.c_str(), hd, speed, distance,
-               nightvision ? "true" : "false", lighting, trials,
+               _json_bool(nightvision), lighting, trials,
                _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
                _histogram(tally.closed).c_str());
         return;

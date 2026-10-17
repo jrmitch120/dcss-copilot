@@ -13,11 +13,12 @@ use crate::accumulated_state::Shield;
 use super::melee::{self, Aim, Attack, Defences, Flavour, Swing, Target};
 use super::missiles::{self, Missile, Shooter};
 use super::rng::Rng;
-use super::spells::{self, DamagingSpell};
+use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
 use super::wands;
 
-pub use super::melee::{AUTOMATIC_HIT, Lighting};
+pub use super::lighting::Lighting;
+pub use super::melee::AUTOMATIC_HIT;
 
 /// The player's AC, EV and SH as a harness dresses them: whole points, exactly as displayed, with
 /// no fraction the display drops.
@@ -225,39 +226,31 @@ pub fn spell(
     let formulas = bundle.formulas;
     let (caster, cast) = damaging_spell(bundle, case.monster, case.spell)?;
     let power = spells::power(formulas.monster_spell_power, &cast.spell.id, case.hit_dice);
-    let beam = Beam {
+    let firing = Firing {
         spell: &cast,
         power,
         nightvision: caster.nightvision,
     };
     Ok(beams(
         formulas,
-        &beam,
+        firing,
         target(case.defences, case.lighting),
         seed,
         trials,
     ))
 }
 
-/// A beam as a monster fires it: its spell, the power it fires it with, and whether the monster
-/// sees through an umbra.
-struct Beam<'s, 'a> {
-    spell: &'s DamagingSpell<'a>,
-    power: i32,
-    nightvision: bool,
-}
-
-/// Fires `beam` at `target` `trials` times through the ported formulas, from a generator seeded
-/// with `seed`, with a fresh shield block for every beam.
+/// Fires `firing`'s beam at `target` `trials` times through the ported formulas, from a
+/// generator seeded with `seed`, with a fresh shield block for every beam.
 fn beams(
     formulas: Formulas,
-    beam: &Beam<'_, '_>,
+    firing: Firing<'_, '_>,
     target: Target,
     seed: (u64, u64),
     trials: u32,
 ) -> SpellTally {
-    let power = beam.power;
-    let range = beam.spell.spell.range.map_or(0, |range| {
+    let power = firing.power;
+    let range = firing.spell.spell.range.map_or(0, |range| {
         spells::range(formulas.monster_spell_power, range, power)
     });
     let mut rng = Rng::new(seed.0, seed.1);
@@ -267,13 +260,7 @@ fn beams(
         ..SpellTally::default()
     };
     for _ in 0..trials {
-        let bolt = spells::bolt(
-            formulas.beam_damage,
-            &mut rng,
-            beam.spell,
-            power,
-            beam.nightvision,
-        );
+        let bolt = spells::bolt(formulas.beam_damage, &mut rng, firing);
         tally.to_hit = bolt.to_hit;
         let shot = spells::shoot(
             formulas.beam_hit,
@@ -551,14 +538,14 @@ pub fn wand(
         &spell.spell.id,
         case.hit_dice,
     );
-    let beam = Beam {
+    let firing = Firing {
         spell: &spell,
         power,
         nightvision: zapper.nightvision,
     };
     Ok(beams(
         formulas,
-        &beam,
+        firing,
         target(case.defences, case.lighting),
         seed,
         trials,

@@ -8,7 +8,8 @@ use serde::Serialize;
 use specta::Type;
 
 use crate::accumulated_state::AccumulatedState;
-use crate::engine::melee::{DisplayedDefences, Lighting};
+use crate::engine::lighting::Lighting;
+use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::visible_state::{
@@ -500,10 +501,10 @@ fn lighting(visible: &VisibleState, player: Position) -> (Lighting, Option<NotMo
         .and_then(|map| map.cell(player))
         .map_or(SquareLight::Plain, |cell| cell.light);
     match square {
-        SquareLight::Plain => (Lighting::Normal, None),
+        SquareLight::Plain => (Lighting::Plain, None),
         SquareLight::Umbra => (Lighting::Umbra, None),
         SquareLight::Halo => match own_halo(visible) {
-            Some(true) => (Lighting::Normal, None),
+            Some(true) => (Lighting::Plain, None),
             Some(false) => (Lighting::Backlit, None),
             None => (Lighting::Backlit, Some(NotModelled::OwnHalo)),
         },
@@ -667,7 +668,7 @@ mod tests {
             );
         }
         let visible = standing_in(SquareLight::Plain, &["Pois", "Slow"]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Normal, None));
+        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
     }
 
     #[test]
@@ -682,7 +683,7 @@ mod tests {
             religion: worshipping("the Shining One", false),
             ..standing_in(SquareLight::Halo, &[])
         };
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Normal, None));
+        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
         let visible = VisibleState {
             religion: worshipping("the Shining One", true),
             ..standing_in(SquareLight::Halo, &[])
@@ -703,7 +704,7 @@ mod tests {
             text: Some("in a heavenly storm".to_owned()),
             colour: None,
         }]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Normal, None));
+        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
     }
 
     #[test]
@@ -747,7 +748,7 @@ mod tests {
         let visible = standing_in(SquareLight::Umbra, &[]);
         assert_eq!(lighting(&visible, PLAYER), (Lighting::Umbra, None));
         let visible = standing_in(SquareLight::Plain, &[]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Normal, None));
+        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
     }
 
     fn chance(times: u32) -> Chance {
