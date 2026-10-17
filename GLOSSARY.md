@@ -100,6 +100,10 @@ _Avoid_: Danger score, threat score
 The total damage the player could take before their next action, as bad as it gets barring one time in a hundred (the 99th percentile of the Threat Level's simulation). It counts every monster that can attack, not only the hardest single blow.
 _Avoid_: Max damage, max hit
 
+**Displayed Defences**:
+The player's AC, EV and SH as the game shows them: whole points. Crawl keeps each in hundredths and rolls with the fraction the display drops, so the Threat Level guesses that fraction, any as likely as another, in each of its trials.
+_Avoid_: True AC, real defences
+
 **Not Modelled**:
 What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
 _Avoid_: Unsupported, ignored, edge cases

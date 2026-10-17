@@ -268,7 +268,7 @@ pub(crate) fn simulate(
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
         .map(|_| {
-            let defences = Defences::behind(defender.defences, &mut rng);
+            let defences = Defences::drawn_behind(defender.defences, &mut rng);
             one_action(
                 formulas,
                 &mut rng,

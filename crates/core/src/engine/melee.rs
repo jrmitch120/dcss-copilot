@@ -284,7 +284,7 @@ impl Defences {
     ///
     /// A displayed value of 0 or less is taken as exact: SH 0 is almost always no shield at all,
     /// which must never block, and below zero the display truncates towards zero.
-    pub(crate) fn behind(displayed: DisplayedDefences, rng: &mut Rng) -> Self {
+    pub(crate) fn drawn_behind(displayed: DisplayedDefences, rng: &mut Rng) -> Self {
         let mut defences = Self::exact(displayed.ac, displayed.ev, displayed.sh);
         if displayed.ac > 0 {
             defences.ac += rng.random2(100);
@@ -614,7 +614,7 @@ mod tests {
         let mut rng = rng();
         let mut counts = BTreeMap::new();
         for _ in 0..TRIALS {
-            let defences = Defences::behind(displayed, &mut rng);
+            let defences = Defences::drawn_behind(displayed, &mut rng);
             *counts.entry(roll(defences, &mut rng)).or_insert(0) += 1;
         }
         counts
