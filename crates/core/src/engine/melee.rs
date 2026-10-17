@@ -242,6 +242,19 @@ fn gdr_percent(ac: i32) -> i32 {
     gdr
 }
 
+/// The player's AC, EV and SH as the game displays them: whole points, with the fraction crawl
+/// keeps dropped (`armour_class_scaled(1)`, `evasion_scaled(1)` and
+/// `player_displayed_shield_class()`, all truncated).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct DisplayedDefences {
+    /// Armour class.
+    pub(crate) ac: i32,
+    /// Evasion.
+    pub(crate) ev: i32,
+    /// Shield class.
+    pub(crate) sh: i32,
+}
+
 /// The player's AC, EV and SH in hundredths of a point, as crawl keeps them. Crawl rounds each
 /// at random every time it rolls with it, so the formulas ask for them through these methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -262,6 +275,27 @@ impl Defences {
             ev: ev * 100,
             sh: sh * 200,
         }
+    }
+
+    /// Defences that would show as `displayed`, with the fraction the display drops drawn as if
+    /// any were as likely: 0 to 99 hundredths of AC and EV, and 0 to 199 of the shield class,
+    /// which the display truncates and then halves. That assumption is an approximation: a real
+    /// character's fraction comes from their skills, Dexterity and gear.
+    ///
+    /// A displayed value of 0 or less is taken as exact: SH 0 is almost always no shield at all,
+    /// which must never block, and below zero the display truncates towards zero.
+    pub(crate) fn behind(displayed: DisplayedDefences, rng: &mut Rng) -> Self {
+        let mut defences = Self::exact(displayed.ac, displayed.ev, displayed.sh);
+        if displayed.ac > 0 {
+            defences.ac += rng.random2(100);
+        }
+        if displayed.ev > 0 {
+            defences.ev += rng.random2(100);
+        }
+        if displayed.sh > 0 {
+            defences.sh += rng.random2(200);
+        }
+        defences
     }
 
     /// `player::armour_class` (`player.cc:6533`): AC, rounded at random.
@@ -386,6 +420,8 @@ pub(crate) fn most_starting_energy(variant: MonsterEnergy) -> i32 {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use copilot_gk::EnumId;
 
     use super::*;
@@ -568,6 +604,81 @@ mod tests {
             .collect();
         assert_eq!(taken.iter().max(), Some(&14));
         assert_eq!(taken.iter().min(), Some(&4));
+    }
+
+    /// The share of `TRIALS` players behind `displayed` whose `roll` came out as each value.
+    fn shares(
+        displayed: DisplayedDefences,
+        roll: fn(Defences, &mut Rng) -> i32,
+    ) -> BTreeMap<i32, f64> {
+        let mut rng = rng();
+        let mut counts = BTreeMap::new();
+        for _ in 0..TRIALS {
+            let defences = Defences::behind(displayed, &mut rng);
+            *counts.entry(roll(defences, &mut rng)).or_insert(0) += 1;
+        }
+        counts
+            .into_iter()
+            .map(|(value, count)| (value, f64::from(count) / f64::from(TRIALS)))
+            .collect()
+    }
+
+    fn assert_shares(actual: &BTreeMap<i32, f64>, expected: &[(i32, f64)]) {
+        assert_eq!(
+            actual.keys().copied().collect::<Vec<_>>(),
+            expected.iter().map(|&(value, _)| value).collect::<Vec<_>>()
+        );
+        for &(value, share) in expected {
+            assert!(
+                (actual[&value] - share).abs() < 0.005,
+                "{value}: {actual:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn behind_a_displayed_ac_or_ev_each_roll_is_that_or_one_more_about_half_the_time() {
+        // A fraction of 0 to 99 hundredths, each as likely, rounds up 49.5 times in 100.
+        let displayed = DisplayedDefences {
+            ac: 7,
+            ev: 12,
+            sh: 0,
+        };
+        assert_shares(
+            &shares(displayed, Defences::armour_class),
+            &[(7, 0.505), (8, 0.495)],
+        );
+        assert_shares(
+            &shares(displayed, Defences::evasion),
+            &[(12, 0.505), (13, 0.495)],
+        );
+    }
+
+    #[test]
+    fn behind_a_displayed_sh_the_shield_class_hides_up_to_two_points() {
+        // Displayed SH 5 is a shield class of 10.00 to 11.99: half the time 10 rounding up to 11
+        // 49.5 times in 100, half the time 11 rounding up to 12 as often.
+        let displayed = DisplayedDefences {
+            ac: 0,
+            ev: 0,
+            sh: 5,
+        };
+        assert_shares(
+            &shares(displayed, Defences::shield_class),
+            &[(10, 0.2525), (11, 0.5), (12, 0.2475)],
+        );
+    }
+
+    #[test]
+    fn a_displayed_zero_or_less_is_taken_as_exact() {
+        let displayed = DisplayedDefences {
+            ac: 0,
+            ev: -2,
+            sh: 0,
+        };
+        assert_shares(&shares(displayed, Defences::armour_class), &[(0, 1.0)]);
+        assert_shares(&shares(displayed, Defences::evasion), &[(-2, 1.0)]);
+        assert_shares(&shares(displayed, Defences::shield_class), &[(0, 1.0)]);
     }
 
     #[test]

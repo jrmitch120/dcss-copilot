@@ -24,7 +24,7 @@ Spell failure, which only the player has, comes with the first player spell the 
 
 It prints a JSON line per case with the inputs the ported formulas take and the tallies: how often each to-hit came up, hits, blocks, and how often each amount of damage was taken.
 
-It leaves out what the engine doesn't model: monsters that wield items, are animated objects, or carry a halo or umbra, which changes their to-hit against the player (#78). It also leaves out players whose AC, EV or SH carries a fraction the display drops (#77).
+It leaves out what the engine doesn't model: monsters that wield items, are animated objects, or carry a halo or umbra, which changes their to-hit against the player (#78). It also leaves out players whose AC, EV or SH carries a fraction the display drops: the oracle hands the engine their defences exactly, while the Threat Level, which sees only the display, guesses the fraction for each trial (#77).
 
 ### Spells
 

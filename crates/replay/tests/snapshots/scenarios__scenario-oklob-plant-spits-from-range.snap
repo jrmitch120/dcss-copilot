@@ -193,7 +193,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 36,
+          "worstHit": 35,
           "hostilesInView": 1,
           "acting": [
             {
@@ -233,7 +233,7 @@ expression: replay
           "state": "rated",
           "level": "dangerous",
           "line": "Oklob plant can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 36 of 52 HP"
+          "detail": "Death under 0.1% · worst hit 35 of 52 HP"
         },
         "focus": {
           "card": "inView",
@@ -274,10 +274,10 @@ expression: replay
         "level": "lethal",
         "hp": 28,
         "death": {
-          "times": 814,
+          "times": 750,
           "trials": 10000
         },
-        "worstHit": 36,
+        "worstHit": 35,
         "hostilesInView": 1,
         "acting": [
           {
@@ -317,7 +317,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Oklob plant can attack before your next action.",
-        "detail": "Death 8.1% · worst hit 36 of 28 HP"
+        "detail": "Death 7.5% · worst hit 35 of 28 HP"
       },
       "focus": {
         "card": "inView",

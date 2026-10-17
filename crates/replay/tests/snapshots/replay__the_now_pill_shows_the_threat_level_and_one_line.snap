@@ -22,12 +22,12 @@ expression: pills
     "state": "rated",
     "level": "dangerous",
     "line": "3 monsters can attack before your next action.",
-    "detail": "Death under 0.1% · worst hit 7 of 12 HP"
+    "detail": "Death under 0.1% · worst hit 6 of 12 HP"
   },
   {
     "state": "rated",
     "level": "lethal",
     "line": "3 monsters can attack before your next action.",
-    "detail": "Death 31.6% · worst hit 7 of 3 HP"
+    "detail": "Death 25.8% · worst hit 6 of 3 HP"
   }
 ]

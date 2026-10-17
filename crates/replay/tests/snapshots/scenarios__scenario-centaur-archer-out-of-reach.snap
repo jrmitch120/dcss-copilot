@@ -29,7 +29,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 26,
+          "worstHit": 25,
           "hostilesInView": 1,
           "acting": [
             {
@@ -79,7 +79,7 @@ expression: replay
           "state": "rated",
           "level": "calm",
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 26 of 102 HP · Gear guessed from kind: centaur"
+          "detail": "Death under 0.1% · worst hit 25 of 102 HP · Gear guessed from kind: centaur"
         },
         "focus": {
           "card": "inView",
@@ -121,7 +121,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 26,
+          "worstHit": 25,
           "hostilesInView": 1,
           "acting": [
             {
@@ -171,7 +171,7 @@ expression: replay
           "state": "rated",
           "level": "calm",
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 26 of 93 HP · Gear guessed from kind: centaur"
+          "detail": "Death under 0.1% · worst hit 25 of 93 HP · Gear guessed from kind: centaur"
         },
         "focus": {
           "card": "inView",
@@ -215,7 +215,7 @@ expression: replay
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 26,
+        "worstHit": 25,
         "hostilesInView": 1,
         "acting": [
           {
@@ -265,7 +265,7 @@ expression: replay
         "state": "rated",
         "level": "calm",
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 26 of 84 HP · Gear guessed from kind: centaur"
+        "detail": "Death under 0.1% · worst hit 25 of 84 HP · Gear guessed from kind: centaur"
       },
       "focus": {
         "card": "inView",
