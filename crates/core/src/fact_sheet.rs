@@ -353,7 +353,7 @@ fn threat(
     }
     let defender = Defender {
         hp,
-        defences: Defences { ac, ev, sh },
+        defences: Defences::exact(ac, ev, sh),
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);

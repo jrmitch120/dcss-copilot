@@ -101,12 +101,19 @@ pub(crate) fn monster_to_hit(
     }
 }
 
-/// Whether an attack with this `to_land` gets past the player's evasion `ev`: the margin
-/// `attack::test_hit` (`attack.cc:984`) returns, which hits when it is at least 0. A monster's
-/// attack randomises the player's evasion (`melee-attack.cc:1898` passes `randomise_ev`).
-pub(crate) fn evasion_margin(variant: EvasionRoll, rng: &mut Rng, to_land: i32, ev: i32) -> i32 {
+/// Whether an attack with this `to_land` gets past the player's evasion: the margin
+/// `attack::test_hit` (`attack.cc:984`) returns, which hits when it is at least 0, against the
+/// evasion `melee_attack::attack` reads (`melee-attack.cc:1897`). A monster's attack randomises
+/// the player's evasion (`melee-attack.cc:1898` passes `randomise_ev`).
+pub(crate) fn evasion_margin(
+    variant: EvasionRoll,
+    rng: &mut Rng,
+    to_land: i32,
+    defences: Defences,
+) -> i32 {
     match variant {
         EvasionRoll::Crawl034 => {
+            let ev = defences.evasion(rng);
             let ev = rng.random2avg(2 * ev, 2);
             if to_land >= AUTOMATIC_HIT {
                 return AUTOMATIC_HIT;
@@ -129,14 +136,13 @@ pub(crate) fn evasion_margin(variant: EvasionRoll, rng: &mut Rng, to_land: i32, 
 ///
 /// The monster's bypass is `random2(mon_shield_bypass(hd))` (`fight.cc:237`, via
 /// `monster::shield_bypass_ability`, `monster.cc:3096`); the player's block is
-/// `player::shield_bonus` (`player.cc:6106`), from `player_shield_class`, which is twice the SH the
-/// game displays (`player_displayed_shield_class`, `player.cc:2337`).
+/// `player::shield_bonus` (`player.cc:6106`).
 pub(crate) fn shield_blocks(
     variant: ShieldBlock,
     rng: &mut Rng,
     to_hit: i32,
     hit_dice: i32,
-    displayed_sh: i32,
+    defences: Defences,
 ) -> bool {
     match variant {
         ShieldBlock::Crawl034 => {
@@ -144,14 +150,19 @@ pub(crate) fn shield_blocks(
                 return false;
             }
             let con_block = rng.random2(15 + hit_dice * 2 / 3);
-            let shield_class = displayed_sh * 2;
-            let pro_block = if shield_class <= 0 {
-                -100
-            } else {
-                rng.random2avg(shield_class * 2, 2) / 3 - 1
-            };
-            pro_block >= con_block
+            shield_bonus(rng, defences) >= con_block
         }
+    }
+}
+
+/// `player::shield_bonus` (`player.cc:6106`): how well the player's shield blocks one attack or
+/// beam.
+pub(crate) fn shield_bonus(rng: &mut Rng, defences: Defences) -> i32 {
+    let shield_class = defences.shield_class(rng);
+    if shield_class <= 0 {
+        -100
+    } else {
+        rng.random2avg(shield_class * 2, 2) / 3 - 1
     }
 }
 
@@ -203,14 +214,19 @@ pub(crate) fn monster_damage(
     }
 }
 
-/// What the player takes from `damage` after armour class `ac`: `actor::apply_ac`
-/// (`actor.cc:343`) under the normal rule, with guaranteed damage reduction from
-/// `player::gdr_perc` (`player.cc:6620`).
-pub(crate) fn apply_ac(variant: Armour, rng: &mut Rng, damage: RolledDamage, ac: i32) -> i32 {
+/// What the player takes from `damage` after armour: `actor::apply_ac` (`actor.cc:343`) under the
+/// normal rule, with guaranteed damage reduction from `player::gdr_perc` (`player.cc:6620`),
+/// which rounds the player's AC again for itself.
+pub(crate) fn apply_ac(
+    variant: Armour,
+    rng: &mut Rng,
+    damage: RolledDamage,
+    defences: Defences,
+) -> i32 {
     match variant {
         Armour::Crawl034 => {
-            let ac = ac.max(0);
-            let gdr = gdr_percent(ac);
+            let ac = defences.armour_class(rng).max(0);
+            let gdr = gdr_percent(defences.armour_class(rng));
             let saved = rng.random2(1 + ac);
             let saved = saved.max((gdr * damage.max / 100).min(rng.div_rand_round(ac, 2)));
             (damage.damage - saved).max(0)
@@ -226,15 +242,42 @@ fn gdr_percent(ac: i32) -> i32 {
     gdr
 }
 
-/// The player's defences against melee, as the game displays them.
+/// The player's AC, EV and SH in hundredths of a point, as crawl keeps them. Crawl rounds each
+/// at random every time it rolls with it, so the formulas ask for them through these methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Defences {
-    /// Armour class.
-    pub(crate) ac: i32,
-    /// Evasion.
-    pub(crate) ev: i32,
-    /// Shield class.
-    pub(crate) sh: i32,
+    /// `player::armour_class_scaled(100)`.
+    ac: i32,
+    /// `player::evasion_scaled(100)`.
+    ev: i32,
+    /// `player_shield_class(100)`: twice the SH the game displays.
+    sh: i32,
+}
+
+impl Defences {
+    /// Defences of exactly these whole points of AC, EV and SH, as the game displays them.
+    pub(crate) fn exact(ac: i32, ev: i32, sh: i32) -> Self {
+        Self {
+            ac: ac * 100,
+            ev: ev * 100,
+            sh: sh * 200,
+        }
+    }
+
+    /// `player::armour_class` (`player.cc:6533`): AC, rounded at random.
+    pub(crate) fn armour_class(self, rng: &mut Rng) -> i32 {
+        rng.div_rand_round(self.ac, 100)
+    }
+
+    /// `player::evasion` (`player.cc:6635`): EV, rounded at random.
+    pub(crate) fn evasion(self, rng: &mut Rng) -> i32 {
+        rng.div_rand_round(self.ev, 100)
+    }
+
+    /// `player_shield_class()` (`player.cc:2281`): twice the displayed SH, rounded at random.
+    pub(crate) fn shield_class(self, rng: &mut Rng) -> i32 {
+        rng.div_rand_round(self.sh, 100)
+    }
 }
 
 /// How one monster attack on the player went.
@@ -271,9 +314,9 @@ pub(crate) fn swing(
     can_block: bool,
 ) -> Swing {
     let to_hit = monster_to_hit(formulas.monster_to_hit, rng, hit_dice, fighter, 0);
-    let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences.ev) >= 0;
+    let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
     let blocked =
-        shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences.sh) && can_block;
+        shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences) && can_block;
     let mut swing = Swing {
         to_hit,
         hits,
@@ -282,7 +325,7 @@ pub(crate) fn swing(
     };
     if swing.landed() {
         let rolled = monster_damage(formulas.monster_damage, rng, attack);
-        swing.damage = apply_ac(formulas.armour, rng, rolled, defences.ac);
+        swing.damage = apply_ac(formulas.armour, rng, rolled, defences);
     }
     swing
 }
@@ -400,7 +443,12 @@ mod tests {
             let pre_roll = 18 + hd * if fighter { 5 } else { 3 } / 2;
             let ported = chance(|rng| {
                 let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, hd, fighter, 0);
-                evasion_margin(EvasionRoll::Crawl034, rng, to_hit, ev) >= 0
+                evasion_margin(
+                    EvasionRoll::Crawl034,
+                    rng,
+                    to_hit,
+                    Defences::exact(0, ev, 0),
+                ) >= 0
             }) * 100.0;
             let crawl = crawl_mon_to_hit_pct(pre_roll, ev);
             assert!(
@@ -415,14 +463,25 @@ mod tests {
         // Against EV 1000 only the automatic hit lands: 5% of attacks ignore evasion, half hit.
         let ported = chance(|rng| {
             let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, 1, false, 0);
-            evasion_margin(EvasionRoll::Crawl034, rng, to_hit, 1000) >= 0
+            evasion_margin(
+                EvasionRoll::Crawl034,
+                rng,
+                to_hit,
+                Defences::exact(0, 1000, 0),
+            ) >= 0
         });
         assert!((ported - 0.025).abs() < 0.002, "{ported}");
     }
 
     #[test]
     fn without_a_shield_nothing_is_blocked() {
-        assert!((0..1000).all(|_| !shield_blocks(ShieldBlock::Crawl034, &mut rng(), 10, 5, 0)));
+        assert!((0..1000).all(|_| !shield_blocks(
+            ShieldBlock::Crawl034,
+            &mut rng(),
+            10,
+            5,
+            Defences::exact(0, 0, 0)
+        )));
     }
 
     /// `mon_beat_sh_pct(bypass, scaled_sh)` (`fight.cc:286`) for a whole shield class: crawl's
@@ -449,9 +508,15 @@ mod tests {
             let bypass = 15 + hd * 2 / 3;
             let estimate =
                 100.0 - crawl_mon_beat_sh_pct(bypass, displayed_sh * 2) + 100.0 / f64::from(bypass);
-            let ported =
-                chance(|rng| shield_blocks(ShieldBlock::Crawl034, rng, 10, hd, displayed_sh))
-                    * 100.0;
+            let ported = chance(|rng| {
+                shield_blocks(
+                    ShieldBlock::Crawl034,
+                    rng,
+                    10,
+                    hd,
+                    Defences::exact(0, 0, displayed_sh),
+                )
+            }) * 100.0;
             assert!(
                 (ported - estimate).abs() < 2.5,
                 "HD {hd}, SH {displayed_sh}: ported {ported:.1}% vs crawl's estimate {estimate:.1}%"
@@ -497,7 +562,7 @@ mod tests {
                         damage: 20,
                         max: 20,
                     },
-                    16,
+                    Defences::exact(16, 0, 0),
                 )
             })
             .collect();

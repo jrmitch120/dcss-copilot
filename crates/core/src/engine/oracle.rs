@@ -65,11 +65,7 @@ pub fn melee(formulas: Formulas, case: &MeleeCase, seed: (u64, u64), trials: u32
         },
         damage: case.damage,
     };
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::exact(case.ac, case.ev, case.sh);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
         tally.add(melee::swing(
@@ -189,11 +185,7 @@ pub fn spell(
     let formulas = bundle.formulas;
     let cast = damaging_spell(bundle, case.monster, case.spell)?;
     let power = spells::power(formulas.monster_spell_power, &cast.spell.id, case.hit_dice);
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::exact(case.ac, case.ev, case.sh);
     Ok(beams(formulas, &cast, power, defences, seed, trials))
 }
 
@@ -396,11 +388,7 @@ pub fn missile(
 ) -> Result<AttackTally, CaseError> {
     let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
     let shooter = Shooter::of(monster, case.hit_dice);
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::exact(case.ac, case.ev, case.sh);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
@@ -495,11 +483,7 @@ pub fn wand(
         &spell.spell.id,
         case.hit_dice,
     );
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::exact(case.ac, case.ev, case.sh);
     Ok(beams(formulas, &spell, power, defences, seed, trials))
 }
 
@@ -674,11 +658,7 @@ pub fn turn(
     monster.speed = case.speed;
     let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
     // Undefended, so whatever strikes the player deals damage.
-    let defences = Defences {
-        ac: 0,
-        ev: 0,
-        sh: 0,
-    };
+    let defences = Defences::exact(0, 0, 0);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {
         can_attack: threat::can_attack(formulas, &attacker),
