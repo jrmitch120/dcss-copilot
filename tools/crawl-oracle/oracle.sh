@@ -4,7 +4,10 @@
 # action, for randomised monsters and player defenders, and diffs that against the engine.
 # Exits non-zero if they differ.
 #
-#   tools/crawl-oracle/oracle.sh <crawl checkout>
+#   tools/crawl-oracle/oracle.sh <crawl checkout> [<shard>/<count>]
+#
+# With a shard, each harness draws only the cases whose index leaves <shard> when divided by
+# <count>, so <count> runs, one per shard, diff every case between them; CI runs them side by side.
 #
 # The checkout must be at a shipped Game Knowledge bundle's commit, with the contrib submodules
 # lua, pcre, sqlite and zlib. Crawl is built as webtiles; the code diffed is the same in every
@@ -12,11 +15,13 @@
 set -euo pipefail
 
 crawl=$(realpath "$1")
+shard=${2:-0/1}
 oracle=$(dirname "$(realpath "$0")")
 repo=$(realpath "$oracle/../..")
 source="$crawl/crawl-ref/source"
 
 # Fixed, so the verdict is the same every run: a case is redrawn only when the harness changes.
+# Each case is seeded from the seed and its index, so it is drawn alike in any shard.
 seed=34
 cases=500
 trials=20000
@@ -41,6 +46,7 @@ pids=()
 for harness in "${harnesses[@]}"; do
     args=("$seed" "$cases" "$trials")
     [[ $harness == melee ]] || args+=("$ported")
+    args+=("$shard")
     ("$source/crawl-oracle-$harness" "${args[@]}" | diff_engine -) > "$verdicts/$harness" 2>&1 &
     pids+=($!)
 done
