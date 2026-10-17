@@ -1,0 +1,10 @@
+# Trimmed from crawl 0.34.1 for the extractor test: the unrandarts that give a halo.
+
+NAME:    morningstar "Eos"
+OBJ:     OBJ_WEAPONS/WPN_MORNINGSTAR
+
+# (trimmed for the extractor test)
+
+ENUM:    VAINGLORY
+NAME:    crown of vainglory
+OBJ:     OBJ_ARMOUR/ARM_HAT

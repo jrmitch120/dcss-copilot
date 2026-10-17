@@ -109,3 +109,17 @@ static string misc_type_name(int type)
         return "buggy miscellaneous item";
     }
 }
+
+const char* special_armour_type_name(special_armour_type ego, bool terse)
+{
+    if (!terse)
+    {
+        switch (ego)
+        {
+        case SPARM_NORMAL:            return "";
+        case SPARM_LIGHT:             return "light";
+        default:                      return "bugginess";
+        }
+    }
+    return "buggy";
+}

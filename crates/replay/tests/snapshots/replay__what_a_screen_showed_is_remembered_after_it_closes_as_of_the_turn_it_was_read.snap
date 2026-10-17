@@ -36,5 +36,15 @@ expression: replayer.advisor().accumulated()
   },
   "wornShield": {
     "state": "missing"
+  },
+  "equipped": {
+    "state": "known",
+    "value": [
+      "a"
+    ],
+    "turn": 1234,
+    "screen": {
+      "kind": "characterOverview"
+    }
   }
 }

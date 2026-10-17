@@ -105,15 +105,19 @@ The player's AC, EV and SH as the game shows them: whole points. Crawl keeps eac
 _Avoid_: True AC, real defences
 
 **Lighting**:
-How the light falls on the player, which changes how well monsters aim at them: Backlit, in an Umbra, or neither.
+How the light falls on the player, which changes how well monsters aim at them: Backlit, in an Umbra, or plain.
 _Avoid_: Visibility, light level
 
+**Halo**:
+Light cast around a holy monster, some gear, or the player, such as a seraph's or a follower of the Shining One's. A square both a Halo and an Umbra reach is lit by neither.
+_Avoid_: Glow, aura
+
 **Backlit**:
-The player lit up so monsters hit them more easily: by their own glow, such as a corona, or by a halo they stand in when they have none of their own.
+The player lit up so monsters hit them more easily: by their own glow, such as a corona, or by a Halo they stand in when they have none of their own.
 _Avoid_: Glowing, haloed (of the player)
 
 **Umbra**:
-Darkness cast around a monster or the player, the opposite of a halo. A player standing in one that no halo lights is harder to hit for monsters without Nightvision.
+Darkness cast around a monster or the player, the opposite of a Halo. A player standing in one that no Halo lights is harder to hit for monsters without Nightvision.
 _Avoid_: Shadow
 
 **Nightvision**:

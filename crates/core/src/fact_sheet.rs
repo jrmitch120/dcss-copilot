@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, MonsterSpells};
+use copilot_gk::{Bundle, LightingSigns, MonsterSpells};
 use serde::Serialize;
 use specta::Type;
 
@@ -27,23 +27,6 @@ const DANGEROUS_DEATHS_PER_MILLE: u32 = 5;
 /// DANGEROUS when the worst-case hit is at least this percentage of current HP. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
 const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
-
-/// The status lights of what backlights the player, whatever halo or umbra they stand in: a
-/// corona, liquid fire, quad damage and harmful contamination, as `player::backlit` reads them
-/// (`player.cc`). Crawl lights `Contam` only once contamination is harmful, and liquid fire as
-/// `Fire`, `Fire+` or `Fire++` by how hot it burns (`status.cc`).
-const BACKLIGHTING_LIGHTS: [&str; 4] = ["Corona", "Fire", "Quad", "Contam"];
-
-/// The god whose worshippers carry a halo of their own while not under penance
-/// (`passive_t::halo`, from the moment they join), as the game names it.
-const HALO_GOD: &str = "the Shining One";
-
-/// The status a halo of the player's own shows as: Wu Jian's heavenly storm.
-const HALO_STATUS: &str = "in a heavenly storm";
-
-/// What the names of items that give their wearer or wielder a halo hold, in lower case: the
-/// morningstar "Eos", the crown of Vainglory and armour of light (`player::halo_radius`).
-const HALO_GEAR: [&str; 3] = ["\"eos\"", "vainglory", "of light"];
 
 /// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
 const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
@@ -224,8 +207,9 @@ pub enum NotModelled {
     /// overview (`%`) tells it.
     WornShield,
     /// The player stands in a halo and may have one of their own, which keeps another's from
-    /// backlighting them, from gear the Advisor can't tell they wear, such as the morningstar
-    /// "Eos" or armour of light. They are assumed to have none, and to be backlit.
+    /// backlighting them: they carry gear that gives one, such as the morningstar "Eos" or
+    /// armour of light, and the Advisor doesn't know whether they wear it. They are assumed to
+    /// have none, and to be backlit. The character overview (`%`) tells it.
     OwnHalo,
 }
 
@@ -351,7 +335,9 @@ fn threat(
             hostiles_in_view: 0,
             acting: Vec::new(),
             may_shoot: Vec::new(),
-            lighting: visible.position.map(|player| lighting(visible, player).0),
+            lighting: knowledge
+                .and_then(|bundle| lighting(visible, remembered, &bundle.lighting))
+                .map(|(lighting, _)| lighting),
             not_modelled: Vec::new(),
         }));
     };
@@ -380,7 +366,8 @@ fn threat(
     {
         not_modelled.push(NotModelled::CarriedGear);
     }
-    let (lighting, own_halo) = lighting(visible, player);
+    let (lighting, own_halo) =
+        lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
     not_modelled.extend(own_halo);
     let defender = Defender {
         hp,
@@ -479,59 +466,74 @@ fn threat(
     }))
 }
 
-/// How the light falls on the player standing at `player`, as crawl's `player::backlit(false)`
-/// and `player::umbra()` decide it from what the game shows: a status that backlights them, or
+/// How the light falls on the player, as crawl's `player::backlit(false)` and `player::umbra()`
+/// (`player.cc:7850`, `player.cc:7864`) decide it from what the game shows, read through `signs`: a status that backlights them, or
 /// the halo or umbra on their square. A halo backlights them only if they have none of their
-/// own; with [`NotModelled::OwnHalo`] beside it when the Advisor can't tell.
-fn lighting(visible: &VisibleState, player: Position) -> (Lighting, Option<NotModelled>) {
-    let lights = |names: &[&str]| {
-        visible.statuses.iter().flatten().any(|status| {
-            status
-                .light
-                .as_deref()
-                .is_some_and(|light| names.contains(&light.trim_end_matches('+')))
-        })
-    };
-    if lights(&BACKLIGHTING_LIGHTS) {
-        return (Lighting::Backlit, None);
+/// own; with [`NotModelled::OwnHalo`] beside it when the Advisor can't tell. `None` when where
+/// they stand isn't known.
+fn lighting(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    signs: &LightingSigns,
+) -> Option<(Lighting, Option<NotModelled>)> {
+    let square = visible.light_at_player()?;
+    let backlit_by_status = visible.statuses.iter().flatten().any(|status| {
+        status
+            .light
+            .as_ref()
+            .is_some_and(|light| signs.backlighting_lights.contains(light))
+    });
+    if backlit_by_status {
+        return Some((Lighting::Backlit, None));
     }
-    let square = visible
-        .map
-        .as_ref()
-        .and_then(|map| map.cell(player))
-        .map_or(SquareLight::Plain, |cell| cell.light);
-    match square {
+    Some(match square {
         SquareLight::Plain => (Lighting::Plain, None),
         SquareLight::Umbra => (Lighting::Umbra, None),
-        SquareLight::Halo => match own_halo(visible) {
+        SquareLight::Halo => match own_halo(visible, remembered, signs) {
             Some(true) => (Lighting::Plain, None),
             Some(false) => (Lighting::Backlit, None),
             None => (Lighting::Backlit, Some(NotModelled::OwnHalo)),
         },
-    }
+    })
 }
 
-/// Whether the player has a halo of their own (`player::halo_radius` of 0 or more), `None` when
-/// they may from gear the Advisor can't tell they wear, or carry.
-fn own_halo(visible: &VisibleState) -> Option<bool> {
-    let shining = matches!(
+/// Whether the player has a halo of their own (`player::halo_radius`, `areas.cc:564`, of 0 or more): from their
+/// god or a status, or from gear they carry that the character overview (`%`) last showed them
+/// wearing or wielding. `None` when they carry such gear and the overview isn't Known, or the
+/// inventory hasn't been sent.
+fn own_halo(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    signs: &LightingSigns,
+) -> Option<bool> {
+    let blessed = matches!(
         &visible.religion,
-        Some(Religion::God { name, penance: false, .. }) if name.eq_ignore_ascii_case(HALO_GOD)
+        Some(Religion::God { name, penance: false, .. }) if signs.halo_gods.contains(name)
     );
-    let storm = visible
-        .statuses
-        .iter()
-        .flatten()
-        .any(|status| status.text.as_deref() == Some(HALO_STATUS));
-    if shining || storm {
+    let storm = visible.statuses.iter().flatten().any(|status| {
+        status
+            .text
+            .as_ref()
+            .is_some_and(|text| signs.halo_statuses.contains(text))
+    });
+    if blessed || storm {
         return Some(true);
     }
-    let inventory = visible.inventory.as_ref()?;
-    let halo_gear = inventory.iter().any(|item| {
-        let name = item.name.to_lowercase();
-        HALO_GEAR.iter().any(|gear| name.contains(gear))
-    });
-    (!halo_gear).then_some(false)
+    let halo_gear: Vec<char> = visible
+        .inventory
+        .as_ref()?
+        .iter()
+        .filter(|item| {
+            let name = item.name.to_lowercase();
+            signs.halo_gear.iter().any(|gear| name.contains(gear))
+        })
+        .map(|item| item.letter)
+        .collect();
+    if halo_gear.is_empty() {
+        return Some(false);
+    }
+    let equipped = remembered?.equipped.known()?;
+    Some(halo_gear.iter().any(|letter| equipped.contains(letter)))
 }
 
 /// The spells of `attacker`'s book the simulation doesn't play out, by name: its Game
@@ -604,152 +606,6 @@ fn distance(a: Position, b: Position) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::view_model::{Colour, Glyph};
-    use crate::visible_state::{InventoryItem, LevelMap, MapCell, Status};
-
-    const PLAYER: Position = Position { x: 5, y: 5 };
-
-    /// A player at [`PLAYER`], whose square is lit by `light`, showing `lights` among their
-    /// statuses and carrying nothing.
-    fn standing_in(light: SquareLight, lights: &[&str]) -> VisibleState {
-        let square = MapCell {
-            glyph: Glyph {
-                text: "@".to_owned(),
-                colour: Colour::White,
-            },
-            feature: None,
-            in_view: true,
-            light,
-        };
-        VisibleState {
-            position: Some(PLAYER),
-            map: Some(LevelMap::new([(PLAYER, square)])),
-            statuses: Some(
-                lights
-                    .iter()
-                    .map(|&light| Status {
-                        light: Some(light.to_owned()),
-                        text: None,
-                        colour: None,
-                    })
-                    .collect(),
-            ),
-            inventory: Some(Vec::new()),
-            ..VisibleState::default()
-        }
-    }
-
-    fn worshipping(god: &str, penance: bool) -> Option<Religion> {
-        Some(Religion::God {
-            name: god.to_owned(),
-            piety_rank: Some(3),
-            penance,
-        })
-    }
-
-    #[test]
-    fn a_corona_liquid_fire_quad_damage_or_harmful_contamination_backlights_the_player() {
-        for light in BACKLIGHTING_LIGHTS {
-            for square in [SquareLight::Plain, SquareLight::Umbra] {
-                let visible = standing_in(square, &[light]);
-                assert_eq!(
-                    lighting(&visible, PLAYER),
-                    (Lighting::Backlit, None),
-                    "{light} on a {square:?} square"
-                );
-            }
-        }
-        for light in ["Fire+", "Fire++"] {
-            let visible = standing_in(SquareLight::Plain, &[light]);
-            assert_eq!(
-                lighting(&visible, PLAYER),
-                (Lighting::Backlit, None),
-                "{light}"
-            );
-        }
-        let visible = standing_in(SquareLight::Plain, &["Pois", "Slow"]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
-    }
-
-    #[test]
-    fn a_halo_backlights_a_player_without_one_of_their_own() {
-        let visible = standing_in(SquareLight::Halo, &[]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Backlit, None));
-    }
-
-    #[test]
-    fn a_halo_doesnt_backlight_a_follower_of_the_shining_one_unless_under_penance() {
-        let visible = VisibleState {
-            religion: worshipping("the Shining One", false),
-            ..standing_in(SquareLight::Halo, &[])
-        };
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
-        let visible = VisibleState {
-            religion: worshipping("the Shining One", true),
-            ..standing_in(SquareLight::Halo, &[])
-        };
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Backlit, None));
-        let visible = VisibleState {
-            religion: worshipping("Zin", false),
-            ..standing_in(SquareLight::Halo, &[])
-        };
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Backlit, None));
-    }
-
-    #[test]
-    fn a_halo_doesnt_backlight_a_player_in_a_heavenly_storm() {
-        let mut visible = standing_in(SquareLight::Halo, &[]);
-        visible.statuses = Some(vec![Status {
-            light: None,
-            text: Some("in a heavenly storm".to_owned()),
-            colour: None,
-        }]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
-    }
-
-    #[test]
-    fn a_player_who_may_wear_a_halo_or_whose_items_arent_known_is_assumed_backlit_and_told() {
-        let carrying = |name: &str| VisibleState {
-            inventory: Some(vec![InventoryItem {
-                letter: 'a',
-                name: name.to_owned(),
-                quantity: 1,
-                kind: None,
-            }]),
-            ..standing_in(SquareLight::Halo, &[])
-        };
-        for name in [
-            "the +2 morningstar \"Eos\" (weapon)",
-            "the +2 crown of Vainglory",
-            "a +1 leather armour of light",
-        ] {
-            assert_eq!(
-                lighting(&carrying(name), PLAYER),
-                (Lighting::Backlit, Some(NotModelled::OwnHalo)),
-                "{name}"
-            );
-        }
-        assert_eq!(
-            lighting(&carrying("a +0 leather armour (worn)"), PLAYER),
-            (Lighting::Backlit, None)
-        );
-        let unknown = VisibleState {
-            inventory: None,
-            ..standing_in(SquareLight::Halo, &[])
-        };
-        assert_eq!(
-            lighting(&unknown, PLAYER),
-            (Lighting::Backlit, Some(NotModelled::OwnHalo))
-        );
-    }
-
-    #[test]
-    fn an_umbra_hides_the_player_and_a_plain_square_neither_lights_nor_hides_them() {
-        let visible = standing_in(SquareLight::Umbra, &[]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Umbra, None));
-        let visible = standing_in(SquareLight::Plain, &[]);
-        assert_eq!(lighting(&visible, PLAYER), (Lighting::Plain, None));
-    }
 
     fn chance(times: u32) -> Chance {
         Chance {

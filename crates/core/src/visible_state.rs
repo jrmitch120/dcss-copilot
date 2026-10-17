@@ -39,6 +39,20 @@ pub struct VisibleState {
     pub screen: Option<ScreenRead>,
 }
 
+impl VisibleState {
+    /// Whether a halo lights the square the character stands on or an umbra darkens it, once
+    /// the game has said where they stand and sent its map.
+    #[must_use]
+    pub fn light_at_player(&self) -> Option<SquareLight> {
+        let position = self.position?;
+        let map = self.map.as_ref()?;
+        Some(
+            map.cell(position)
+                .map_or(SquareLight::Plain, |cell| cell.light),
+        )
+    }
+}
+
 /// How many of the latest messages Visible State keeps: more than one turn's worth, as the
 /// message pane shows. Older messages are history, not what the game shows now.
 pub const RECENT_MESSAGES: usize = 20;

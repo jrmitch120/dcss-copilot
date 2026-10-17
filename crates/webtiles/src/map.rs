@@ -15,7 +15,7 @@ use serde_json::Value;
 const UNSEEN: u64 = 0x0002_0000 | 0x0004_0000;
 
 /// The tile `halo` values that mark a square lit by a halo, and the first and last that mark one
-/// in an umbra, from crawl's `tilecell.h` (`HALO_RANGE`, `HALO_UMBRA_FIRST` and
+/// in an umbra, from crawl's `tilecell.h:10` (`HALO_RANGE`, `HALO_UMBRA_FIRST` and
 /// `HALO_UMBRA_LAST`); the umbra's four only vary how it is drawn. The page's `enums.js` reads
 /// the same values.
 const HALO_RANGE: i64 = 1;

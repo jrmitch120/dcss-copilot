@@ -237,8 +237,8 @@ pub fn monsters(
         let firewood = flag(STATIONARY_FLAG)
             && flag(NO_THREAT_FLAG)
             && !exceptions.never_firewood.contains(&id);
-        // As `monster::nightvision` (`monster.cc`) judges one carrying nothing; every undead
-        // kind `monster::umbra_radius` names is undead already.
+        // As `monster::nightvision` (`monster.cc:6545`) judges one carrying nothing; every undead
+        // kind `monster::umbra_radius` (`areas.cc:764`) names is undead already.
         let nightvision = monster.holiness.iter().any(|holy| holy == UNDEAD_HOLINESS)
             || monster.god.as_deref() == Some(NIGHTVISION_GOD)
             || exceptions.innate_umbras.contains(&id);

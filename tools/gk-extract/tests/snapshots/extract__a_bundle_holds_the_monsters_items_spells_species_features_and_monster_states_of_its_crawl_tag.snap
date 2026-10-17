@@ -1329,6 +1329,27 @@ expression: bundle
     "2": "MTHRT_TOUGH",
     "3": "MTHRT_NASTY"
   },
+  "lighting": {
+    "backlightingLights": [
+      "Corona",
+      "Fire",
+      "Fire+",
+      "Fire++",
+      "Quad",
+      "Contam"
+    ],
+    "haloGods": [
+      "the Shining One"
+    ],
+    "haloStatuses": [
+      "in a heavenly storm"
+    ],
+    "haloGear": [
+      "\"eos\"",
+      "vainglory",
+      "of light"
+    ]
+  },
   "formulas": {
     "monsterToHit": "crawl-0.34",
     "evasionRoll": "crawl-0.34",

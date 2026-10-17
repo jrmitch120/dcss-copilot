@@ -18,6 +18,12 @@ pub struct AccumulatedState {
     /// The shield the character wears, if any, as the character overview or dump last showed it
     /// with the inventory decoded. It goes Stale when the SH the game reports changes.
     pub worn_shield: Remembered<Option<Shield>>,
+    /// The inventory letters of what the character has equipped and not melded, as the
+    /// character overview or dump last showed them. It goes Stale when the inventory, AC, EV or
+    /// SH changes, or the light on the character's square, as putting on or taking off an item
+    /// with a halo does. A change the game shows no sign of, such as wielding one weapon for
+    /// another inside someone else's halo, goes unnoticed.
+    pub equipped: Remembered<Vec<char>>,
 }
 
 /// A fact the Advisor remembers, and how current it is: an engine input is Known, Stale or
@@ -119,11 +125,11 @@ impl AccumulatedState {
         if let Some(resistances) = read.resistances() {
             self.resistances = Remembered::read(resistances, read, visible);
         }
-        if let Some(shield) = read
-            .equipped()
-            .and_then(|letters| worn_shield(&letters, visible))
-        {
-            self.worn_shield = Remembered::read(shield, read, visible);
+        if let Some(letters) = read.equipped() {
+            if let Some(shield) = worn_shield(&letters, visible) {
+                self.worn_shield = Remembered::read(shield, read, visible);
+            }
+            self.equipped = Remembered::read(letters, read, visible);
         }
     }
 
@@ -132,6 +138,13 @@ impl AccumulatedState {
     pub(crate) fn update(&mut self, before: &VisibleState, now: &VisibleState) {
         if before.stats.sh != now.stats.sh {
             self.worn_shield.go_stale();
+        }
+        let (was, is) = (&before.stats, &now.stats);
+        if before.inventory != now.inventory
+            || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
+            || before.light_at_player() != now.light_at_player()
+        {
+            self.equipped.go_stale();
         }
     }
 }

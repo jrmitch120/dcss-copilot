@@ -17,7 +17,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::{
-    Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, MonsterSpell, Spell,
+    Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, LightingSigns, MonsterSpell,
+    Spell,
 };
 
 use crate::cpp::{Source, Token};
@@ -38,7 +39,85 @@ const SERIES: &[Series] = &[Series {
     gear: &gear::GEAR_RULES_0_34,
     test_monsters: &["MONS_TEST_SPAWNER", "MONS_TEST_STATUE", "MONS_TEST_BLOB"],
     innate_umbras: &["MONS_DEATH_KNIGHT"],
+    lighting: &LIGHTING_0_34,
 }];
+
+/// What crawl 0.34 shows that tells the player's Lighting: `player::backlit` and
+/// `player::umbra` (`player.cc:7850`, `player.cc:7864`) and `player::halo_radius`
+/// (`areas.cc:564`).
+const LIGHTING_0_34: LightingRules = LightingRules {
+    backlighting_lights: &[
+        Shown::quoted("Corona", "duration-data.h"),
+        // Liquid fire, lit hotter as it burns hotter (`fill_status_info`, `status.cc:623`).
+        Shown::quoted("Fire", "duration-data.h"),
+        Shown::quoted("Fire+", "status.cc"),
+        Shown::quoted("Fire++", "status.cc"),
+        Shown::quoted("Quad", "duration-data.h"),
+        // Lit only once contamination is harmful (`_describe_glow`, `status.cc:1132`).
+        Shown::quoted("Contam", "status.cc"),
+    ],
+    halo_gods: &[Shown::quoted("the Shining One", "religion.cc")],
+    // Wu Jian's heavenly storm.
+    halo_statuses: &[Shown::quoted("in a heavenly storm", "duration-data.h")],
+    halo_gear: &[
+        // The morningstar "Eos".
+        Shown {
+            text: "\"eos\"",
+            file: "art-data.txt",
+            evidence: Some("\"Eos\""),
+        },
+        // The crown of Vainglory.
+        Shown {
+            text: "vainglory",
+            file: "art-data.txt",
+            evidence: Some("crown of vainglory"),
+        },
+        // Armour of light, named for its ego (`SPARM_LIGHT`).
+        Shown {
+            text: "of light",
+            file: "item-name.cc",
+            evidence: Some("case SPARM_LIGHT: return \"light\";"),
+        },
+    ],
+};
+
+/// What a crawl release series shows that tells the player's Lighting, each text checked
+/// against crawl's source.
+struct LightingRules {
+    backlighting_lights: &'static [Shown],
+    halo_gods: &'static [Shown],
+    halo_statuses: &'static [Shown],
+    halo_gear: &'static [Shown],
+}
+
+/// Text the Advisor matches what the game shows against, ported by hand, with what crawl's
+/// source must hold for it: a renamed one fails the extraction rather than going unmatched.
+struct Shown {
+    /// What the Advisor matches.
+    text: &'static str,
+    /// The source file that must hold `evidence`.
+    file: &'static str,
+    /// What that file must hold, whatever its spacing, when it isn't `text` as a string
+    /// literal.
+    evidence: Option<&'static str>,
+}
+
+impl Shown {
+    /// `text`, which `file` must hold as a string literal.
+    const fn quoted(text: &'static str, file: &'static str) -> Self {
+        Self {
+            text,
+            file,
+            evidence: None,
+        }
+    }
+
+    /// What its file must hold.
+    fn evidence(&self) -> String {
+        self.evidence
+            .map_or_else(|| format!("\"{}\"", self.text), str::to_owned)
+    }
+}
 
 /// What is ported from one crawl release series.
 struct Series {
@@ -53,6 +132,8 @@ struct Series {
     /// The monsters with an umbra of their own that aren't undead, which `monster::umbra_radius`
     /// gives them by kind in code rather than data.
     innate_umbras: &'static [&'static str],
+    /// What it shows that tells the player's Lighting.
+    lighting: &'static LightingRules,
 }
 
 /// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
@@ -341,6 +422,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
+        lighting: crawl.lighting(series.lighting)?,
         formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })
@@ -522,6 +604,35 @@ impl Crawl {
         }
         never.extend(series.test_monsters.iter().map(|&id| id.to_owned()));
         known_monsters(never.iter().map(String::as_str), monster_type)
+    }
+
+    /// The texts of `rules`, each found in crawl's source as its rule says.
+    fn lighting(&self, rules: &LightingRules) -> Result<LightingSigns, ExtractError> {
+        let texts = |shown: &[Shown]| -> Result<Vec<String>, ExtractError> {
+            shown
+                .iter()
+                .map(|shown| {
+                    let evidence = shown.evidence();
+                    let unspaced = |text: &str| text.split_whitespace().collect::<String>();
+                    if unspaced(&read(&self.source.join(shown.file))?)
+                        .contains(&unspaced(&evidence))
+                    {
+                        Ok(shown.text.to_owned())
+                    } else {
+                        Err(ExtractError::Missing {
+                            file: shown.file.to_owned(),
+                            what: evidence,
+                        })
+                    }
+                })
+                .collect()
+        };
+        Ok(LightingSigns {
+            backlighting_lights: texts(rules.backlighting_lights)?,
+            halo_gods: texts(rules.halo_gods)?,
+            halo_statuses: texts(rules.halo_statuses)?,
+            halo_gear: texts(rules.halo_gear)?,
+        })
     }
 
     /// Every monster spellbook, by its `mon_spellbook_type` identifier.
