@@ -26,7 +26,7 @@ expression: replay
           "level": "lethal",
           "hp": 19,
           "death": {
-            "times": 200,
+            "times": 116,
             "trials": 10000
           },
           "worstHit": 19,
@@ -66,7 +66,7 @@ expression: replay
           "state": "rated",
           "level": "lethal",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 2.0% · worst hit 19 of 19 HP"
+          "detail": "Death 1.2% · worst hit 19 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -107,7 +107,7 @@ expression: replay
         "level": "lethal",
         "hp": 19,
         "death": {
-          "times": 200,
+          "times": 116,
           "trials": 10000
         },
         "worstHit": 19,
@@ -147,7 +147,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Ogre can attack before your next action.",
-        "detail": "Death 2.0% · worst hit 19 of 19 HP"
+        "detail": "Death 1.2% · worst hit 19 of 19 HP"
       },
       "focus": {
         "card": "inView",

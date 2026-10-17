@@ -34,7 +34,7 @@ expression: by_turn
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 7,
+        "worstHit": 6,
         "hostilesInView": 3,
         "acting": [
           {

@@ -138,14 +138,14 @@ pub(crate) fn shoot(
                 shooter.archer,
                 missile.weapon.accuracy,
             );
-            let hits = melee::evasion_margin(formulas.evasion_roll, rng, to_hit, defences.ev) >= 0;
+            let hits = melee::evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
             // The block is rolled even for a missile that ignores it (`attack_shield_blocked`).
             let blocked = melee::shield_blocks(
                 formulas.shield_block,
                 rng,
                 to_hit,
                 shooter.hit_dice,
-                defences.sh,
+                defences,
             ) && can_block
                 && !missile.pierces;
             let mut swing = Swing {
@@ -156,7 +156,7 @@ pub(crate) fn shoot(
             };
             if swing.landed() && !missile.harmless {
                 let rolled = missile_damage(rng, shooter, missile);
-                swing.damage = melee::apply_ac(formulas.armour, rng, rolled, defences.ac);
+                swing.damage = melee::apply_ac(formulas.armour, rng, rolled, defences);
             }
             swing
         }

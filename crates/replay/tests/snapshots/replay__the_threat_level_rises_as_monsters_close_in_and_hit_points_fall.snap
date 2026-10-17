@@ -55,7 +55,7 @@ expression: fact_sheets_by_turn(JACKALS)
           "times": 1,
           "trials": 10000
         },
-        "worstHit": 7,
+        "worstHit": 6,
         "hostilesInView": 3,
         "acting": [
           {
@@ -111,10 +111,10 @@ expression: fact_sheets_by_turn(JACKALS)
         "level": "lethal",
         "hp": 3,
         "death": {
-          "times": 3157,
+          "times": 2576,
           "trials": 10000
         },
-        "worstHit": 7,
+        "worstHit": 6,
         "hostilesInView": 3,
         "acting": [
           {

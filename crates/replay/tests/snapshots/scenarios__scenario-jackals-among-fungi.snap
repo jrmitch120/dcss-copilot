@@ -29,7 +29,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 5,
+          "worstHit": 4,
           "hostilesInView": 7,
           "acting": [
             {
@@ -77,7 +77,7 @@ expression: replay
           "state": "rated",
           "level": "calm",
           "line": "2 monsters can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+          "detail": "Death under 0.1% · worst hit 4 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -121,7 +121,7 @@ expression: replay
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 5,
+        "worstHit": 4,
         "hostilesInView": 7,
         "acting": [
           {
@@ -169,7 +169,7 @@ expression: replay
         "state": "rated",
         "level": "calm",
         "line": "2 monsters can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+        "detail": "Death under 0.1% · worst hit 4 of 19 HP"
       },
       "focus": {
         "card": "inView",

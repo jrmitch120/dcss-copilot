@@ -19,6 +19,24 @@ use super::wands;
 
 pub use super::melee::AUTOMATIC_HIT;
 
+/// The player's AC, EV and SH as a harness dresses them: whole points, exactly as displayed, with
+/// no fraction the display drops.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+pub struct ExactDefences {
+    /// Armour class.
+    pub ac: i32,
+    /// Evasion.
+    pub ev: i32,
+    /// Shield class.
+    pub sh: i32,
+}
+
+impl From<ExactDefences> for Defences {
+    fn from(defences: ExactDefences) -> Self {
+        Self::exact(defences.ac, defences.ev, defences.sh)
+    }
+}
+
 /// One monster attack on the player, in the terms the ported formulas take.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MeleeCase {
@@ -30,12 +48,8 @@ pub struct MeleeCase {
     pub damage: i32,
     /// Whether the attack crushes (`AF_CRUSH`), grabbing and dealing no damage itself.
     pub crushes: bool,
-    /// The player's AC, as displayed.
-    pub ac: i32,
-    /// The player's EV, as displayed.
-    pub ev: i32,
-    /// The player's SH, as displayed.
-    pub sh: i32,
+    /// The player's defences.
+    pub defences: ExactDefences,
 }
 
 /// What many runs of one melee attack or missile came to.
@@ -65,11 +79,7 @@ pub fn melee(formulas: Formulas, case: &MeleeCase, seed: (u64, u64), trials: u32
         },
         damage: case.damage,
     };
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::from(case.defences);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
         tally.add(melee::swing(
@@ -149,12 +159,8 @@ pub struct SpellCase {
     pub spell: u16,
     /// The caster's hit dice.
     pub hit_dice: i32,
-    /// The player's AC, as displayed.
-    pub ac: i32,
-    /// The player's EV, as displayed.
-    pub ev: i32,
-    /// The player's SH, as displayed.
-    pub sh: i32,
+    /// The player's defences.
+    pub defences: ExactDefences,
 }
 
 /// What many casts of one spell came to.
@@ -189,11 +195,7 @@ pub fn spell(
     let formulas = bundle.formulas;
     let cast = damaging_spell(bundle, case.monster, case.spell)?;
     let power = spells::power(formulas.monster_spell_power, &cast.spell.id, case.hit_dice);
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::from(case.defences);
     Ok(beams(formulas, &cast, power, defences, seed, trials))
 }
 
@@ -375,12 +377,8 @@ pub struct MissileCase {
     pub weapon: EnumId,
     /// The monster's hit dice.
     pub hit_dice: i32,
-    /// The player's AC, as displayed.
-    pub ac: i32,
-    /// The player's EV, as displayed.
-    pub ev: i32,
-    /// The player's SH, as displayed.
-    pub sh: i32,
+    /// The player's defences.
+    pub defences: ExactDefences,
 }
 
 /// Fires `case`'s missile `trials` times through the ported formulas, from a generator seeded
@@ -396,11 +394,7 @@ pub fn missile(
 ) -> Result<AttackTally, CaseError> {
     let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
     let shooter = Shooter::of(monster, case.hit_dice);
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::from(case.defences);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
@@ -468,12 +462,8 @@ pub struct WandCase {
     pub spell: u16,
     /// The monster's hit dice.
     pub hit_dice: i32,
-    /// The player's AC, as displayed.
-    pub ac: i32,
-    /// The player's EV, as displayed.
-    pub ev: i32,
-    /// The player's SH, as displayed.
-    pub sh: i32,
+    /// The player's defences.
+    pub defences: ExactDefences,
 }
 
 /// Zaps `case`'s wand `trials` times through the ported formulas, from a generator seeded with
@@ -495,11 +485,7 @@ pub fn wand(
         &spell.spell.id,
         case.hit_dice,
     );
-    let defences = Defences {
-        ac: case.ac,
-        ev: case.ev,
-        sh: case.sh,
-    };
+    let defences = Defences::from(case.defences);
     Ok(beams(formulas, &spell, power, defences, seed, trials))
 }
 
@@ -674,11 +660,7 @@ pub fn turn(
     monster.speed = case.speed;
     let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
     // Undefended, so whatever strikes the player deals damage.
-    let defences = Defences {
-        ac: 0,
-        ev: 0,
-        sh: 0,
-    };
+    let defences = Defences::exact(0, 0, 0);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {
         can_attack: threat::can_attack(formulas, &attacker),

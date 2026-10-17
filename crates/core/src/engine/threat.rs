@@ -7,7 +7,8 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells, Odds, Wand};
 use crate::accumulated_state::Shield;
 
 use super::melee::{
-    self, Attack, Defences, ENERGY_THRESHOLD, attack_reach, energy_gained, starting_energy,
+    self, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, attack_reach, energy_gained,
+    starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Shooter};
 use super::rng::Rng;
@@ -31,7 +32,7 @@ pub(crate) struct Defender {
     /// Current hit points.
     pub(crate) hp: i32,
     /// AC, EV and SH, as displayed.
-    pub(crate) defences: Defences,
+    pub(crate) defences: DisplayedDefences,
     /// The most attacks the shield blocks before the player's next action.
     pub(crate) shield_blocks: u32,
 }
@@ -256,7 +257,9 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     false
 }
 
-/// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`.
+/// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`. Each
+/// trial draws the fraction of the player's defences the display drops: it is fixed for the
+/// player at any moment, and crawl rounds it afresh on every roll.
 pub(crate) fn simulate(
     formulas: Formulas,
     defender: Defender,
@@ -264,7 +267,16 @@ pub(crate) fn simulate(
 ) -> Outcome {
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
-        .map(|_| one_action(formulas, &mut rng, defender, attackers))
+        .map(|_| {
+            let defences = Defences::drawn_behind(defender.defences, &mut rng);
+            one_action(
+                formulas,
+                &mut rng,
+                defences,
+                defender.shield_blocks,
+                attackers,
+            )
+        })
         .collect();
     totals.sort_unstable();
     let deaths = totals.iter().filter(|&&total| total >= defender.hp).count();
@@ -280,17 +292,19 @@ pub(crate) fn simulate(
     }
 }
 
-/// The damage the player takes in one trial of their next action.
+/// The damage the player takes in one trial of their next action, with `defences` and a shield
+/// that blocks up to `shield_blocks` attacks.
 fn one_action(
     formulas: Formulas,
     rng: &mut Rng,
-    defender: Defender,
+    defences: Defences,
+    shield_blocks: u32,
     attackers: &[Attacker<'_>],
 ) -> i32 {
-    let mut blocks_left = defender.shield_blocks;
+    let mut blocks_left = shield_blocks;
     attackers
         .iter()
-        .map(|attacker| turn(formulas, rng, attacker, defender.defences, &mut blocks_left).damage)
+        .map(|attacker| turn(formulas, rng, attacker, defences, &mut blocks_left).damage)
         .sum()
 }
 
@@ -525,4 +539,52 @@ fn speed(monster: &Monster) -> i32 {
 /// An action's energy cost, never zero (as `monster::action_energy`, `monster.cc:5897`).
 fn cost(energy: u32) -> i32 {
     i32::try_from(energy).unwrap_or(i32::MAX).max(1)
+}
+
+#[cfg(test)]
+mod tests {
+    use copilot_gk::Library;
+
+    use super::*;
+
+    /// Two ogres beside a player on 15 HP who shows AC 6, EV 8 and SH 4: their true defences lie
+    /// somewhere from exactly that to one point more, and so does their chance of death.
+    #[test]
+    fn the_hidden_fraction_puts_the_chance_of_death_between_the_displayed_defences_and_one_more() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let formulas = bundle.formulas;
+        let ogre = bundle.monsters.values().find(|m| m.name == "ogre").unwrap();
+        let attackers = vec![Attacker::new(bundle, ogre, 1).without_gear(); 2];
+        let hp = 15;
+        let exact_deaths = |ac, ev, sh| {
+            let mut rng = Rng::new(SEED.0, SEED.1);
+            (0..TRIALS)
+                .filter(|_| {
+                    one_action(
+                        formulas,
+                        &mut rng,
+                        Defences::exact(ac, ev, sh),
+                        1,
+                        &attackers,
+                    ) >= hp
+                })
+                .count()
+        };
+        let defender = Defender {
+            hp,
+            defences: DisplayedDefences {
+                ac: 6,
+                ev: 8,
+                sh: 4,
+            },
+            shield_blocks: 1,
+        };
+        let displayed = usize::try_from(simulate(formulas, defender, &attackers).deaths).unwrap();
+        let (most, fewest) = (exact_deaths(6, 8, 4), exact_deaths(7, 9, 5));
+        assert!(
+            fewest < displayed && displayed < most,
+            "{fewest} < {displayed} < {most} deaths in {TRIALS}"
+        );
+    }
 }

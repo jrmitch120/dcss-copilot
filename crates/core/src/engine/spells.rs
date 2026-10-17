@@ -12,7 +12,7 @@ use copilot_gk::{
     MonsterSpellPower, Spell, SpellRange, Zap, ZapDamage, ZapToHit,
 };
 
-use super::melee::{AUTOMATIC_HIT, Defences};
+use super::melee::{self, AUTOMATIC_HIT, Defences};
 use super::rng::Rng;
 
 /// `LOS_DEFAULT_RANGE` (`defines.h:115`): how far a player normally sees, which caps a spell's
@@ -438,12 +438,14 @@ pub(crate) fn shoot(
         BeamHit::Crawl034 => {
             // An explosion engulfs the player: nothing blocks or dodges it.
             if !bolt.explodes {
+                // `bolt::misses_player` reads the player's evasion and shield class first.
+                let ev = defences.evasion(rng);
+                let shield_class = defences.shield_class(rng);
                 if let (true, true, true, Some(to_hit)) =
-                    (bolt.blockable, can_block, defences.sh > 0, bolt.to_hit)
+                    (bolt.blockable, can_block, shield_class > 0, bolt.to_hit)
                 {
                     let test_hit = rng.random2(to_hit * 130 / 100);
-                    // `player::shield_bonus` (`player.cc:6106`), from twice the displayed SH.
-                    let block = rng.random2avg(defences.sh * 2 * 2, 2) / 3 - 1;
+                    let block = melee::shield_bonus(rng, defences);
                     if test_hit < block {
                         shot.blocked = true;
                         return shot;
@@ -452,7 +454,7 @@ pub(crate) fn shoot(
                 // `_test_beam_hit` (`beam.cc:3228`).
                 if let Some(to_hit) = bolt.to_hit {
                     let attack = rng.random2(to_hit);
-                    let defence = rng.random2avg(defences.ev, 2);
+                    let defence = rng.random2avg(ev, 2);
                     if attack - defence < 0 {
                         return shot;
                     }
@@ -466,7 +468,7 @@ pub(crate) fn shoot(
             let rolled = rng.roll_dice(bolt.dice, bolt.sides);
             // `actor::apply_ac` (`actor.cc:343`) without guaranteed damage reduction, which beams
             // don't get.
-            let ac = defences.ac.max(0);
+            let ac = defences.armour_class(rng).max(0);
             let saved = match bolt.armour {
                 ArmourRule::None => 0,
                 ArmourRule::Normal => rng.random2(1 + ac),
