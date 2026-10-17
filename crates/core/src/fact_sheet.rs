@@ -29,7 +29,8 @@ const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
 
 /// The status lights of what backlights the player, whatever halo or umbra they stand in: a
 /// corona, liquid fire, quad damage and harmful contamination, as `player::backlit` reads them
-/// (`player.cc`). Crawl lights `Contam` only once contamination is harmful.
+/// (`player.cc`). Crawl lights `Contam` only once contamination is harmful, and liquid fire as
+/// `Fire`, `Fire+` or `Fire++` by how hot it burns (`status.cc`).
 const BACKLIGHTING_LIGHTS: [&str; 4] = ["Corona", "Fire", "Quad", "Contam"];
 
 /// The god whose worshippers carry a halo of their own while not under penance
@@ -487,7 +488,7 @@ fn lighting(visible: &VisibleState, player: Position) -> (Lighting, Option<NotMo
             status
                 .light
                 .as_deref()
-                .is_some_and(|light| names.contains(&light))
+                .is_some_and(|light| names.contains(&light.trim_end_matches('+')))
         })
     };
     if lights(&BACKLIGHTING_LIGHTS) {
@@ -656,6 +657,14 @@ mod tests {
                     "{light} on a {square:?} square"
                 );
             }
+        }
+        for light in ["Fire+", "Fire++"] {
+            let visible = standing_in(SquareLight::Plain, &[light]);
+            assert_eq!(
+                lighting(&visible, PLAYER),
+                (Lighting::Backlit, None),
+                "{light}"
+            );
         }
         let visible = standing_in(SquareLight::Plain, &["Pois", "Slow"]);
         assert_eq!(lighting(&visible, PLAYER), (Lighting::Normal, None));
