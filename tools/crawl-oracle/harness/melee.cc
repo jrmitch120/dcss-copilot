@@ -8,7 +8,9 @@
  * melee_attack::attack (test_hit, attack_shield_blocked, calc_damage) one at a time, without the
  * messages, brands and death that follow a hit. Built by oracle.mk and run by tools/crawl-oracle/oracle.sh.
  *
- * Usage: melee <seed> <cases> <trials>
+ * Usage: melee <seed> <cases> <trials> [<shard>/<count>]
+ *   Each case is seeded from <seed> and its index; with a shard, only its cases are drawn
+ *   (common.h).
  */
 
 #include "common.h"
@@ -104,20 +106,19 @@ static void _run_case(int index, int trials)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4)
-    {
-        fprintf(stderr, "usage: %s <seed> <cases> <trials>\n", argv[0]);
-        return 2;
-    }
+    const oracle_run run = _read_run(argc, argv, false);
     crawl_state.test = true;
     msg::suppress quiet;
-    rng::seed(strtoull(argv[1], nullptr, 10));
+    rng::seed(run.seed);
     _initialise_crawl();
 
-    printf("{\"crawl\":\"%s\",\"seed\":%s}\n", Version::Long, argv[1]);
-    const int cases = atoi(argv[2]);
-    const int trials = atoi(argv[3]);
-    for (int i = 0; i < cases; ++i)
-        _run_case(i, trials);
+    _print_header(run);
+    for (int i = 0; i < run.cases; ++i)
+    {
+        if (!_in_shard(run, i, 1))
+            continue;
+        _start_case(run, i);
+        _run_case(i, run.trials);
+    }
     return 0;
 }

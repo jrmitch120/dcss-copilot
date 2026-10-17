@@ -1,4 +1,4 @@
-{"crawl":"0.34.1","seed":34}
+{"crawl":"0.34.1","seed":34,"shard":{"index":0,"count":1}}
 {"case":0,"kind":"block","shield":"none","limit":1}
 {"case":1,"kind":"block","shield":"2:12","limit":2}
 {"case":2,"kind":"block","shield":"2:13","limit":3}
@@ -519,27 +519,27 @@
 {"case":517,"kind":"reach","monster":789,"name":"five-headed slymdra","reach":1,"attacks_from":{"1":[0]}}
 {"case":518,"kind":"reach","monster":791,"name":"caustic sporangium","reach":1,"attacks_from":{"1":[0]}}
 {"case":519,"kind":"reach","monster":793,"name":"star jelly","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":520,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":9974,"1":10026}}
-{"case":521,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":10173,"3":9827}}
-{"case":522,"kind":"turn","rule":"any","monster":388,"name":"lich","hd":20,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":18737,"1":1263},"closed":{"0":1263,"1":18737}}
-{"case":523,"kind":"turn","rule":"speed","monster":268,"name":"Killer Klown","hd":20,"speed":13,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":14049,"2":5951}}
-{"case":524,"kind":"turn","rule":"stationary","monster":177,"name":"scrub nettle","hd":3,"speed":10,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":14029,"1":5971},"closed":{"0":20000}}
-{"case":525,"kind":"turn","rule":"reaching","monster":127,"name":"snapping turtle","hd":10,"speed":8,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4119,"1":15881}}
-{"case":526,"kind":"turn","rule":"breath","monster":756,"name":"wyrmhole","hd":18,"speed":12,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":14127,"1":5851,"2":22},"closed":{"0":4118,"1":13652,"2":2230}}
-{"case":527,"kind":"turn","rule":"blast","monster":414,"name":"Dispater","hd":16,"speed":10,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":15972,"1":4028},"closed":{"0":4028,"1":15972}}
-{"case":528,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10016,"1":9984}}
-{"case":529,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":9929,"3":10071}}
-{"case":530,"kind":"turn","rule":"any","monster":22,"name":"hound","hd":3,"speed":15,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":10061,"2":9939}}
-{"case":531,"kind":"turn","rule":"speed","monster":605,"name":"ushabti","hd":7,"speed":8,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4020,"1":15980}}
-{"case":532,"kind":"turn","rule":"stationary","monster":175,"name":"oklob plant","hd":10,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":13132,"1":6868},"closed":{"0":20000}}
-{"case":533,"kind":"turn","rule":"reaching","monster":413,"name":"Geryon","hd":15,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":534,"kind":"turn","rule":"breath","monster":64,"name":"acid dragon","hd":5,"speed":10,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":14357,"1":5643},"closed":{"0":5643,"1":14357}}
-{"case":535,"kind":"turn","rule":"blast","monster":457,"name":"Azrael","hd":11,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":15939,"1":4061},"closed":{"0":4061,"1":15939}}
-{"case":536,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":9963,"1":10037}}
-{"case":537,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":9637,"1":8191,"2":2003,"3":169},"closed":{"0":778,"1":5252,"2":9888,"3":4082}}
-{"case":538,"kind":"turn","rule":"any","monster":148,"name":"iron golem","hd":15,"speed":7,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":5948,"1":14052}}
-{"case":539,"kind":"turn","rule":"speed","monster":338,"name":"sun demon","hd":10,"speed":12,"distance":2,"trials":20000,"melee":{"0":15937,"1":4063},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":540,"kind":"turn","rule":"stationary","monster":175,"name":"oklob plant","hd":10,"speed":10,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":13109,"1":6891},"closed":{"0":20000}}
-{"case":541,"kind":"turn","rule":"reaching","monster":699,"name":"starflower","hd":16,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":20000}}
-{"case":542,"kind":"turn","rule":"breath","monster":233,"name":"naga mage","hd":7,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":12413,"1":7587},"closed":{"0":7587,"1":12413}}
-{"case":543,"kind":"turn","rule":"blast","monster":152,"name":"orb of fire","hd":30,"speed":15,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":11411,"1":7546,"2":1043},"closed":{"0":4231,"1":11256,"2":4513}}
+{"case":520,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":1,"trials":20000,"melee":{"0":10009,"1":9991},"casts":{"0":20000},"closed":{"0":20000}}
+{"case":521,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":3,"trials":20000,"melee":{"0":15892,"1":4108},"casts":{"0":9693,"1":8046,"2":2084,"3":177},"closed":{"0":829,"1":5261,"2":13910}}
+{"case":522,"kind":"turn","rule":"any","monster":530,"name":"ironbound convoker","hd":9,"speed":10,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":523,"kind":"turn","rule":"speed","monster":368,"name":"guardian mummy","hd":7,"speed":8,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":3983,"1":16017}}
+{"case":524,"kind":"turn","rule":"stationary","monster":304,"name":"ice statue","hd":8,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":13846,"1":6154},"closed":{"0":20000}}
+{"case":525,"kind":"turn","rule":"reaching","monster":649,"name":"goliath frog","hd":12,"speed":12,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":15978,"2":4022}}
+{"case":526,"kind":"turn","rule":"breath","monster":594,"name":"Vashnia","hd":16,"speed":10,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":527,"kind":"turn","rule":"blast","monster":692,"name":"Josephina","hd":21,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":16252,"1":3748},"closed":{"0":3748,"1":16252}}
+{"case":528,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10033,"1":9967}}
+{"case":529,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":1,"trials":20000,"melee":{"0":809,"1":5323,"2":9726,"3":4142},"casts":{"0":9665,"1":8057,"2":2098,"3":180},"closed":{"0":20000}}
+{"case":530,"kind":"turn","rule":"any","monster":329,"name":"ice devil","hd":8,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":531,"kind":"turn","rule":"speed","monster":49,"name":"cane toad","hd":7,"speed":12,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":15997,"2":4003}}
+{"case":532,"kind":"turn","rule":"stationary","monster":304,"name":"ice statue","hd":8,"speed":10,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":20000}}
+{"case":533,"kind":"turn","rule":"reaching","monster":128,"name":"alligator snapping turtle","hd":16,"speed":8,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4078,"1":15922}}
+{"case":534,"kind":"turn","rule":"breath","monster":594,"name":"Vashnia","hd":16,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":14398,"1":5602},"closed":{"0":5602,"1":14398}}
+{"case":535,"kind":"turn","rule":"blast","monster":61,"name":"swamp drake","hd":4,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":14363,"1":5637},"closed":{"0":5637,"1":14363}}
+{"case":536,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10044,"1":9956}}
+{"case":537,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":10032,"3":9968}}
+{"case":538,"kind":"turn","rule":"any","monster":381,"name":"freezing wraith","hd":8,"speed":10,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":539,"kind":"turn","rule":"speed","monster":153,"name":"earth elemental","hd":6,"speed":8,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":3943,"1":16057}}
+{"case":540,"kind":"turn","rule":"stationary","monster":306,"name":"training dummy","hd":1,"speed":10,"distance":1,"trials":20000,"melee":{"1":20000},"casts":{"0":20000},"closed":{"0":20000}}
+{"case":541,"kind":"turn","rule":"reaching","monster":413,"name":"Geryon","hd":15,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":542,"kind":"turn","rule":"breath","monster":233,"name":"naga mage","hd":7,"speed":10,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":12350,"1":7650},"closed":{"0":7650,"1":12350}}
+{"case":543,"kind":"turn","rule":"blast","monster":266,"name":"occultist","hd":13,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":17501,"1":2499},"closed":{"0":2499,"1":17501}}

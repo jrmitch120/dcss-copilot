@@ -26,9 +26,10 @@
  * _handle_wand is static, and links against a crawl build's objects without mon-act.o and
  * main.o (oracle.mk). Compiled with -fno-access-control.
  *
- * Usage: missiles <seed> <cases> <trials> <ported spells>
+ * Usage: missiles <seed> <cases> <trials> <ported spells> [<shard>/<count>]
  *   <ported spells> is a file of the spell_type values the engine ports, one per line, as
- *   `crawl-oracle ported-spells` prints them.
+ *   `crawl-oracle ported-spells` prints them. Each case is seeded from <seed> and its index;
+ *   with a shard, only its cases are drawn (common.h).
  */
 
 #include "common.h"
@@ -392,11 +393,7 @@ static void _zap_case(int index, int trials, const vector<wand_type> &wands)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5)
-    {
-        fprintf(stderr, "usage: %s <seed> <cases> <trials> <ported spells>\n", argv[0]);
-        return 2;
-    }
+    const oracle_run run = _read_run(argc, argv, true);
     crawl_state.test = true;
     // Firing and zapping redraw the view, which needs a console: crawl's headless one.
     enter_headless_mode();
@@ -404,24 +401,23 @@ int main(int argc, char *argv[])
     crawl_view.init_geometry();
     crawl_state.disables.set(DIS_DELAY);
     msg::suppress quiet;
-    rng::seed(strtoull(argv[1], nullptr, 10));
+    rng::seed(run.seed);
     _initialise_crawl();
-    you.where_are_you = BRANCH_DUNGEON;
-    const vector<wand_type> wands = _ported_wands(_read_ported(argv[4]));
+    const vector<wand_type> wands = _ported_wands(_read_ported(run.ported));
 
-    printf("{\"crawl\":\"%s\",\"seed\":%s}\n", Version::Long, argv[1]);
-    const int cases = atoi(argv[2]);
-    const int trials = atoi(argv[3]);
-    for (int i = 0; i < cases; ++i)
+    _print_header(run);
+    for (int i = 0; i < run.cases; ++i)
     {
-        delete_all_clouds();
+        if (!_in_shard(run, i, 5))
+            continue;
+        _start_case(run, i);
         switch (i % 5)
         {
-        case 0: _gear_case(i, trials); break;
-        case 1: _missile_case(i, trials); break;
-        case 2: _fire_case(i, trials); break;
-        case 3: _wand_case(i, trials, wands); break;
-        default: _zap_case(i, trials, wands); break;
+        case 0: _gear_case(i, run.trials); break;
+        case 1: _missile_case(i, run.trials); break;
+        case 2: _fire_case(i, run.trials); break;
+        case 3: _wand_case(i, run.trials, wands); break;
+        default: _zap_case(i, run.trials, wands); break;
         }
     }
     return 0;

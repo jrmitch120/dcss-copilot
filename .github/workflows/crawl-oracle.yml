@@ -27,15 +27,19 @@ env:
 
 jobs:
   oracle:
-    name: Crawl oracle (${{ matrix.bundle }})
+    name: Crawl oracle (${{ matrix.bundle }}, shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
-    # A full run takes about half an hour, most of it the monster turn harness; a hung one
-    # fails here rather than at GitHub's six hours.
+    # A shard takes about a quarter of a full run's half hour, most of it the monster turn
+    # harness, plus crawl's build when it isn't cached; a hung one fails here rather than at
+    # GitHub's six hours.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         bundle: ["0.34.1"]
+        # Each job diffs the cases in its shard (tools/crawl-oracle/oracle.sh). As the engine
+        # grows, add shards: every one here must carry the same count.
+        shard: ["0/4", "1/4", "2/4", "3/4"]
     steps:
       - uses: actions/checkout@v5
       - name: Crawl build dependencies
@@ -73,10 +77,12 @@ jobs:
           make -C "$RUNNER_TEMP/crawl/crawl-ref/source" -f Makefile -f "$PWD/tools/crawl-oracle/harness/oracle.mk" \
             -j"$(nproc)" WEBTILES=y USE_DGAMELAUNCH=y crawl-oracle-objects
       # Saved before the oracle runs, so a run that finds a mismatch doesn't rebuild crawl next time.
+      # On a miss every shard builds crawl and the first to finish saves it; the others' saves
+      # find the key taken and warn.
       - name: Save the crawl build
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/crawl
           key: ${{ steps.cache.outputs.cache-primary-key }}
-      - run: tools/crawl-oracle/oracle.sh "$RUNNER_TEMP/crawl"
+      - run: tools/crawl-oracle/oracle.sh "$RUNNER_TEMP/crawl" "${{ matrix.shard }}"

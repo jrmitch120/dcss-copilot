@@ -19,9 +19,10 @@
  * It includes mon-cast.cc, whose spell choice is static, and links against a crawl build's
  * objects without mon-cast.o and main.o (oracle.mk). Compiled with -fno-access-control.
  *
- * Usage: spells <seed> <cases> <trials> <ported spells>
+ * Usage: spells <seed> <cases> <trials> <ported spells> [<shard>/<count>]
  *   <ported spells> is a file of the spell_type values the engine ports, one per line, as
- *   `crawl-oracle ported-spells` prints them.
+ *   `crawl-oracle ported-spells` prints them. Each case is seeded from <seed> and its index;
+ *   with a shard, only its cases are drawn (common.h).
  */
 
 #include "common.h"
@@ -32,7 +33,6 @@
 #include <fstream>
 #include <set>
 
-#include "cloud.h"
 #include "mon-book.h"
 
 static set<spell_type> _read_ported(const char *path)
@@ -169,28 +169,24 @@ static void _choice_case(int index, int trials, const set<spell_type> &ported)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5)
-    {
-        fprintf(stderr, "usage: %s <seed> <cases> <trials> <ported spells>\n", argv[0]);
-        return 2;
-    }
+    const oracle_run run = _read_run(argc, argv, true);
     crawl_state.test = true;
     msg::suppress quiet;
-    rng::seed(strtoull(argv[1], nullptr, 10));
+    rng::seed(run.seed);
     _initialise_crawl();
-    const set<spell_type> ported = _read_ported(argv[4]);
+    const set<spell_type> ported = _read_ported(run.ported);
 
-    printf("{\"crawl\":\"%s\",\"seed\":%s}\n", Version::Long, argv[1]);
-    const int cases = atoi(argv[2]);
-    const int trials = atoi(argv[3]);
-    for (int i = 0; i < cases; ++i)
+    _print_header(run);
+    for (int i = 0; i < run.cases; ++i)
     {
-        // A blocked beam ends where it was blocked, and may leave a cloud there.
-        delete_all_clouds();
+        if (!_in_shard(run, i, 2))
+            continue;
+        // A fresh level: a blocked beam ends where it was blocked, and may leave a cloud there.
+        _start_case(run, i);
         if (i % 2 == 0)
-            _beam_case(i, trials, ported);
+            _beam_case(i, run.trials, ported);
         else
-            _choice_case(i, trials, ported);
+            _choice_case(i, run.trials, ported);
     }
     return 0;
 }
