@@ -1,6 +1,7 @@
 /*
- * What the crawl oracle's harnesses share: crawl set up without a dungeon, a human player dressed
- * at random until their AC, EV and SH are exact on the display, and a monster's removal.
+ * What the crawl oracle's harnesses share: their arguments and seeding, crawl set up without a
+ * dungeon, a human player dressed at random until their AC, EV and SH are exact on the display,
+ * and a monster's removal.
  *
  * Included by each harness, which is compiled against a crawl build's objects in place of
  * main.o (oracle.mk).
@@ -38,6 +39,78 @@
 #include "skills.h"
 #include "version.h"
 
+// What a harness is asked to run, from its arguments:
+//
+//   <seed> <cases> <trials> [<ported spells>] [<shard>/<count>]
+//
+// It draws only the cases whose index leaves `shard` when divided by `shards`, so `shards`
+// harnesses, one per shard, draw a run's cases between them. Without a shard it draws them all.
+struct oracle_run
+{
+    uint64_t seed;
+    int cases;
+    int trials;
+    // The file of ported spells, for the harnesses that take one.
+    const char *ported = nullptr;
+    int shard = 0;
+    int shards = 1;
+};
+
+// Reads a harness's arguments, `ported` saying whether it takes a file of ported spells, or exits
+// with its usage.
+static oracle_run _read_run(int argc, char *argv[], bool ported)
+{
+    const int required = ported ? 5 : 4;
+    oracle_run run;
+    bool read = argc == required || argc == required + 1;
+    if (read)
+    {
+        run.seed = strtoull(argv[1], nullptr, 10);
+        run.cases = atoi(argv[2]);
+        run.trials = atoi(argv[3]);
+        if (ported)
+            run.ported = argv[4];
+        if (argc > required)
+        {
+            read = sscanf(argv[required], "%d/%d", &run.shard, &run.shards) == 2
+                   && run.shards > 0 && run.shard >= 0 && run.shard < run.shards;
+        }
+    }
+    if (!read)
+    {
+        fprintf(stderr, "usage: %s <seed> <cases> <trials>%s [<shard>/<count>]\n", argv[0],
+                ported ? " <ported spells>" : "");
+        exit(2);
+    }
+    return run;
+}
+
+// Whether case `index` falls in the run's shard.
+static bool _in_shard(const oracle_run &run, int index)
+{
+    return index % run.shards == run.shard;
+}
+
+// The dump's header line, which the oracle reads first.
+static void _print_header(const oracle_run &run)
+{
+    printf("{\"crawl\":\"%s\",\"seed\":%llu,\"shard\":{\"index\":%d,\"count\":%d}}\n",
+           Version::Long, static_cast<unsigned long long>(run.seed), run.shard, run.shards);
+}
+
+// The player as crawl was set up, before any case dressed, hurt or moved them.
+static player fresh_player;
+
+// A level of floor with no monsters, items or clouds, the player at its middle.
+static void _reset_level()
+{
+    dgn_reset_level();
+    for (rectangle_iterator ri(0); ri; ++ri)
+        env.grid(*ri) = DNGN_FLOOR;
+    you.set_position(coord_def(GXM / 2, GYM / 2));
+    los_changed();
+}
+
 // As crawl's util/monster: what crawl's startup does before a game, without the UI.
 static void _initialise_crawl()
 {
@@ -53,15 +126,26 @@ static void _initialise_crawl()
     init_element_colours();
     init_show_table();
 
-    dgn_reset_level();
-    for (rectangle_iterator ri(0); ri; ++ri)
-        env.grid(*ri) = DNGN_FLOOR;
-
     you.species = SP_HUMAN;
     // Enough that no attack ends the run.
     you.hp = you.hp_max = 500;
-    you.set_position(coord_def(GXM / 2, GYM / 2));
-    los_changed();
+    _reset_level();
+    fresh_player = you;
+}
+
+// Starts case `index` with the player as crawl was set up, on a fresh level, and crawl's RNG
+// seeded from the run's seed and the index alone, so the case comes out the same whichever shard
+// draws it and whatever the cases before it left behind: the gear an earlier case dressed the
+// player in, or a missile on the floor. The seed is mixed as splitmix64 mixes, so neighbouring
+// cases draw unrelated streams.
+static void _start_case(const oracle_run &run, int index)
+{
+    you = fresh_player;
+    _reset_level();
+    uint64_t z = run.seed + 0x9e3779b97f4a7c15ULL * (static_cast<uint64_t>(index) + 1);
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+    rng::seed(z ^ (z >> 31));
 }
 
 // The player's defences for one case, as the game displays them and as crawl's melee code uses

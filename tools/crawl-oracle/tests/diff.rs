@@ -44,8 +44,38 @@ fn with_to_hit_one_higher(case: usize) -> String {
 
 #[test]
 fn a_to_hit_off_by_one_is_caught() {
-    // Case 0, a nekomata, rolls to-hit over 0..=55: one in 56 rolls lands one higher.
+    // Case 0, an ettin, rolls to-hit over 0..=36: one in 37 rolls lands one higher.
     assert_eq!(caught(&with_to_hit_one_higher(0)), [(0, Measure::ToHit)]);
+}
+
+/// The cases of `dump` that fall in shard `index` of `count`, as a harness run with that shard
+/// prints them.
+fn shard(dump: &str, index: u64, count: u64) -> String {
+    dump.lines()
+        .enumerate()
+        .filter_map(|(line, json)| {
+            let mut value: serde_json::Value = serde_json::from_str(json).unwrap();
+            if line == 0 {
+                value["shard"] = serde_json::json!({ "index": index, "count": count });
+            } else if value["case"].as_u64().unwrap() % count != index {
+                return None;
+            }
+            Some(format!("{value}\n"))
+        })
+        .collect()
+}
+
+#[test]
+fn one_shard_of_a_run_is_diffed_on_its_own() {
+    let report = diff(&shard(DUMP, 1, 3)).unwrap();
+    assert_eq!(report.cases, 8);
+    assert!(report.mismatches.is_empty(), "{report}");
+    assert!(
+        report
+            .to_string()
+            .starts_with("crawl 0.34.1, shard 1/3: 8 cases"),
+        "{report}"
+    );
 }
 
 #[test]
@@ -99,7 +129,8 @@ fn shifted(tally: &serde_json::Value) -> serde_json::Value {
 
 #[test]
 fn a_beam_damage_off_by_one_is_caught() {
-    // Case 22, a steam dragon's steam ball, which deals 3 to 30: every hit one point harder.
+    // Case 22, a servant of whispers' lightning bolt, which deals 1 to 54: every hit one point
+    // harder.
     let dump = with_changed(SPELLS, 22, |case| case["damage"] = shifted(&case["damage"]));
     assert_eq!(caught(&dump), [(22, Measure::Damage)]);
 }
@@ -114,15 +145,15 @@ fn a_spell_power_off_by_one_is_caught() {
 
 #[test]
 fn a_spell_chosen_as_often_as_another_is_caught() {
-    // Case 1, an orc sorcerer five squares away: half its bolts of fire counted as no spell.
-    let dump = with_changed(SPELLS, 1, |case| {
+    // Case 9, a fire giant six squares away: half its bolts of fire counted as no spell.
+    let dump = with_changed(SPELLS, 9, |case| {
         let chosen = case["chosen"].as_object_mut().unwrap();
         let fire = chosen["10"].as_u64().unwrap();
         let none = chosen["-1"].as_u64().unwrap();
         chosen.insert("10".to_owned(), (fire / 2).into());
         chosen.insert("-1".to_owned(), (none + fire - fire / 2).into());
     });
-    assert_eq!(caught(&dump), [(1, Measure::SpellChosen)]);
+    assert_eq!(caught(&dump), [(9, Measure::SpellChosen)]);
 }
 
 /// What the missile harness printed from the same crawl build: 25 cases, taking turns at a kind
@@ -150,7 +181,7 @@ fn caught(dump: &str) -> Vec<(u64, Measure)> {
 
 #[test]
 fn a_missile_damage_off_by_one_is_caught() {
-    // Case 21, an orc warrior's arbalest, which deals 1 to 27: every hit one point harder.
+    // Case 21, a cyclops' large rock, which deals up to 51: every hit one point harder.
     let dump = with_changed(MISSILES, 21, |case| {
         case["damage"] = shifted(&case["damage"]);
     });
@@ -159,21 +190,22 @@ fn a_missile_damage_off_by_one_is_caught() {
 
 #[test]
 fn a_kind_made_with_one_bow_more_often_than_crawl_makes_it_is_caught() {
-    // Case 0, Vashnia, made with an arbalest or a longbow alike: a tenth of her arbalests
-    // counted as longbows.
-    let dump = with_changed(MISSILES, 0, |case| {
+    // Case 5, a deep elf archer, made with a shortbow three times in four and a longbow
+    // otherwise: a tenth of their shortbows counted as longbows.
+    let dump = with_changed(MISSILES, 5, |case| {
         let missile = case["missile"].as_object_mut().unwrap();
-        let arbalest = missile["0:29"].as_u64().unwrap();
+        let shortbow = missile["0:30"].as_u64().unwrap();
         let longbow = missile["0:31"].as_u64().unwrap();
-        missile.insert("0:29".to_owned(), (arbalest - arbalest / 10).into());
-        missile.insert("0:31".to_owned(), (longbow + arbalest / 10).into());
+        missile.insert("0:30".to_owned(), (shortbow - shortbow / 10).into());
+        missile.insert("0:31".to_owned(), (longbow + shortbow / 10).into());
     });
-    assert_eq!(caught(&dump), [(0, Measure::MissileMade)]);
+    assert_eq!(caught(&dump), [(5, Measure::MissileMade)]);
 }
 
 #[test]
 fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
-    // Case 2, a deep elf knight's shortbow, fired four times in five: counted as nine in ten.
+    // Case 2, a merfolk's boomerang two squares away, thrown one time in three: counted as two
+    // in three.
     let dump = with_changed(MISSILES, 2, |case| {
         let energy = case["energy"].as_object_mut().unwrap();
         let held = energy["0"].as_u64().unwrap();
@@ -222,23 +254,23 @@ fn a_monster_reaching_one_square_too_far_is_caught() {
 
 #[test]
 fn a_monster_attacking_once_more_than_crawl_lets_it_is_caught() {
-    // Case 539, a sun demon two squares away at speed 12, which closes in and fights one time in
-    // five.
-    let dump = with_changed(TURNS, 539, |case| case["melee"] = shifted(&case["melee"]));
-    assert_eq!(caught(&dump), [(539, Measure::MeleeActions)]);
+    // Case 520, Gastronok beside the player at speed 5, who fights one time in two.
+    let dump = with_changed(TURNS, 520, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(520, Measure::MeleeActions)]);
 }
 
 #[test]
 fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
-    // Case 523, the Killer Klown seven squares away at speed 13, who closes one or two.
+    // Case 523, a guardian mummy five squares away at speed 8, which closes a square four times
+    // in five.
     let dump = with_changed(TURNS, 523, |case| case["closed"] = shifted(&case["closed"]));
     assert_eq!(caught(&dump), [(523, Measure::Closed)]);
 }
 
 #[test]
 fn a_monster_the_threat_level_leaves_out_that_crawl_shows_fighting_is_caught() {
-    // Case 539, the sun demon, counted twenty squares away, too far to reach the player before
-    // their next action, while crawl shows it fighting.
-    let dump = with_changed(TURNS, 539, |case| case["distance"] = 20.into());
-    assert!(caught(&dump).contains(&(539, Measure::CanAttack)));
+    // Case 520, Gastronok, counted twenty squares away, too far to reach the player before their
+    // next action, while crawl shows him fighting.
+    let dump = with_changed(TURNS, 520, |case| case["distance"] = 20.into());
+    assert!(caught(&dump).contains(&(520, Measure::CanAttack)));
 }

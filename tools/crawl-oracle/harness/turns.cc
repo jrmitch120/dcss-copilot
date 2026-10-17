@@ -27,17 +27,20 @@
  * a blinkbolt, which carries them along it (#85), draconians, whose breath their book doesn't
  * hold, books crawl fills when a monster is made (MST_GHOST), and shapeshifters, which take
  * another kind's shape as they are made. Any kind that dies in its own
- * turns, moves the player or moves away from them is left out as it is found, and said so on
- * standard error. A caster of an explosion or a cloud starts three squares or more away: crawl's
+ * turns, moves the player or moves away from them is left out of the case it is found in, and
+ * said so on standard error. A caster of an explosion or a cloud starts three squares or more away: crawl's
  * tracer weighs a caster's harm to itself (mons_should_fire), which the engine doesn't port.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled
  * with -fno-access-control.
  *
- * Usage: turns <seed> <cases> <trials> <ported spells>
+ * Usage: turns <seed> <cases> <trials> <ported spells> [<shard>/<count>]
  *   <ported spells> is a file of the spell_type values the engine ports, one per line, as
- *   `crawl-oracle ported-spells` prints them.
+ *   `crawl-oracle ported-spells` prints them. <cases> counts the turn cases. The block and reach
+ *   cases are the same every run and are printed by shard 0. Each turn case is seeded from
+ *   <seed> and its index; with a shard, only the turn cases whose number leaves <shard> when
+ *   divided by <count> are drawn.
  */
 
 #include "common.h"
@@ -111,7 +114,7 @@ static set<spell_type> _read_ported(const char *path)
     return ported;
 }
 
-static void _block_cases(int &index)
+static void _block_cases(int &index, bool print)
 {
     const vector<int> shields = { -1, ARM_BUCKLER, ARM_KITE_SHIELD, ARM_TOWER_SHIELD };
     for (int shield : shields)
@@ -119,9 +122,13 @@ static void _block_cases(int &index)
         _take_off(SLOT_OFFHAND);
         if (shield >= 0)
             _wear(1, SLOT_OFFHAND, static_cast<armour_type>(shield), 0);
-        printf("{\"case\":%d,\"kind\":\"block\",\"shield\":\"%s\",\"limit\":%d}\n", index++,
-               shield < 0 ? "none" : make_stringf("%d:%d", OBJ_ARMOUR, shield).c_str(),
-               you.shield_block_limit());
+        if (print)
+        {
+            printf("{\"case\":%d,\"kind\":\"block\",\"shield\":\"%s\",\"limit\":%d}\n",
+                   index, shield < 0 ? "none" : make_stringf("%d:%d", OBJ_ARMOUR, shield).c_str(),
+                   you.shield_block_limit());
+        }
+        ++index;
     }
     _take_off(SLOT_OFFHAND);
 }
@@ -210,7 +217,7 @@ static bool _has_melee(const monster &mon)
     return false;
 }
 
-static void _reach_cases(int &index)
+static void _reach_cases(int &index, bool print)
 {
     for (int i = 0; i < NUM_MONSTERS; ++i)
     {
@@ -241,9 +248,13 @@ static void _reach_cases(int &index)
             from += make_stringf("%s\"%d\":[%s]", distance > 1 ? "," : "", distance,
                                  slots.c_str());
         }
-        printf("{\"case\":%d,\"kind\":\"reach\",\"monster\":%d,\"name\":\"%s\",\"reach\":%d,"
-               "\"attacks_from\":%s}}\n",
-               index++, type, mon->name(DESC_PLAIN, true).c_str(), reach, from.c_str());
+        if (print)
+        {
+            printf("{\"case\":%d,\"kind\":\"reach\",\"monster\":%d,\"name\":\"%s\","
+                   "\"reach\":%d,\"attacks_from\":%s}}\n",
+                   index, type, mon->name(DESC_PLAIN, true).c_str(), reach, from.c_str());
+        }
+        ++index;
         _clear_monsters();
     }
 }
@@ -467,11 +478,14 @@ static const char *_play_turns(monster &mon, int distance, int trials, turn_tall
     return nullptr;
 }
 
-// Kinds that do what the engine doesn't model in their own turns.
-static set<monster_type> left_out;
+// Kinds already said to be left out, so each is said once.
+static set<monster_type> reported;
 
 static void _turn_case(int index, int trials, const turn_rule &rule)
 {
+    // Kinds found doing what the engine doesn't model in their own turns. Kept to this case, so
+    // the case doesn't depend on what the cases before it found.
+    set<monster_type> left_out;
     while (true)
     {
         vector<const turn_kind *> kinds;
@@ -500,10 +514,11 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         _clear_monsters();
         if (unfollowed)
         {
-            // Back where it was, for the cases to come.
+            // Back where it was, for the next kind this case draws.
             you.set_position(coord_def(GXM / 2, GYM / 2));
             los_changed();
-            fprintf(stderr, "%s %s: left out\n", name.c_str(), unfollowed);
+            if (reported.insert(kind.type).second)
+                fprintf(stderr, "%s %s: left out\n", name.c_str(), unfollowed);
             left_out.insert(kind.type);
             continue;
         }
@@ -519,11 +534,7 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5)
-    {
-        fprintf(stderr, "usage: %s <seed> <cases> <trials> <ported spells>\n", argv[0]);
-        return 2;
-    }
+    const oracle_run run = _read_run(argc, argv, true);
     crawl_state.test = true;
     // Attacks and spells redraw the view, which needs a console: crawl's headless one.
     enter_headless_mode();
@@ -531,22 +542,26 @@ int main(int argc, char *argv[])
     crawl_view.init_geometry();
     crawl_state.disables.set(DIS_DELAY);
     msg::suppress quiet;
-    rng::seed(strtoull(argv[1], nullptr, 10));
+    rng::seed(run.seed);
     _initialise_crawl();
-    you.where_are_you = BRANCH_DUNGEON;
-    const set<spell_type> ported = _read_ported(argv[4]);
+    const set<spell_type> ported = _read_ported(run.ported);
 
-    printf("{\"crawl\":\"%s\",\"seed\":%s}\n", Version::Long, argv[1]);
-    const int cases = atoi(argv[2]);
-    const int trials = atoi(argv[3]);
-    if (cases == 0)
+    _print_header(run);
+    if (run.cases == 0)
         return 0;
+    // Every shard plays the block and reach cases and finds the kinds turn cases draw from, from
+    // the run's seed, so the turn cases are numbered and drawn alike in each.
     int index = 0;
-    _block_cases(index);
-    _reach_cases(index);
+    _block_cases(index, run.shard == 0);
+    _reach_cases(index, run.shard == 0);
     const vector<turn_kind> kinds = _turn_kinds(ported);
     const vector<turn_rule> rules = _turn_rules(kinds);
-    for (int i = 0; i < cases; ++i)
-        _turn_case(index++, trials, rules[i % rules.size()]);
+    for (int i = 0; i < run.cases; ++i, ++index)
+    {
+        if (!_in_shard(run, i))
+            continue;
+        _start_case(run, index);
+        _turn_case(index, run.trials, rules[i % rules.size()]);
+    }
     return 0;
 }

@@ -2,8 +2,9 @@
 //! gear it made monsters with, as its harnesses (`harness/`) report it, against the engine's
 //! ported formulas and Game Knowledge on the same inputs.
 //!
-//! A harness prints a header line naming the crawl version and seed, then one line per case, with
-//! the inputs the ported formulas take and tallies of what crawl rolled:
+//! A harness prints a header line naming the crawl version, the seed and the shard of the cases it
+//! drew, then one line per case, with the inputs the ported formulas take and tallies of what
+//! crawl rolled:
 //!
 //! - a melee case: a monster attacking the player many times, run through
 //!   [`copilot_core::oracle::melee`];
@@ -197,6 +198,8 @@ pub fn ported_spells(version: &str) -> Result<Vec<u16>, DiffError> {
 pub struct Report {
     /// The crawl version the dump came from.
     pub crawl: String,
+    /// The shard of the run's cases the dump holds.
+    pub shard: Shard,
     /// Cases compared.
     pub cases: usize,
     /// Every measure that differs, by case.
@@ -207,8 +210,9 @@ impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "crawl {}: {} cases, {} mismatches",
+            "crawl {}, shard {}: {} cases, {} mismatches",
             self.crawl,
+            self.shard,
             self.cases,
             self.mismatches.len()
         )?;
@@ -223,10 +227,27 @@ impl fmt::Display for Report {
     }
 }
 
+/// Which of a run's cases a harness drew: those whose index leaves `index` when divided by
+/// `count`, so `count` harnesses, one per shard, draw them all between them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub struct Shard {
+    /// The shard, from 0.
+    pub index: u32,
+    /// How many shards the run's cases are split into.
+    pub count: u32,
+}
+
+impl fmt::Display for Shard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}", self.index, self.count)
+    }
+}
+
 #[derive(Deserialize)]
 struct Header {
     crawl: String,
     seed: u64,
+    shard: Shard,
 }
 
 #[derive(Deserialize)]
@@ -462,6 +483,7 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
     }
     Ok(Report {
         crawl: header.crawl,
+        shard: header.shard,
         cases,
         mismatches,
     })
