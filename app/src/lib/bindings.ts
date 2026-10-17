@@ -97,8 +97,9 @@ export type FocusCard =
 /**  Nothing calls for a decision: the card lists what is in view. */
 { card: "inView"; 
 /**
- *  The monsters in view, or `None` while the Advisor can't read monsters, which is
- *  not the same as there being none.
+ *  The monsters in view, identical ones in one row, without Firewood when Game
+ *  Knowledge says which monsters are Firewood. `None` while the Advisor can't read
+ *  monsters, which is not the same as there being none.
  */
 monsters: Listing[] | null };
 
@@ -184,14 +185,19 @@ export type KeyView = {
 	test: KeyTest,
 };
 
-/**  One row of a list in the panel, such as a monster in view. */
+/**
+ *  One row of a list in the panel, such as a monster in view, standing for one thing or several
+ *  identical ones.
+ */
 export type Listing = {
 	/**  How the thing is drawn. */
 	depiction: Depiction,
-	/**  Its name, as the game names it. */
+	/**  Its name, as the game names one of it. */
 	name: string,
 	/**  A short fact beside the name, if any. */
 	detail: string | null,
+	/**  How many identical things the row stands for, such as 4 for a pack of jackals. */
+	count: number,
 };
 
 /**  A model the player can choose. */

@@ -1,0 +1,57 @@
+---
+source: crates/replay/tests/replay.rs
+expression: replayer.view_model().game.unwrap().focus
+---
+{
+  "card": "inView",
+  "monsters": [
+    {
+      "depiction": {
+        "glyph": {
+          "text": "P",
+          "colour": "lightGrey"
+        },
+        "tile": null
+      },
+      "name": "fungus",
+      "detail": null,
+      "count": 3
+    },
+    {
+      "depiction": {
+        "glyph": {
+          "text": "P",
+          "colour": "lightGreen"
+        },
+        "tile": null
+      },
+      "name": "toadstool",
+      "detail": null,
+      "count": 1
+    },
+    {
+      "depiction": {
+        "glyph": {
+          "text": "h",
+          "colour": "brown"
+        },
+        "tile": null
+      },
+      "name": "jackal",
+      "detail": null,
+      "count": 2
+    },
+    {
+      "depiction": {
+        "glyph": {
+          "text": "P",
+          "colour": "green"
+        },
+        "tile": null
+      },
+      "name": "plant",
+      "detail": null,
+      "count": 1
+    }
+  ]
+}

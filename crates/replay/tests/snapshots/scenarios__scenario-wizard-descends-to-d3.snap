@@ -69,7 +69,8 @@ expression: replay
                 "tile": "mon/animals/ball_python"
               },
               "name": "ball python",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },

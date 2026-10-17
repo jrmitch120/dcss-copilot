@@ -1,6 +1,6 @@
 //! Monsters and species from crawl's `dat/` YAML, and monster descriptions from its text database.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
@@ -115,6 +115,10 @@ const DEFAULT_ENERGY: u32 = 10;
 /// The flag `dat/mons` gives a monster that never moves: crawl's `M_STATIONARY`.
 const STATIONARY_FLAG: &str = "stationary";
 
+/// The flag `dat/mons` gives a monster that is no threat and gives no experience: crawl's
+/// `M_NO_THREAT`.
+const NO_THREAT_FLAG: &str = "no_threat";
+
 /// The spellbook of monsters given their own spells when they are made: crawl's `MST_GHOST`,
 /// which `mspell_list` has no entry for.
 const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
@@ -129,12 +133,14 @@ const ARCHER_FLAG: &str = "archer";
 /// The flag `dat/mons` gives a monster that shoots more readily: crawl's `M_PREFER_RANGED`.
 const PREFER_RANGED_FLAG: &str = "prefer_ranged";
 
-/// Every monster defined in `dat/mons` for this build, by its value in `monster_type`.
+/// Every monster defined in `dat/mons` for this build, by its value in `monster_type`. A
+/// monster in `never_firewood` isn't firewood whatever its flags.
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
     spellbooks: &BTreeMap<String, Vec<MonsterSpell>>,
     gear: &Gear,
+    never_firewood: &BTreeSet<String>,
     tiles: &mut ShippedTiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
@@ -207,6 +213,9 @@ pub fn monsters(
             flags: &monster.flags,
         })?;
         let flag = |name: &str| monster.flags.iter().any(|flag| flag == name);
+        // As `mons_class_is_firewood` (`mon-util.cc`) judges it.
+        let firewood =
+            flag(STATIONARY_FLAG) && flag(NO_THREAT_FLAG) && !never_firewood.contains(&id);
         monsters.insert(
             in_range(&id, value)?,
             Monster {
@@ -236,6 +245,7 @@ pub fn monsters(
                     .collect(),
                 fighter: flag(FIGHTER_FLAG),
                 stationary: flag(STATIONARY_FLAG),
+                firewood,
                 archer: flag(ARCHER_FLAG),
                 prefers_ranged: flag(PREFER_RANGED_FLAG),
                 genus: EnumId(genus),

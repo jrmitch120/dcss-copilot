@@ -77,6 +77,29 @@ enum monster_type                      // env.mons[].type
     // (trimmed for the extractor test)
     MONS_MAURICE,
     // (trimmed for the extractor test)
+    MONS_FUNGUS,
+    // (trimmed for the extractor test)
+    MONS_KRAKEN,
+    MONS_KRAKEN_TENTACLE,
+    MONS_KRAKEN_TENTACLE_SEGMENT,
+    // (trimmed for the extractor test)
+    MONS_SNAPLASHER_VINE,
+    MONS_SNAPLASHER_VINE_SEGMENT,
+    // (trimmed for the extractor test)
+    MONS_TENTACLED_STARSPAWN,
+    // (trimmed for the extractor test)
+    MONS_STARSPAWN_TENTACLE,
+    MONS_STARSPAWN_TENTACLE_SEGMENT,
+    // (trimmed for the extractor test)
+    MONS_ELDRITCH_TENTACLE,
+    MONS_ELDRITCH_TENTACLE_SEGMENT,
+    // (trimmed for the extractor test)
+    MONS_TEST_SPAWNER,
+    // (trimmed for the extractor test)
+    MONS_TEST_STATUE,
+    // (trimmed for the extractor test)
+    MONS_TEST_BLOB,
+    // (trimmed for the extractor test)
 
     NUM_MONSTERS,               // used for polymorph
 

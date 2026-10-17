@@ -88,7 +88,8 @@ expression: replay
                 "tile": "mon/humanoids/orcs/orc_wizard"
               },
               "name": "orc wizard",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -174,7 +175,8 @@ expression: replay
                 "tile": "mon/humanoids/orcs/orc_wizard"
               },
               "name": "orc wizard",
-              "detail": null
+              "detail": null,
+              "count": 1
             }
           ]
         },
@@ -262,7 +264,8 @@ expression: replay
               "tile": "mon/humanoids/orcs/orc_wizard"
             },
             "name": "orc wizard",
-            "detail": null
+            "detail": null,
+            "count": 1
           }
         ]
       },

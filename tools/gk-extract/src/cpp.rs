@@ -122,31 +122,33 @@ impl Source {
         Ok(entries)
     }
 
-    /// The tokens inside the braces of the initializer `<name>[] = { ... }` or
-    /// `<name> = { ... }`, as a table or a `static const map` is written.
+    /// The tokens inside the braces of the initializer `<name> = { ... }`, `<name>[] = { ... }`
+    /// or `<name>[][3] = { ... }`, as a table, a table of rows or a `static const map` is written.
     pub fn initializer(&self, name: &str) -> Result<&[Token], ExtractError> {
-        let array = [
-            Token::Ident(name.into()),
-            Token::Punct('['),
-            Token::Punct(']'),
-            Token::Punct('='),
-            Token::Punct('{'),
-        ];
-        let open = match self.find(&array) {
-            Some(start) => start + 4,
-            None => {
-                let value = [
-                    Token::Ident(name.into()),
-                    Token::Punct('='),
-                    Token::Punct('{'),
-                ];
-                self.find(&value)
-                    .ok_or_else(|| self.missing(&format!("the table {name}")))?
-                    + 2
-            }
-        };
+        let open = (0..self.tokens.len())
+            .find_map(|i| self.initializer_brace(i, name))
+            .ok_or_else(|| self.missing(&format!("the table {name}")))?;
         let close = self.matching_brace(open)?;
         Ok(&self.tokens[open + 1..close])
+    }
+
+    /// Where the opening brace is, when the tokens from `i` start `<name>`, any array
+    /// dimensions such as `[]` or `[3]`, then `= {`.
+    fn initializer_brace(&self, i: usize, name: &str) -> Option<usize> {
+        if self.tokens[i] != Token::Ident(name.into()) {
+            return None;
+        }
+        let mut next = i + 1;
+        while self.tokens.get(next) == Some(&Token::Punct('[')) {
+            next += match self.tokens.get(next + 1)? {
+                Token::Punct(']') => 2,
+                Token::Number(_) if self.tokens.get(next + 2) == Some(&Token::Punct(']')) => 3,
+                _ => return None,
+            };
+        }
+        (self.tokens.get(next) == Some(&Token::Punct('='))
+            && self.tokens.get(next + 1) == Some(&Token::Punct('{')))
+        .then_some(next + 1)
     }
 
     /// The `(identifier, name)` pairs of `case IDENT: return "name";` in the body of the
