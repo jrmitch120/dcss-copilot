@@ -30,12 +30,24 @@ diff_engine() {
 }
 version=$("$source/crawl-oracle-melee" "$seed" 0 0 | sed -n 's/.*"crawl":"\([^"]*\)".*/\1/p')
 ported=$(mktemp)
-trap 'rm -f "$ported"' EXIT
+verdicts=$(mktemp -d)
+trap 'rm -rf "$ported" "$verdicts"' EXIT
 diff_engine ported-spells "$version" > "$ported"
 
+# The harnesses are independent and each runs on one core, so they run side by side, each
+# verdict held back and printed in this order once all are done.
+harnesses=(melee spells missiles turns)
+pids=()
+for harness in "${harnesses[@]}"; do
+    args=("$seed" "$cases" "$trials")
+    [[ $harness == melee ]] || args+=("$ported")
+    ("$source/crawl-oracle-$harness" "${args[@]}" | diff_engine -) > "$verdicts/$harness" 2>&1 &
+    pids+=($!)
+done
+
 status=0
-"$source/crawl-oracle-melee" "$seed" "$cases" "$trials" | diff_engine - || status=1
-"$source/crawl-oracle-spells" "$seed" "$cases" "$trials" "$ported" | diff_engine - || status=1
-"$source/crawl-oracle-missiles" "$seed" "$cases" "$trials" "$ported" | diff_engine - || status=1
-"$source/crawl-oracle-turns" "$seed" "$cases" "$trials" "$ported" | diff_engine - || status=1
+for i in "${!harnesses[@]}"; do
+    wait "${pids[$i]}" || status=1
+    cat "$verdicts/${harnesses[$i]}"
+done
 exit "$status"
