@@ -29,6 +29,9 @@ jobs:
   oracle:
     name: Crawl oracle (${{ matrix.bundle }})
     runs-on: ubuntu-latest
+    # A full run takes about half an hour, most of it the monster turn harness; a hung one
+    # fails here rather than at GitHub's six hours.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
