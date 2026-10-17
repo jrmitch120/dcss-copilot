@@ -26,10 +26,10 @@
  * port, and leaves out monsters that crawl moves otherwise than the engine does (#86), casters of
  * a blinkbolt, which carries them along it (#85), draconians, whose breath their book doesn't
  * hold, books crawl fills when a monster is made (MST_GHOST), and shapeshifters, which take
- * another kind's shape as they are made. Any kind that dies in its own
- * turns, moves the player or moves away from them is left out of the case it is found in, and
- * said so on standard error. A caster of an explosion or a cloud starts three squares or more away: crawl's
- * tracer weighs a caster's harm to itself (mons_should_fire), which the engine doesn't port.
+ * another kind's shape as they are made. Any kind that dies in its own turns, moves the player
+ * or moves away from them is left out of the case it is found in, and said so on standard error.
+ * A caster of an explosion or a cloud starts three squares or more away: crawl's tracer weighs a
+ * caster's harm to itself (mons_should_fire), which the engine doesn't port.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled

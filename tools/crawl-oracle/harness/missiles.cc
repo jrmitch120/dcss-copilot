@@ -406,7 +406,6 @@ int main(int argc, char *argv[])
     const vector<wand_type> wands = _ported_wands(_read_ported(run.ported));
 
     _print_header(run);
-    const int trials = run.trials;
     for (int i = 0; i < run.cases; ++i)
     {
         if (!_in_shard(run, i))
@@ -414,11 +413,11 @@ int main(int argc, char *argv[])
         _start_case(run, i);
         switch (i % 5)
         {
-        case 0: _gear_case(i, trials); break;
-        case 1: _missile_case(i, trials); break;
-        case 2: _fire_case(i, trials); break;
-        case 3: _wand_case(i, trials, wands); break;
-        default: _zap_case(i, trials, wands); break;
+        case 0: _gear_case(i, run.trials); break;
+        case 1: _missile_case(i, run.trials); break;
+        case 2: _fire_case(i, run.trials); break;
+        case 3: _wand_case(i, run.trials, wands); break;
+        default: _zap_case(i, run.trials, wands); break;
         }
     }
     return 0;
