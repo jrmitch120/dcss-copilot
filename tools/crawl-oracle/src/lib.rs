@@ -38,8 +38,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{
-    self, AUTOMATIC_HIT, AttackTally, CaseError, FireCase, MeleeCase, MissileCase, SpellCase,
-    SpellChoiceCase, SpellTally, TurnCase, WandCase, ZapCase,
+    self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, MeleeCase, MissileCase,
+    SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -259,7 +259,7 @@ struct Case {
     hit_dice: i32,
     fighter: bool,
     attack: CaseAttack,
-    player: CasePlayer,
+    player: ExactDefences,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
     hits: u32,
@@ -283,7 +283,7 @@ struct BeamLine {
     hit_dice: i32,
     spell: u16,
     spell_name: String,
-    player: CasePlayer,
+    player: ExactDefences,
     power: i32,
     range: i32,
     to_hit: Option<i32>,
@@ -329,7 +329,7 @@ struct MissileLine {
     hit_dice: i32,
     weapon: String,
     weapon_name: String,
-    player: CasePlayer,
+    player: ExactDefences,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
     hits: u32,
@@ -398,13 +398,6 @@ struct TurnLine {
     melee: BTreeMap<i32, u32>,
     casts: BTreeMap<i32, u32>,
     closed: BTreeMap<i32, u32>,
-}
-
-#[derive(Deserialize)]
-struct CasePlayer {
-    ac: i32,
-    ev: i32,
-    sh: i32,
 }
 
 /// Diffs a harness dump against the engine.
@@ -496,9 +489,7 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         fighter: case.fighter,
         damage: case.attack.damage,
         crushes: case.attack.crush,
-        ac: case.player.ac,
-        ev: case.player.ev,
-        sh: case.player.sh,
+        defences: case.player,
     };
     let engine: AttackTally =
         oracle::melee(bundle.formulas, &input, (seed, case.index), case.trials);
@@ -525,9 +516,7 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
         monster: case.monster,
         spell: case.spell,
         hit_dice: case.hit_dice,
-        ac: case.player.ac,
-        ev: case.player.ev,
-        sh: case.player.sh,
+        defences: case.player,
     };
     let engine: SpellTally = oracle::spell(bundle, &input, (seed, case.index), case.trials)
         .map_err(|source| DiffError::Case {
@@ -543,9 +532,7 @@ fn compare_wand(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
     let input = WandCase {
         spell: case.spell,
         hit_dice: case.hit_dice,
-        ac: case.player.ac,
-        ev: case.player.ev,
-        sh: case.player.sh,
+        defences: case.player,
     };
     let engine =
         oracle::wand(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
@@ -645,9 +632,7 @@ fn compare_missile(
         monster: case.monster,
         weapon: item_id(bundle, case.index, &case.weapon)?,
         hit_dice: case.hit_dice,
-        ac: case.player.ac,
-        ev: case.player.ev,
-        sh: case.player.sh,
+        defences: case.player,
     };
     let engine: AttackTally = oracle::missile(bundle, &input, (seed, case.index), case.trials)
         .map_err(|source| DiffError::Case {
