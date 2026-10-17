@@ -8,7 +8,7 @@ use serde::Serialize;
 use specta::Type;
 
 use crate::accumulated_state::AccumulatedState;
-use crate::engine::melee::DisplayedDefences;
+use crate::engine::melee::{DisplayedDefences, Lighting};
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
@@ -354,6 +354,7 @@ fn threat(
     let defender = Defender {
         hp,
         defences: DisplayedDefences { ac, ev, sh },
+        lighting: Lighting::Normal,
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);

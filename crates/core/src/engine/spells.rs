@@ -12,7 +12,7 @@ use copilot_gk::{
     MonsterSpellPower, Spell, SpellRange, Zap, ZapDamage, ZapToHit,
 };
 
-use super::melee::{self, AUTOMATIC_HIT, Defences};
+use super::melee::{self, AUTOMATIC_HIT, Target};
 use super::rng::Rng;
 
 /// `LOS_DEFAULT_RANGE` (`defines.h:115`): how far a player normally sees, which caps a spell's
@@ -349,16 +349,20 @@ pub(crate) struct Bolt {
     explodes: bool,
     blockable: bool,
     armour: ArmourRule,
+    /// Its caster sees through an umbra (`bolt::nightvision`, from `monster::nightvision`).
+    nightvision: bool,
 }
 
-/// The beam `spell` fires at `power`: its dice and accuracy from the zap's monster calculators
-/// (`zap_damage` and `zap_to_hit`, `beam.cc:385`), rolling `calc_dice`'s rounding for a zap whose
-/// dice share a total (`random.cc:289`).
+/// The beam `spell` fires at `power`, cast by a monster with or without `nightvision`: its dice
+/// and accuracy from the zap's monster calculators (`zap_damage` and `zap_to_hit`,
+/// `beam.cc:385`), rolling `calc_dice`'s rounding for a zap whose dice share a total
+/// (`random.cc:289`).
 pub(crate) fn bolt(
     variant: BeamDamage,
     rng: &mut Rng,
     spell: &DamagingSpell<'_>,
     power: i32,
+    nightvision: bool,
 ) -> Bolt {
     match variant {
         BeamDamage::Crawl034 => {
@@ -402,6 +406,7 @@ pub(crate) fn bolt(
                 explodes: zap.explodes,
                 blockable,
                 armour,
+                nightvision,
             }
         }
     }
@@ -426,9 +431,10 @@ pub(crate) fn shoot(
     damage: BeamDamage,
     rng: &mut Rng,
     bolt: Bolt,
-    defences: Defences,
+    target: Target,
     can_block: bool,
 ) -> Shot {
+    let defences = target.defences;
     let mut shot = Shot {
         blocked: false,
         hits: false,
@@ -451,8 +457,11 @@ pub(crate) fn shoot(
                         return shot;
                     }
                 }
-                // `_test_beam_hit` (`beam.cc:3228`).
+                // `_test_beam_hit` (`beam.cc:3228`), against the accuracy the light on the player
+                // changes by twice what it changes a melee attack's (`bolt::apply_lighting`); the
+                // block used the beam's own.
                 if let Some(to_hit) = bolt.to_hit {
+                    let to_hit = to_hit + 2 * target.lighting.to_hit_modifier(bolt.nightvision);
                     let attack = rng.random2(to_hit);
                     let defence = rng.random2avg(ev, 2);
                     if attack - defence < 0 {

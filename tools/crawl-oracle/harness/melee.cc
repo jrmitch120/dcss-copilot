@@ -21,9 +21,12 @@
 static const coord_def ATTACKER_POS(GXM / 2 + 1, GYM / 2);
 
 // A random monster with a damaging melee attack, placed next to the player, awake, with no
-// items and no statuses: the attacker the engine's melee port models.
+// items and no statuses: the attacker the engine's melee port models. In an umbra of the
+// player's own, it sees through it or not as a coin falls, as few kinds do.
 static monster *_random_monster(int &attack_number)
 {
+    const bool in_umbra = you.umbra();
+    const bool nightvision = coinflip();
     while (true)
     {
         const monster_type type = static_cast<monster_type>(random2(NUM_MONSTERS));
@@ -51,10 +54,8 @@ static monster *_random_monster(int &attack_number)
             if (attk.type != AT_NONE && attk.damage > 0)
                 attacks.push_back(i);
         }
-        // A halo backlights the player and an umbra hides them, which changes the monster's
-        // to-hit; the engine doesn't model either.
         if (attacks.empty() || !mon->visible_to(&you) || !you.visible_to(mon)
-            || you.backlit(false) || you.umbra())
+            || in_umbra && mon->nightvision() != nightvision)
         {
             _remove(*mon);
             continue;
@@ -67,6 +68,7 @@ static monster *_random_monster(int &attack_number)
 static void _run_case(int index, int trials)
 {
     const defences def = _random_player();
+    _random_light(true);
     int attack_number = 0;
     monster *mon = _random_monster(attack_number);
 
@@ -92,14 +94,14 @@ static void _run_case(int index, int trials)
             ++damage[attk.calc_damage()];
     }
 
-    printf("{\"case\":%d,\"monster\":\"%s\",\"hd\":%d,\"fighter\":%s,"
-           "\"attack\":{\"damage\":%d,\"crush\":%s},"
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},"
+    printf("{\"case\":%d,\"type\":%d,\"monster\":\"%s\",\"hd\":%d,\"fighter\":%s,"
+           "\"nightvision\":%s,\"attack\":{\"damage\":%d,\"crush\":%s},"
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
-           index, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           mon->is_fighter() ? "true" : "false", attk.attk_damage, crush ? "true" : "false",
-           def.ac, def.ev, def.sh, trials, _histogram(to_hit).c_str(), hits, blocks,
-           _histogram(damage).c_str());
+           index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
+           mon->is_fighter() ? "true" : "false", mon->nightvision() ? "true" : "false",
+           attk.attk_damage, crush ? "true" : "false", def.ac, def.ev, def.sh, _lighting(),
+           trials, _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str());
 
     _remove(*mon);
 }

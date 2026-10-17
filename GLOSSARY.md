@@ -104,6 +104,22 @@ _Avoid_: Max damage, max hit
 The player's AC, EV and SH as the game shows them: whole points. Crawl keeps each in hundredths and rolls with the fraction the display drops, so the Threat Level guesses that fraction, any as likely as another, in each of its trials.
 _Avoid_: True AC, real defences
 
+**Lighting**:
+How the light falls on the player, which changes how well monsters aim at them: Backlit, in an Umbra, or neither.
+_Avoid_: Visibility, light level
+
+**Backlit**:
+The player lit up so monsters hit them more easily: by their own glow, such as a corona, or by a halo they stand in when they have none of their own.
+_Avoid_: Glowing, haloed (of the player)
+
+**Umbra**:
+Darkness cast around a monster or the player, the opposite of a halo. A player standing in one that no halo lights is harder to hit for monsters without Nightvision.
+_Avoid_: Shadow
+
+**Nightvision**:
+A monster's sight through an Umbra, so an Umbra around the player doesn't spoil its aim: undead, servants of Yredelemnul, and monsters with an Umbra of their own have it.
+_Avoid_: Darkvision, see in the dark
+
 **Not Modelled**:
 What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
 _Avoid_: Unsupported, ignored, edge cases

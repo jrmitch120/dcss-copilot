@@ -38,8 +38,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{
-    self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, MeleeCase, MissileCase,
-    SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase, ZapCase,
+    self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, Lighting, MeleeCase,
+    MissileCase, SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -136,6 +136,9 @@ pub enum Measure {
     /// Whether the Threat Level counts a monster that crawl shows fighting the player, or that
     /// strikes them in its trial.
     CanAttack,
+    /// Whether a monster sees through an umbra: crawl's `monster::nightvision` against its Game
+    /// Knowledge.
+    Nightvision,
 }
 
 impl fmt::Display for Measure {
@@ -159,6 +162,7 @@ impl fmt::Display for Measure {
             Self::Casts => "spells cast",
             Self::Closed => "squares closed",
             Self::CanAttack => "whether it can attack",
+            Self::Nightvision => "whether it sees through an umbra",
         })
     }
 }
@@ -254,12 +258,16 @@ struct Header {
 struct Case {
     #[serde(rename = "case")]
     index: u64,
+    #[serde(rename = "type")]
+    monster_type: u16,
     monster: String,
     #[serde(rename = "hd")]
     hit_dice: i32,
     fighter: bool,
+    nightvision: bool,
     attack: CaseAttack,
     player: ExactDefences,
+    lighting: Lighting,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
     hits: u32,
@@ -283,7 +291,9 @@ struct BeamLine {
     hit_dice: i32,
     spell: u16,
     spell_name: String,
+    nightvision: bool,
     player: ExactDefences,
+    lighting: Lighting,
     power: i32,
     range: i32,
     to_hit: Option<i32>,
@@ -329,7 +339,9 @@ struct MissileLine {
     hit_dice: i32,
     weapon: String,
     weapon_name: String,
+    nightvision: bool,
     player: ExactDefences,
+    lighting: Lighting,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
     hits: u32,
@@ -394,6 +406,8 @@ struct TurnLine {
     hit_dice: u32,
     speed: u32,
     distance: i32,
+    nightvision: bool,
+    lighting: Lighting,
     trials: u32,
     melee: BTreeMap<i32, u32>,
     casts: BTreeMap<i32, u32>,
@@ -485,14 +499,19 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
 /// Every measure of a melee `case` on which crawl and the engine differ.
 fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch>, DiffError> {
     let input = MeleeCase {
+        monster: case.monster_type,
         hit_dice: case.hit_dice,
         fighter: case.fighter,
         damage: case.attack.damage,
         crushes: case.attack.crush,
         defences: case.player,
+        lighting: case.lighting,
     };
-    let engine: AttackTally =
-        oracle::melee(bundle.formulas, &input, (seed, case.index), case.trials);
+    let engine: AttackTally = oracle::melee(bundle, &input, (seed, case.index), case.trials)
+        .map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
     let measures = [
         (Measure::ToHit, case.to_hit.clone(), engine.to_hit),
         (
@@ -507,7 +526,39 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         ),
         (Measure::Damage, case.damage.clone(), engine.damage),
     ];
-    Ok(differing(case.index, &case.monster, measures))
+    let mut mismatches: Vec<Mismatch> = nightvision(
+        bundle,
+        case.index,
+        &case.monster,
+        case.monster_type,
+        case.nightvision,
+    )?
+    .into_iter()
+    .collect();
+    mismatches.extend(differing(case.index, &case.monster, measures));
+    Ok(mismatches)
+}
+
+/// A mismatch when crawl's monster numbered `monster` sees through an umbra and its Game
+/// Knowledge says it doesn't, or the other way about.
+fn nightvision(
+    bundle: &Bundle,
+    case: u64,
+    who: &str,
+    monster: u16,
+    crawl: bool,
+) -> Result<Option<Mismatch>, DiffError> {
+    let known = bundle.monster(monster).ok_or(DiffError::Case {
+        case,
+        source: CaseError::NoMonster(monster),
+    })?;
+    Ok(unequal(
+        case,
+        who,
+        Measure::Nightvision,
+        u32::from(crawl),
+        u32::from(known.nightvision),
+    ))
 }
 
 /// Every measure of a beam `case` on which crawl and the engine differ.
@@ -517,6 +568,7 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
         spell: case.spell,
         hit_dice: case.hit_dice,
         defences: case.player,
+        lighting: case.lighting,
     };
     let engine: SpellTally = oracle::spell(bundle, &input, (seed, case.index), case.trials)
         .map_err(|source| DiffError::Case {
@@ -524,15 +576,17 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
             source,
         })?;
     let who = format!("{} casting {}", case.name, case.spell_name);
-    beam_mismatches(case, &engine, &who)
+    beam_mismatches(bundle, case, &engine, &who)
 }
 
 /// Every measure of a wand `case` on which crawl and the engine differ.
 fn compare_wand(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Mismatch>, DiffError> {
     let input = WandCase {
+        monster: case.monster,
         spell: case.spell,
         hit_dice: case.hit_dice,
         defences: case.player,
+        lighting: case.lighting,
     };
     let engine =
         oracle::wand(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
@@ -542,28 +596,34 @@ fn compare_wand(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
             }
         })?;
     let who = format!("{} zapping a wand of {}", case.name, case.spell_name);
-    beam_mismatches(case, &engine, &who)
+    beam_mismatches(bundle, case, &engine, &who)
 }
 
 /// Every measure on which crawl's beams in `case` and the engine's `engine` differ.
 fn beam_mismatches(
+    bundle: &Bundle,
     case: &BeamLine,
     engine: &SpellTally,
     who: &str,
 ) -> Result<Vec<Mismatch>, DiffError> {
+    let mut mismatches: Vec<Mismatch> =
+        nightvision(bundle, case.index, who, case.monster, case.nightvision)?
+            .into_iter()
+            .collect();
     // What the formulas fix for the case must be equal.
-    let mut mismatches: Vec<Mismatch> = [
-        (Measure::Power, case.power, engine.power),
-        (Measure::Range, case.range, engine.range),
-        (
-            Measure::BeamToHit,
-            case.to_hit.unwrap_or(AUTOMATIC_HIT),
-            engine.to_hit.unwrap_or(AUTOMATIC_HIT),
-        ),
-    ]
-    .into_iter()
-    .filter_map(|(measure, crawl, ours)| unequal(case.index, who, measure, crawl, ours))
-    .collect();
+    mismatches.extend(
+        [
+            (Measure::Power, case.power, engine.power),
+            (Measure::Range, case.range, engine.range),
+            (
+                Measure::BeamToHit,
+                case.to_hit.unwrap_or(AUTOMATIC_HIT),
+                engine.to_hit.unwrap_or(AUTOMATIC_HIT),
+            ),
+        ]
+        .into_iter()
+        .filter_map(|(measure, crawl, ours)| unequal(case.index, who, measure, crawl, ours)),
+    );
     let measures = [
         (
             Measure::Hits,
@@ -633,6 +693,7 @@ fn compare_missile(
         weapon: item_id(bundle, case.index, &case.weapon)?,
         hit_dice: case.hit_dice,
         defences: case.player,
+        lighting: case.lighting,
     };
     let engine: AttackTally = oracle::missile(bundle, &input, (seed, case.index), case.trials)
         .map_err(|source| DiffError::Case {
@@ -654,7 +715,12 @@ fn compare_missile(
         ),
         (Measure::Damage, case.damage.clone(), engine.damage),
     ];
-    Ok(differing(case.index, &who, measures))
+    let mut mismatches: Vec<Mismatch> =
+        nightvision(bundle, case.index, &who, case.monster, case.nightvision)?
+            .into_iter()
+            .collect();
+    mismatches.extend(differing(case.index, &who, measures));
+    Ok(mismatches)
 }
 
 /// Every measure of a fire `case` on which crawl and the engine differ.
@@ -769,6 +835,7 @@ fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Misma
         hit_dice: case.hit_dice,
         speed: case.speed,
         distance: case.distance,
+        lighting: case.lighting,
     };
     let engine =
         oracle::turn(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
@@ -794,6 +861,13 @@ fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Misma
         u32::from(attacks && engine.can_attack),
     )
     .into_iter()
+    .chain(nightvision(
+        bundle,
+        case.index,
+        &who,
+        case.monster,
+        case.nightvision,
+    )?)
     .collect();
     mismatches.extend(differing(
         case.index,

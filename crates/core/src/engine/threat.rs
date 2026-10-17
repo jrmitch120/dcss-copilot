@@ -7,8 +7,8 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells, Odds, Wand};
 use crate::accumulated_state::Shield;
 
 use super::melee::{
-    self, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, attack_reach, energy_gained,
-    starting_energy,
+    self, Aim, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Lighting, Target,
+    attack_reach, energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Shooter};
 use super::rng::Rng;
@@ -33,6 +33,8 @@ pub(crate) struct Defender {
     pub(crate) hp: i32,
     /// AC, EV and SH, as displayed.
     pub(crate) defences: DisplayedDefences,
+    /// How the light falls on them.
+    pub(crate) lighting: Lighting,
     /// The most attacks the shield blocks before the player's next action.
     pub(crate) shield_blocks: u32,
 }
@@ -268,11 +270,14 @@ pub(crate) fn simulate(
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
         .map(|_| {
-            let defences = Defences::drawn_behind(defender.defences, &mut rng);
+            let target = Target {
+                defences: Defences::drawn_behind(defender.defences, &mut rng),
+                lighting: defender.lighting,
+            };
             one_action(
                 formulas,
                 &mut rng,
-                defences,
+                target,
                 defender.shield_blocks,
                 attackers,
             )
@@ -292,19 +297,19 @@ pub(crate) fn simulate(
     }
 }
 
-/// The damage the player takes in one trial of their next action, with `defences` and a shield
-/// that blocks up to `shield_blocks` attacks.
+/// The damage `target` takes in one trial of their next action, with a shield that blocks up to
+/// `shield_blocks` attacks.
 fn one_action(
     formulas: Formulas,
     rng: &mut Rng,
-    defences: Defences,
+    target: Target,
     shield_blocks: u32,
     attackers: &[Attacker<'_>],
 ) -> i32 {
     let mut blocks_left = shield_blocks;
     attackers
         .iter()
-        .map(|attacker| turn(formulas, rng, attacker, defences, &mut blocks_left).damage)
+        .map(|attacker| turn(formulas, rng, attacker, target, &mut blocks_left).damage)
         .sum()
 }
 
@@ -321,13 +326,13 @@ pub(crate) struct Turn {
     pub(crate) closed: i32,
 }
 
-/// Plays out `attacker`'s actions before the player's next standard-speed action against a
-/// player with `defences`, whose shield has `blocks_left` blocks left this action.
+/// Plays out `attacker`'s actions before the player's next standard-speed action against
+/// `target`, whose shield has `blocks_left` blocks left this action.
 pub(crate) fn turn(
     formulas: Formulas,
     rng: &mut Rng,
     attacker: &Attacker<'_>,
-    defences: Defences,
+    target: Target,
     blocks_left: &mut u32,
 ) -> Turn {
     let monster = attacker.monster;
@@ -362,7 +367,8 @@ pub(crate) fn turn(
                     rng,
                     &cast.spell,
                     cast.power,
-                    defences,
+                    monster.nightvision,
+                    target,
                     blocks_left,
                 );
             }
@@ -382,8 +388,15 @@ pub(crate) fn turn(
             && zap.reach.casts >= distance
         {
             if zap.reach.strikes >= distance {
-                turn.damage +=
-                    fire_beam(formulas, rng, &zap.spell, zap.power, defences, blocks_left);
+                turn.damage += fire_beam(
+                    formulas,
+                    rng,
+                    &zap.spell,
+                    zap.power,
+                    monster.nightvision,
+                    target,
+                    blocks_left,
+                );
             }
             energy -= wands::energy(formulas.monster_wand);
             continue;
@@ -397,7 +410,7 @@ pub(crate) fn turn(
                 distance,
             )
         {
-            let shot = missiles::shoot(formulas, rng, shooter, missile, defences, *blocks_left > 0);
+            let shot = missiles::shoot(formulas, rng, shooter, missile, target, *blocks_left > 0);
             if shot.blocked {
                 *blocks_left -= 1;
             }
@@ -421,16 +434,14 @@ pub(crate) fn turn(
         // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`).
         // An attack only made with a weapon (`AT_WEAP_ONLY`) is counted, as the Advisor can't
         // see what monsters wield.
+        let aim = Aim {
+            hit_dice,
+            skilled: monster.fighter,
+            accuracy: 0,
+            nightvision: monster.nightvision,
+        };
         for (_, attack) in attacks_from(formulas, monster, distance) {
-            let swing = melee::swing(
-                formulas,
-                rng,
-                hit_dice,
-                monster.fighter,
-                attack,
-                defences,
-                *blocks_left > 0,
-            );
+            let swing = melee::swing(formulas, rng, aim, attack, target, *blocks_left > 0);
             if swing.blocked {
                 *blocks_left -= 1;
             }
@@ -441,23 +452,24 @@ pub(crate) fn turn(
     turn
 }
 
-/// The damage a beam of `spell` at `power` deals the player, using up a block of their shield
-/// when it blocks it.
+/// The damage a beam of `spell` at `power`, cast by a monster with or without `nightvision`,
+/// deals `target`, using up a block of their shield when it blocks it.
 fn fire_beam(
     formulas: Formulas,
     rng: &mut Rng,
     spell: &DamagingSpell<'_>,
     power: i32,
-    defences: Defences,
+    nightvision: bool,
+    target: Target,
     blocks_left: &mut u32,
 ) -> i32 {
-    let bolt = spells::bolt(formulas.beam_damage, rng, spell, power);
+    let bolt = spells::bolt(formulas.beam_damage, rng, spell, power, nightvision);
     let shot = spells::shoot(
         formulas.beam_hit,
         formulas.beam_damage,
         rng,
         bolt,
-        defences,
+        target,
         *blocks_left > 0,
     );
     if shot.blocked {
@@ -561,13 +573,11 @@ mod tests {
             let mut rng = Rng::new(SEED.0, SEED.1);
             (0..TRIALS)
                 .filter(|_| {
-                    one_action(
-                        formulas,
-                        &mut rng,
-                        Defences::exact(ac, ev, sh),
-                        1,
-                        &attackers,
-                    ) >= hp
+                    let target = Target {
+                        defences: Defences::exact(ac, ev, sh),
+                        lighting: Lighting::Normal,
+                    };
+                    one_action(formulas, &mut rng, target, 1, &attackers) >= hp
                 })
                 .count()
         };
@@ -578,6 +588,7 @@ mod tests {
                 ev: 8,
                 sh: 4,
             },
+            lighting: Lighting::Normal,
             shield_blocks: 1,
         };
         let displayed = usize::try_from(simulate(formulas, defender, &attackers).deaths).unwrap();

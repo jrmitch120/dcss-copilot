@@ -254,6 +254,30 @@ static defences _random_player()
     exit(1);
 }
 
+// How the light falls on the player as monsters aim at them, as the engine takes it: backlit
+// (player::backlit(false)), else in an umbra (player::umbra()), else neither.
+static const char *_lighting()
+{
+    if (you.backlit(false))
+        return "backlit";
+    if (you.umbra())
+        return "umbra";
+    return "normal";
+}
+
+// A third of the time puts the player under a corona, which backlights them, and a third, when
+// `shadow`, gives them the Foul Shadow mutation, an umbra of their own; otherwise leaves the
+// light as the level and its monsters make it. A monster's halo or umbra reaches them on top.
+static void _random_light(bool shadow)
+{
+    const int roll = random2(3);
+    if (roll == 0)
+        you.duration[DUR_CORONA] = 1000;
+    else if (roll == 1 && shadow)
+        you.mutation[MUT_FOUL_SHADOW] = 1;
+    invalidate_agrid(true);
+}
+
 // Takes a monster off the map without its death and what dying sets off, as util/monster does.
 static void _remove(monster &mon)
 {
@@ -306,7 +330,7 @@ struct beam_tally
 // Casts `spell` at the player `trials` times, or zaps it from a wand when `evoke`, each set up by
 // crawl's setup_mons_cast and rolled as bolt::affect_player rolls it: bolt::misses_player for the
 // shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists. The beam's
-// flight (bolt::fire) is skipped.
+// flight (bolt::fire) is skipped, but not what it reads from the caster first.
 static beam_tally _cast_at_player(monster &mon, spell_type spell, bool evoke, int trials)
 {
     beam_tally tally;
@@ -319,6 +343,9 @@ static beam_tally _cast_at_player(monster &mon, spell_type spell, bool evoke, in
         // As bolt::fire aims it; a block ends the beam where its ray has got to.
         find_ray(beam.source, beam.target, beam.ray, opc_solid_see);
         beam.chose_ray = true;
+        // As bolt::initialise_fire reads them from the caster: its nightvision, which the light on
+        // the player needs, and whether it sees the invisible.
+        beam.precalc_agent_properties();
         tally.hit = beam.hit;
 
         you.shield_blocks = 0;

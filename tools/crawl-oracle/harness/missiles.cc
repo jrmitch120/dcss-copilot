@@ -137,7 +137,7 @@ static monster *_random_monster(int distance, bool (*wanted)(monster_type))
         mon->behaviour = BEH_SEEK;
         mon->foe = MHITYOU;
         mon->target = you.pos();
-        if (!mon->visible_to(&you) || !you.visible_to(mon) || you.backlit(false) || you.umbra())
+        if (!mon->visible_to(&you) || !you.visible_to(mon))
         {
             _remove(*mon);
             continue;
@@ -239,6 +239,7 @@ static void _gear_case(int index, int trials)
 static void _missile_case(int index, int trials)
 {
     const defences def = _random_player();
+    _random_light(true);
     monster *mon = _random_shooter(1, true);
     const item_def weapon = *_missile_weapon(*mon);
     const bool harmless = weapon.is_type(OBJ_MISSILES, MI_DART)
@@ -264,13 +265,13 @@ static void _missile_case(int index, int trials)
     }
 
     printf("{\"case\":%d,\"kind\":\"missile\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
-           "\"weapon\":\"%s\",\"weapon_name\":\"%s\","
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},"
+           "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"nightvision\":%s,"
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           _item_name(&weapon).c_str(), weapon.name(DESC_DBNAME, true).c_str(), def.ac,
-           def.ev, def.sh, trials, _histogram(to_hit).c_str(), hits, blocks,
-           _histogram(damage).c_str());
+           _item_name(&weapon).c_str(), weapon.name(DESC_DBNAME, true).c_str(),
+           mon->nightvision() ? "true" : "false", def.ac, def.ev, def.sh, _lighting(), trials,
+           _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str());
     mon->destroy_inventory();
     _remove(*mon);
 }
@@ -325,6 +326,7 @@ static vector<wand_type> _ported_wands(const set<spell_type> &ported)
 static void _wand_case(int index, int trials, const vector<wand_type> &wands)
 {
     const defences def = _random_player();
+    _random_light(true);
     monster *mon = _random_monster(1, _any_kind);
     mon->destroy_inventory();
     const wand_type wand = wands[random2(wands.size())];
@@ -334,12 +336,12 @@ static void _wand_case(int index, int trials, const vector<wand_type> &wands)
     const beam_tally tally = _cast_at_player(*mon, spell, true, trials);
 
     printf("{\"case\":%d,\"kind\":\"wand\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
-           "\"spell\":%d,\"spell_name\":\"%s\","
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},"
+           "\"spell\":%d,\"spell_name\":\"%s\",\"nightvision\":%s,"
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(), spell,
-           spell_title(spell), def.ac, def.ev, def.sh, power, range,
-           _beam_json(tally, trials).c_str());
+           spell_title(spell), mon->nightvision() ? "true" : "false", def.ac, def.ev, def.sh,
+           _lighting(), power, range, _beam_json(tally, trials).c_str());
     _remove(*mon);
 }
 

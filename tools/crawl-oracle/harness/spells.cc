@@ -99,7 +99,7 @@ static monster *_random_caster(const set<spell_type> &ported, int distance)
         mon->foe = MHITYOU;
         mon->target = you.pos();
         mon->spells = book;
-        if (!mon->visible_to(&you) || !you.visible_to(mon) || you.backlit(false) || you.umbra())
+        if (!mon->visible_to(&you) || !you.visible_to(mon))
         {
             _remove(*mon);
             continue;
@@ -111,6 +111,7 @@ static monster *_random_caster(const set<spell_type> &ported, int distance)
 static void _beam_case(int index, int trials, const set<spell_type> &ported)
 {
     const defences def = _random_player();
+    _random_light(true);
     monster *mon = _random_caster(ported, 1);
     const spell_type spell = mon->spells[random2(mon->spells.size())].spell;
     const int power = mons_spellpower(*mon, spell);
@@ -119,12 +120,12 @@ static void _beam_case(int index, int trials, const set<spell_type> &ported)
     const beam_tally tally = _cast_at_player(*mon, spell, false, trials);
 
     printf("{\"case\":%d,\"kind\":\"beam\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
-           "\"spell\":%d,\"spell_name\":\"%s\","
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},"
+           "\"spell\":%d,\"spell_name\":\"%s\",\"nightvision\":%s,"
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           spell, spell_title(spell), def.ac, def.ev, def.sh, power, range,
-           _beam_json(tally, trials).c_str());
+           spell, spell_title(spell), mon->nightvision() ? "true" : "false", def.ac, def.ev,
+           def.sh, _lighting(), power, range, _beam_json(tally, trials).c_str());
 
     _remove(*mon);
 }
