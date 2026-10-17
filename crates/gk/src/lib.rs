@@ -392,6 +392,11 @@ pub struct Monster {
     /// It is crawl's firewood (`mons_class_is_firewood`): a harmless monster that never moves
     /// and gives no experience, such as a fungus or a plant, which the player sees as scenery.
     pub firewood: bool,
+    /// It sees through an umbra, so the player's umbra doesn't spoil its aim: crawl's
+    /// `monster::nightvision` for one of its kind carrying nothing. It is undead, serves
+    /// Yredelemnul, or has an umbra of its own. One made with its own ghost, such as a pandemonium
+    /// lord, may have an umbra its kind doesn't.
+    pub nightvision: bool,
     /// It has crawl's `archer` flag, which makes its missiles more accurate and harder hitting.
     pub archer: bool,
     /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.

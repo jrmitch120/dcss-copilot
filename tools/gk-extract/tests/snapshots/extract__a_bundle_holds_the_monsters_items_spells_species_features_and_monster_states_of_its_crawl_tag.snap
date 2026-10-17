@@ -31,6 +31,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_BAT",
@@ -81,6 +82,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_SNAKE",
@@ -131,6 +133,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_RAT",
@@ -181,6 +184,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_QUOKKA",
@@ -231,6 +235,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_HOUND",
@@ -281,6 +286,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_SNAPPING_TURTLE",
@@ -331,6 +337,7 @@ expression: bundle
       "fighter": true,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_GOBLIN",
@@ -381,6 +388,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_ORC",
@@ -460,6 +468,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_DRACONIAN",
@@ -510,6 +519,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_KOBOLD",
@@ -574,6 +584,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": true,
       "prefersRanged": false,
       "genus": "MONS_CENTAUR",
@@ -638,6 +649,7 @@ expression: bundle
       "fighter": false,
       "stationary": false,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_VINE_STALKER",
@@ -725,6 +737,7 @@ expression: bundle
       "fighter": false,
       "stationary": true,
       "firewood": true,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_FUNGUS",
@@ -767,6 +780,7 @@ expression: bundle
       "fighter": false,
       "stationary": true,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_ELDRITCH_TENTACLE",
@@ -811,6 +825,7 @@ expression: bundle
       "fighter": false,
       "stationary": true,
       "firewood": false,
+      "nightvision": false,
       "archer": false,
       "prefersRanged": false,
       "genus": "MONS_TEST_STATUE",
@@ -837,6 +852,108 @@ expression: bundle
         "spell": 10
       },
       "tile": "mon/statues/test_statue",
+      "description": null
+    },
+    "46": {
+      "id": "MONS_PHANTOM",
+      "name": "phantom",
+      "glyph": "W",
+      "hd": 6,
+      "hp10x": 270,
+      "ac": 3,
+      "ev": 13,
+      "will": {
+        "value": 40
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_BLINK_WITH",
+          "damage": 8
+        }
+      ],
+      "fighter": false,
+      "stationary": false,
+      "firewood": false,
+      "nightvision": true,
+      "archer": false,
+      "prefersRanged": false,
+      "genus": "MONS_PHANTOM",
+      "itemUse": "openDoors",
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": null,
+      "description": null
+    },
+    "47": {
+      "id": "MONS_DEATH_KNIGHT",
+      "name": "death knight",
+      "glyph": "p",
+      "hd": 14,
+      "hp10x": 840,
+      "ac": 6,
+      "ev": 14,
+      "will": {
+        "value": 80
+      },
+      "speed": 10,
+      "attacks": [
+        {
+          "kind": "AT_HIT",
+          "flavour": "AF_PLAIN",
+          "damage": 32
+        }
+      ],
+      "fighter": true,
+      "stationary": false,
+      "firewood": false,
+      "nightvision": true,
+      "archer": false,
+      "prefersRanged": false,
+      "genus": "MONS_HUMAN",
+      "itemUse": "weaponsArmour",
+      "spells": {
+        "kind": "book",
+        "spells": []
+      },
+      "gear": {
+        "missile": {
+          "outOf": 1,
+          "items": []
+        },
+        "wand": {
+          "outOf": 1,
+          "items": []
+        }
+      },
+      "energy": {
+        "walk": 10,
+        "swim": 10,
+        "attack": 10,
+        "missile": 10,
+        "spell": 10
+      },
+      "tile": null,
       "description": null
     }
   },

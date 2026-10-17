@@ -37,6 +37,7 @@ const SERIES: &[Series] = &[Series {
     formulas: Formulas::CRAWL_0_34,
     gear: &gear::GEAR_RULES_0_34,
     test_monsters: &["MONS_TEST_SPAWNER", "MONS_TEST_STATUE", "MONS_TEST_BLOB"],
+    innate_umbras: &["MONS_DEATH_KNIGHT"],
 }];
 
 /// What is ported from one crawl release series.
@@ -49,6 +50,29 @@ struct Series {
     gear: &'static gear::GearRules,
     /// Its test monsters, which are never firewood: `mons_class_is_test`.
     test_monsters: &'static [&'static str],
+    /// The monsters with an umbra of their own that aren't undead, which `monster::umbra_radius`
+    /// gives them by kind in code rather than data.
+    innate_umbras: &'static [&'static str],
+}
+
+/// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
+/// extraction rather than silently dropping out of a rule ported by hand.
+fn known_monsters<'a>(
+    ids: impl IntoIterator<Item = &'a str>,
+    monster_type: &[(String, i64)],
+) -> Result<BTreeSet<String>, ExtractError> {
+    ids.into_iter()
+        .map(|id| {
+            if monster_type.iter().any(|(known, _)| known == id) {
+                Ok(id.to_owned())
+            } else {
+                Err(ExtractError::Missing {
+                    file: "monster-type.h".to_owned(),
+                    what: id.to_owned(),
+                })
+            }
+        })
+        .collect()
 }
 
 /// Where crawl's game source lives inside a crawl checkout.
@@ -286,7 +310,10 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     )?;
     let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
     let monster_type = crawl.enumeration("monster-type.h", "monster_type")?;
-    let never_firewood = crawl.never_firewood(series, &monster_type)?;
+    let exceptions = yaml::KindExceptions {
+        never_firewood: crawl.never_firewood(series, &monster_type)?,
+        innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
+    };
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -298,7 +325,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &monster_type,
             &crawl.spellbooks()?,
             &gear,
-            &never_firewood,
+            &exceptions,
             &mut tiles,
             crawl.tag_major,
         )?,
@@ -494,16 +521,7 @@ impl Crawl {
             }
         }
         never.extend(series.test_monsters.iter().map(|&id| id.to_owned()));
-        if let Some(unknown) = never
-            .iter()
-            .find(|id| !monster_type.iter().any(|(known, _)| known == *id))
-        {
-            return Err(ExtractError::Missing {
-                file: "monster-type.h".to_owned(),
-                what: unknown.clone(),
-            });
-        }
-        Ok(never)
+        known_monsters(never.iter().map(String::as_str), monster_type)
     }
 
     /// Every monster spellbook, by its `mon_spellbook_type` identifier.
