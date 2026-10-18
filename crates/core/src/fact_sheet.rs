@@ -720,7 +720,8 @@ mod tests {
     }
 
     /// The variant each ledger entry names, by its serialized name, from the start of its
-    /// "Surfaced as" field. An entry without one is an accepted simplification or harness only.
+    /// "Surfaced as" field. Fails unless every entry has that field, and an entry without a
+    /// variant says it is an accepted simplification or harness only.
     fn ledger_variant_names() -> Vec<&'static str> {
         let fields: Vec<&str> = LEDGER
             .lines()

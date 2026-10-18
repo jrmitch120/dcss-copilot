@@ -64,7 +64,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Spells given as a monster is made
 
-- **What crawl does:** some monsters, such as a player ghost or a Pandemonium lord, are given their own spells as they are made (`ghost_demon::init_player_ghost`, a book of `MST_GHOST`).
+- **What crawl does:** some monsters, such as a player ghost or a Pandemonium lord, are given their own spells as they are made (`ghost_demon::init_player_ghost`, `ghost_demon::init_pandemonium_lord`, a book of `MST_GHOST`).
 - **What the engine assumes:** which spells it has isn't known, so none are played out.
 - **Surfaced as:** `spellsPerMonster`, when such a monster is in view.
 - **Harness:** the spell and turn harnesses leave out kinds whose books crawl fills when they are made.
@@ -131,10 +131,10 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 ### Fractions the display drops
 
 - **What crawl does:** the player's AC, EV and SH carry fractions crawl rolls with, which the display drops (`player_shield_class` and the like).
-- **What the engine assumes:** a fraction guessed afresh for each trial.
+- **What the engine assumes:** the Displayed Defences, with a fraction guessed afresh for each trial.
 - **Surfaced as:** accepted simplification: the guess spreads over what the fraction could be, so the chance it gives is an average rather than a blind spot ([#77]).
 - **Harness:** melee leaves out players whose defences carry a fraction, and hands the engine their defences exactly.
-- **Impact and cost:** small, except perhaps near a threshold; #92 measures whether it changes ratings near Dangerous.
+- **Impact and cost:** small, except perhaps near a threshold; [#92] measures whether it changes ratings near Dangerous.
 - **Issue:** [#92]
 
 ### Translucent Skin
@@ -166,9 +166,9 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 - **What crawl does:** a blinkbolt carries its caster to the farthest square on its path it can stand on, beside the player or past them (`bolt::affect_endpoint`).
 - **What the engine assumes:** the caster stays where it cast from, and walks the rest of the way.
-- **Surfaced as:** harness only, for now. #85 lands the caster beside the player, the most dangerous landing and the one crawl gave in every oracle run, as an accepted simplification: no `NotModelled` variant, since it errs high.
+- **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves out casters of a blinkbolt, the raiju and the spark wasp.
-- **Impact and cost:** errs low today: a spark wasp seven squares off can blinkbolt in and sting in the same action. Small to port.
+- **Impact and cost:** errs low: a spark wasp seven squares off can blinkbolt in and sting in the same action. Small to port: #85 lands the caster beside the player, the most dangerous landing and the one crawl gave in every oracle run, and makes this entry an accepted simplification with no `NotModelled` variant, since it errs high.
 - **Issue:** [#85]
 
 ### Special abilities
@@ -234,6 +234,15 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Impact and cost:** large for the few that explode or roll over the player. Each is its own port; crawl hard-codes the list.
 - **Issue:** [#86]
 
+### Projectiles and seekers
+
+- **What crawl does:** some monsters are projectiles, such as an orb of destruction, or seekers, the foxfire and shooting star, that fly at their target and burst on it (`mons_is_projectile`, `mons_is_seeker`).
+- **What the engine assumes:** they walk up and fight like anything else.
+- **Surfaced as:** harness only.
+- **Harness:** the turn harness leaves them out.
+- **Impact and cost:** small: most are summoned by others or by the player. Each is its own port.
+- **Issue:** [#86]
+
 ### Bound to lava or water
 
 - **What crawl does:** a monster that lives in lava or water, such as the lava snake, can't leave it (`monster_habitable_feat`).
@@ -245,7 +254,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Moving the player
 
-- **What crawl does:** some hits trample, knock back or pull the player, as the Serpent of Hell's, an elephant's or a golden dragon's do.
+- **What crawl does:** some hits trample, knock back or pull the player, as the Serpent of Hell's, an elephant's or a golden dragon's do (`melee_attack::mons_attack_effects`, `melee_attack::do_knockback`).
 - **What the engine assumes:** the player stays where they stand.
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
@@ -254,7 +263,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Blinking away
 
-- **What crawl does:** a blink frog blinks away from the player.
+- **What crawl does:** a monster may blink away from the player, as a blink frog does (`monster_blink`).
 - **What the engine assumes:** it stays and fights.
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves out of a case a monster that ends farther from the player, and says so on standard error.
@@ -272,11 +281,12 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Shapeshifters
 
-- **What crawl does:** a shapeshifter takes another kind's shape as it is made, and changes shape as it goes (`ENCH_SHAPESHIFTER`).
+- **What crawl does:** a shapeshifter takes another kind's shape as it is made, and changes shape as it goes (`monster::is_shapeshifter`, `mon-poly.cc`).
 - **What the engine assumes:** the monster is the kind the game shows it as.
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves out shapeshifters.
 - **Impact and cost:** small: it fights as the shape it has until it changes. Listing it needs the game's sign that a monster is a shapeshifter.
+- **Issue:** [#86]
 
 ### A mutant beast's facets
 
@@ -289,11 +299,12 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Dying in its own turns
 
-- **What crawl does:** some monsters die in their own turns, as a spore that explodes does.
+- **What crawl does:** some monsters die in their own turns (`monster_die`), as one that explodes does.
 - **What the engine assumes:** it goes on acting until the player's next action.
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.
+- **Issue:** [#86]
 
 ## Ways Out
 
