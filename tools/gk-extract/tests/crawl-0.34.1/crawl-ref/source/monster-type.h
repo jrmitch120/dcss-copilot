@@ -160,5 +160,27 @@ enum monster_type                      // env.mons[].type
     RANDOM_SUPER_OOD, // *2 + 4 depth, AKA '8'
 
     WANDERING_MONSTER = 3500, // only used in monster placement routines - forced limit checks {dlb}
+
+    // (trimmed for the extractor test) The monsters the gear rules name, appended so that no
+    // value above moves.
+    MONS_KOBOLD_BRIGAND,
+    MONS_GOBLIN,
+    MONS_CYCLOPS,
+    MONS_STONE_GIANT,
+    MONS_TAINTED_LEVIATHAN,
+    MONS_PARGHIT,
+    MONS_SONJA,
+    MONS_SPRIGGAN_RIDER,
+    MONS_ORC_WARRIOR,
+    MONS_ORC,
+    MONS_URUG,
+    MONS_CHUCK,
+    MONS_POLYPHEMUS,
+    MONS_MERFOLK_JAVELINEER,
+    MONS_MINOTAUR,
+    MONS_MERFOLK,
+    MONS_DRACONIAN_KNIGHT,
+    MONS_GNOLL,
+    MONS_HAROLD,
 };
 COMPILE_CHECK(NUM_MONSTERS < MONS_NO_MONSTER);

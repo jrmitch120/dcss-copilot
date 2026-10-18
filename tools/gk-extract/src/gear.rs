@@ -16,10 +16,13 @@ use crate::ExtractError;
 use crate::cpp::{Source, Token, number, split_top_level};
 
 /// The skill `Weapon_prop` gives launchers: crawl's `is_range_weapon`.
-const LAUNCHER_SKILL: &str = "SK_RANGED_WEAPONS";
+pub const LAUNCHER_SKILL: &str = "SK_RANGED_WEAPONS";
 
 /// The weapon type a weapon spec picks for no weapon at all.
-const NO_WEAPON: &str = "NUM_WEAPONS";
+pub const NO_WEAPON: &str = "NUM_WEAPONS";
+
+/// The `object_class_type` of wands, whose item sets are the ones read.
+pub const WANDS: &str = "OBJ_WANDS";
 
 /// The code around `mon-gear.cc`'s tables that decides a monster's missiles and wand, ported by
 /// hand from one release series. The crawl oracle's gear cases check the outcome against crawl's
@@ -192,6 +195,41 @@ pub const GEAR_RULES_0_34: GearRules = GearRules {
         liking_limit: 72,
     },
 };
+
+impl GearRules {
+    /// The `monster_type` identifiers the rules name.
+    pub fn monsters(&self) -> Vec<&'static str> {
+        let cases = self.weapon_cases.iter().map(|case| case.monster);
+        let ammo = self.ammo.iter().map(|&(monster, _)| monster);
+        cases.chain(ammo).collect()
+    }
+
+    /// The launchers and throwing missiles the rules name, by `weapon_type` or `missile_type`
+    /// identifier.
+    pub fn missile_weapons(&self) -> Vec<&'static str> {
+        let cases = self.weapon_cases.iter().filter_map(|case| case.item);
+        let ammo = self
+            .ammo
+            .iter()
+            .flat_map(|&(_, missiles)| missiles.iter().map(|&(missile, _)| missile));
+        cases.chain(ammo).collect()
+    }
+
+    /// The `wand_type` identifiers the rules name.
+    pub fn wands(&self) -> Vec<&'static str> {
+        let wands = &self.wands;
+        let picked = wands.weights.iter().filter_map(|(pick, _)| match pick {
+            WandPick::Wand(wand) => Some(*wand),
+            WandPick::Set(_) => None,
+        });
+        let charged = wands.charge_values.iter().map(|&(wand, _)| wand);
+        picked
+            .chain([wands.rerolled])
+            .chain(wands.high_tier.iter().copied())
+            .chain(charged)
+            .collect()
+    }
+}
 
 /// What the gear of a kind of monster is decided from, read from one crawl release.
 pub struct Gear {
@@ -527,7 +565,7 @@ fn wand_sets(item_prop: &Source, file: &str) -> Result<HashMap<String, Vec<Strin
         let ([Token::Str(name)], Some(class)) = (name.as_slice(), identifier(class)) else {
             return Err(what());
         };
-        if class != "OBJ_WANDS" {
+        if class != WANDS {
             continue;
         }
         let members = braced_fields(members)

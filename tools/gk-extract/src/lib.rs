@@ -246,6 +246,9 @@ const TENTACLE_TABLES: &[(&str, usize)] =
 /// Where crawl's tiles live inside its game source.
 const RLTILES_DIR: &str = "rltiles";
 
+/// The enumerator that ends `object_class_type`'s item classes.
+const OBJECT_CLASSES_END: &str = "NUM_OBJECT_CLASSES";
+
 /// Each item class with sub-types, and the enum its sub-types are values of.
 const ITEM_SUB_TYPE_ENUMS: &[(&str, &str, &str)] = &[
     ("OBJ_WEAPONS", "item-prop-enum.h", "weapon_type"),
@@ -472,6 +475,32 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     )?;
     let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
     let monster_type = crawl.enumeration("monster-type.h", "monster_type")?;
+    // What the code names that isn't checked as it is read, each against the enum it is from.
+    known_monsters(series.gear.monsters(), &monster_type)?;
+    crawl.require(
+        "item-prop-enum.h",
+        &["weapon_type", "missile_type"],
+        series
+            .gear
+            .missile_weapons()
+            .into_iter()
+            .chain([gear::NO_WEAPON]),
+    )?;
+    crawl.require("item-prop-enum.h", &["wand_type"], series.gear.wands())?;
+    crawl.require("skill-type.h", &["skill_type"], [gear::LAUNCHER_SKILL])?;
+    crawl.require("object-class-type.h", &["object_class_type"], [gear::WANDS])?;
+    crawl.require("feature.h", &["feature_flag_type"], [features::SOLID_FLAG])?;
+    crawl.require("map-feature.h", &["map_feature"], features::MAP_FEATURES)?;
+    crawl.require(
+        "dungeon-char-type.h",
+        &["dungeon_char_type"],
+        features::STAIR_CHARS,
+    )?;
+    crawl.require(
+        "mon-mst.h",
+        &["mon_spellbook_type"],
+        [yaml::PER_MONSTER_SPELLBOOK],
+    )?;
     let tentacles = crawl.tentacles(&monster_type)?;
     let exceptions = yaml::KindExceptions {
         never_firewood: never_firewood(series, &tentacles, &monster_type)?,
@@ -551,6 +580,29 @@ impl Crawl {
         self.parse(file)?.enumeration(name)
     }
 
+    /// Fails unless each of `ids` is an enumerator of one of the enums `names` in `file`: a
+    /// value the extractor's code names fails the extraction once crawl renames it, rather than
+    /// quietly never matching.
+    fn require<'a>(
+        &self,
+        file: &str,
+        names: &[&str],
+        ids: impl IntoIterator<Item = &'a str>,
+    ) -> Result<(), ExtractError> {
+        let source = self.parse(file)?;
+        let mut enumerators = Vec::new();
+        for name in names {
+            enumerators.extend(source.enumerator_names(name)?);
+        }
+        match ids.into_iter().find(|id| !enumerators.contains(id)) {
+            Some(missing) => Err(ExtractError::Missing {
+                file: file.to_owned(),
+                what: missing.to_owned(),
+            }),
+            None => Ok(()),
+        }
+    }
+
     /// The enumerators of `enum <name>` before `end` (or all of them, when `end` is empty), by
     /// value. An enumerator that aliases an earlier one's value keeps the earlier one's name.
     fn values<T: TryFrom<i64> + Ord>(
@@ -559,12 +611,19 @@ impl Crawl {
         name: &str,
         end: &str,
     ) -> Result<BTreeMap<T, EnumId>, ExtractError> {
+        let mut enumeration = self.enumeration(file, name)?;
+        if !end.is_empty() {
+            let at = enumeration
+                .iter()
+                .position(|(id, _)| id == end)
+                .ok_or_else(|| ExtractError::Missing {
+                    file: file.to_owned(),
+                    what: end.to_owned(),
+                })?;
+            enumeration.truncate(at);
+        }
         let mut values = BTreeMap::new();
-        for (id, value) in self
-            .enumeration(file, name)?
-            .into_iter()
-            .take_while(|(id, _)| id != end)
-        {
+        for (id, value) in enumeration {
             values.entry(in_range(&id, value)?).or_insert(EnumId(id));
         }
         Ok(values)
@@ -589,26 +648,28 @@ impl Crawl {
         Ok(names)
     }
 
-    /// Every item class before `NUM_OBJECT_CLASSES`, with the sub-types crawl names.
+    /// Every item class before [`OBJECT_CLASSES_END`], with the sub-types crawl names.
     fn item_classes(
         &self,
         names: &BTreeMap<String, String>,
         kinds_hidden: &[&str],
     ) -> Result<BTreeMap<u8, ItemClass>, ExtractError> {
+        let (file, name) = ("object-class-type.h", "object_class_type");
+        let classes_with_sub_types = ITEM_SUB_TYPE_ENUMS.iter().map(|&(class, ..)| class);
+        self.require(
+            file,
+            &[name],
+            kinds_hidden
+                .iter()
+                .copied()
+                .chain(classes_with_sub_types)
+                .chain([OBJECT_CLASSES_END]),
+        )?;
         let mut classes = BTreeMap::new();
-        let all = self.enumeration("object-class-type.h", "object_class_type")?;
-        if let Some(missing) = kinds_hidden
-            .iter()
-            .find(|class| !all.iter().any(|(id, _)| id == *class))
-        {
-            return Err(ExtractError::Missing {
-                file: "object-class-type.h".to_owned(),
-                what: (*missing).to_owned(),
-            });
-        }
-        for (id, value) in all
+        for (id, value) in self
+            .enumeration(file, name)?
             .into_iter()
-            .take_while(|(id, _)| id != "NUM_OBJECT_CLASSES")
+            .take_while(|(id, _)| id != OBJECT_CLASSES_END)
         {
             let mut sub_types = BTreeMap::new();
             if let Some(&(_, file, name)) =

@@ -9,6 +9,9 @@ use copilot_gk::{EnumId, MonsterSpell, SpellRange, Zap, ZapDamage, ZapToHit};
 use crate::ExtractError;
 use crate::cpp::{Source, Token, number};
 
+/// The `defines.h` constant whose value is the accuracy of a zap that never misses.
+const AUTOMATIC_HIT: &str = "AUTOMATIC_HIT";
+
 /// A spell's fields from `spelldata`, before its zap is joined to it.
 pub struct SpellEntry {
     /// Its `spell_type` identifier.
@@ -121,6 +124,13 @@ pub fn zaps(
     file: &str,
     constants: &HashMap<String, i64>,
 ) -> Result<HashMap<String, Zap>, ExtractError> {
+    let automatic = constants
+        .get(AUTOMATIC_HIT)
+        .and_then(|&value| i32::try_from(value).ok())
+        .ok_or_else(|| ExtractError::Missing {
+            file: "defines.h".to_owned(),
+            what: AUTOMATIC_HIT.to_owned(),
+        })?;
     let mut zaps = HashMap::new();
     for fields in source.entries("zap_data")? {
         let zap = match fields.as_slice() {
@@ -169,7 +179,7 @@ pub fn zaps(
                     explodes: boolean(explodes).ok_or_else(|| field("is_explosion flag"))?,
                     monster_damage: damage_calculator(damage, constants)
                         .ok_or_else(|| field("monster damage"))?,
-                    monster_to_hit: to_hit_calculator(to_hit, constants)
+                    monster_to_hit: to_hit_calculator(to_hit, constants, automatic)
                         .ok_or_else(|| field("monster accuracy"))?,
                 }
             }
@@ -273,15 +283,15 @@ fn damage_calculator(
 }
 
 /// `new tohit_calculator<a, b, c>` as accuracy, `new tohit_calculator<AUTOMATIC_HIT>` as never
-/// missing, or `nullptr` as none.
+/// missing, or `nullptr` as none: `automatic` is `AUTOMATIC_HIT`'s value.
 fn to_hit_calculator(
     tokens: &[Token],
     constants: &HashMap<String, i64>,
+    automatic: i32,
 ) -> Option<Option<ZapToHit>> {
     if identifier(tokens) == Some("nullptr") {
         return Some(None);
     }
-    let automatic = i32::try_from(*constants.get("AUTOMATIC_HIT")?).ok()?;
     let ("tohit_calculator", args) = calculator(tokens, constants)? else {
         return None;
     };

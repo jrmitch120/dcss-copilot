@@ -12,6 +12,20 @@ use crate::cpp::{Source, Token};
 /// its name and vault name, two dchars, five colours, its flags and its minimap colour.
 const FEATURE_FIELDS: usize = 12;
 
+/// The `feature_flag_type` flag (`feature.h`) of a feature that blocks movement.
+pub const SOLID_FLAG: &str = "FFT_SOLID";
+
+/// The `map_feature` minimap colours (`map-feature.h`) that tell a feature's terrain.
+pub const MAP_FEATURES: [&str; 3] = [DOOR, DEEP_WATER, LAVA];
+const DOOR: &str = "MF_DOOR";
+const DEEP_WATER: &str = "MF_DEEP_WATER";
+const LAVA: &str = "MF_LAVA";
+
+/// The `dungeon_char_type` glyphs (`dungeon-char-type.h`) of a staircase up and down.
+pub const STAIR_CHARS: [&str; 2] = [STAIRS_UP, STAIRS_DOWN];
+const STAIRS_UP: &str = "DCHAR_STAIRS_UP";
+const STAIRS_DOWN: &str = "DCHAR_STAIRS_DOWN";
+
 /// What a crawl release series decides about features in code rather than in `feat_defs`,
 /// ported by hand. Every feature named must be in `dungeon_feature_type`.
 pub struct FeatureRules {
@@ -98,19 +112,19 @@ pub fn features(
                 file: "dungeon-feature-type.h".to_owned(),
                 what: format!("{id}, which {file} defines"),
             })?;
-        let solid = flags.contains(&Token::Ident("FFT_SOLID".to_owned()));
+        let solid = flags.contains(&Token::Ident(SOLID_FLAG.to_owned()));
         let terrain = match minimap.as_str() {
             _ if rules.sealed_doors.contains(&id.as_str()) => Terrain::Solid,
-            "MF_DOOR" if solid => Terrain::ClosedDoor,
+            DOOR if solid => Terrain::ClosedDoor,
             _ if solid => Terrain::Solid,
-            "MF_DEEP_WATER" => Terrain::DeepWater,
-            "MF_LAVA" => Terrain::Lava,
+            DEEP_WATER => Terrain::DeepWater,
+            LAVA => Terrain::Lava,
             _ => Terrain::Open,
         };
         let stairs = match dchar.as_str() {
             _ if rules.not_stairs.contains(&id.as_str()) => None,
-            "DCHAR_STAIRS_UP" => Some(StairDirection::Up),
-            "DCHAR_STAIRS_DOWN" => Some(StairDirection::Down),
+            STAIRS_UP => Some(StairDirection::Up),
+            STAIRS_DOWN => Some(StairDirection::Down),
             _ => None,
         };
         features.insert(

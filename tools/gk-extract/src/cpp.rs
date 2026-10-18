@@ -60,6 +60,17 @@ impl Source {
         Ok(values)
     }
 
+    /// The names of the enumerators of `enum <name>`, in declaration order, whatever their
+    /// values: an enum of flags such as `1 << 4` has names the extractor can check but values it
+    /// can't read.
+    pub fn enumerator_names(&self, name: &str) -> Result<Vec<&str>, ExtractError> {
+        Ok(self
+            .enumerators(name)?
+            .into_iter()
+            .map(|(ident, _)| ident)
+            .collect())
+    }
+
     /// The enumerators of `enum <name>`, each with the tokens of its initializer, if it has one.
     fn enumerators(&self, name: &str) -> Result<Vec<Enumerator<'_>>, ExtractError> {
         let start = self
