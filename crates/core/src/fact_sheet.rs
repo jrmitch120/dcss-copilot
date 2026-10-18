@@ -3,15 +3,18 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, MonsterSpells};
+use copilot_gk::{Bundle, LightingSigns, MonsterSpells};
 use serde::Serialize;
 use specta::Type;
 
 use crate::accumulated_state::AccumulatedState;
+use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
-use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
+use crate::visible_state::{
+    Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
+};
 
 /// LETHAL from this chance of death before the player's next action, per mille: 5%. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
@@ -76,6 +79,9 @@ pub struct ThreatAssessment {
     /// missiles or a wand. The simulation plays out what crawl may make their kind with, by its
     /// odds, rather than what each carries, which the Advisor can't see (#83).
     pub may_shoot: Vec<MayShoot>,
+    /// How the light falls on the player, which changes how well monsters aim at them. `None`
+    /// when where they stand isn't known.
+    pub lighting: Option<Lighting>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
 }
@@ -167,7 +173,8 @@ pub enum NotModelled {
     /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
     /// draining, nets, clouds left behind and the like.
     AttackFlavours,
-    /// Statuses on either side, such as haste, might or confusion.
+    /// Statuses on either side, such as haste, might or confusion, beyond those that backlight
+    /// the player.
     Statuses,
     /// Monsters walk straight at the player, through walls and each other.
     Paths,
@@ -199,6 +206,11 @@ pub enum NotModelled {
     /// without a shield, because the Advisor doesn't know which shield is worn. The character
     /// overview (`%`) tells it.
     WornShield,
+    /// The player stands in a halo and may have one of their own, which keeps another's from
+    /// backlighting them: they carry gear that gives one, such as the morningstar "Eos" or
+    /// armour of light, and the Advisor doesn't know whether they wear it. They are assumed to
+    /// have none, and to be backlit. The character overview (`%`) tells it.
+    OwnHalo,
 }
 
 /// What the simulation leaves out, whatever is in view.
@@ -323,6 +335,9 @@ fn threat(
             hostiles_in_view: 0,
             acting: Vec::new(),
             may_shoot: Vec::new(),
+            lighting: knowledge
+                .and_then(|bundle| lighting(visible, remembered, &bundle.lighting))
+                .map(|(lighting, _)| lighting),
             not_modelled: Vec::new(),
         }));
     };
@@ -351,9 +366,13 @@ fn threat(
     {
         not_modelled.push(NotModelled::CarriedGear);
     }
+    let (lighting, own_halo) =
+        lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
+    not_modelled.extend(own_halo);
     let defender = Defender {
         hp,
         defences: DisplayedDefences { ac, ev, sh },
+        lighting,
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
@@ -442,8 +461,79 @@ fn threat(
             })
             .collect(),
         may_shoot,
+        lighting: Some(lighting),
         not_modelled,
     }))
+}
+
+/// How the light falls on the player, as crawl's `player::backlit(false)` and `player::umbra()`
+/// (`player.cc:7850`, `player.cc:7864`) decide it from what the game shows, read through `signs`: a status that backlights them, or
+/// the halo or umbra on their square. A halo backlights them only if they have none of their
+/// own; with [`NotModelled::OwnHalo`] beside it when the Advisor can't tell. `None` when where
+/// they stand isn't known.
+fn lighting(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    signs: &LightingSigns,
+) -> Option<(Lighting, Option<NotModelled>)> {
+    let square = visible.light_at_player()?;
+    let backlit_by_status = visible.statuses.iter().flatten().any(|status| {
+        status
+            .light
+            .as_ref()
+            .is_some_and(|light| signs.backlighting_lights.contains(light))
+    });
+    if backlit_by_status {
+        return Some((Lighting::Backlit, None));
+    }
+    Some(match square {
+        SquareLight::Plain => (Lighting::Plain, None),
+        SquareLight::Umbra => (Lighting::Umbra, None),
+        SquareLight::Halo => match own_halo(visible, remembered, signs) {
+            Some(true) => (Lighting::Plain, None),
+            Some(false) => (Lighting::Backlit, None),
+            None => (Lighting::Backlit, Some(NotModelled::OwnHalo)),
+        },
+    })
+}
+
+/// Whether the player has a halo of their own (`player::halo_radius`, `areas.cc:564`, of 0 or more): from their
+/// god or a status, or from gear they carry that the character overview (`%`) last showed them
+/// wearing or wielding. `None` when they carry such gear and the overview isn't Known, or the
+/// inventory hasn't been sent.
+fn own_halo(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    signs: &LightingSigns,
+) -> Option<bool> {
+    let blessed = matches!(
+        &visible.religion,
+        Some(Religion::God { name, penance: false, .. }) if signs.halo_gods.contains(name)
+    );
+    let storm = visible.statuses.iter().flatten().any(|status| {
+        status
+            .text
+            .as_ref()
+            .is_some_and(|text| signs.halo_statuses.contains(text))
+    });
+    if blessed || storm {
+        return Some(true);
+    }
+    let halo_gear: Vec<char> = visible
+        .inventory
+        .as_ref()?
+        .iter()
+        .filter(|item| {
+            let name = item.name.to_lowercase();
+            signs.halo_gear.iter().any(|gear| name.contains(gear))
+        })
+        .map(|item| item.letter)
+        .collect();
+    if halo_gear.is_empty() {
+        return Some(false);
+    }
+    let equipped = remembered?.equipped.known()?;
+    Some(halo_gear.iter().any(|letter| equipped.contains(letter)))
 }
 
 /// The spells of `attacker`'s book the simulation doesn't play out, by name: its Game

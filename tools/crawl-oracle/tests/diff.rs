@@ -44,7 +44,7 @@ fn with_to_hit_one_higher(case: usize) -> String {
 
 #[test]
 fn a_to_hit_off_by_one_is_caught() {
-    // Case 0, an ettin, rolls to-hit over 0..=36: one in 37 rolls lands one higher.
+    // Case 0, a peacekeeper, rolls to-hit over 0..=41: one in 42 rolls lands one higher.
     assert_eq!(caught(&with_to_hit_one_higher(0)), [(0, Measure::ToHit)]);
 }
 
@@ -76,6 +76,34 @@ fn one_shard_of_a_run_is_diffed_on_its_own() {
             .starts_with("crawl 0.34.1, shard 1/3: 8 cases"),
         "{report}"
     );
+}
+
+#[test]
+fn a_seraphs_halo_left_out_of_its_aim_is_caught() {
+    // Case 10, a seraph, whose halo backlights the player: counted as plain light.
+    let dump = with_changed(DUMP, 10, |case| case["lighting"] = "plain".into());
+    assert!(caught(&dump).contains(&(10, Measure::ToHit)));
+}
+
+#[test]
+fn an_umbra_left_out_of_the_aim_of_a_monster_without_nightvision_is_caught() {
+    // Case 1, a merfolk siren, which can't see through the player's umbra: counted as plain light.
+    let dump = with_changed(DUMP, 1, |case| case["lighting"] = "plain".into());
+    assert!(caught(&dump).contains(&(1, Measure::ToHit)));
+}
+
+#[test]
+fn an_umbra_doesnt_spoil_the_aim_of_a_monster_with_nightvision() {
+    // Case 21, an ancient lich, undead: the player's umbra doesn't change its rolls.
+    let dump = with_changed(DUMP, 21, |case| case["lighting"] = "plain".into());
+    assert_eq!(caught(&dump), []);
+}
+
+#[test]
+fn nightvision_the_game_knowledge_doesnt_give_a_monster_is_caught() {
+    // Case 21, an ancient lich, which crawl says sees through an umbra: said not to.
+    let dump = with_changed(DUMP, 21, |case| case["nightvision"] = false.into());
+    assert_eq!(caught(&dump), [(21, Measure::Nightvision)]);
 }
 
 #[test]
@@ -135,6 +163,13 @@ fn a_beam_damage_off_by_one_is_caught() {
 }
 
 #[test]
+fn a_backlit_player_counted_as_in_plain_light_is_caught() {
+    // Case 8, a fire giant's bolt of fire at a player under a corona: counted as plain light.
+    let dump = with_changed(SPELLS, 8, |case| case["lighting"] = "plain".into());
+    assert_eq!(caught(&dump), [(8, Measure::Hits)]);
+}
+
+#[test]
 fn a_spell_power_off_by_one_is_caught() {
     let dump = with_changed(SPELLS, 2, |case| {
         case["power"] = (case["power"].as_i64().unwrap() + 1).into();
@@ -180,7 +215,7 @@ fn caught(dump: &str) -> Vec<(u64, Measure)> {
 
 #[test]
 fn a_missile_damage_off_by_one_is_caught() {
-    // Case 21, a cyclops' large rock, which deals up to 51: every hit one point harder.
+    // Case 21, a merfolk javelineer's javelin, which deals up to 33: every hit one point harder.
     let dump = with_changed(MISSILES, 21, |case| {
         case["damage"] = shifted(&case["damage"]);
     });
@@ -188,16 +223,15 @@ fn a_missile_damage_off_by_one_is_caught() {
 }
 
 #[test]
-fn a_kind_made_with_one_bow_more_often_than_crawl_makes_it_is_caught() {
-    // Case 5, a deep elf archer, made with a shortbow 3 in 4: a tenth counted as longbows.
-    let dump = with_changed(MISSILES, 5, |case| {
+fn a_kind_made_with_its_nets_less_often_than_crawl_makes_it_is_caught() {
+    // Case 15, Harold, always made with throwing nets: a tenth counted as made with nothing.
+    let dump = with_changed(MISSILES, 15, |case| {
         let missile = case["missile"].as_object_mut().unwrap();
-        let shortbow = missile["0:30"].as_u64().unwrap();
-        let longbow = missile["0:31"].as_u64().unwrap();
-        missile.insert("0:30".to_owned(), (shortbow - shortbow / 10).into());
-        missile.insert("0:31".to_owned(), (longbow + shortbow / 10).into());
+        let nets = missile["1:8"].as_u64().unwrap();
+        missile.insert("1:8".to_owned(), (nets - nets / 10).into());
+        missile.insert("none".to_owned(), (nets / 10).into());
     });
-    assert_eq!(caught(&dump), [(5, Measure::MissileMade)]);
+    assert_eq!(caught(&dump), [(15, Measure::MissileMade)]);
 }
 
 #[test]
@@ -222,7 +256,7 @@ const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 #[test]
 fn the_engine_agrees_with_crawl_on_every_block_reach_and_turn_case() {
     let report = diff(TURNS).unwrap();
-    assert_eq!(report.cases, 544);
+    assert_eq!(report.cases, 552);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -235,37 +269,38 @@ fn a_shield_that_blocks_one_more_attack_is_caught() {
 
 #[test]
 fn a_reaching_attack_held_to_two_squares_is_caught() {
-    // Case 461, a starflower, whose lash follows its rift three squares: counted as two.
-    let dump = with_changed(TURNS, 461, |case| {
+    // Case 468, a starflower, whose lash follows its rift three squares: counted as two.
+    let dump = with_changed(TURNS, 468, |case| {
         case["attacks_from"]["3"] = serde_json::json!([0]);
     });
-    assert_eq!(caught(&dump), [(461, Measure::AttacksFrom)]);
+    assert_eq!(caught(&dump), [(468, Measure::AttacksFrom)]);
 }
 
 #[test]
 fn a_monster_reaching_one_square_too_far_is_caught() {
-    // Case 201, an orange demon, whose sting reaches two squares.
-    let dump = with_changed(TURNS, 201, |case| case["reach"] = 3.into());
-    assert_eq!(caught(&dump), [(201, Measure::Reach)]);
+    // Case 203, an orange demon, whose sting reaches two squares.
+    let dump = with_changed(TURNS, 203, |case| case["reach"] = 3.into());
+    assert_eq!(caught(&dump), [(203, Measure::Reach)]);
 }
 
 #[test]
 fn a_monster_attacking_once_more_than_crawl_lets_it_is_caught() {
-    // Case 520, Gastronok beside the player at speed 5, who fights one time in two.
-    let dump = with_changed(TURNS, 520, |case| case["melee"] = shifted(&case["melee"]));
-    assert_eq!(caught(&dump), [(520, Measure::MeleeActions)]);
+    // Case 529, an air elemental beside the player at speed 25, which fights up to three times.
+    let dump = with_changed(TURNS, 529, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(529, Measure::MeleeActions)]);
 }
 
 #[test]
 fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
-    // Case 523, a guardian mummy at speed 8, which closes a square four times in five.
-    let dump = with_changed(TURNS, 523, |case| case["closed"] = shifted(&case["closed"]));
-    assert_eq!(caught(&dump), [(523, Measure::Closed)]);
+    // Case 533, an alligator snapping turtle at speed 8, which closes a square four times in
+    // five.
+    let dump = with_changed(TURNS, 533, |case| case["closed"] = shifted(&case["closed"]));
+    assert_eq!(caught(&dump), [(533, Measure::Closed)]);
 }
 
 #[test]
 fn a_monster_the_threat_level_leaves_out_that_crawl_shows_fighting_is_caught() {
-    // Case 520, Gastronok, counted twenty squares away while crawl shows him fighting.
-    let dump = with_changed(TURNS, 520, |case| case["distance"] = 20.into());
-    assert!(caught(&dump).contains(&(520, Measure::CanAttack)));
+    // Case 529, an air elemental, counted twenty squares away while crawl shows it fighting.
+    let dump = with_changed(TURNS, 529, |case| case["distance"] = 20.into());
+    assert!(caught(&dump).contains(&(529, Measure::CanAttack)));
 }

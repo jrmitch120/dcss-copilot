@@ -99,8 +99,29 @@ pub struct Bundle {
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
     /// `mon_threat_level_type` enum value: a monster's webtiles `threat`.
     pub monster_threats: BTreeMap<u8, EnumId>,
+    /// What the game shows that tells the player's Lighting.
+    pub lighting: LightingSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
+}
+
+/// What the game shows that tells how the light falls on the player, the Lighting crawl's
+/// `player::backlit(false)` and `player::umbra()` decide, as this Crawl Version shows it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LightingSigns {
+    /// The status lights of what backlights the player whatever halo or umbra they stand in,
+    /// such as `Corona`: a corona, liquid fire at each heat, quad damage and harmful
+    /// contamination.
+    pub backlighting_lights: Vec<String>,
+    /// The gods whose followers have a halo of their own while not under penance, as the game
+    /// names them, such as `the Shining One`.
+    pub halo_gods: Vec<String>,
+    /// The status texts of a halo of the player's own, such as `in a heavenly storm`.
+    pub halo_statuses: Vec<String>,
+    /// What the name of an item that gives its wearer or wielder a halo holds, in lower case,
+    /// such as `"eos"`.
+    pub halo_gear: Vec<String>,
 }
 
 impl Bundle {
@@ -392,6 +413,11 @@ pub struct Monster {
     /// It is crawl's firewood (`mons_class_is_firewood`): a harmless monster that never moves
     /// and gives no experience, such as a fungus or a plant, which the player sees as scenery.
     pub firewood: bool,
+    /// It sees through an umbra, so the player's umbra doesn't spoil its aim: crawl's
+    /// `monster::nightvision` for one of its kind carrying nothing. It is undead, serves
+    /// Yredelemnul, or has an umbra of its own. One made with its own ghost, such as a pandemonium
+    /// lord, may have an umbra its kind doesn't.
+    pub nightvision: bool,
     /// It has crawl's `archer` flag, which makes its missiles more accurate and harder hitting.
     pub archer: bool,
     /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.

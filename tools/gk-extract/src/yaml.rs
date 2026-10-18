@@ -30,6 +30,11 @@ struct MonsterFile {
     attacks: Vec<AttackField>,
     #[serde(default)]
     flags: Vec<String>,
+    /// What it is, such as `natural` or `undead`, as `mon_holy_type` names it without `MH_`.
+    #[serde(default)]
+    holiness: Vec<String>,
+    /// The god it serves, by name.
+    god: Option<String>,
     energy: Option<EnergyField>,
     /// Its spellbook, named as `mon-spell.h` names it without the `MST_` prefix.
     spells: Option<String>,
@@ -119,6 +124,12 @@ const STATIONARY_FLAG: &str = "stationary";
 /// `M_NO_THREAT`.
 const NO_THREAT_FLAG: &str = "no_threat";
 
+/// The holiness `dat/mons` gives an undead monster: crawl's `MH_UNDEAD`.
+const UNDEAD_HOLINESS: &str = "undead";
+
+/// The god whose servants see through an umbra (`monster::nightvision`), as `dat/mons` names it.
+const NIGHTVISION_GOD: &str = "Yredelemnul";
+
 /// The spellbook of monsters given their own spells when they are made: crawl's `MST_GHOST`,
 /// which `mspell_list` has no entry for.
 const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
@@ -133,14 +144,23 @@ const ARCHER_FLAG: &str = "archer";
 /// The flag `dat/mons` gives a monster that shoots more readily: crawl's `M_PREFER_RANGED`.
 const PREFER_RANGED_FLAG: &str = "prefer_ranged";
 
-/// Every monster defined in `dat/mons` for this build, by its value in `monster_type`. A
-/// monster in `never_firewood` isn't firewood whatever its flags.
+/// The kinds of monster crawl singles out in code rather than in `dat/mons`, by `monster_type`
+/// identifier.
+pub struct KindExceptions {
+    /// Kinds that aren't firewood whatever their flags.
+    pub never_firewood: BTreeSet<String>,
+    /// Kinds that have an umbra of their own.
+    pub innate_umbras: BTreeSet<String>,
+}
+
+/// Every monster defined in `dat/mons` for this build, by its value in `monster_type`, with the
+/// kinds `exceptions` singles out.
 pub fn monsters(
     source: &Path,
     monster_type: &[(String, i64)],
     spellbooks: &BTreeMap<String, Vec<MonsterSpell>>,
     gear: &Gear,
-    never_firewood: &BTreeSet<String>,
+    exceptions: &KindExceptions,
     tiles: &mut ShippedTiles,
     tag_major: i64,
 ) -> Result<BTreeMap<u16, Monster>, ExtractError> {
@@ -214,8 +234,14 @@ pub fn monsters(
         })?;
         let flag = |name: &str| monster.flags.iter().any(|flag| flag == name);
         // As `mons_class_is_firewood` (`mon-util.cc`) judges it.
-        let firewood =
-            flag(STATIONARY_FLAG) && flag(NO_THREAT_FLAG) && !never_firewood.contains(&id);
+        let firewood = flag(STATIONARY_FLAG)
+            && flag(NO_THREAT_FLAG)
+            && !exceptions.never_firewood.contains(&id);
+        // As `monster::nightvision` (`monster.cc:6545`) judges one carrying nothing; every undead
+        // kind `monster::umbra_radius` (`areas.cc:764`) names is undead already.
+        let nightvision = monster.holiness.iter().any(|holy| holy == UNDEAD_HOLINESS)
+            || monster.god.as_deref() == Some(NIGHTVISION_GOD)
+            || exceptions.innate_umbras.contains(&id);
         monsters.insert(
             in_range(&id, value)?,
             Monster {
@@ -246,6 +272,7 @@ pub fn monsters(
                 fighter: flag(FIGHTER_FLAG),
                 stationary: flag(STATIONARY_FLAG),
                 firewood,
+                nightvision,
                 archer: flag(ARCHER_FLAG),
                 prefers_ranged: flag(PREFER_RANGED_FLAG),
                 genus: EnumId(genus),

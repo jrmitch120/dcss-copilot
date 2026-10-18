@@ -47,6 +47,7 @@ expression: replay
             }
           ],
           "mayShoot": [],
+          "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -129,6 +130,7 @@ expression: replay
             }
           ],
           "mayShoot": [],
+          "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -211,6 +213,7 @@ expression: replay
             }
           ],
           "mayShoot": [],
+          "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
             "attackFlavours",
@@ -295,6 +298,7 @@ expression: replay
           }
         ],
         "mayShoot": [],
+        "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",

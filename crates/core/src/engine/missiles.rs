@@ -4,15 +4,15 @@
 //! evasion, the shield block and armour are melee's: crawl's `ranged_attack` is an `attack`.
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). Only the paths a monster
-//! in plain view takes are ported: it has no statuses, isn't fleeing and has a clear line to the
-//! player, and its launcher or missile is +0 and unbranded. The Fact Sheet lists what that leaves
-//! out.
+//! in plain view takes are ported: it has no statuses, isn't fleeing, sees the player and has a
+//! clear line to them, and its launcher or missile is +0 and unbranded. The Fact Sheet lists what
+//! that leaves out.
 
 use copilot_gk::{
     EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster, MonsterFire,
 };
 
-use super::melee::{self, Defences, RolledDamage, Swing};
+use super::melee::{self, Aim, RolledDamage, Swing, Target};
 use super::rng::Rng;
 
 /// How far a missile flies: `you.current_vision` (`ranged_attack_beam::initialise_beam`,
@@ -100,6 +100,8 @@ pub(crate) struct Shooter {
     /// The damage of its first melee attack, which a missile adds to its own
     /// (`attack::init_attack(0)`, `attack.cc:370`): 0 when it has none.
     pub(crate) first_attack: i32,
+    /// It sees through an umbra.
+    pub(crate) nightvision: bool,
 }
 
 impl Shooter {
@@ -112,6 +114,7 @@ impl Shooter {
                 .attacks
                 .first()
                 .map_or(0, |attack| i32::try_from(attack.damage).unwrap_or(i32::MAX)),
+            nightvision: monster.nightvision,
         }
     }
 }
@@ -124,20 +127,21 @@ pub(crate) fn shoot(
     rng: &mut Rng,
     shooter: Shooter,
     missile: Missile<'_>,
-    defences: Defences,
+    target: Target,
     can_block: bool,
 ) -> Swing {
+    let Target { defences, lighting } = target;
     match formulas.missile_attack {
         MissileAttack::Crawl034 => {
             // `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`) counts an archer as
             // skilled, and a thrown missile adds no accuracy (`property`, `item-prop.cc:2818`).
-            let to_hit = melee::monster_to_hit(
-                formulas.monster_to_hit,
-                rng,
-                shooter.hit_dice,
-                shooter.archer,
-                missile.weapon.accuracy,
-            );
+            let aim = Aim {
+                hit_dice: shooter.hit_dice,
+                skilled: shooter.archer,
+                accuracy: missile.weapon.accuracy,
+                nightvision: shooter.nightvision,
+            };
+            let to_hit = melee::monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
             let hits = melee::evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
             // The block is rolled even for a missile that ignores it (`attack_shield_blocked`).
             let blocked = melee::shield_blocks(

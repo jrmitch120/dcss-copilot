@@ -39,6 +39,20 @@ pub struct VisibleState {
     pub screen: Option<ScreenRead>,
 }
 
+impl VisibleState {
+    /// Whether a halo lights the square the character stands on or an umbra darkens it, once
+    /// the game has said where they stand and sent its map.
+    #[must_use]
+    pub fn light_at_player(&self) -> Option<SquareLight> {
+        let position = self.position?;
+        let map = self.map.as_ref()?;
+        Some(
+            map.cell(position)
+                .map_or(SquareLight::Plain, |cell| cell.light),
+        )
+    }
+}
+
 /// How many of the latest messages Visible State keeps: more than one turn's worth, as the
 /// message pane shows. Older messages are history, not what the game shows now.
 pub const RECENT_MESSAGES: usize = 20;
@@ -75,6 +89,22 @@ pub struct MapCell {
     /// The player can see the square now. Otherwise the game shows it as remembered, which may
     /// be out of date.
     pub in_view: bool,
+    /// Whether a halo lights it or an umbra darkens it.
+    pub light: SquareLight,
+}
+
+/// Whether a halo lights a square or an umbra darkens it, as the game draws it. A square in both
+/// is drawn as neither, which is how crawl's light treats it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SquareLight {
+    /// Neither.
+    #[default]
+    Plain,
+    /// A halo lights it, such as an angel's or the player's own.
+    Halo,
+    /// An umbra darkens it, such as a profane servitor's or the player's own.
+    Umbra,
 }
 
 impl LevelMap {

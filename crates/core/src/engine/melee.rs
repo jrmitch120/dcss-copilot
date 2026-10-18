@@ -5,14 +5,15 @@
 //! (`crawl-ref/source/` at tag 0.34.1); trunk at 28a137de has the same code for all of them except
 //! reach, where an attack carries its own reach (`mon_attack_def::reach`), which a later variant
 //! will read. Only the paths a monster's plain melee attack on the player takes are ported: the
-//! attacker wields nothing and has no statuses, and the player can see it. The Fact Sheet lists
-//! what that leaves out.
+//! attacker wields nothing and has no statuses, and the player and it see each other. The Fact
+//! Sheet lists what that leaves out.
 
 use copilot_gk::{
     Armour, EvasionRoll, Formulas, MonsterAttack, MonsterDamage, MonsterEnergy, MonsterReach,
     MonsterToHit, ShieldBlock,
 };
 
+use super::lighting::Lighting;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
 
@@ -75,27 +76,50 @@ pub(crate) const ENERGY_THRESHOLD: i32 = 80;
 /// `BASELINE_DELAY` (`defines.h:149`): the time a standard-speed player action takes.
 const BASELINE_DELAY: i32 = 10;
 
-/// A monster's accuracy for one attack: the `to_hit` that `attack::calc_to_hit` (`attack.cc:288`)
-/// rolls for a monster, `skilled` when it is a fighter in melee (`M_FIGHTER`) or an archer with
-/// missiles (`M_ARCHER`), with a +0 weapon of this `accuracy` (`PWPN_HIT`), 0 for none.
+/// The player as a monster's attack meets them: their defences, and how the light falls on them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Target {
+    /// Their AC, EV and SH.
+    pub(crate) defences: Defences,
+    /// How the light falls on them.
+    pub(crate) lighting: Lighting,
+}
+
+/// A monster aiming an attack at the player, as crawl's to-hit takes it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Aim {
+    /// Its hit dice.
+    pub(crate) hit_dice: i32,
+    /// It is skilled with the attack: a fighter in melee (`M_FIGHTER`) or an archer with
+    /// missiles (`M_ARCHER`).
+    pub(crate) skilled: bool,
+    /// The accuracy of its +0 weapon (`PWPN_HIT`), 0 for none.
+    pub(crate) accuracy: i32,
+    /// It sees through an umbra (`monster::nightvision`, `monster.cc:6545`).
+    pub(crate) nightvision: bool,
+}
+
+/// A monster's accuracy for one attack on a player `lighting` falls on: the `to_hit` that
+/// `attack::calc_to_hit` (`attack.cc:288`) rolls for a monster.
 ///
 /// The pre-roll value is `mon_to_hit_base` (`fight.cc:232`), via
 /// `melee_attack::calc_mon_to_hit_base` (`melee-attack.cc:5087`) or
 /// `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`), plus the weapon's in the
-/// monster branch of `attack::calc_pre_roll_to_hit` (`attack.cc:226`), with no slaying. The
-/// post-roll modifiers (`attack.cc:244`) are all zero for a visible, unconfused monster without
-/// inaccuracy, so the monster's roll is `random2(mhit + 1)` (`attack.cc:300`).
+/// monster branch of `attack::calc_pre_roll_to_hit` (`attack.cc:226`), with no slaying. A
+/// monster adds the "post-roll" modifiers (`attack.cc:244`) before it rolls: for a visible,
+/// unconfused monster without inaccuracy only the light on the player, so its roll is
+/// `random2(mhit + modifiers + 1)` (`attack.cc:300`).
 pub(crate) fn monster_to_hit(
     variant: MonsterToHit,
     rng: &mut Rng,
-    hit_dice: i32,
-    skilled: bool,
-    accuracy: i32,
+    aim: Aim,
+    lighting: Lighting,
 ) -> i32 {
     match variant {
         MonsterToHit::Crawl034 => {
-            let hd_mult = if skilled { 5 } else { 3 };
-            let mhit = 18 + hit_dice * hd_mult / 2 + accuracy;
+            let hd_mult = if aim.skilled { 5 } else { 3 };
+            let mhit = 18 + aim.hit_dice * hd_mult / 2 + aim.accuracy;
+            let mhit = mhit + lighting.to_hit_modifier(aim.nightvision);
             rng.random2(mhit + 1)
         }
     }
@@ -341,16 +365,16 @@ impl Swing {
 pub(crate) fn swing(
     formulas: Formulas,
     rng: &mut Rng,
-    hit_dice: i32,
-    fighter: bool,
+    aim: Aim,
     attack: Attack,
-    defences: Defences,
+    target: Target,
     can_block: bool,
 ) -> Swing {
-    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, hit_dice, fighter, 0);
+    let Target { defences, lighting } = target;
+    let to_hit = monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
     let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
     let blocked =
-        shield_blocks(formulas.shield_block, rng, to_hit, hit_dice, defences) && can_block;
+        shield_blocks(formulas.shield_block, rng, to_hit, aim.hit_dice, defences) && can_block;
     let mut swing = Swing {
         to_hit,
         hits,
@@ -478,7 +502,13 @@ mod tests {
         ] {
             let pre_roll = 18 + hd * if fighter { 5 } else { 3 } / 2;
             let ported = chance(|rng| {
-                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, hd, fighter, 0);
+                let aim = Aim {
+                    hit_dice: hd,
+                    skilled: fighter,
+                    accuracy: 0,
+                    nightvision: false,
+                };
+                let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim, Lighting::Plain);
                 evasion_margin(
                     EvasionRoll::Crawl034,
                     rng,
@@ -494,11 +524,43 @@ mod tests {
         }
     }
 
+    /// A hit-dice-1 monster's aim, which rolls `random2(19 + 1)` on a player in plain light.
+    fn aim(nightvision: bool) -> Aim {
+        Aim {
+            hit_dice: 1,
+            skilled: false,
+            accuracy: 0,
+            nightvision,
+        }
+    }
+
+    /// The highest to-hit `aim` rolls on a player `lighting` falls on, over many rolls.
+    fn best_to_hit(aim: Aim, lighting: Lighting) -> i32 {
+        let mut rng = Rng::new(7, 8);
+        (0..10_000)
+            .map(|_| monster_to_hit(MonsterToHit::Crawl034, &mut rng, aim, lighting))
+            .max()
+            .unwrap()
+    }
+
+    #[test]
+    fn a_backlit_player_is_aimed_at_with_five_more_before_the_roll() {
+        assert_eq!(best_to_hit(aim(false), Lighting::Plain), 19);
+        assert_eq!(best_to_hit(aim(false), Lighting::Backlit), 24);
+        assert_eq!(best_to_hit(aim(true), Lighting::Backlit), 24);
+    }
+
+    #[test]
+    fn an_umbra_takes_three_from_the_aim_of_a_monster_without_nightvision_only() {
+        assert_eq!(best_to_hit(aim(false), Lighting::Umbra), 16);
+        assert_eq!(best_to_hit(aim(true), Lighting::Umbra), 19);
+    }
+
     #[test]
     fn one_attack_in_forty_hits_or_misses_regardless_of_evasion() {
         // Against EV 1000 only the automatic hit lands: 5% of attacks ignore evasion, half hit.
         let ported = chance(|rng| {
-            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, 1, false, 0);
+            let to_hit = monster_to_hit(MonsterToHit::Crawl034, rng, aim(false), Lighting::Plain);
             evasion_margin(
                 EvasionRoll::Crawl034,
                 rng,

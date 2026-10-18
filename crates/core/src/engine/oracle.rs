@@ -10,13 +10,14 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
 
 use crate::accumulated_state::Shield;
 
-use super::melee::{self, Attack, Defences, Flavour, Swing};
+use super::melee::{self, Aim, Attack, Defences, Flavour, Swing, Target};
 use super::missiles::{self, Missile, Shooter};
 use super::rng::Rng;
-use super::spells::{self, DamagingSpell};
+use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
 use super::wands;
 
+pub use super::lighting::Lighting;
 pub use super::melee::AUTOMATIC_HIT;
 
 /// The player's AC, EV and SH as a harness dresses them: whole points, exactly as displayed, with
@@ -37,9 +38,20 @@ impl From<ExactDefences> for Defences {
     }
 }
 
+/// The player a case's monster attacks: exactly these defences, in this light.
+fn target(defences: ExactDefences, lighting: Lighting) -> Target {
+    Target {
+        defences: defences.into(),
+        lighting,
+    }
+}
+
 /// One monster attack on the player, in the terms the ported formulas take.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MeleeCase {
+    /// The attacker's `monster_type` value, whose Game Knowledge says whether it sees through an
+    /// umbra.
+    pub monster: u16,
     /// The attacker's hit dice.
     pub hit_dice: i32,
     /// Whether the attacker is a fighter (`M_FIGHTER`), which raises its accuracy.
@@ -50,6 +62,8 @@ pub struct MeleeCase {
     pub crushes: bool,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// How the light falls on the player.
+    pub lighting: Lighting,
 }
 
 /// What many runs of one melee attack or missile came to.
@@ -68,8 +82,24 @@ pub struct AttackTally {
 
 /// Runs `case` `trials` times through the ported formulas, from a generator seeded with
 /// `seed`, with a fresh shield block for every attack, as the harness resets crawl's.
-#[must_use]
-pub fn melee(formulas: Formulas, case: &MeleeCase, seed: (u64, u64), trials: u32) -> AttackTally {
+///
+/// # Errors
+/// If the bundle has no monster numbered as the attacker.
+pub fn melee(
+    bundle: &Bundle,
+    case: &MeleeCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<AttackTally, CaseError> {
+    let monster = bundle
+        .monster(case.monster)
+        .ok_or(CaseError::NoMonster(case.monster))?;
+    let aim = Aim {
+        hit_dice: case.hit_dice,
+        skilled: case.fighter,
+        accuracy: 0,
+        nightvision: monster.nightvision,
+    };
     let mut rng = Rng::new(seed.0, seed.1);
     let attack = Attack {
         flavour: if case.crushes {
@@ -79,21 +109,20 @@ pub fn melee(formulas: Formulas, case: &MeleeCase, seed: (u64, u64), trials: u32
         },
         damage: case.damage,
     };
-    let defences = Defences::from(case.defences);
+    let target = target(case.defences, case.lighting);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
         tally.add(melee::swing(
-            formulas,
+            bundle.formulas,
             &mut rng,
-            case.hit_dice,
-            case.fighter,
+            aim,
             attack,
-            defences,
+            target,
             // The harness resets crawl's shield blocks before every attack.
             true,
         ));
     }
-    tally
+    Ok(tally)
 }
 
 impl AttackTally {
@@ -161,6 +190,8 @@ pub struct SpellCase {
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// How the light falls on the player.
+    pub lighting: Lighting,
 }
 
 /// What many casts of one spell came to.
@@ -193,23 +224,33 @@ pub fn spell(
     trials: u32,
 ) -> Result<SpellTally, CaseError> {
     let formulas = bundle.formulas;
-    let cast = damaging_spell(bundle, case.monster, case.spell)?;
+    let (caster, cast) = damaging_spell(bundle, case.monster, case.spell)?;
     let power = spells::power(formulas.monster_spell_power, &cast.spell.id, case.hit_dice);
-    let defences = Defences::from(case.defences);
-    Ok(beams(formulas, &cast, power, defences, seed, trials))
+    let firing = Firing {
+        spell: &cast,
+        power,
+        nightvision: caster.nightvision,
+    };
+    Ok(beams(
+        formulas,
+        firing,
+        target(case.defences, case.lighting),
+        seed,
+        trials,
+    ))
 }
 
-/// Fires `spell`'s beam at `power` `trials` times through the ported formulas, from a generator
-/// seeded with `seed`, with a fresh shield block for every beam.
+/// Fires `firing`'s beam at `target` `trials` times through the ported formulas, from a
+/// generator seeded with `seed`, with a fresh shield block for every beam.
 fn beams(
     formulas: Formulas,
-    spell: &DamagingSpell<'_>,
-    power: i32,
-    defences: Defences,
+    firing: Firing<'_, '_>,
+    target: Target,
     seed: (u64, u64),
     trials: u32,
 ) -> SpellTally {
-    let range = spell.spell.range.map_or(0, |range| {
+    let power = firing.power;
+    let range = firing.spell.spell.range.map_or(0, |range| {
         spells::range(formulas.monster_spell_power, range, power)
     });
     let mut rng = Rng::new(seed.0, seed.1);
@@ -219,14 +260,14 @@ fn beams(
         ..SpellTally::default()
     };
     for _ in 0..trials {
-        let bolt = spells::bolt(formulas.beam_damage, &mut rng, spell, power);
+        let bolt = spells::bolt(formulas.beam_damage, &mut rng, firing);
         tally.to_hit = bolt.to_hit;
         let shot = spells::shoot(
             formulas.beam_hit,
             formulas.beam_damage,
             &mut rng,
             bolt,
-            defences,
+            target,
             true,
         );
         tally.blocks += u32::from(shot.blocked);
@@ -309,12 +350,13 @@ pub fn spell_choice(
     Ok(tally)
 }
 
-/// The spell numbered `spell` in `monster`'s book, as the engine ports it.
+/// The monster numbered `monster`, and the spell numbered `spell` in its book, as the engine
+/// ports it.
 fn damaging_spell(
     bundle: &Bundle,
     monster: u16,
     spell: u16,
-) -> Result<spells::DamagingSpell<'_>, CaseError> {
+) -> Result<(&Monster, spells::DamagingSpell<'_>), CaseError> {
     let not_ported = CaseError::NotPorted { monster, spell };
     let caster = bundle
         .monster(monster)
@@ -326,7 +368,8 @@ fn damaging_spell(
     if !book.iter().any(|slot| slot.spell == known.id) {
         return Err(not_ported);
     }
-    spells::damaging(bundle.formulas.monster_spell_beam, known).ok_or(not_ported)
+    let cast = spells::damaging(bundle.formulas.monster_spell_beam, known).ok_or(not_ported)?;
+    Ok((caster, cast))
 }
 
 /// How often a monster of a kind was made with each launcher or missile and each wand, by
@@ -379,6 +422,8 @@ pub struct MissileCase {
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// How the light falls on the player.
+    pub lighting: Lighting,
 }
 
 /// Fires `case`'s missile `trials` times through the ported formulas, from a generator seeded
@@ -394,7 +439,7 @@ pub fn missile(
 ) -> Result<AttackTally, CaseError> {
     let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
     let shooter = Shooter::of(monster, case.hit_dice);
-    let defences = Defences::from(case.defences);
+    let target = target(case.defences, case.lighting);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
@@ -403,7 +448,7 @@ pub fn missile(
             &mut rng,
             shooter,
             missile,
-            defences,
+            target,
             true,
         ));
     }
@@ -458,25 +503,33 @@ pub fn fire(
 /// A monster zapping a wand of a spell at the player, in the terms the ported formulas take.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WandCase {
+    /// The monster's `monster_type` value, whose Game Knowledge says whether it sees through an
+    /// umbra.
+    pub monster: u16,
     /// The spell's `spell_type` value.
     pub spell: u16,
     /// The monster's hit dice.
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// How the light falls on the player.
+    pub lighting: Lighting,
 }
 
 /// Zaps `case`'s wand `trials` times through the ported formulas, from a generator seeded with
 /// `seed`, with a fresh shield block for every beam, as the harness resets crawl's.
 ///
 /// # Errors
-/// If the bundle lacks the spell or the engine doesn't port it.
+/// If the bundle lacks the monster or the spell, or the engine doesn't port the spell.
 pub fn wand(
     bundle: &Bundle,
     case: &WandCase,
     seed: (u64, u64),
     trials: u32,
 ) -> Result<SpellTally, CaseError> {
+    let zapper = bundle
+        .monster(case.monster)
+        .ok_or(CaseError::NoMonster(case.monster))?;
     let spell = wand_spell(bundle, case.spell)?;
     let formulas = bundle.formulas;
     let power = wands::power(
@@ -485,8 +538,18 @@ pub fn wand(
         &spell.spell.id,
         case.hit_dice,
     );
-    let defences = Defences::from(case.defences);
-    Ok(beams(formulas, &spell, power, defences, seed, trials))
+    let firing = Firing {
+        spell: &spell,
+        power,
+        nightvision: zapper.nightvision,
+    };
+    Ok(beams(
+        formulas,
+        firing,
+        target(case.defences, case.lighting),
+        seed,
+        trials,
+    ))
 }
 
 /// A monster deciding whether to zap a wand of a spell at a player some squares away.
@@ -622,6 +685,8 @@ pub struct TurnCase {
     pub speed: u32,
     /// Squares between it and the player.
     pub distance: i32,
+    /// How the light falls on the player.
+    pub lighting: Lighting,
 }
 
 /// What a monster did before the player's next standard-speed action, over many trials: how
@@ -660,7 +725,10 @@ pub fn turn(
     monster.speed = case.speed;
     let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
     // Undefended, so whatever strikes the player deals damage.
-    let defences = Defences::exact(0, 0, 0);
+    let target = Target {
+        defences: Defences::exact(0, 0, 0),
+        lighting: case.lighting,
+    };
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {
         can_attack: threat::can_attack(formulas, &attacker),
@@ -669,7 +737,7 @@ pub fn turn(
     for _ in 0..trials {
         // The undefended player has no shield to block with.
         let mut blocks_left = 0;
-        let turn = threat::turn(formulas, &mut rng, &attacker, defences, &mut blocks_left);
+        let turn = threat::turn(formulas, &mut rng, &attacker, target, &mut blocks_left);
         *tally.melee.entry(turn.melee).or_default() += 1;
         *tally.casts.entry(turn.casts).or_default() += 1;
         *tally.closed.entry(turn.closed).or_default() += 1;

@@ -142,7 +142,10 @@ static bool _playable_kind(monster_type type)
            // Hepliaklqana's ancestors are made from the player and are only ever their allies.
            && !mons_is_hepliaklqana_ancestor(type)
            // Its polymorph status can't be taken off without the form it would take.
-           && type != MONS_ASPIRING_FLESH;
+           && type != MONS_ASPIRING_FLESH
+           // Its facets, given as it is made, may add attacks its kind lacks, such as a reaching
+           // sting, which the engine doesn't model (#95).
+           && type != MONS_MUTANT_BEAST;
 }
 
 // Takes away every status `mon` has.
@@ -200,7 +203,7 @@ static monster *_place(monster_type type, int distance)
     mon->behaviour = BEH_SEEK;
     mon->foe = MHITYOU;
     mon->target = you.pos();
-    if (!mon->visible_to(&you) || !you.visible_to(mon) || you.backlit(false) || you.umbra())
+    if (!mon->visible_to(&you) || !you.visible_to(mon))
     {
         _clear_monsters();
         return nullptr;
@@ -437,10 +440,12 @@ struct turn_tally
 };
 
 // Plays out the player's next standard-speed action `trials` times against `mon`, `distance`
-// squares away, each time as it starts. Returns why the engine can't follow it, or nullptr if it
-// can: a monster may burst or crumble in its own turns, move the player, as a trampling or
-// pulling hit does, or move away from them, as a blinking one does.
-static const char *_play_turns(monster &mon, int distance, int trials, turn_tally &tally)
+// squares away, each time as it starts, the player under a corona if `corona`. Returns why the
+// engine can't follow it, or nullptr if it can: a monster may burst or crumble in its own turns,
+// move the player, as a trampling or pulling hit does, or move away from them, as a blinking one
+// does.
+static const char *_play_turns(monster &mon, int distance, bool corona, int trials,
+                               turn_tally &tally)
 {
     const coord_def start = mon.pos();
     const coord_def player = you.pos();
@@ -448,6 +453,8 @@ static const char *_play_turns(monster &mon, int distance, int trials, turn_tall
     {
         _clear_monsters(&mon);
         _restore_player();
+        if (corona)
+            you.duration[DUR_CORONA] = 1000;
         _reset_terrain();
         delete_all_clouds();
         if (mon.pos() != start)
@@ -508,9 +515,16 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         const string name = mon->name(DESC_PLAIN, true);
         const int hd = mon->get_hit_dice();
         const int speed = mon->speed;
+        const bool nightvision = mon->nightvision();
+        _random_light();
+        // Restoring the player between plays ends a corona, so each play lights it again.
+        const bool corona = you.duration[DUR_CORONA] > 0;
+        // As the monster starts; a halo of its own may reach the player only as it closes, which
+        // changes no tally here.
+        const char *lighting = _lighting();
 
         turn_tally tally;
-        const char *unfollowed = _play_turns(*mon, distance, trials, tally);
+        const char *unfollowed = _play_turns(*mon, distance, corona, trials, tally);
         _clear_monsters();
         if (unfollowed)
         {
@@ -523,9 +537,10 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
             continue;
         }
         printf("{\"case\":%d,\"kind\":\"turn\",\"rule\":\"%s\",\"monster\":%d,\"name\":\"%s\","
-               "\"hd\":%d,\"speed\":%d,\"distance\":%d,\"trials\":%d,"
-               "\"melee\":%s,\"casts\":%s,\"closed\":%s}\n",
-               index, rule.name, kind.type, name.c_str(), hd, speed, distance, trials,
+               "\"hd\":%d,\"speed\":%d,\"distance\":%d,\"nightvision\":%s,"
+               "\"lighting\":\"%s\",\"trials\":%d,\"melee\":%s,\"casts\":%s,\"closed\":%s}\n",
+               index, rule.name, kind.type, name.c_str(), hd, speed, distance,
+               _json_bool(nightvision), lighting, trials,
                _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
                _histogram(tally.closed).c_str());
         return;

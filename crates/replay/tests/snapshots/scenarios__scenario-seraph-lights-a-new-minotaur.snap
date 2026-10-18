@@ -1,0 +1,191 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz277487424",
+    "character": "wiz277487424",
+    "species": "Minotaur",
+    "firstSeenMs": 1792277488697,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 19,
+          "death": {
+            "times": 8018,
+            "trials": 10000
+          },
+          "worstHit": 104,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "seraph",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [
+                "Warning Cry",
+                "Summon Holies",
+                "Injury Bond",
+                "Cleansing Flame"
+              ],
+              "shoots": []
+            }
+          ],
+          "mayShoot": [],
+          "lighting": "backlit",
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "otherSpells"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz277487424",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "line": "Seraph can attack before your next action.",
+          "detail": "Death 80.2% · worst hit 104 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "A",
+                  "colour": "lightMagenta"
+                },
+                "tile": "mon/holy/seraph"
+              },
+              "name": "seraph",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 1,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 19,
+        "death": {
+          "times": 8018,
+          "trials": 10000
+        },
+        "worstHit": 104,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "seraph",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [
+              "Warning Cry",
+              "Summon Holies",
+              "Injury Bond",
+              "Cleansing Flame"
+            ],
+            "shoots": []
+          }
+        ],
+        "mayShoot": [],
+        "lighting": "backlit",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "otherSpells"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz277487424",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 1
+      },
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "line": "Seraph can attack before your next action.",
+        "detail": "Death 80.2% · worst hit 104 of 19 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "A",
+                "colour": "lightMagenta"
+              },
+              "tile": "mon/holy/seraph"
+            },
+            "name": "seraph",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

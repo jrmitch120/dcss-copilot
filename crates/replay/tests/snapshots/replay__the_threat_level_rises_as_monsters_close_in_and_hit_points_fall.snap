@@ -34,6 +34,7 @@ expression: fact_sheets_by_turn(JACKALS)
         "hostilesInView": 3,
         "acting": [],
         "mayShoot": [],
+        "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -93,6 +94,7 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "mayShoot": [],
+        "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",
@@ -152,6 +154,7 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "mayShoot": [],
+        "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
           "attackFlavours",

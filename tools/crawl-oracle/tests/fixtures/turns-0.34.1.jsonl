@@ -26,520 +26,528 @@
 {"case":24,"kind":"reach","monster":26,"name":"hell hound","reach":1,"attacks_from":{"1":[0]}}
 {"case":25,"kind":"reach","monster":27,"name":"hog","reach":1,"attacks_from":{"1":[0]}}
 {"case":26,"kind":"reach","monster":28,"name":"hell hog","reach":1,"attacks_from":{"1":[0]}}
-{"case":27,"kind":"reach","monster":33,"name":"tyrant leech","reach":1,"attacks_from":{"1":[0]}}
-{"case":28,"kind":"reach","monster":35,"name":"alligator","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":29,"kind":"reach","monster":36,"name":"crocodile","reach":1,"attacks_from":{"1":[0]}}
-{"case":30,"kind":"reach","monster":37,"name":"eight-headed hydra","reach":1,"attacks_from":{"1":[0]}}
-{"case":31,"kind":"reach","monster":39,"name":"yak","reach":1,"attacks_from":{"1":[0]}}
-{"case":32,"kind":"reach","monster":40,"name":"death yak","reach":1,"attacks_from":{"1":[0]}}
-{"case":33,"kind":"reach","monster":41,"name":"catoblepas","reach":1,"attacks_from":{"1":[0]}}
-{"case":34,"kind":"reach","monster":42,"name":"elephant","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":35,"kind":"reach","monster":43,"name":"dire elephant","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":36,"kind":"reach","monster":44,"name":"hellephant","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":37,"kind":"reach","monster":45,"name":"manticore","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":38,"kind":"reach","monster":46,"name":"hippogriff","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":39,"kind":"reach","monster":48,"name":"bullfrog","reach":1,"attacks_from":{"1":[0]}}
-{"case":40,"kind":"reach","monster":49,"name":"cane toad","reach":1,"attacks_from":{"1":[0]}}
-{"case":41,"kind":"reach","monster":50,"name":"blink frog","reach":1,"attacks_from":{"1":[0]}}
-{"case":42,"kind":"reach","monster":52,"name":"polar bear","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":43,"kind":"reach","monster":53,"name":"black bear","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":44,"kind":"reach","monster":54,"name":"ribbon worm","reach":1,"attacks_from":{"1":[0]}}
-{"case":45,"kind":"reach","monster":55,"name":"brain worm","reach":1,"attacks_from":{"1":[0]}}
-{"case":46,"kind":"reach","monster":58,"name":"wyvern","reach":1,"attacks_from":{"1":[0]}}
-{"case":47,"kind":"reach","monster":59,"name":"lindwurm","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":48,"kind":"reach","monster":60,"name":"rime drake","reach":1,"attacks_from":{"1":[0]}}
-{"case":49,"kind":"reach","monster":61,"name":"swamp drake","reach":1,"attacks_from":{"1":[0]}}
-{"case":50,"kind":"reach","monster":62,"name":"death drake","reach":1,"attacks_from":{"1":[0]}}
-{"case":51,"kind":"reach","monster":63,"name":"steam dragon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":52,"kind":"reach","monster":64,"name":"acid dragon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":53,"kind":"reach","monster":65,"name":"swamp dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":54,"kind":"reach","monster":66,"name":"fire dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":55,"kind":"reach","monster":67,"name":"ice dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":56,"kind":"reach","monster":68,"name":"shadow dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":57,"kind":"reach","monster":69,"name":"storm dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":58,"kind":"reach","monster":70,"name":"bone dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":59,"kind":"reach","monster":71,"name":"quicksilver dragon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":60,"kind":"reach","monster":72,"name":"iron dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":61,"kind":"reach","monster":73,"name":"golden dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":62,"kind":"reach","monster":74,"name":"pearl dragon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":63,"kind":"reach","monster":75,"name":"endoplasm","reach":1,"attacks_from":{"1":[0]}}
-{"case":64,"kind":"reach","monster":76,"name":"jelly","reach":1,"attacks_from":{"1":[0]}}
-{"case":65,"kind":"reach","monster":78,"name":"colossal amoeba","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":66,"kind":"reach","monster":79,"name":"azure jelly","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":67,"kind":"reach","monster":81,"name":"acid blob","reach":1,"attacks_from":{"1":[0]}}
-{"case":68,"kind":"reach","monster":82,"name":"slime creature","reach":1,"attacks_from":{"1":[0]}}
-{"case":69,"kind":"reach","monster":88,"name":"great orb of eyes","reach":1,"attacks_from":{"1":[0]}}
-{"case":70,"kind":"reach","monster":91,"name":"harpy","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":71,"kind":"reach","monster":92,"name":"raven","reach":1,"attacks_from":{"1":[0]}}
-{"case":72,"kind":"reach","monster":93,"name":"fire crab","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":73,"kind":"reach","monster":101,"name":"killer bee","reach":1,"attacks_from":{"1":[0]}}
-{"case":74,"kind":"reach","monster":102,"name":"queen bee","reach":1,"attacks_from":{"1":[0]}}
-{"case":75,"kind":"reach","monster":103,"name":"vampire mosquito","reach":1,"attacks_from":{"1":[0]}}
-{"case":76,"kind":"reach","monster":106,"name":"hornet","reach":1,"attacks_from":{"1":[0]}}
-{"case":77,"kind":"reach","monster":109,"name":"boulder beetle","reach":1,"attacks_from":{"1":[0]}}
-{"case":78,"kind":"reach","monster":114,"name":"wolf spider","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":79,"kind":"reach","monster":116,"name":"jumping spider","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":80,"kind":"reach","monster":117,"name":"orb spider","reach":1,"attacks_from":{"1":[0]}}
-{"case":81,"kind":"reach","monster":118,"name":"tarantella","reach":1,"attacks_from":{"1":[0]}}
-{"case":82,"kind":"reach","monster":119,"name":"redback","reach":1,"attacks_from":{"1":[0]}}
-{"case":83,"kind":"reach","monster":120,"name":"scorpion","reach":1,"attacks_from":{"1":[0]}}
-{"case":84,"kind":"reach","monster":121,"name":"emperor scorpion","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":85,"kind":"reach","monster":124,"name":"ghost moth","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":86,"kind":"reach","monster":125,"name":"moth of wrath","reach":1,"attacks_from":{"1":[0]}}
-{"case":87,"kind":"reach","monster":126,"name":"demonic crawler","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":88,"kind":"reach","monster":127,"name":"snapping turtle","reach":2,"attacks_from":{"1":[0],"2":[0]}}
-{"case":89,"kind":"reach","monster":128,"name":"alligator snapping turtle","reach":2,"attacks_from":{"1":[0],"2":[0]}}
-{"case":90,"kind":"reach","monster":130,"name":"halfling","reach":1,"attacks_from":{"1":[0]}}
-{"case":91,"kind":"reach","monster":131,"name":"felid","reach":1,"attacks_from":{"1":[0]}}
-{"case":92,"kind":"reach","monster":132,"name":"vampire bat","reach":1,"attacks_from":{"1":[0]}}
-{"case":93,"kind":"reach","monster":133,"name":"demigod","reach":1,"attacks_from":{"1":[0]}}
-{"case":94,"kind":"reach","monster":134,"name":"demonspawn","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":95,"kind":"reach","monster":135,"name":"gargoyle","reach":1,"attacks_from":{"1":[0]}}
-{"case":96,"kind":"reach","monster":136,"name":"war gargoyle","reach":1,"attacks_from":{"1":[0]}}
-{"case":97,"kind":"reach","monster":137,"name":"molten gargoyle","reach":1,"attacks_from":{"1":[0]}}
-{"case":98,"kind":"reach","monster":138,"name":"green ugly thing","reach":1,"attacks_from":{"1":[0]}}
-{"case":99,"kind":"reach","monster":139,"name":"brown very ugly thing","reach":1,"attacks_from":{"1":[0]}}
-{"case":100,"kind":"reach","monster":140,"name":"ice beast","reach":1,"attacks_from":{"1":[0]}}
-{"case":101,"kind":"reach","monster":141,"name":"sky beast","reach":1,"attacks_from":{"1":[0]}}
-{"case":102,"kind":"reach","monster":142,"name":"guardian sphinx","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":103,"kind":"reach","monster":143,"name":"Orb Guardian","reach":1,"attacks_from":{"1":[0]}}
-{"case":104,"kind":"reach","monster":148,"name":"iron golem","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":105,"kind":"reach","monster":149,"name":"crystal guardian","reach":1,"attacks_from":{"1":[0]}}
-{"case":106,"kind":"reach","monster":150,"name":"toenail golem","reach":1,"attacks_from":{"1":[0]}}
-{"case":107,"kind":"reach","monster":151,"name":"electric golem","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":108,"kind":"reach","monster":153,"name":"earth elemental","reach":1,"attacks_from":{"1":[0]}}
-{"case":109,"kind":"reach","monster":155,"name":"air elemental","reach":1,"attacks_from":{"1":[0]}}
-{"case":110,"kind":"reach","monster":159,"name":"spatial vortex","reach":1,"attacks_from":{"1":[0]}}
-{"case":111,"kind":"reach","monster":172,"name":"wandering mushroom","reach":1,"attacks_from":{"1":[0]}}
-{"case":112,"kind":"reach","monster":178,"name":"ballistomycete spore","reach":1,"attacks_from":{"1":[0]}}
-{"case":113,"kind":"reach","monster":181,"name":"goblin","reach":1,"attacks_from":{"1":[0]}}
-{"case":114,"kind":"reach","monster":182,"name":"hobgoblin","reach":1,"attacks_from":{"1":[0]}}
-{"case":115,"kind":"reach","monster":183,"name":"gnoll","reach":1,"attacks_from":{"1":[0]}}
-{"case":116,"kind":"reach","monster":184,"name":"gnoll bouda","reach":1,"attacks_from":{"1":[0]}}
-{"case":117,"kind":"reach","monster":185,"name":"gnoll sergeant","reach":1,"attacks_from":{"1":[0]}}
-{"case":118,"kind":"reach","monster":186,"name":"boggart","reach":1,"attacks_from":{"1":[0]}}
-{"case":119,"kind":"reach","monster":187,"name":"kobold","reach":1,"attacks_from":{"1":[0]}}
-{"case":120,"kind":"reach","monster":188,"name":"kobold brigand","reach":1,"attacks_from":{"1":[0]}}
-{"case":121,"kind":"reach","monster":189,"name":"kobold demonologist","reach":1,"attacks_from":{"1":[0]}}
-{"case":122,"kind":"reach","monster":190,"name":"orc","reach":1,"attacks_from":{"1":[0]}}
-{"case":123,"kind":"reach","monster":191,"name":"orc warrior","reach":1,"attacks_from":{"1":[0]}}
-{"case":124,"kind":"reach","monster":192,"name":"orc priest","reach":1,"attacks_from":{"1":[0]}}
-{"case":125,"kind":"reach","monster":193,"name":"orc high priest","reach":1,"attacks_from":{"1":[0]}}
-{"case":126,"kind":"reach","monster":194,"name":"orc wizard","reach":1,"attacks_from":{"1":[0]}}
-{"case":127,"kind":"reach","monster":195,"name":"orc knight","reach":1,"attacks_from":{"1":[0]}}
-{"case":128,"kind":"reach","monster":196,"name":"orc sorcerer","reach":1,"attacks_from":{"1":[0]}}
-{"case":129,"kind":"reach","monster":197,"name":"orc warlord","reach":1,"attacks_from":{"1":[0]}}
-{"case":130,"kind":"reach","monster":198,"name":"dwarf","reach":1,"attacks_from":{"1":[0]}}
-{"case":131,"kind":"reach","monster":206,"name":"elf","reach":1,"attacks_from":{"1":[0]}}
-{"case":132,"kind":"reach","monster":209,"name":"deep elf knight","reach":1,"attacks_from":{"1":[0]}}
-{"case":133,"kind":"reach","monster":210,"name":"deep elf pyromancer","reach":1,"attacks_from":{"1":[0]}}
-{"case":134,"kind":"reach","monster":214,"name":"deep elf high priest","reach":1,"attacks_from":{"1":[0]}}
-{"case":135,"kind":"reach","monster":215,"name":"deep elf demonologist","reach":1,"attacks_from":{"1":[0]}}
-{"case":136,"kind":"reach","monster":216,"name":"deep elf annihilator","reach":1,"attacks_from":{"1":[0]}}
-{"case":137,"kind":"reach","monster":217,"name":"deep elf sorcerer","reach":1,"attacks_from":{"1":[0]}}
-{"case":138,"kind":"reach","monster":218,"name":"deep elf death mage","reach":1,"attacks_from":{"1":[0]}}
-{"case":139,"kind":"reach","monster":219,"name":"deep elf blademaster","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":140,"kind":"reach","monster":220,"name":"deep elf master archer","reach":1,"attacks_from":{"1":[0]}}
-{"case":141,"kind":"reach","monster":221,"name":"spriggan","reach":1,"attacks_from":{"1":[0]}}
-{"case":142,"kind":"reach","monster":222,"name":"spriggan druid","reach":1,"attacks_from":{"1":[0]}}
-{"case":143,"kind":"reach","monster":224,"name":"spriggan rider","reach":1,"attacks_from":{"1":[0]}}
-{"case":144,"kind":"reach","monster":225,"name":"spriggan berserker","reach":1,"attacks_from":{"1":[0]}}
-{"case":145,"kind":"reach","monster":226,"name":"spriggan defender","reach":1,"attacks_from":{"1":[0]}}
-{"case":146,"kind":"reach","monster":227,"name":"spriggan air mage","reach":1,"attacks_from":{"1":[0]}}
-{"case":147,"kind":"reach","monster":229,"name":"tengu","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":148,"kind":"reach","monster":230,"name":"minotaur","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":149,"kind":"reach","monster":231,"name":"naga","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":150,"kind":"reach","monster":232,"name":"naga warrior","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":151,"kind":"reach","monster":233,"name":"naga mage","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":152,"kind":"reach","monster":234,"name":"nagaraja","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":153,"kind":"reach","monster":235,"name":"guardian serpent","reach":1,"attacks_from":{"1":[0]}}
-{"case":154,"kind":"reach","monster":236,"name":"octopode","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":155,"kind":"reach","monster":237,"name":"merfolk","reach":1,"attacks_from":{"1":[0]}}
-{"case":156,"kind":"reach","monster":238,"name":"merfolk siren","reach":1,"attacks_from":{"1":[0]}}
-{"case":157,"kind":"reach","monster":240,"name":"merfolk impaler","reach":1,"attacks_from":{"1":[0]}}
-{"case":158,"kind":"reach","monster":241,"name":"merfolk aquamancer","reach":1,"attacks_from":{"1":[0]}}
-{"case":159,"kind":"reach","monster":242,"name":"merfolk javelineer","reach":1,"attacks_from":{"1":[0]}}
-{"case":160,"kind":"reach","monster":243,"name":"centaur","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":161,"kind":"reach","monster":244,"name":"centaur warrior","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":162,"kind":"reach","monster":245,"name":"yaktaur","reach":1,"attacks_from":{"1":[0]}}
-{"case":163,"kind":"reach","monster":246,"name":"yaktaur captain","reach":1,"attacks_from":{"1":[0]}}
-{"case":164,"kind":"reach","monster":247,"name":"ogre","reach":1,"attacks_from":{"1":[0]}}
-{"case":165,"kind":"reach","monster":248,"name":"two-headed ogre","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":166,"kind":"reach","monster":249,"name":"ogre mage","reach":1,"attacks_from":{"1":[0]}}
-{"case":167,"kind":"reach","monster":250,"name":"troll","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":168,"kind":"reach","monster":252,"name":"iron troll","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":169,"kind":"reach","monster":253,"name":"deep troll","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":170,"kind":"reach","monster":256,"name":"cyclops","reach":1,"attacks_from":{"1":[0]}}
-{"case":171,"kind":"reach","monster":257,"name":"ettin","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":172,"kind":"reach","monster":258,"name":"stone giant","reach":1,"attacks_from":{"1":[0]}}
-{"case":173,"kind":"reach","monster":259,"name":"fire giant","reach":1,"attacks_from":{"1":[0]}}
-{"case":174,"kind":"reach","monster":260,"name":"frost giant","reach":1,"attacks_from":{"1":[0]}}
-{"case":175,"kind":"reach","monster":261,"name":"titan","reach":1,"attacks_from":{"1":[0]}}
-{"case":176,"kind":"reach","monster":262,"name":"human","reach":1,"attacks_from":{"1":[0]}}
-{"case":177,"kind":"reach","monster":264,"name":"hell knight","reach":1,"attacks_from":{"1":[0]}}
-{"case":178,"kind":"reach","monster":265,"name":"necromancer","reach":1,"attacks_from":{"1":[0]}}
-{"case":179,"kind":"reach","monster":266,"name":"occultist","reach":1,"attacks_from":{"1":[0]}}
-{"case":180,"kind":"reach","monster":267,"name":"vault guard","reach":1,"attacks_from":{"1":[0]}}
-{"case":181,"kind":"reach","monster":268,"name":"Killer Klown","reach":1,"attacks_from":{"1":[0]}}
-{"case":182,"kind":"reach","monster":290,"name":"lava snake","reach":1,"attacks_from":{"1":[0]}}
-{"case":183,"kind":"reach","monster":291,"name":"salamander","reach":1,"attacks_from":{"1":[0]}}
-{"case":184,"kind":"reach","monster":296,"name":"water elemental","reach":1,"attacks_from":{"1":[0]}}
-{"case":185,"kind":"reach","monster":297,"name":"swamp worm","reach":1,"attacks_from":{"1":[0]}}
-{"case":186,"kind":"reach","monster":299,"name":"kraken","reach":1,"attacks_from":{"1":[0]}}
-{"case":187,"kind":"reach","monster":300,"name":"tentacle","reach":1,"attacks_from":{"1":[0]}}
-{"case":188,"kind":"reach","monster":305,"name":"statue","reach":1,"attacks_from":{"1":[0]}}
-{"case":189,"kind":"reach","monster":306,"name":"training dummy","reach":1,"attacks_from":{"1":[0]}}
-{"case":190,"kind":"reach","monster":308,"name":"crimson imp","reach":1,"attacks_from":{"1":[0]}}
-{"case":191,"kind":"reach","monster":309,"name":"drude","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":192,"kind":"reach","monster":310,"name":"white imp","reach":1,"attacks_from":{"1":[0]}}
-{"case":193,"kind":"reach","monster":311,"name":"lemure","reach":1,"attacks_from":{"1":[0]}}
-{"case":194,"kind":"reach","monster":312,"name":"ufetubus","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":195,"kind":"reach","monster":313,"name":"iron imp","reach":1,"attacks_from":{"1":[0]}}
-{"case":196,"kind":"reach","monster":314,"name":"shadow imp","reach":1,"attacks_from":{"1":[0]}}
-{"case":197,"kind":"reach","monster":315,"name":"red devil","reach":1,"attacks_from":{"1":[0]}}
-{"case":198,"kind":"reach","monster":317,"name":"hellwing","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":199,"kind":"reach","monster":318,"name":"sixfirhy","reach":1,"attacks_from":{"1":[0]}}
-{"case":200,"kind":"reach","monster":319,"name":"neqoxec","reach":1,"attacks_from":{"1":[0]}}
-{"case":201,"kind":"reach","monster":320,"name":"orange demon","reach":2,"attacks_from":{"1":[0,1],"2":[0]}}
-{"case":202,"kind":"reach","monster":321,"name":"smoke demon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":203,"kind":"reach","monster":322,"name":"ynoxinul","reach":1,"attacks_from":{"1":[0]}}
-{"case":204,"kind":"reach","monster":323,"name":"chaos spawn","reach":1,"attacks_from":{"1":[0]}}
-{"case":205,"kind":"reach","monster":324,"name":"hellion","reach":1,"attacks_from":{"1":[0]}}
-{"case":206,"kind":"reach","monster":326,"name":"tormentor","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":207,"kind":"reach","monster":327,"name":"reaper","reach":1,"attacks_from":{"1":[0]}}
-{"case":208,"kind":"reach","monster":328,"name":"soul eater","reach":1,"attacks_from":{"1":[0]}}
-{"case":209,"kind":"reach","monster":329,"name":"ice devil","reach":1,"attacks_from":{"1":[0]}}
-{"case":210,"kind":"reach","monster":331,"name":"sin beast","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":211,"kind":"reach","monster":332,"name":"rust devil","reach":1,"attacks_from":{"1":[0]}}
-{"case":212,"kind":"reach","monster":333,"name":"Executioner","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":213,"kind":"reach","monster":334,"name":"green death","reach":1,"attacks_from":{"1":[0]}}
-{"case":214,"kind":"reach","monster":335,"name":"blizzard demon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":215,"kind":"reach","monster":336,"name":"balrug","reach":1,"attacks_from":{"1":[0]}}
-{"case":216,"kind":"reach","monster":337,"name":"cacodemon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":217,"kind":"reach","monster":338,"name":"sun demon","reach":1,"attacks_from":{"1":[0]}}
-{"case":218,"kind":"reach","monster":339,"name":"shadow demon","reach":1,"attacks_from":{"1":[0]}}
-{"case":219,"kind":"reach","monster":340,"name":"Hell Sentinel","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":220,"kind":"reach","monster":341,"name":"Brimstone Fiend","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":221,"kind":"reach","monster":342,"name":"Ice Fiend","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":222,"kind":"reach","monster":343,"name":"Tzitzimitl","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":223,"kind":"reach","monster":344,"name":"Acothr Burola","reach":1,"attacks_from":{"1":[0]}}
-{"case":224,"kind":"reach","monster":345,"name":"efreet","reach":1,"attacks_from":{"1":[0]}}
-{"case":225,"kind":"reach","monster":346,"name":"rakshasa","reach":1,"attacks_from":{"1":[0]}}
-{"case":226,"kind":"reach","monster":348,"name":"unseen horror","reach":1,"attacks_from":{"1":[0]}}
-{"case":227,"kind":"reach","monster":349,"name":"tentacled starspawn","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":228,"kind":"reach","monster":350,"name":"lurking horror","reach":1,"attacks_from":{"1":[0]}}
-{"case":229,"kind":"reach","monster":351,"name":"thrashing horror","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":230,"kind":"reach","monster":352,"name":"starcursed mass","reach":1,"attacks_from":{"1":[0]}}
-{"case":231,"kind":"reach","monster":353,"name":"ancient zyme","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":232,"kind":"reach","monster":355,"name":"eldritch tentacle","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":233,"kind":"reach","monster":357,"name":"tentacled monstrosity","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":234,"kind":"reach","monster":358,"name":"small abomination","reach":1,"attacks_from":{"1":[0]}}
-{"case":235,"kind":"reach","monster":359,"name":"large abomination","reach":1,"attacks_from":{"1":[0]}}
-{"case":236,"kind":"reach","monster":363,"name":"necrophage","reach":1,"attacks_from":{"1":[0]}}
-{"case":237,"kind":"reach","monster":364,"name":"ghoul","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":238,"kind":"reach","monster":366,"name":"mummy","reach":1,"attacks_from":{"1":[0]}}
-{"case":239,"kind":"reach","monster":367,"name":"bog body","reach":1,"attacks_from":{"1":[0]}}
-{"case":240,"kind":"reach","monster":368,"name":"guardian mummy","reach":1,"attacks_from":{"1":[0]}}
-{"case":241,"kind":"reach","monster":369,"name":"royal mummy","reach":1,"attacks_from":{"1":[0]}}
-{"case":242,"kind":"reach","monster":370,"name":"mummy priest","reach":1,"attacks_from":{"1":[0]}}
-{"case":243,"kind":"reach","monster":371,"name":"vampire","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":244,"kind":"reach","monster":372,"name":"vampire knight","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":245,"kind":"reach","monster":373,"name":"vampire mage","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":246,"kind":"reach","monster":375,"name":"phantom","reach":1,"attacks_from":{"1":[0]}}
-{"case":247,"kind":"reach","monster":376,"name":"shadowghast","reach":1,"attacks_from":{"1":[0]}}
-{"case":248,"kind":"reach","monster":378,"name":"flayed ghost","reach":1,"attacks_from":{"1":[0]}}
-{"case":249,"kind":"reach","monster":379,"name":"wight","reach":1,"attacks_from":{"1":[0]}}
-{"case":250,"kind":"reach","monster":380,"name":"wraith","reach":1,"attacks_from":{"1":[0]}}
-{"case":251,"kind":"reach","monster":381,"name":"freezing wraith","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":252,"kind":"reach","monster":382,"name":"shadow wraith","reach":1,"attacks_from":{"1":[0]}}
-{"case":253,"kind":"reach","monster":383,"name":"silent spectre","reach":1,"attacks_from":{"1":[0]}}
-{"case":254,"kind":"reach","monster":384,"name":"eidolon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":255,"kind":"reach","monster":385,"name":"laughing skull","reach":1,"attacks_from":{"1":[0]}}
-{"case":256,"kind":"reach","monster":386,"name":"skeletal warrior","reach":1,"attacks_from":{"1":[0]}}
-{"case":257,"kind":"reach","monster":387,"name":"phantasmal warrior","reach":1,"attacks_from":{"1":[0]}}
-{"case":258,"kind":"reach","monster":388,"name":"lich","reach":1,"attacks_from":{"1":[0]}}
-{"case":259,"kind":"reach","monster":389,"name":"ancient lich","reach":1,"attacks_from":{"1":[0]}}
-{"case":260,"kind":"reach","monster":390,"name":"death cob","reach":1,"attacks_from":{"1":[0]}}
-{"case":261,"kind":"reach","monster":412,"name":"apis","reach":1,"attacks_from":{"1":[0]}}
-{"case":262,"kind":"reach","monster":413,"name":"Geryon","reach":2,"attacks_from":{"1":[0],"2":[0]}}
-{"case":263,"kind":"reach","monster":414,"name":"Dispater","reach":1,"attacks_from":{"1":[0]}}
-{"case":264,"kind":"reach","monster":415,"name":"Asmodeus","reach":1,"attacks_from":{"1":[0]}}
-{"case":265,"kind":"reach","monster":416,"name":"Antaeus","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":266,"kind":"reach","monster":417,"name":"Ereshkigal","reach":1,"attacks_from":{"1":[0]}}
-{"case":267,"kind":"reach","monster":418,"name":"Royal Jelly","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":268,"kind":"reach","monster":419,"name":"Enchantress","reach":1,"attacks_from":{"1":[0]}}
-{"case":269,"kind":"reach","monster":420,"name":"Mnoleg","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":270,"kind":"reach","monster":421,"name":"Lom Lobon","reach":1,"attacks_from":{"1":[0]}}
-{"case":271,"kind":"reach","monster":422,"name":"Cerebov","reach":1,"attacks_from":{"1":[0]}}
-{"case":272,"kind":"reach","monster":423,"name":"Gloorx Vloq","reach":1,"attacks_from":{"1":[0]}}
-{"case":273,"kind":"reach","monster":424,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":274,"kind":"reach","monster":425,"name":"Ijyb","reach":1,"attacks_from":{"1":[0]}}
-{"case":275,"kind":"reach","monster":426,"name":"Jessica","reach":1,"attacks_from":{"1":[0]}}
-{"case":276,"kind":"reach","monster":427,"name":"Sigmund","reach":1,"attacks_from":{"1":[0]}}
-{"case":277,"kind":"reach","monster":428,"name":"Terence","reach":1,"attacks_from":{"1":[0]}}
-{"case":278,"kind":"reach","monster":429,"name":"Blorkula the orcula","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":279,"kind":"reach","monster":430,"name":"Edmund","reach":1,"attacks_from":{"1":[0]}}
-{"case":280,"kind":"reach","monster":432,"name":"Erolcha","reach":1,"attacks_from":{"1":[0]}}
-{"case":281,"kind":"reach","monster":433,"name":"Donald","reach":1,"attacks_from":{"1":[0]}}
-{"case":282,"kind":"reach","monster":434,"name":"Urug","reach":1,"attacks_from":{"1":[0]}}
-{"case":283,"kind":"reach","monster":435,"name":"Joseph","reach":1,"attacks_from":{"1":[0]}}
-{"case":284,"kind":"reach","monster":436,"name":"Snorg","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":285,"kind":"reach","monster":437,"name":"Erica","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":286,"kind":"reach","monster":438,"name":"Josephine","reach":1,"attacks_from":{"1":[0]}}
-{"case":287,"kind":"reach","monster":439,"name":"Harold","reach":1,"attacks_from":{"1":[0]}}
-{"case":288,"kind":"reach","monster":440,"name":"Agnes","reach":1,"attacks_from":{"1":[0]}}
-{"case":289,"kind":"reach","monster":442,"name":"Louise","reach":1,"attacks_from":{"1":[0]}}
-{"case":290,"kind":"reach","monster":443,"name":"Frances","reach":1,"attacks_from":{"1":[0]}}
-{"case":291,"kind":"reach","monster":444,"name":"Rupert","reach":1,"attacks_from":{"1":[0]}}
-{"case":292,"kind":"reach","monster":445,"name":"Wiglaf","reach":1,"attacks_from":{"1":[0]}}
-{"case":293,"kind":"reach","monster":446,"name":"Xtahua","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":294,"kind":"reach","monster":447,"name":"Norris","reach":1,"attacks_from":{"1":[0]}}
-{"case":295,"kind":"reach","monster":448,"name":"Frederick","reach":1,"attacks_from":{"1":[0]}}
-{"case":296,"kind":"reach","monster":449,"name":"Margery","reach":1,"attacks_from":{"1":[0]}}
-{"case":297,"kind":"reach","monster":450,"name":"Boris","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":298,"kind":"reach","monster":451,"name":"Polyphemus","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":299,"kind":"reach","monster":452,"name":"Murray","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":300,"kind":"reach","monster":455,"name":"Sonja","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":301,"kind":"reach","monster":456,"name":"Eustachio","reach":1,"attacks_from":{"1":[0]}}
-{"case":302,"kind":"reach","monster":457,"name":"Azrael","reach":1,"attacks_from":{"1":[0]}}
-{"case":303,"kind":"reach","monster":458,"name":"Ilsuiw","reach":1,"attacks_from":{"1":[0]}}
-{"case":304,"kind":"reach","monster":459,"name":"Prince Ribbit","reach":1,"attacks_from":{"1":[0]}}
-{"case":305,"kind":"reach","monster":460,"name":"Nergalle","reach":1,"attacks_from":{"1":[0]}}
-{"case":306,"kind":"reach","monster":461,"name":"Saint Roka","reach":1,"attacks_from":{"1":[0]}}
-{"case":307,"kind":"reach","monster":462,"name":"Nessos","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":308,"kind":"reach","monster":463,"name":"27-headed Lernaean hydra","reach":1,"attacks_from":{"1":[0]}}
-{"case":309,"kind":"reach","monster":464,"name":"Dissolution","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":310,"kind":"reach","monster":465,"name":"Kirke","reach":1,"attacks_from":{"1":[0]}}
-{"case":311,"kind":"reach","monster":466,"name":"Grum","reach":1,"attacks_from":{"1":[0]}}
-{"case":312,"kind":"reach","monster":467,"name":"Pargi","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":313,"kind":"reach","monster":468,"name":"Menkaure","reach":1,"attacks_from":{"1":[0]}}
-{"case":314,"kind":"reach","monster":469,"name":"Duvessa","reach":1,"attacks_from":{"1":[0]}}
-{"case":315,"kind":"reach","monster":470,"name":"Dowan","reach":1,"attacks_from":{"1":[0]}}
-{"case":316,"kind":"reach","monster":471,"name":"Gastronok","reach":1,"attacks_from":{"1":[0]}}
-{"case":317,"kind":"reach","monster":472,"name":"Maurice","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":318,"kind":"reach","monster":473,"name":"Khufu","reach":1,"attacks_from":{"1":[0]}}
-{"case":319,"kind":"reach","monster":474,"name":"Nikola","reach":1,"attacks_from":{"1":[0]}}
-{"case":320,"kind":"reach","monster":475,"name":"Aizul","reach":1,"attacks_from":{"1":[0]}}
-{"case":321,"kind":"reach","monster":476,"name":"Pikel","reach":1,"attacks_from":{"1":[0]}}
-{"case":322,"kind":"reach","monster":477,"name":"Crazy Yiuf","reach":1,"attacks_from":{"1":[0]}}
-{"case":323,"kind":"reach","monster":479,"name":"Mara","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":324,"kind":"reach","monster":481,"name":"Grinder","reach":1,"attacks_from":{"1":[0]}}
-{"case":325,"kind":"reach","monster":482,"name":"Jory","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":326,"kind":"reach","monster":483,"name":"Ignacio","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":327,"kind":"reach","monster":484,"name":"Arachne","reach":1,"attacks_from":{"1":[0]}}
-{"case":328,"kind":"reach","monster":485,"name":"Chuck","reach":1,"attacks_from":{"1":[0]}}
-{"case":329,"kind":"reach","monster":486,"name":"iron giant","reach":1,"attacks_from":{"1":[0]}}
-{"case":330,"kind":"reach","monster":487,"name":"Nellie","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":331,"kind":"reach","monster":488,"name":"iron elemental","reach":1,"attacks_from":{"1":[0]}}
-{"case":332,"kind":"reach","monster":489,"name":" illusion","reach":1,"attacks_from":{"1":[0]}}
-{"case":333,"kind":"reach","monster":490,"name":" ghost","reach":1,"attacks_from":{"1":[0]}}
-{"case":334,"kind":"reach","monster":491,"name":"ball lightning","reach":1,"attacks_from":{"1":[0]}}
-{"case":335,"kind":"reach","monster":504,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":336,"kind":"reach","monster":505,"name":"Serpent of Hell","reach":2,"attacks_from":{"1":[0,1,2,3],"2":[0,1,2]}}
-{"case":337,"kind":"reach","monster":506,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":338,"kind":"reach","monster":507,"name":"Hellbinder","reach":1,"attacks_from":{"1":[0]}}
-{"case":339,"kind":"reach","monster":508,"name":"Cloud Mage","reach":1,"attacks_from":{"1":[0]}}
-{"case":340,"kind":"reach","monster":512,"name":"Fannar","reach":1,"attacks_from":{"1":[0]}}
-{"case":341,"kind":"reach","monster":513,"name":"apocalypse crab","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":342,"kind":"reach","monster":514,"name":"starspawn tentacle","reach":1,"attacks_from":{"1":[0]}}
-{"case":343,"kind":"reach","monster":516,"name":"spatial maelstrom","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":344,"kind":"reach","monster":518,"name":"Jorgrun","reach":1,"attacks_from":{"1":[0]}}
-{"case":345,"kind":"reach","monster":525,"name":"deep troll earth mage","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":346,"kind":"reach","monster":526,"name":"deep troll shaman","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":347,"kind":"reach","monster":528,"name":"vault sentinel","reach":1,"attacks_from":{"1":[0]}}
-{"case":348,"kind":"reach","monster":529,"name":"vault warden","reach":1,"attacks_from":{"1":[0]}}
-{"case":349,"kind":"reach","monster":530,"name":"ironbound convoker","reach":1,"attacks_from":{"1":[0]}}
-{"case":350,"kind":"reach","monster":531,"name":"ironbound preserver","reach":1,"attacks_from":{"1":[0]}}
-{"case":351,"kind":"reach","monster":535,"name":"ancient champion","reach":1,"attacks_from":{"1":[0]}}
-{"case":352,"kind":"reach","monster":536,"name":"revenant soulmonger","reach":1,"attacks_from":{"1":[0]}}
-{"case":353,"kind":"reach","monster":538,"name":"jiangshi","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":354,"kind":"reach","monster":539,"name":"djinni","reach":1,"attacks_from":{"1":[0]}}
-{"case":355,"kind":"reach","monster":541,"name":"dryad","reach":1,"attacks_from":{"1":[0]}}
-{"case":356,"kind":"reach","monster":542,"name":"wind drake","reach":1,"attacks_from":{"1":[0]}}
-{"case":357,"kind":"reach","monster":543,"name":"faun","reach":1,"attacks_from":{"1":[0]}}
-{"case":358,"kind":"reach","monster":544,"name":"satyr","reach":1,"attacks_from":{"1":[0]}}
-{"case":359,"kind":"reach","monster":546,"name":"tengu warrior","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":360,"kind":"reach","monster":547,"name":"tengu conjurer","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":361,"kind":"reach","monster":548,"name":"tengu reaver","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":362,"kind":"reach","monster":550,"name":"Sojobo","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":363,"kind":"reach","monster":552,"name":"snaplasher vine","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":364,"kind":"reach","monster":554,"name":"thorn hunter","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":365,"kind":"reach","monster":558,"name":"water nymph","reach":1,"attacks_from":{"1":[0]}}
-{"case":366,"kind":"reach","monster":559,"name":"shambling mangrove","reach":1,"attacks_from":{"1":[0]}}
-{"case":367,"kind":"reach","monster":564,"name":"deathcap","reach":1,"attacks_from":{"1":[0]}}
-{"case":368,"kind":"reach","monster":566,"name":"formicid","reach":1,"attacks_from":{"1":[0]}}
-{"case":369,"kind":"reach","monster":569,"name":"raiju","reach":1,"attacks_from":{"1":[0]}}
-{"case":370,"kind":"reach","monster":577,"name":"demonspawn blood saint","reach":1,"attacks_from":{"1":[0]}}
-{"case":371,"kind":"reach","monster":579,"name":"demonspawn warmonger","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":372,"kind":"reach","monster":580,"name":"demonspawn corrupter","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":373,"kind":"reach","monster":581,"name":"demonspawn soul scholar","reach":1,"attacks_from":{"1":[0]}}
-{"case":374,"kind":"reach","monster":582,"name":"worldbinder","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":375,"kind":"reach","monster":584,"name":"vine stalker","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":376,"kind":"reach","monster":586,"name":"shock serpent","reach":1,"attacks_from":{"1":[0]}}
-{"case":377,"kind":"reach","monster":587,"name":"mana viper","reach":1,"attacks_from":{"1":[0]}}
-{"case":378,"kind":"reach","monster":588,"name":"naga ritualist","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":379,"kind":"reach","monster":589,"name":"naga sharpshooter","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":380,"kind":"reach","monster":591,"name":"salamander mystic","reach":1,"attacks_from":{"1":[0]}}
-{"case":381,"kind":"reach","monster":592,"name":"Asterion","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":382,"kind":"reach","monster":593,"name":"Natasha","reach":1,"attacks_from":{"1":[0]}}
-{"case":383,"kind":"reach","monster":594,"name":"Vashnia","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":384,"kind":"reach","monster":596,"name":"blazeheart golem","reach":1,"attacks_from":{"1":[0]}}
-{"case":385,"kind":"reach","monster":600,"name":"ghost crab","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":386,"kind":"reach","monster":601,"name":"torpor snail","reach":1,"attacks_from":{"1":[0]}}
-{"case":387,"kind":"reach","monster":604,"name":"bennu","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":388,"kind":"reach","monster":605,"name":"ushabti","reach":1,"attacks_from":{"1":[0]}}
-{"case":389,"kind":"reach","monster":606,"name":"death scarab","reach":1,"attacks_from":{"1":[0]}}
-{"case":390,"kind":"reach","monster":608,"name":"caustic shrike","reach":1,"attacks_from":{"1":[0]}}
-{"case":391,"kind":"reach","monster":609,"name":"Robin","reach":1,"attacks_from":{"1":[0]}}
-{"case":392,"kind":"reach","monster":610,"name":"shard shrike","reach":1,"attacks_from":{"1":[0]}}
-{"case":393,"kind":"reach","monster":613,"name":"entropy weaver","reach":1,"attacks_from":{"1":[0,1,2,3]}}
-{"case":394,"kind":"reach","monster":614,"name":"moon troll","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":395,"kind":"reach","monster":615,"name":"mature weirdfire beast","reach":1,"attacks_from":{"1":[0]}}
-{"case":396,"kind":"reach","monster":616,"name":"juggernaut","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":397,"kind":"reach","monster":617,"name":"spark wasp","reach":1,"attacks_from":{"1":[0]}}
-{"case":398,"kind":"reach","monster":618,"name":"oblivion hound","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":399,"kind":"reach","monster":619,"name":"deep elf elementalist","reach":1,"attacks_from":{"1":[0]}}
-{"case":400,"kind":"reach","monster":620,"name":"deep elf archer","reach":1,"attacks_from":{"1":[0]}}
-{"case":401,"kind":"reach","monster":623,"name":"dart slug","reach":1,"attacks_from":{"1":[0]}}
-{"case":402,"kind":"reach","monster":624,"name":"howler monkey","reach":1,"attacks_from":{"1":[0]}}
-{"case":403,"kind":"reach","monster":629,"name":"meliai","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":404,"kind":"reach","monster":630,"name":"Bai Suzhen","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":405,"kind":"reach","monster":631,"name":"Bai Suzhen","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":406,"kind":"reach","monster":632,"name":"saltling","reach":1,"attacks_from":{"1":[0]}}
-{"case":407,"kind":"reach","monster":633,"name":"imperial myrmidon","reach":1,"attacks_from":{"1":[0]}}
-{"case":408,"kind":"reach","monster":634,"name":"servant of whispers","reach":1,"attacks_from":{"1":[0]}}
-{"case":409,"kind":"reach","monster":635,"name":"peacekeeper","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":410,"kind":"reach","monster":636,"name":"ragged hierophant","reach":1,"attacks_from":{"1":[0]}}
-{"case":411,"kind":"reach","monster":637,"name":"halazid warlock","reach":1,"attacks_from":{"1":[0]}}
-{"case":412,"kind":"reach","monster":638,"name":"dream sheep","reach":1,"attacks_from":{"1":[0]}}
-{"case":413,"kind":"reach","monster":640,"name":"barachi","reach":1,"attacks_from":{"1":[0]}}
-{"case":414,"kind":"reach","monster":644,"name":"Maggie","reach":1,"attacks_from":{"1":[0]}}
-{"case":415,"kind":"reach","monster":645,"name":"nameless horror","reach":1,"attacks_from":{"1":[0]}}
-{"case":416,"kind":"reach","monster":646,"name":"armataur","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":417,"kind":"reach","monster":647,"name":"bloated husk","reach":1,"attacks_from":{"1":[0]}}
-{"case":418,"kind":"reach","monster":648,"name":"bunyip","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":419,"kind":"reach","monster":649,"name":"goliath frog","reach":2,"attacks_from":{"1":[0],"2":[0]}}
-{"case":420,"kind":"reach","monster":650,"name":"eleionoma","reach":1,"attacks_from":{"1":[0]}}
-{"case":421,"kind":"reach","monster":651,"name":"fenstrider witch","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":422,"kind":"reach","monster":654,"name":"dread lich","reach":1,"attacks_from":{"1":[0]}}
-{"case":423,"kind":"reach","monster":655,"name":"deep elf zephyrmancer","reach":1,"attacks_from":{"1":[0]}}
-{"case":424,"kind":"reach","monster":657,"name":"rockslime","reach":1,"attacks_from":{"1":[0]}}
-{"case":425,"kind":"reach","monster":658,"name":"void ooze","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":426,"kind":"reach","monster":659,"name":"ironbound frostheart","reach":1,"attacks_from":{"1":[0]}}
-{"case":427,"kind":"reach","monster":660,"name":"ironbound thunderhulk","reach":1,"attacks_from":{"1":[0]}}
-{"case":428,"kind":"reach","monster":661,"name":"ironbound beastmaster","reach":1,"attacks_from":{"1":[0]}}
-{"case":429,"kind":"reach","monster":662,"name":"salamander tyrant","reach":1,"attacks_from":{"1":[0]}}
-{"case":430,"kind":"reach","monster":663,"name":"Mlioglotl","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":431,"kind":"reach","monster":664,"name":"cactus giant","reach":1,"attacks_from":{"1":[0]}}
-{"case":432,"kind":"reach","monster":665,"name":"creeping inferno","reach":1,"attacks_from":{"1":[0]}}
-{"case":433,"kind":"reach","monster":666,"name":"searing wretch","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":434,"kind":"reach","monster":667,"name":"stoker","reach":1,"attacks_from":{"1":[0]}}
-{"case":435,"kind":"reach","monster":668,"name":"quicksilver elemental","reach":1,"attacks_from":{"1":[0]}}
-{"case":436,"kind":"reach","monster":669,"name":"crystal echidna","reach":1,"attacks_from":{"1":[0]}}
-{"case":437,"kind":"reach","monster":670,"name":"putrid mouth","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":438,"kind":"reach","monster":671,"name":"tainted leviathan","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":439,"kind":"reach","monster":672,"name":"wendigo","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":440,"kind":"reach","monster":673,"name":"nargun","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":441,"kind":"reach","monster":674,"name":"Head Instructor","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":442,"kind":"reach","monster":677,"name":"walking earthen tome","reach":1,"attacks_from":{"1":[0]}}
-{"case":443,"kind":"reach","monster":678,"name":"walking crystal tome","reach":1,"attacks_from":{"1":[0]}}
-{"case":444,"kind":"reach","monster":679,"name":"walking divine tome","reach":1,"attacks_from":{"1":[0]}}
-{"case":445,"kind":"reach","monster":680,"name":"walking frostbound tome","reach":1,"attacks_from":{"1":[0]}}
-{"case":446,"kind":"reach","monster":684,"name":"pharaoh ant","reach":1,"attacks_from":{"1":[0]}}
-{"case":447,"kind":"reach","monster":685,"name":"steelbarb worm","reach":1,"attacks_from":{"1":[0]}}
-{"case":448,"kind":"reach","monster":686,"name":"jorogumo","reach":1,"attacks_from":{"1":[0]}}
-{"case":449,"kind":"reach","monster":687,"name":"broodmother","reach":1,"attacks_from":{"1":[0]}}
-{"case":450,"kind":"reach","monster":688,"name":"culicivora","reach":1,"attacks_from":{"1":[0]}}
-{"case":451,"kind":"reach","monster":689,"name":"sun moth","reach":1,"attacks_from":{"1":[0]}}
-{"case":452,"kind":"reach","monster":690,"name":"radroach","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":453,"kind":"reach","monster":691,"name":"Parghit","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":454,"kind":"reach","monster":692,"name":"Josephina","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":455,"kind":"reach","monster":693,"name":"Amaemon","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":456,"kind":"reach","monster":694,"name":"Lodul","reach":1,"attacks_from":{"1":[0]}}
-{"case":457,"kind":"reach","monster":695,"name":"Vv","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":458,"kind":"reach","monster":696,"name":"Zenata","reach":1,"attacks_from":{"1":[0]}}
-{"case":459,"kind":"reach","monster":697,"name":"meteoran","reach":1,"attacks_from":{"1":[0]}}
-{"case":460,"kind":"reach","monster":698,"name":"Grunn","reach":1,"attacks_from":{"1":[0]}}
-{"case":461,"kind":"reach","monster":699,"name":"starflower","reach":3,"attacks_from":{"1":[0,1,2],"2":[0,1],"3":[0,1]}}
-{"case":462,"kind":"reach","monster":700,"name":"sickly merfolk siren","reach":1,"attacks_from":{"1":[0]}}
-{"case":463,"kind":"reach","monster":702,"name":"skyshark","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":464,"kind":"reach","monster":703,"name":"sleepcap","reach":1,"attacks_from":{"1":[0]}}
-{"case":465,"kind":"reach","monster":704,"name":"cerulean imp","reach":1,"attacks_from":{"1":[0]}}
-{"case":466,"kind":"reach","monster":705,"name":"formless jellyfish","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":467,"kind":"reach","monster":706,"name":"Jeremiah","reach":1,"attacks_from":{"1":[0]}}
-{"case":468,"kind":"reach","monster":708,"name":"arcanist","reach":1,"attacks_from":{"1":[0]}}
-{"case":469,"kind":"reach","monster":710,"name":"antique champion","reach":1,"attacks_from":{"1":[0]}}
-{"case":470,"kind":"reach","monster":711,"name":"kobold blastminer","reach":1,"attacks_from":{"1":[0]}}
-{"case":471,"kind":"reach","monster":713,"name":"protean progenitor","reach":1,"attacks_from":{"1":[0]}}
-{"case":472,"kind":"reach","monster":715,"name":"oni","reach":1,"attacks_from":{"1":[0]}}
-{"case":473,"kind":"reach","monster":716,"name":"bombardier beetle","reach":1,"attacks_from":{"1":[0]}}
-{"case":474,"kind":"reach","monster":717,"name":"weeping skull","reach":1,"attacks_from":{"1":[0]}}
-{"case":475,"kind":"reach","monster":718,"name":"burial acolyte","reach":1,"attacks_from":{"1":[0]}}
-{"case":476,"kind":"reach","monster":721,"name":"orc apostle","reach":1,"attacks_from":{"1":[0]}}
-{"case":477,"kind":"reach","monster":723,"name":"thermic dynamo","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":478,"kind":"reach","monster":724,"name":"obsidian bat","reach":1,"attacks_from":{"1":[0]}}
-{"case":479,"kind":"reach","monster":729,"name":"polterguardian","reach":1,"attacks_from":{"1":[0]}}
-{"case":480,"kind":"reach","monster":730,"name":"marrowcuda","reach":1,"attacks_from":{"1":[0]}}
-{"case":481,"kind":"reach","monster":731,"name":"undying armoury","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":482,"kind":"reach","monster":732,"name":"Xak'krixis","reach":1,"attacks_from":{"1":[0]}}
-{"case":483,"kind":"reach","monster":735,"name":"shadow puppet","reach":1,"attacks_from":{"1":[0,1,2]}}
-{"case":484,"kind":"reach","monster":737,"name":"soul wisp","reach":1,"attacks_from":{"1":[0]}}
-{"case":485,"kind":"reach","monster":740,"name":"nekomata","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":486,"kind":"reach","monster":741,"name":"clockwork bee","reach":1,"attacks_from":{"1":[0]}}
-{"case":487,"kind":"reach","monster":745,"name":"walking alembic","reach":1,"attacks_from":{"1":[0]}}
-{"case":488,"kind":"reach","monster":746,"name":"monarch bomb","reach":1,"attacks_from":{"1":[0]}}
-{"case":489,"kind":"reach","monster":749,"name":"seismosaurus","reach":1,"attacks_from":{"1":[0]}}
-{"case":490,"kind":"reach","monster":751,"name":"phalanx beetle","reach":1,"attacks_from":{"1":[0]}}
-{"case":491,"kind":"reach","monster":754,"name":"alderking","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":492,"kind":"reach","monster":755,"name":"oni incarcerator","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":493,"kind":"reach","monster":756,"name":"wyrmhole","reach":1,"attacks_from":{"1":[0]}}
-{"case":494,"kind":"reach","monster":758,"name":"sphinx marauder","reach":1,"attacks_from":{"1":[0]}}
-{"case":495,"kind":"reach","monster":760,"name":"poltergeist","reach":1,"attacks_from":{"1":[0]}}
-{"case":496,"kind":"reach","monster":761,"name":"vampire bloodprince","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":497,"kind":"reach","monster":762,"name":"revenant","reach":1,"attacks_from":{"1":[0]}}
-{"case":498,"kind":"reach","monster":763,"name":"Nobody","reach":1,"attacks_from":{"1":[0]}}
-{"case":499,"kind":"reach","monster":766,"name":"goblin rider","reach":1,"attacks_from":{"1":[0]}}
-{"case":500,"kind":"reach","monster":767,"name":"ironbound mechanist","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":501,"kind":"reach","monster":768,"name":"Sprozz","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":502,"kind":"reach","monster":769,"name":"crawling flesh cage","reach":2,"attacks_from":{"1":[0],"2":[0]}}
-{"case":503,"kind":"reach","monster":770,"name":"cognitogaunt","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":504,"kind":"reach","monster":771,"name":"chonchon","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":505,"kind":"reach","monster":772,"name":"kobold fleshcrafter","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":506,"kind":"reach","monster":774,"name":"zykzyl","reach":1,"attacks_from":{"1":[0]}}
-{"case":507,"kind":"reach","monster":778,"name":"screaming refraction","reach":1,"attacks_from":{"1":[0]}}
-{"case":508,"kind":"reach","monster":780,"name":"Cassandra","reach":1,"attacks_from":{"1":[0]}}
-{"case":509,"kind":"reach","monster":781,"name":"bes kemwar","reach":1,"attacks_from":{"1":[0]}}
-{"case":510,"kind":"reach","monster":782,"name":"rock fish","reach":1,"attacks_from":{"1":[0]}}
-{"case":511,"kind":"reach","monster":783,"name":"clockroach","reach":1,"attacks_from":{"1":[0]}}
-{"case":512,"kind":"reach","monster":784,"name":"kobold geomancer","reach":1,"attacks_from":{"1":[0]}}
-{"case":513,"kind":"reach","monster":785,"name":"mountainshell","reach":1,"attacks_from":{"1":[0]}}
-{"case":514,"kind":"reach","monster":786,"name":"undertaker","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":515,"kind":"reach","monster":787,"name":"erythrospite","reach":1,"attacks_from":{"1":[0]}}
-{"case":516,"kind":"reach","monster":788,"name":"morphogenic ooze","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":517,"kind":"reach","monster":789,"name":"five-headed slymdra","reach":1,"attacks_from":{"1":[0]}}
-{"case":518,"kind":"reach","monster":791,"name":"caustic sporangium","reach":1,"attacks_from":{"1":[0]}}
-{"case":519,"kind":"reach","monster":793,"name":"star jelly","reach":1,"attacks_from":{"1":[0,1]}}
-{"case":520,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":1,"trials":20000,"melee":{"0":10009,"1":9991},"casts":{"0":20000},"closed":{"0":20000}}
-{"case":521,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":3,"trials":20000,"melee":{"0":15892,"1":4108},"casts":{"0":9693,"1":8046,"2":2084,"3":177},"closed":{"0":829,"1":5261,"2":13910}}
-{"case":522,"kind":"turn","rule":"any","monster":530,"name":"ironbound convoker","hd":9,"speed":10,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":523,"kind":"turn","rule":"speed","monster":368,"name":"guardian mummy","hd":7,"speed":8,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":3983,"1":16017}}
-{"case":524,"kind":"turn","rule":"stationary","monster":304,"name":"ice statue","hd":8,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":13846,"1":6154},"closed":{"0":20000}}
-{"case":525,"kind":"turn","rule":"reaching","monster":649,"name":"goliath frog","hd":12,"speed":12,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":15978,"2":4022}}
-{"case":526,"kind":"turn","rule":"breath","monster":594,"name":"Vashnia","hd":16,"speed":10,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":527,"kind":"turn","rule":"blast","monster":692,"name":"Josephina","hd":21,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":16252,"1":3748},"closed":{"0":3748,"1":16252}}
-{"case":528,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10033,"1":9967}}
-{"case":529,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":1,"trials":20000,"melee":{"0":809,"1":5323,"2":9726,"3":4142},"casts":{"0":9665,"1":8057,"2":2098,"3":180},"closed":{"0":20000}}
-{"case":530,"kind":"turn","rule":"any","monster":329,"name":"ice devil","hd":8,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":531,"kind":"turn","rule":"speed","monster":49,"name":"cane toad","hd":7,"speed":12,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":15997,"2":4003}}
-{"case":532,"kind":"turn","rule":"stationary","monster":304,"name":"ice statue","hd":8,"speed":10,"distance":7,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":20000}}
-{"case":533,"kind":"turn","rule":"reaching","monster":128,"name":"alligator snapping turtle","hd":16,"speed":8,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4078,"1":15922}}
-{"case":534,"kind":"turn","rule":"breath","monster":594,"name":"Vashnia","hd":16,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":14398,"1":5602},"closed":{"0":5602,"1":14398}}
-{"case":535,"kind":"turn","rule":"blast","monster":61,"name":"swamp drake","hd":4,"speed":10,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":14363,"1":5637},"closed":{"0":5637,"1":14363}}
-{"case":536,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10044,"1":9956}}
-{"case":537,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":6,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":10032,"3":9968}}
-{"case":538,"kind":"turn","rule":"any","monster":381,"name":"freezing wraith","hd":8,"speed":10,"distance":2,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":539,"kind":"turn","rule":"speed","monster":153,"name":"earth elemental","hd":6,"speed":8,"distance":4,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":3943,"1":16057}}
-{"case":540,"kind":"turn","rule":"stationary","monster":306,"name":"training dummy","hd":1,"speed":10,"distance":1,"trials":20000,"melee":{"1":20000},"casts":{"0":20000},"closed":{"0":20000}}
-{"case":541,"kind":"turn","rule":"reaching","monster":413,"name":"Geryon","hd":15,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
-{"case":542,"kind":"turn","rule":"breath","monster":233,"name":"naga mage","hd":7,"speed":10,"distance":3,"trials":20000,"melee":{"0":20000},"casts":{"0":12350,"1":7650},"closed":{"0":7650,"1":12350}}
-{"case":543,"kind":"turn","rule":"blast","monster":266,"name":"occultist","hd":13,"speed":10,"distance":5,"trials":20000,"melee":{"0":20000},"casts":{"0":17501,"1":2499},"closed":{"0":2499,"1":17501}}
+{"case":27,"kind":"reach","monster":29,"name":"holy swine","reach":1,"attacks_from":{"1":[0]}}
+{"case":28,"kind":"reach","monster":33,"name":"tyrant leech","reach":1,"attacks_from":{"1":[0]}}
+{"case":29,"kind":"reach","monster":35,"name":"alligator","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":30,"kind":"reach","monster":36,"name":"crocodile","reach":1,"attacks_from":{"1":[0]}}
+{"case":31,"kind":"reach","monster":37,"name":"five-headed hydra","reach":1,"attacks_from":{"1":[0]}}
+{"case":32,"kind":"reach","monster":39,"name":"yak","reach":1,"attacks_from":{"1":[0]}}
+{"case":33,"kind":"reach","monster":40,"name":"death yak","reach":1,"attacks_from":{"1":[0]}}
+{"case":34,"kind":"reach","monster":41,"name":"catoblepas","reach":1,"attacks_from":{"1":[0]}}
+{"case":35,"kind":"reach","monster":42,"name":"elephant","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":36,"kind":"reach","monster":43,"name":"dire elephant","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":37,"kind":"reach","monster":44,"name":"hellephant","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":38,"kind":"reach","monster":45,"name":"manticore","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":39,"kind":"reach","monster":46,"name":"hippogriff","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":40,"kind":"reach","monster":48,"name":"bullfrog","reach":1,"attacks_from":{"1":[0]}}
+{"case":41,"kind":"reach","monster":49,"name":"cane toad","reach":1,"attacks_from":{"1":[0]}}
+{"case":42,"kind":"reach","monster":50,"name":"blink frog","reach":1,"attacks_from":{"1":[0]}}
+{"case":43,"kind":"reach","monster":52,"name":"polar bear","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":44,"kind":"reach","monster":53,"name":"black bear","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":45,"kind":"reach","monster":54,"name":"ribbon worm","reach":1,"attacks_from":{"1":[0]}}
+{"case":46,"kind":"reach","monster":55,"name":"brain worm","reach":1,"attacks_from":{"1":[0]}}
+{"case":47,"kind":"reach","monster":58,"name":"wyvern","reach":1,"attacks_from":{"1":[0]}}
+{"case":48,"kind":"reach","monster":59,"name":"lindwurm","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":49,"kind":"reach","monster":60,"name":"rime drake","reach":1,"attacks_from":{"1":[0]}}
+{"case":50,"kind":"reach","monster":61,"name":"swamp drake","reach":1,"attacks_from":{"1":[0]}}
+{"case":51,"kind":"reach","monster":62,"name":"death drake","reach":1,"attacks_from":{"1":[0]}}
+{"case":52,"kind":"reach","monster":63,"name":"steam dragon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":53,"kind":"reach","monster":64,"name":"acid dragon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":54,"kind":"reach","monster":65,"name":"swamp dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":55,"kind":"reach","monster":66,"name":"fire dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":56,"kind":"reach","monster":67,"name":"ice dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":57,"kind":"reach","monster":68,"name":"shadow dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":58,"kind":"reach","monster":69,"name":"storm dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":59,"kind":"reach","monster":70,"name":"bone dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":60,"kind":"reach","monster":71,"name":"quicksilver dragon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":61,"kind":"reach","monster":72,"name":"iron dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":62,"kind":"reach","monster":73,"name":"golden dragon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":63,"kind":"reach","monster":74,"name":"pearl dragon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":64,"kind":"reach","monster":75,"name":"endoplasm","reach":1,"attacks_from":{"1":[0]}}
+{"case":65,"kind":"reach","monster":76,"name":"jelly","reach":1,"attacks_from":{"1":[0]}}
+{"case":66,"kind":"reach","monster":78,"name":"colossal amoeba","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":67,"kind":"reach","monster":79,"name":"azure jelly","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":68,"kind":"reach","monster":81,"name":"acid blob","reach":1,"attacks_from":{"1":[0]}}
+{"case":69,"kind":"reach","monster":82,"name":"slime creature","reach":1,"attacks_from":{"1":[0]}}
+{"case":70,"kind":"reach","monster":88,"name":"great orb of eyes","reach":1,"attacks_from":{"1":[0]}}
+{"case":71,"kind":"reach","monster":91,"name":"harpy","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":72,"kind":"reach","monster":92,"name":"raven","reach":1,"attacks_from":{"1":[0]}}
+{"case":73,"kind":"reach","monster":93,"name":"fire crab","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":74,"kind":"reach","monster":101,"name":"killer bee","reach":1,"attacks_from":{"1":[0]}}
+{"case":75,"kind":"reach","monster":102,"name":"queen bee","reach":1,"attacks_from":{"1":[0]}}
+{"case":76,"kind":"reach","monster":103,"name":"vampire mosquito","reach":1,"attacks_from":{"1":[0]}}
+{"case":77,"kind":"reach","monster":106,"name":"hornet","reach":1,"attacks_from":{"1":[0]}}
+{"case":78,"kind":"reach","monster":109,"name":"boulder beetle","reach":1,"attacks_from":{"1":[0]}}
+{"case":79,"kind":"reach","monster":114,"name":"wolf spider","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":80,"kind":"reach","monster":116,"name":"jumping spider","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":81,"kind":"reach","monster":117,"name":"orb spider","reach":1,"attacks_from":{"1":[0]}}
+{"case":82,"kind":"reach","monster":118,"name":"tarantella","reach":1,"attacks_from":{"1":[0]}}
+{"case":83,"kind":"reach","monster":119,"name":"redback","reach":1,"attacks_from":{"1":[0]}}
+{"case":84,"kind":"reach","monster":120,"name":"scorpion","reach":1,"attacks_from":{"1":[0]}}
+{"case":85,"kind":"reach","monster":121,"name":"emperor scorpion","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":86,"kind":"reach","monster":124,"name":"ghost moth","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":87,"kind":"reach","monster":125,"name":"moth of wrath","reach":1,"attacks_from":{"1":[0]}}
+{"case":88,"kind":"reach","monster":126,"name":"demonic crawler","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":89,"kind":"reach","monster":127,"name":"snapping turtle","reach":2,"attacks_from":{"1":[0],"2":[0]}}
+{"case":90,"kind":"reach","monster":128,"name":"alligator snapping turtle","reach":2,"attacks_from":{"1":[0],"2":[0]}}
+{"case":91,"kind":"reach","monster":130,"name":"halfling","reach":1,"attacks_from":{"1":[0]}}
+{"case":92,"kind":"reach","monster":131,"name":"felid","reach":1,"attacks_from":{"1":[0]}}
+{"case":93,"kind":"reach","monster":132,"name":"vampire bat","reach":1,"attacks_from":{"1":[0]}}
+{"case":94,"kind":"reach","monster":133,"name":"demigod","reach":1,"attacks_from":{"1":[0]}}
+{"case":95,"kind":"reach","monster":134,"name":"demonspawn","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":96,"kind":"reach","monster":135,"name":"gargoyle","reach":1,"attacks_from":{"1":[0]}}
+{"case":97,"kind":"reach","monster":136,"name":"war gargoyle","reach":1,"attacks_from":{"1":[0]}}
+{"case":98,"kind":"reach","monster":137,"name":"molten gargoyle","reach":1,"attacks_from":{"1":[0]}}
+{"case":99,"kind":"reach","monster":138,"name":"green ugly thing","reach":1,"attacks_from":{"1":[0]}}
+{"case":100,"kind":"reach","monster":139,"name":"purple very ugly thing","reach":1,"attacks_from":{"1":[0]}}
+{"case":101,"kind":"reach","monster":140,"name":"ice beast","reach":1,"attacks_from":{"1":[0]}}
+{"case":102,"kind":"reach","monster":141,"name":"sky beast","reach":1,"attacks_from":{"1":[0]}}
+{"case":103,"kind":"reach","monster":142,"name":"guardian sphinx","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":104,"kind":"reach","monster":143,"name":"Orb Guardian","reach":1,"attacks_from":{"1":[0]}}
+{"case":105,"kind":"reach","monster":148,"name":"iron golem","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":106,"kind":"reach","monster":149,"name":"crystal guardian","reach":1,"attacks_from":{"1":[0]}}
+{"case":107,"kind":"reach","monster":150,"name":"toenail golem","reach":1,"attacks_from":{"1":[0]}}
+{"case":108,"kind":"reach","monster":151,"name":"electric golem","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":109,"kind":"reach","monster":153,"name":"earth elemental","reach":1,"attacks_from":{"1":[0]}}
+{"case":110,"kind":"reach","monster":155,"name":"air elemental","reach":1,"attacks_from":{"1":[0]}}
+{"case":111,"kind":"reach","monster":159,"name":"spatial vortex","reach":1,"attacks_from":{"1":[0]}}
+{"case":112,"kind":"reach","monster":172,"name":"wandering mushroom","reach":1,"attacks_from":{"1":[0]}}
+{"case":113,"kind":"reach","monster":178,"name":"ballistomycete spore","reach":1,"attacks_from":{"1":[0]}}
+{"case":114,"kind":"reach","monster":181,"name":"goblin","reach":1,"attacks_from":{"1":[0]}}
+{"case":115,"kind":"reach","monster":182,"name":"hobgoblin","reach":1,"attacks_from":{"1":[0]}}
+{"case":116,"kind":"reach","monster":183,"name":"gnoll","reach":1,"attacks_from":{"1":[0]}}
+{"case":117,"kind":"reach","monster":184,"name":"gnoll bouda","reach":1,"attacks_from":{"1":[0]}}
+{"case":118,"kind":"reach","monster":185,"name":"gnoll sergeant","reach":1,"attacks_from":{"1":[0]}}
+{"case":119,"kind":"reach","monster":186,"name":"boggart","reach":1,"attacks_from":{"1":[0]}}
+{"case":120,"kind":"reach","monster":187,"name":"kobold","reach":1,"attacks_from":{"1":[0]}}
+{"case":121,"kind":"reach","monster":188,"name":"kobold brigand","reach":1,"attacks_from":{"1":[0]}}
+{"case":122,"kind":"reach","monster":189,"name":"kobold demonologist","reach":1,"attacks_from":{"1":[0]}}
+{"case":123,"kind":"reach","monster":190,"name":"orc","reach":1,"attacks_from":{"1":[0]}}
+{"case":124,"kind":"reach","monster":191,"name":"orc warrior","reach":1,"attacks_from":{"1":[0]}}
+{"case":125,"kind":"reach","monster":192,"name":"orc priest","reach":1,"attacks_from":{"1":[0]}}
+{"case":126,"kind":"reach","monster":193,"name":"orc high priest","reach":1,"attacks_from":{"1":[0]}}
+{"case":127,"kind":"reach","monster":194,"name":"orc wizard","reach":1,"attacks_from":{"1":[0]}}
+{"case":128,"kind":"reach","monster":195,"name":"orc knight","reach":1,"attacks_from":{"1":[0]}}
+{"case":129,"kind":"reach","monster":196,"name":"orc sorcerer","reach":1,"attacks_from":{"1":[0]}}
+{"case":130,"kind":"reach","monster":197,"name":"orc warlord","reach":1,"attacks_from":{"1":[0]}}
+{"case":131,"kind":"reach","monster":198,"name":"dwarf","reach":1,"attacks_from":{"1":[0]}}
+{"case":132,"kind":"reach","monster":204,"name":"death knight","reach":1,"attacks_from":{"1":[0]}}
+{"case":133,"kind":"reach","monster":206,"name":"elf","reach":1,"attacks_from":{"1":[0]}}
+{"case":134,"kind":"reach","monster":209,"name":"deep elf knight","reach":1,"attacks_from":{"1":[0]}}
+{"case":135,"kind":"reach","monster":210,"name":"deep elf pyromancer","reach":1,"attacks_from":{"1":[0]}}
+{"case":136,"kind":"reach","monster":214,"name":"deep elf high priest","reach":1,"attacks_from":{"1":[0]}}
+{"case":137,"kind":"reach","monster":215,"name":"deep elf demonologist","reach":1,"attacks_from":{"1":[0]}}
+{"case":138,"kind":"reach","monster":216,"name":"deep elf annihilator","reach":1,"attacks_from":{"1":[0]}}
+{"case":139,"kind":"reach","monster":217,"name":"deep elf sorcerer","reach":1,"attacks_from":{"1":[0]}}
+{"case":140,"kind":"reach","monster":218,"name":"deep elf death mage","reach":1,"attacks_from":{"1":[0]}}
+{"case":141,"kind":"reach","monster":219,"name":"deep elf blademaster","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":142,"kind":"reach","monster":220,"name":"deep elf master archer","reach":1,"attacks_from":{"1":[0]}}
+{"case":143,"kind":"reach","monster":221,"name":"spriggan","reach":1,"attacks_from":{"1":[0]}}
+{"case":144,"kind":"reach","monster":222,"name":"spriggan druid","reach":1,"attacks_from":{"1":[0]}}
+{"case":145,"kind":"reach","monster":224,"name":"spriggan rider","reach":1,"attacks_from":{"1":[0]}}
+{"case":146,"kind":"reach","monster":225,"name":"spriggan berserker","reach":1,"attacks_from":{"1":[0]}}
+{"case":147,"kind":"reach","monster":226,"name":"spriggan defender","reach":1,"attacks_from":{"1":[0]}}
+{"case":148,"kind":"reach","monster":227,"name":"spriggan air mage","reach":1,"attacks_from":{"1":[0]}}
+{"case":149,"kind":"reach","monster":229,"name":"tengu","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":150,"kind":"reach","monster":230,"name":"minotaur","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":151,"kind":"reach","monster":231,"name":"naga","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":152,"kind":"reach","monster":232,"name":"naga warrior","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":153,"kind":"reach","monster":233,"name":"naga mage","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":154,"kind":"reach","monster":234,"name":"nagaraja","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":155,"kind":"reach","monster":235,"name":"guardian serpent","reach":1,"attacks_from":{"1":[0]}}
+{"case":156,"kind":"reach","monster":236,"name":"octopode","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":157,"kind":"reach","monster":237,"name":"merfolk","reach":1,"attacks_from":{"1":[0]}}
+{"case":158,"kind":"reach","monster":238,"name":"merfolk siren","reach":1,"attacks_from":{"1":[0]}}
+{"case":159,"kind":"reach","monster":240,"name":"merfolk impaler","reach":1,"attacks_from":{"1":[0]}}
+{"case":160,"kind":"reach","monster":241,"name":"merfolk aquamancer","reach":1,"attacks_from":{"1":[0]}}
+{"case":161,"kind":"reach","monster":242,"name":"merfolk javelineer","reach":1,"attacks_from":{"1":[0]}}
+{"case":162,"kind":"reach","monster":243,"name":"centaur","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":163,"kind":"reach","monster":244,"name":"centaur warrior","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":164,"kind":"reach","monster":245,"name":"yaktaur","reach":1,"attacks_from":{"1":[0]}}
+{"case":165,"kind":"reach","monster":246,"name":"yaktaur captain","reach":1,"attacks_from":{"1":[0]}}
+{"case":166,"kind":"reach","monster":247,"name":"ogre","reach":1,"attacks_from":{"1":[0]}}
+{"case":167,"kind":"reach","monster":248,"name":"two-headed ogre","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":168,"kind":"reach","monster":249,"name":"ogre mage","reach":1,"attacks_from":{"1":[0]}}
+{"case":169,"kind":"reach","monster":250,"name":"troll","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":170,"kind":"reach","monster":252,"name":"iron troll","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":171,"kind":"reach","monster":253,"name":"deep troll","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":172,"kind":"reach","monster":256,"name":"cyclops","reach":1,"attacks_from":{"1":[0]}}
+{"case":173,"kind":"reach","monster":257,"name":"ettin","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":174,"kind":"reach","monster":258,"name":"stone giant","reach":1,"attacks_from":{"1":[0]}}
+{"case":175,"kind":"reach","monster":259,"name":"fire giant","reach":1,"attacks_from":{"1":[0]}}
+{"case":176,"kind":"reach","monster":260,"name":"frost giant","reach":1,"attacks_from":{"1":[0]}}
+{"case":177,"kind":"reach","monster":261,"name":"titan","reach":1,"attacks_from":{"1":[0]}}
+{"case":178,"kind":"reach","monster":262,"name":"human","reach":1,"attacks_from":{"1":[0]}}
+{"case":179,"kind":"reach","monster":264,"name":"hell knight","reach":1,"attacks_from":{"1":[0]}}
+{"case":180,"kind":"reach","monster":265,"name":"necromancer","reach":1,"attacks_from":{"1":[0]}}
+{"case":181,"kind":"reach","monster":266,"name":"occultist","reach":1,"attacks_from":{"1":[0]}}
+{"case":182,"kind":"reach","monster":267,"name":"vault guard","reach":1,"attacks_from":{"1":[0]}}
+{"case":183,"kind":"reach","monster":268,"name":"Killer Klown","reach":1,"attacks_from":{"1":[0]}}
+{"case":184,"kind":"reach","monster":290,"name":"lava snake","reach":1,"attacks_from":{"1":[0]}}
+{"case":185,"kind":"reach","monster":291,"name":"salamander","reach":1,"attacks_from":{"1":[0]}}
+{"case":186,"kind":"reach","monster":296,"name":"water elemental","reach":1,"attacks_from":{"1":[0]}}
+{"case":187,"kind":"reach","monster":297,"name":"swamp worm","reach":1,"attacks_from":{"1":[0]}}
+{"case":188,"kind":"reach","monster":299,"name":"kraken","reach":1,"attacks_from":{"1":[0]}}
+{"case":189,"kind":"reach","monster":300,"name":"tentacle","reach":1,"attacks_from":{"1":[0]}}
+{"case":190,"kind":"reach","monster":305,"name":"statue","reach":1,"attacks_from":{"1":[0]}}
+{"case":191,"kind":"reach","monster":306,"name":"training dummy","reach":1,"attacks_from":{"1":[0]}}
+{"case":192,"kind":"reach","monster":308,"name":"crimson imp","reach":1,"attacks_from":{"1":[0]}}
+{"case":193,"kind":"reach","monster":309,"name":"drude","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":194,"kind":"reach","monster":310,"name":"white imp","reach":1,"attacks_from":{"1":[0]}}
+{"case":195,"kind":"reach","monster":311,"name":"lemure","reach":1,"attacks_from":{"1":[0]}}
+{"case":196,"kind":"reach","monster":312,"name":"ufetubus","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":197,"kind":"reach","monster":313,"name":"iron imp","reach":1,"attacks_from":{"1":[0]}}
+{"case":198,"kind":"reach","monster":314,"name":"shadow imp","reach":1,"attacks_from":{"1":[0]}}
+{"case":199,"kind":"reach","monster":315,"name":"red devil","reach":1,"attacks_from":{"1":[0]}}
+{"case":200,"kind":"reach","monster":317,"name":"hellwing","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":201,"kind":"reach","monster":318,"name":"sixfirhy","reach":1,"attacks_from":{"1":[0]}}
+{"case":202,"kind":"reach","monster":319,"name":"neqoxec","reach":1,"attacks_from":{"1":[0]}}
+{"case":203,"kind":"reach","monster":320,"name":"orange demon","reach":2,"attacks_from":{"1":[0,1],"2":[0]}}
+{"case":204,"kind":"reach","monster":321,"name":"smoke demon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":205,"kind":"reach","monster":322,"name":"ynoxinul","reach":1,"attacks_from":{"1":[0]}}
+{"case":206,"kind":"reach","monster":323,"name":"chaos spawn","reach":1,"attacks_from":{"1":[0]}}
+{"case":207,"kind":"reach","monster":324,"name":"hellion","reach":1,"attacks_from":{"1":[0]}}
+{"case":208,"kind":"reach","monster":326,"name":"tormentor","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":209,"kind":"reach","monster":327,"name":"reaper","reach":1,"attacks_from":{"1":[0]}}
+{"case":210,"kind":"reach","monster":328,"name":"soul eater","reach":1,"attacks_from":{"1":[0]}}
+{"case":211,"kind":"reach","monster":329,"name":"ice devil","reach":1,"attacks_from":{"1":[0]}}
+{"case":212,"kind":"reach","monster":331,"name":"sin beast","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":213,"kind":"reach","monster":332,"name":"rust devil","reach":1,"attacks_from":{"1":[0]}}
+{"case":214,"kind":"reach","monster":333,"name":"Executioner","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":215,"kind":"reach","monster":334,"name":"green death","reach":1,"attacks_from":{"1":[0]}}
+{"case":216,"kind":"reach","monster":335,"name":"blizzard demon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":217,"kind":"reach","monster":336,"name":"balrug","reach":1,"attacks_from":{"1":[0]}}
+{"case":218,"kind":"reach","monster":337,"name":"cacodemon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":219,"kind":"reach","monster":338,"name":"sun demon","reach":1,"attacks_from":{"1":[0]}}
+{"case":220,"kind":"reach","monster":339,"name":"shadow demon","reach":1,"attacks_from":{"1":[0]}}
+{"case":221,"kind":"reach","monster":340,"name":"Hell Sentinel","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":222,"kind":"reach","monster":341,"name":"Brimstone Fiend","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":223,"kind":"reach","monster":342,"name":"Ice Fiend","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":224,"kind":"reach","monster":343,"name":"Tzitzimitl","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":225,"kind":"reach","monster":344,"name":"Ledol","reach":1,"attacks_from":{"1":[0]}}
+{"case":226,"kind":"reach","monster":345,"name":"efreet","reach":1,"attacks_from":{"1":[0]}}
+{"case":227,"kind":"reach","monster":346,"name":"rakshasa","reach":1,"attacks_from":{"1":[0]}}
+{"case":228,"kind":"reach","monster":348,"name":"unseen horror","reach":1,"attacks_from":{"1":[0]}}
+{"case":229,"kind":"reach","monster":349,"name":"tentacled starspawn","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":230,"kind":"reach","monster":350,"name":"lurking horror","reach":1,"attacks_from":{"1":[0]}}
+{"case":231,"kind":"reach","monster":351,"name":"thrashing horror","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":232,"kind":"reach","monster":352,"name":"starcursed mass","reach":1,"attacks_from":{"1":[0]}}
+{"case":233,"kind":"reach","monster":353,"name":"ancient zyme","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":234,"kind":"reach","monster":355,"name":"eldritch tentacle","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":235,"kind":"reach","monster":357,"name":"tentacled monstrosity","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":236,"kind":"reach","monster":358,"name":"small abomination","reach":1,"attacks_from":{"1":[0]}}
+{"case":237,"kind":"reach","monster":359,"name":"large abomination","reach":1,"attacks_from":{"1":[0]}}
+{"case":238,"kind":"reach","monster":363,"name":"necrophage","reach":1,"attacks_from":{"1":[0]}}
+{"case":239,"kind":"reach","monster":364,"name":"ghoul","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":240,"kind":"reach","monster":366,"name":"mummy","reach":1,"attacks_from":{"1":[0]}}
+{"case":241,"kind":"reach","monster":367,"name":"bog body","reach":1,"attacks_from":{"1":[0]}}
+{"case":242,"kind":"reach","monster":368,"name":"guardian mummy","reach":1,"attacks_from":{"1":[0]}}
+{"case":243,"kind":"reach","monster":369,"name":"royal mummy","reach":1,"attacks_from":{"1":[0]}}
+{"case":244,"kind":"reach","monster":370,"name":"mummy priest","reach":1,"attacks_from":{"1":[0]}}
+{"case":245,"kind":"reach","monster":371,"name":"vampire","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":246,"kind":"reach","monster":372,"name":"vampire knight","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":247,"kind":"reach","monster":373,"name":"vampire mage","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":248,"kind":"reach","monster":375,"name":"phantom","reach":1,"attacks_from":{"1":[0]}}
+{"case":249,"kind":"reach","monster":376,"name":"shadowghast","reach":1,"attacks_from":{"1":[0]}}
+{"case":250,"kind":"reach","monster":378,"name":"flayed ghost","reach":1,"attacks_from":{"1":[0]}}
+{"case":251,"kind":"reach","monster":379,"name":"wight","reach":1,"attacks_from":{"1":[0]}}
+{"case":252,"kind":"reach","monster":380,"name":"wraith","reach":1,"attacks_from":{"1":[0]}}
+{"case":253,"kind":"reach","monster":381,"name":"freezing wraith","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":254,"kind":"reach","monster":382,"name":"shadow wraith","reach":1,"attacks_from":{"1":[0]}}
+{"case":255,"kind":"reach","monster":383,"name":"silent spectre","reach":1,"attacks_from":{"1":[0]}}
+{"case":256,"kind":"reach","monster":384,"name":"eidolon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":257,"kind":"reach","monster":385,"name":"laughing skull","reach":1,"attacks_from":{"1":[0]}}
+{"case":258,"kind":"reach","monster":386,"name":"skeletal warrior","reach":1,"attacks_from":{"1":[0]}}
+{"case":259,"kind":"reach","monster":387,"name":"phantasmal warrior","reach":1,"attacks_from":{"1":[0]}}
+{"case":260,"kind":"reach","monster":388,"name":"lich","reach":1,"attacks_from":{"1":[0]}}
+{"case":261,"kind":"reach","monster":389,"name":"ancient lich","reach":1,"attacks_from":{"1":[0]}}
+{"case":262,"kind":"reach","monster":390,"name":"death cob","reach":1,"attacks_from":{"1":[0]}}
+{"case":263,"kind":"reach","monster":393,"name":"profane servitor","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":264,"kind":"reach","monster":401,"name":"angel","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":265,"kind":"reach","monster":402,"name":"daeva","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":266,"kind":"reach","monster":403,"name":"cherub","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":267,"kind":"reach","monster":404,"name":"seraph","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":268,"kind":"reach","monster":412,"name":"apis","reach":1,"attacks_from":{"1":[0]}}
+{"case":269,"kind":"reach","monster":413,"name":"Geryon","reach":2,"attacks_from":{"1":[0],"2":[0]}}
+{"case":270,"kind":"reach","monster":414,"name":"Dispater","reach":1,"attacks_from":{"1":[0]}}
+{"case":271,"kind":"reach","monster":415,"name":"Asmodeus","reach":1,"attacks_from":{"1":[0]}}
+{"case":272,"kind":"reach","monster":416,"name":"Antaeus","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":273,"kind":"reach","monster":417,"name":"Ereshkigal","reach":1,"attacks_from":{"1":[0]}}
+{"case":274,"kind":"reach","monster":418,"name":"Royal Jelly","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":275,"kind":"reach","monster":419,"name":"Enchantress","reach":1,"attacks_from":{"1":[0]}}
+{"case":276,"kind":"reach","monster":420,"name":"Mnoleg","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":277,"kind":"reach","monster":421,"name":"Lom Lobon","reach":1,"attacks_from":{"1":[0]}}
+{"case":278,"kind":"reach","monster":422,"name":"Cerebov","reach":1,"attacks_from":{"1":[0]}}
+{"case":279,"kind":"reach","monster":423,"name":"Gloorx Vloq","reach":1,"attacks_from":{"1":[0]}}
+{"case":280,"kind":"reach","monster":424,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":281,"kind":"reach","monster":425,"name":"Ijyb","reach":1,"attacks_from":{"1":[0]}}
+{"case":282,"kind":"reach","monster":426,"name":"Jessica","reach":1,"attacks_from":{"1":[0]}}
+{"case":283,"kind":"reach","monster":427,"name":"Sigmund","reach":1,"attacks_from":{"1":[0]}}
+{"case":284,"kind":"reach","monster":428,"name":"Terence","reach":1,"attacks_from":{"1":[0]}}
+{"case":285,"kind":"reach","monster":429,"name":"Blorkula the orcula","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":286,"kind":"reach","monster":430,"name":"Edmund","reach":1,"attacks_from":{"1":[0]}}
+{"case":287,"kind":"reach","monster":432,"name":"Erolcha","reach":1,"attacks_from":{"1":[0]}}
+{"case":288,"kind":"reach","monster":433,"name":"Donald","reach":1,"attacks_from":{"1":[0]}}
+{"case":289,"kind":"reach","monster":434,"name":"Urug","reach":1,"attacks_from":{"1":[0]}}
+{"case":290,"kind":"reach","monster":435,"name":"Joseph","reach":1,"attacks_from":{"1":[0]}}
+{"case":291,"kind":"reach","monster":436,"name":"Snorg","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":292,"kind":"reach","monster":437,"name":"Erica","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":293,"kind":"reach","monster":438,"name":"Josephine","reach":1,"attacks_from":{"1":[0]}}
+{"case":294,"kind":"reach","monster":439,"name":"Harold","reach":1,"attacks_from":{"1":[0]}}
+{"case":295,"kind":"reach","monster":440,"name":"Agnes","reach":1,"attacks_from":{"1":[0]}}
+{"case":296,"kind":"reach","monster":442,"name":"Louise","reach":1,"attacks_from":{"1":[0]}}
+{"case":297,"kind":"reach","monster":443,"name":"Frances","reach":1,"attacks_from":{"1":[0]}}
+{"case":298,"kind":"reach","monster":444,"name":"Rupert","reach":1,"attacks_from":{"1":[0]}}
+{"case":299,"kind":"reach","monster":445,"name":"Wiglaf","reach":1,"attacks_from":{"1":[0]}}
+{"case":300,"kind":"reach","monster":446,"name":"Xtahua","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":301,"kind":"reach","monster":447,"name":"Norris","reach":1,"attacks_from":{"1":[0]}}
+{"case":302,"kind":"reach","monster":448,"name":"Frederick","reach":1,"attacks_from":{"1":[0]}}
+{"case":303,"kind":"reach","monster":449,"name":"Margery","reach":1,"attacks_from":{"1":[0]}}
+{"case":304,"kind":"reach","monster":450,"name":"Boris","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":305,"kind":"reach","monster":451,"name":"Polyphemus","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":306,"kind":"reach","monster":452,"name":"Murray","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":307,"kind":"reach","monster":455,"name":"Sonja","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":308,"kind":"reach","monster":456,"name":"Eustachio","reach":1,"attacks_from":{"1":[0]}}
+{"case":309,"kind":"reach","monster":457,"name":"Azrael","reach":1,"attacks_from":{"1":[0]}}
+{"case":310,"kind":"reach","monster":458,"name":"Ilsuiw","reach":1,"attacks_from":{"1":[0]}}
+{"case":311,"kind":"reach","monster":459,"name":"Prince Ribbit","reach":1,"attacks_from":{"1":[0]}}
+{"case":312,"kind":"reach","monster":460,"name":"Nergalle","reach":1,"attacks_from":{"1":[0]}}
+{"case":313,"kind":"reach","monster":461,"name":"Saint Roka","reach":1,"attacks_from":{"1":[0]}}
+{"case":314,"kind":"reach","monster":462,"name":"Nessos","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":315,"kind":"reach","monster":463,"name":"27-headed Lernaean hydra","reach":1,"attacks_from":{"1":[0]}}
+{"case":316,"kind":"reach","monster":464,"name":"Dissolution","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":317,"kind":"reach","monster":465,"name":"Kirke","reach":1,"attacks_from":{"1":[0]}}
+{"case":318,"kind":"reach","monster":466,"name":"Grum","reach":1,"attacks_from":{"1":[0]}}
+{"case":319,"kind":"reach","monster":467,"name":"Pargi","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":320,"kind":"reach","monster":468,"name":"Menkaure","reach":1,"attacks_from":{"1":[0]}}
+{"case":321,"kind":"reach","monster":469,"name":"Duvessa","reach":1,"attacks_from":{"1":[0]}}
+{"case":322,"kind":"reach","monster":470,"name":"Dowan","reach":1,"attacks_from":{"1":[0]}}
+{"case":323,"kind":"reach","monster":471,"name":"Gastronok","reach":1,"attacks_from":{"1":[0]}}
+{"case":324,"kind":"reach","monster":472,"name":"Maurice","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":325,"kind":"reach","monster":473,"name":"Khufu","reach":1,"attacks_from":{"1":[0]}}
+{"case":326,"kind":"reach","monster":474,"name":"Nikola","reach":1,"attacks_from":{"1":[0]}}
+{"case":327,"kind":"reach","monster":475,"name":"Aizul","reach":1,"attacks_from":{"1":[0]}}
+{"case":328,"kind":"reach","monster":476,"name":"Pikel","reach":1,"attacks_from":{"1":[0]}}
+{"case":329,"kind":"reach","monster":477,"name":"Crazy Yiuf","reach":1,"attacks_from":{"1":[0]}}
+{"case":330,"kind":"reach","monster":478,"name":"Mennas","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":331,"kind":"reach","monster":479,"name":"Mara","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":332,"kind":"reach","monster":481,"name":"Grinder","reach":1,"attacks_from":{"1":[0]}}
+{"case":333,"kind":"reach","monster":482,"name":"Jory","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":334,"kind":"reach","monster":483,"name":"Ignacio","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":335,"kind":"reach","monster":484,"name":"Arachne","reach":1,"attacks_from":{"1":[0]}}
+{"case":336,"kind":"reach","monster":485,"name":"Chuck","reach":1,"attacks_from":{"1":[0]}}
+{"case":337,"kind":"reach","monster":486,"name":"iron giant","reach":1,"attacks_from":{"1":[0]}}
+{"case":338,"kind":"reach","monster":487,"name":"Nellie","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":339,"kind":"reach","monster":488,"name":"iron elemental","reach":1,"attacks_from":{"1":[0]}}
+{"case":340,"kind":"reach","monster":489,"name":" illusion","reach":1,"attacks_from":{"1":[0]}}
+{"case":341,"kind":"reach","monster":490,"name":" ghost","reach":1,"attacks_from":{"1":[0]}}
+{"case":342,"kind":"reach","monster":491,"name":"ball lightning","reach":1,"attacks_from":{"1":[0]}}
+{"case":343,"kind":"reach","monster":504,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":344,"kind":"reach","monster":505,"name":"Serpent of Hell","reach":2,"attacks_from":{"1":[0,1,2,3],"2":[0,1,2]}}
+{"case":345,"kind":"reach","monster":506,"name":"Serpent of Hell","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":346,"kind":"reach","monster":507,"name":"Hellbinder","reach":1,"attacks_from":{"1":[0]}}
+{"case":347,"kind":"reach","monster":508,"name":"Cloud Mage","reach":1,"attacks_from":{"1":[0]}}
+{"case":348,"kind":"reach","monster":512,"name":"Fannar","reach":1,"attacks_from":{"1":[0]}}
+{"case":349,"kind":"reach","monster":513,"name":"apocalypse crab","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":350,"kind":"reach","monster":514,"name":"starspawn tentacle","reach":1,"attacks_from":{"1":[0]}}
+{"case":351,"kind":"reach","monster":516,"name":"spatial maelstrom","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":352,"kind":"reach","monster":518,"name":"Jorgrun","reach":1,"attacks_from":{"1":[0]}}
+{"case":353,"kind":"reach","monster":525,"name":"deep troll earth mage","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":354,"kind":"reach","monster":526,"name":"deep troll shaman","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":355,"kind":"reach","monster":528,"name":"vault sentinel","reach":1,"attacks_from":{"1":[0]}}
+{"case":356,"kind":"reach","monster":529,"name":"vault warden","reach":1,"attacks_from":{"1":[0]}}
+{"case":357,"kind":"reach","monster":530,"name":"ironbound convoker","reach":1,"attacks_from":{"1":[0]}}
+{"case":358,"kind":"reach","monster":531,"name":"ironbound preserver","reach":1,"attacks_from":{"1":[0]}}
+{"case":359,"kind":"reach","monster":535,"name":"ancient champion","reach":1,"attacks_from":{"1":[0]}}
+{"case":360,"kind":"reach","monster":536,"name":"revenant soulmonger","reach":1,"attacks_from":{"1":[0]}}
+{"case":361,"kind":"reach","monster":538,"name":"jiangshi","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":362,"kind":"reach","monster":539,"name":"djinni","reach":1,"attacks_from":{"1":[0]}}
+{"case":363,"kind":"reach","monster":541,"name":"dryad","reach":1,"attacks_from":{"1":[0]}}
+{"case":364,"kind":"reach","monster":542,"name":"wind drake","reach":1,"attacks_from":{"1":[0]}}
+{"case":365,"kind":"reach","monster":543,"name":"faun","reach":1,"attacks_from":{"1":[0]}}
+{"case":366,"kind":"reach","monster":544,"name":"satyr","reach":1,"attacks_from":{"1":[0]}}
+{"case":367,"kind":"reach","monster":546,"name":"tengu warrior","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":368,"kind":"reach","monster":547,"name":"tengu conjurer","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":369,"kind":"reach","monster":548,"name":"tengu reaver","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":370,"kind":"reach","monster":550,"name":"Sojobo","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":371,"kind":"reach","monster":552,"name":"snaplasher vine","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":372,"kind":"reach","monster":554,"name":"thorn hunter","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":373,"kind":"reach","monster":558,"name":"water nymph","reach":1,"attacks_from":{"1":[0]}}
+{"case":374,"kind":"reach","monster":559,"name":"shambling mangrove","reach":1,"attacks_from":{"1":[0]}}
+{"case":375,"kind":"reach","monster":564,"name":"deathcap","reach":1,"attacks_from":{"1":[0]}}
+{"case":376,"kind":"reach","monster":566,"name":"formicid","reach":1,"attacks_from":{"1":[0]}}
+{"case":377,"kind":"reach","monster":569,"name":"raiju","reach":1,"attacks_from":{"1":[0]}}
+{"case":378,"kind":"reach","monster":577,"name":"demonspawn blood saint","reach":1,"attacks_from":{"1":[0]}}
+{"case":379,"kind":"reach","monster":579,"name":"demonspawn warmonger","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":380,"kind":"reach","monster":580,"name":"demonspawn corrupter","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":381,"kind":"reach","monster":581,"name":"demonspawn soul scholar","reach":1,"attacks_from":{"1":[0]}}
+{"case":382,"kind":"reach","monster":582,"name":"worldbinder","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":383,"kind":"reach","monster":584,"name":"vine stalker","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":384,"kind":"reach","monster":586,"name":"shock serpent","reach":1,"attacks_from":{"1":[0]}}
+{"case":385,"kind":"reach","monster":587,"name":"mana viper","reach":1,"attacks_from":{"1":[0]}}
+{"case":386,"kind":"reach","monster":588,"name":"naga ritualist","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":387,"kind":"reach","monster":589,"name":"naga sharpshooter","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":388,"kind":"reach","monster":591,"name":"salamander mystic","reach":1,"attacks_from":{"1":[0]}}
+{"case":389,"kind":"reach","monster":592,"name":"Asterion","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":390,"kind":"reach","monster":593,"name":"Natasha","reach":1,"attacks_from":{"1":[0]}}
+{"case":391,"kind":"reach","monster":594,"name":"Vashnia","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":392,"kind":"reach","monster":596,"name":"blazeheart golem","reach":1,"attacks_from":{"1":[0]}}
+{"case":393,"kind":"reach","monster":600,"name":"ghost crab","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":394,"kind":"reach","monster":601,"name":"torpor snail","reach":1,"attacks_from":{"1":[0]}}
+{"case":395,"kind":"reach","monster":604,"name":"bennu","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":396,"kind":"reach","monster":605,"name":"ushabti","reach":1,"attacks_from":{"1":[0]}}
+{"case":397,"kind":"reach","monster":606,"name":"death scarab","reach":1,"attacks_from":{"1":[0]}}
+{"case":398,"kind":"reach","monster":608,"name":"caustic shrike","reach":1,"attacks_from":{"1":[0]}}
+{"case":399,"kind":"reach","monster":609,"name":"Robin","reach":1,"attacks_from":{"1":[0]}}
+{"case":400,"kind":"reach","monster":610,"name":"shard shrike","reach":1,"attacks_from":{"1":[0]}}
+{"case":401,"kind":"reach","monster":613,"name":"entropy weaver","reach":1,"attacks_from":{"1":[0,1,2,3]}}
+{"case":402,"kind":"reach","monster":614,"name":"moon troll","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":403,"kind":"reach","monster":616,"name":"juggernaut","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":404,"kind":"reach","monster":617,"name":"spark wasp","reach":1,"attacks_from":{"1":[0]}}
+{"case":405,"kind":"reach","monster":618,"name":"oblivion hound","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":406,"kind":"reach","monster":619,"name":"deep elf elementalist","reach":1,"attacks_from":{"1":[0]}}
+{"case":407,"kind":"reach","monster":620,"name":"deep elf archer","reach":1,"attacks_from":{"1":[0]}}
+{"case":408,"kind":"reach","monster":623,"name":"dart slug","reach":1,"attacks_from":{"1":[0]}}
+{"case":409,"kind":"reach","monster":624,"name":"howler monkey","reach":1,"attacks_from":{"1":[0]}}
+{"case":410,"kind":"reach","monster":629,"name":"meliai","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":411,"kind":"reach","monster":630,"name":"Bai Suzhen","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":412,"kind":"reach","monster":631,"name":"Bai Suzhen","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":413,"kind":"reach","monster":632,"name":"saltling","reach":1,"attacks_from":{"1":[0]}}
+{"case":414,"kind":"reach","monster":633,"name":"imperial myrmidon","reach":1,"attacks_from":{"1":[0]}}
+{"case":415,"kind":"reach","monster":634,"name":"servant of whispers","reach":1,"attacks_from":{"1":[0]}}
+{"case":416,"kind":"reach","monster":635,"name":"peacekeeper","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":417,"kind":"reach","monster":636,"name":"ragged hierophant","reach":1,"attacks_from":{"1":[0]}}
+{"case":418,"kind":"reach","monster":637,"name":"halazid warlock","reach":1,"attacks_from":{"1":[0]}}
+{"case":419,"kind":"reach","monster":638,"name":"dream sheep","reach":1,"attacks_from":{"1":[0]}}
+{"case":420,"kind":"reach","monster":640,"name":"barachi","reach":1,"attacks_from":{"1":[0]}}
+{"case":421,"kind":"reach","monster":644,"name":"Maggie","reach":1,"attacks_from":{"1":[0]}}
+{"case":422,"kind":"reach","monster":645,"name":"nameless horror","reach":1,"attacks_from":{"1":[0]}}
+{"case":423,"kind":"reach","monster":646,"name":"armataur","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":424,"kind":"reach","monster":647,"name":"bloated husk","reach":1,"attacks_from":{"1":[0]}}
+{"case":425,"kind":"reach","monster":648,"name":"bunyip","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":426,"kind":"reach","monster":649,"name":"goliath frog","reach":2,"attacks_from":{"1":[0],"2":[0]}}
+{"case":427,"kind":"reach","monster":650,"name":"eleionoma","reach":1,"attacks_from":{"1":[0]}}
+{"case":428,"kind":"reach","monster":651,"name":"fenstrider witch","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":429,"kind":"reach","monster":654,"name":"dread lich","reach":1,"attacks_from":{"1":[0]}}
+{"case":430,"kind":"reach","monster":655,"name":"deep elf zephyrmancer","reach":1,"attacks_from":{"1":[0]}}
+{"case":431,"kind":"reach","monster":657,"name":"rockslime","reach":1,"attacks_from":{"1":[0]}}
+{"case":432,"kind":"reach","monster":658,"name":"void ooze","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":433,"kind":"reach","monster":659,"name":"ironbound frostheart","reach":1,"attacks_from":{"1":[0]}}
+{"case":434,"kind":"reach","monster":660,"name":"ironbound thunderhulk","reach":1,"attacks_from":{"1":[0]}}
+{"case":435,"kind":"reach","monster":661,"name":"ironbound beastmaster","reach":1,"attacks_from":{"1":[0]}}
+{"case":436,"kind":"reach","monster":662,"name":"salamander tyrant","reach":1,"attacks_from":{"1":[0]}}
+{"case":437,"kind":"reach","monster":663,"name":"Mlioglotl","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":438,"kind":"reach","monster":664,"name":"cactus giant","reach":1,"attacks_from":{"1":[0]}}
+{"case":439,"kind":"reach","monster":665,"name":"creeping inferno","reach":1,"attacks_from":{"1":[0]}}
+{"case":440,"kind":"reach","monster":666,"name":"searing wretch","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":441,"kind":"reach","monster":667,"name":"stoker","reach":1,"attacks_from":{"1":[0]}}
+{"case":442,"kind":"reach","monster":668,"name":"quicksilver elemental","reach":1,"attacks_from":{"1":[0]}}
+{"case":443,"kind":"reach","monster":669,"name":"crystal echidna","reach":1,"attacks_from":{"1":[0]}}
+{"case":444,"kind":"reach","monster":670,"name":"putrid mouth","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":445,"kind":"reach","monster":671,"name":"tainted leviathan","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":446,"kind":"reach","monster":672,"name":"wendigo","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":447,"kind":"reach","monster":673,"name":"nargun","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":448,"kind":"reach","monster":674,"name":"Head Instructor","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":449,"kind":"reach","monster":677,"name":"walking earthen tome","reach":1,"attacks_from":{"1":[0]}}
+{"case":450,"kind":"reach","monster":678,"name":"walking crystal tome","reach":1,"attacks_from":{"1":[0]}}
+{"case":451,"kind":"reach","monster":679,"name":"walking divine tome","reach":1,"attacks_from":{"1":[0]}}
+{"case":452,"kind":"reach","monster":680,"name":"walking frostbound tome","reach":1,"attacks_from":{"1":[0]}}
+{"case":453,"kind":"reach","monster":684,"name":"pharaoh ant","reach":1,"attacks_from":{"1":[0]}}
+{"case":454,"kind":"reach","monster":685,"name":"steelbarb worm","reach":1,"attacks_from":{"1":[0]}}
+{"case":455,"kind":"reach","monster":686,"name":"jorogumo","reach":1,"attacks_from":{"1":[0]}}
+{"case":456,"kind":"reach","monster":687,"name":"broodmother","reach":1,"attacks_from":{"1":[0]}}
+{"case":457,"kind":"reach","monster":688,"name":"culicivora","reach":1,"attacks_from":{"1":[0]}}
+{"case":458,"kind":"reach","monster":689,"name":"sun moth","reach":1,"attacks_from":{"1":[0]}}
+{"case":459,"kind":"reach","monster":690,"name":"radroach","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":460,"kind":"reach","monster":691,"name":"Parghit","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":461,"kind":"reach","monster":692,"name":"Josephina","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":462,"kind":"reach","monster":693,"name":"Amaemon","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":463,"kind":"reach","monster":694,"name":"Lodul","reach":1,"attacks_from":{"1":[0]}}
+{"case":464,"kind":"reach","monster":695,"name":"Vv","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":465,"kind":"reach","monster":696,"name":"Zenata","reach":1,"attacks_from":{"1":[0]}}
+{"case":466,"kind":"reach","monster":697,"name":"meteoran","reach":1,"attacks_from":{"1":[0]}}
+{"case":467,"kind":"reach","monster":698,"name":"Grunn","reach":1,"attacks_from":{"1":[0]}}
+{"case":468,"kind":"reach","monster":699,"name":"starflower","reach":3,"attacks_from":{"1":[0,1,2],"2":[0,1],"3":[0,1]}}
+{"case":469,"kind":"reach","monster":700,"name":"sickly merfolk siren","reach":1,"attacks_from":{"1":[0]}}
+{"case":470,"kind":"reach","monster":702,"name":"skyshark","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":471,"kind":"reach","monster":703,"name":"sleepcap","reach":1,"attacks_from":{"1":[0]}}
+{"case":472,"kind":"reach","monster":704,"name":"cerulean imp","reach":1,"attacks_from":{"1":[0]}}
+{"case":473,"kind":"reach","monster":705,"name":"formless jellyfish","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":474,"kind":"reach","monster":706,"name":"Jeremiah","reach":1,"attacks_from":{"1":[0]}}
+{"case":475,"kind":"reach","monster":708,"name":"arcanist","reach":1,"attacks_from":{"1":[0]}}
+{"case":476,"kind":"reach","monster":710,"name":"antique champion","reach":1,"attacks_from":{"1":[0]}}
+{"case":477,"kind":"reach","monster":711,"name":"kobold blastminer","reach":1,"attacks_from":{"1":[0]}}
+{"case":478,"kind":"reach","monster":713,"name":"protean progenitor","reach":1,"attacks_from":{"1":[0]}}
+{"case":479,"kind":"reach","monster":715,"name":"oni","reach":1,"attacks_from":{"1":[0]}}
+{"case":480,"kind":"reach","monster":716,"name":"bombardier beetle","reach":1,"attacks_from":{"1":[0]}}
+{"case":481,"kind":"reach","monster":717,"name":"weeping skull","reach":1,"attacks_from":{"1":[0]}}
+{"case":482,"kind":"reach","monster":718,"name":"burial acolyte","reach":1,"attacks_from":{"1":[0]}}
+{"case":483,"kind":"reach","monster":721,"name":"orc apostle","reach":1,"attacks_from":{"1":[0]}}
+{"case":484,"kind":"reach","monster":723,"name":"thermic dynamo","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":485,"kind":"reach","monster":724,"name":"obsidian bat","reach":1,"attacks_from":{"1":[0]}}
+{"case":486,"kind":"reach","monster":729,"name":"polterguardian","reach":1,"attacks_from":{"1":[0]}}
+{"case":487,"kind":"reach","monster":730,"name":"marrowcuda","reach":1,"attacks_from":{"1":[0]}}
+{"case":488,"kind":"reach","monster":731,"name":"undying armoury","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":489,"kind":"reach","monster":732,"name":"Xak'krixis","reach":1,"attacks_from":{"1":[0]}}
+{"case":490,"kind":"reach","monster":735,"name":"shadow puppet","reach":1,"attacks_from":{"1":[0,1,2]}}
+{"case":491,"kind":"reach","monster":737,"name":"soul wisp","reach":1,"attacks_from":{"1":[0]}}
+{"case":492,"kind":"reach","monster":739,"name":"fravashi","reach":1,"attacks_from":{"1":[0]}}
+{"case":493,"kind":"reach","monster":740,"name":"nekomata","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":494,"kind":"reach","monster":741,"name":"clockwork bee","reach":1,"attacks_from":{"1":[0]}}
+{"case":495,"kind":"reach","monster":745,"name":"walking alembic","reach":1,"attacks_from":{"1":[0]}}
+{"case":496,"kind":"reach","monster":746,"name":"monarch bomb","reach":1,"attacks_from":{"1":[0]}}
+{"case":497,"kind":"reach","monster":749,"name":"seismosaurus","reach":1,"attacks_from":{"1":[0]}}
+{"case":498,"kind":"reach","monster":751,"name":"phalanx beetle","reach":1,"attacks_from":{"1":[0]}}
+{"case":499,"kind":"reach","monster":754,"name":"alderking","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":500,"kind":"reach","monster":755,"name":"oni incarcerator","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":501,"kind":"reach","monster":756,"name":"wyrmhole","reach":1,"attacks_from":{"1":[0]}}
+{"case":502,"kind":"reach","monster":758,"name":"sphinx marauder","reach":1,"attacks_from":{"1":[0]}}
+{"case":503,"kind":"reach","monster":760,"name":"poltergeist","reach":1,"attacks_from":{"1":[0]}}
+{"case":504,"kind":"reach","monster":761,"name":"vampire bloodprince","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":505,"kind":"reach","monster":762,"name":"revenant","reach":1,"attacks_from":{"1":[0]}}
+{"case":506,"kind":"reach","monster":763,"name":"Nobody","reach":1,"attacks_from":{"1":[0]}}
+{"case":507,"kind":"reach","monster":766,"name":"goblin rider","reach":1,"attacks_from":{"1":[0]}}
+{"case":508,"kind":"reach","monster":767,"name":"ironbound mechanist","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":509,"kind":"reach","monster":768,"name":"Sprozz","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":510,"kind":"reach","monster":769,"name":"crawling flesh cage","reach":2,"attacks_from":{"1":[0],"2":[0]}}
+{"case":511,"kind":"reach","monster":770,"name":"cognitogaunt","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":512,"kind":"reach","monster":771,"name":"chonchon","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":513,"kind":"reach","monster":772,"name":"kobold fleshcrafter","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":514,"kind":"reach","monster":774,"name":"zykzyl","reach":1,"attacks_from":{"1":[0]}}
+{"case":515,"kind":"reach","monster":778,"name":"screaming refraction","reach":1,"attacks_from":{"1":[0]}}
+{"case":516,"kind":"reach","monster":780,"name":"Cassandra","reach":1,"attacks_from":{"1":[0]}}
+{"case":517,"kind":"reach","monster":781,"name":"bes kemwar","reach":1,"attacks_from":{"1":[0]}}
+{"case":518,"kind":"reach","monster":782,"name":"rock fish","reach":1,"attacks_from":{"1":[0]}}
+{"case":519,"kind":"reach","monster":783,"name":"clockroach","reach":1,"attacks_from":{"1":[0]}}
+{"case":520,"kind":"reach","monster":784,"name":"kobold geomancer","reach":1,"attacks_from":{"1":[0]}}
+{"case":521,"kind":"reach","monster":785,"name":"mountainshell","reach":1,"attacks_from":{"1":[0]}}
+{"case":522,"kind":"reach","monster":786,"name":"undertaker","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":523,"kind":"reach","monster":787,"name":"erythrospite","reach":1,"attacks_from":{"1":[0]}}
+{"case":524,"kind":"reach","monster":788,"name":"morphogenic ooze","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":525,"kind":"reach","monster":789,"name":"four-headed slymdra","reach":1,"attacks_from":{"1":[0]}}
+{"case":526,"kind":"reach","monster":791,"name":"caustic sporangium","reach":1,"attacks_from":{"1":[0]}}
+{"case":527,"kind":"reach","monster":793,"name":"star jelly","reach":1,"attacks_from":{"1":[0,1]}}
+{"case":528,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10033,"1":9967}}
+{"case":529,"kind":"turn","rule":"fastest","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":1,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":806,"1":5280,"2":9765,"3":4149},"casts":{"0":9672,"1":8072,"2":2088,"3":168},"closed":{"0":20000}}
+{"case":530,"kind":"turn","rule":"any","monster":331,"name":"sin beast","hd":12,"speed":15,"distance":5,"nightvision":false,"lighting":"backlit","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":10069,"2":9931}}
+{"case":531,"kind":"turn","rule":"speed","monster":49,"name":"cane toad","hd":7,"speed":12,"distance":6,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":16005,"2":3995}}
+{"case":532,"kind":"turn","rule":"stationary","monster":304,"name":"ice statue","hd":8,"speed":10,"distance":7,"nightvision":false,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":20000}}
+{"case":533,"kind":"turn","rule":"reaching","monster":128,"name":"alligator snapping turtle","hd":16,"speed":8,"distance":3,"nightvision":false,"lighting":"backlit","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4078,"1":15922}}
+{"case":534,"kind":"turn","rule":"breath","monster":28,"name":"hell hog","hd":11,"speed":14,"distance":6,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":12158,"1":7679,"2":163},"closed":{"0":3766,"1":12410,"2":3824}}
+{"case":535,"kind":"turn","rule":"blast","monster":61,"name":"swamp drake","hd":4,"speed":10,"distance":4,"nightvision":false,"lighting":"backlit","trials":20000,"melee":{"0":20000},"casts":{"0":14362,"1":5638},"closed":{"0":5638,"1":14362}}
+{"case":536,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":2,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":10043,"1":9957}}
+{"case":537,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":6,"nightvision":true,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":10030,"3":9970}}
+{"case":538,"kind":"turn","rule":"any","monster":384,"name":"eidolon","hd":13,"speed":10,"distance":2,"nightvision":true,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":17790,"1":2210},"closed":{"0":2210,"1":17790}}
+{"case":539,"kind":"turn","rule":"speed","monster":155,"name":"air elemental","hd":6,"speed":25,"distance":4,"nightvision":false,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":9678,"1":8088,"2":2085,"3":149},"closed":{"0":819,"1":5237,"2":9914,"3":4030}}
+{"case":540,"kind":"turn","rule":"stationary","monster":306,"name":"training dummy","hd":1,"speed":10,"distance":1,"nightvision":false,"lighting":"backlit","trials":20000,"melee":{"1":20000},"casts":{"0":20000},"closed":{"0":20000}}
+{"case":541,"kind":"turn","rule":"reaching","monster":413,"name":"Geryon","hd":15,"speed":10,"distance":5,"nightvision":false,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":20000}}
+{"case":542,"kind":"turn","rule":"breath","monster":233,"name":"naga mage","hd":7,"speed":10,"distance":3,"nightvision":false,"lighting":"backlit","trials":20000,"melee":{"0":20000},"casts":{"0":12362,"1":7638},"closed":{"0":7638,"1":12362}}
+{"case":543,"kind":"turn","rule":"blast","monster":266,"name":"occultist","hd":13,"speed":10,"distance":5,"nightvision":false,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":17496,"1":2504},"closed":{"0":2504,"1":17496}}
+{"case":544,"kind":"turn","rule":"slowest","monster":471,"name":"Gastronok","hd":20,"speed":5,"distance":5,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":9901,"1":10099}}
+{"case":545,"kind":"turn","rule":"fastest","monster":390,"name":"death cob","hd":14,"speed":25,"distance":5,"nightvision":true,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"2":10047,"3":9953}}
+{"case":546,"kind":"turn","rule":"any","monster":669,"name":"crystal echidna","hd":12,"speed":13,"distance":7,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"1":14053,"2":5947}}
+{"case":547,"kind":"turn","rule":"speed","monster":385,"name":"laughing skull","hd":5,"speed":15,"distance":4,"nightvision":true,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":15494,"1":4263,"2":243},"closed":{"0":1808,"1":11096,"2":7096}}
+{"case":548,"kind":"turn","rule":"stationary","monster":174,"name":"oklob sapling","hd":4,"speed":10,"distance":3,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":14954,"1":5046},"closed":{"0":20000}}
+{"case":549,"kind":"turn","rule":"reaching","monster":128,"name":"alligator snapping turtle","hd":16,"speed":8,"distance":5,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":20000},"closed":{"0":4034,"1":15966}}
+{"case":550,"kind":"turn","rule":"breath","monster":69,"name":"storm dragon","hd":14,"speed":12,"distance":6,"nightvision":false,"lighting":"plain","trials":20000,"melee":{"0":20000},"casts":{"0":12547,"1":7362,"2":91},"closed":{"0":5350,"1":12766,"2":1884}}
+{"case":551,"kind":"turn","rule":"blast","monster":457,"name":"Azrael","hd":11,"speed":10,"distance":7,"nightvision":false,"lighting":"umbra","trials":20000,"melee":{"0":20000},"casts":{"0":18631,"1":1369},"closed":{"0":1369,"1":18631}}

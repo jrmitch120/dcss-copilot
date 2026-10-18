@@ -21,6 +21,7 @@ const STOPPED_UNNAMED: &[u8] =
     include_bytes!("recordings/session-tiv-reloads-and-crashes-before-naming-the-game.dcssrec");
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
+const HALOS_AND_UMBRAS: &[u8] = include_bytes!("recordings/rook-in-halos-and-umbras.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
@@ -524,9 +525,44 @@ fn a_worn_shield_read_off_the_character_overview_blocks_as_often_as_crawl_lets_i
     insta::assert_json_snapshot!(by_turn);
 }
 
+#[test]
+fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
+    // Rook, three jackals beside him, turn by turn:
+    // 100: plain light. 101: a halo reaches his square: backlit. 102: the square's tile changes
+    // without a halo value, which keeps it: still backlit. 103: he follows the Shining One, whose
+    // halo is his own: plain. 104: under penance, it is gone: backlit. 105: no god, an umbra on
+    // his square, but liquid fire burns hot (`Fire++`): backlit. 106: the fire is out: umbra.
+    // 107: a halo again, and he carries the morningstar "Eos", not known to be wielded: backlit,
+    // and his own halo not modelled. 108: `%` shows Eos wielded: plain. 109: the halo leaves his
+    // square, so what he wields goes Stale: plain. 110: a halo again: backlit, his own halo not
+    // modelled. 111: a heavenly storm is a halo of his own: plain.
+    let mut replayer = replayer(HALOS_AND_UMBRAS);
+    let mut by_turn: Vec<serde_json::Value> = Vec::new();
+    while !replayer.at_end() {
+        replayer.step();
+        let threat =
+            serde_json::to_value(replayer.advisor().fact_sheet()).unwrap()["threat"].clone();
+        let turn = serde_json::json!({
+            "turn": replayer.turn(),
+            "lighting": threat["lighting"],
+            "ownHaloNotModelled": threat["notModelled"]
+                .as_array()
+                .is_some_and(|entries| entries.contains(&"ownHalo".into())),
+            "equipped": replayer.advisor().accumulated().map(|state| &state.equipped),
+        });
+        // As each turn ended.
+        match by_turn.last_mut() {
+            Some(last) if last["turn"] == turn["turn"] => *last = turn,
+            _ => by_turn.push(turn),
+        }
+    }
+
+    insta::assert_json_snapshot!(by_turn);
+}
+
 /// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
 /// first seen.
-const TAGGED: [(&str, &[u8], &[&str]); 12] = [
+const TAGGED: [(&str, &[u8], &[&str]); 13] = [
     ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
     (
         "spectating-trunk-wizard",
@@ -551,6 +587,7 @@ const TAGGED: [(&str, &[u8], &[&str]); 12] = [
     ),
     ("jackals-close-in", JACKALS, &["0.34.1"]),
     ("rook-reads-his-kite-shield", KITE_SHIELD, &["0.34.1"]),
+    ("rook-in-halos-and-umbras", HALOS_AND_UMBRAS, &["0.34.1"]),
 ];
 
 #[test]

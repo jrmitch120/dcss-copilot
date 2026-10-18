@@ -1,0 +1,140 @@
+---
+source: crates/replay/tests/replay.rs
+expression: by_turn
+---
+[
+  {
+    "turn": null,
+    "lighting": null,
+    "ownHaloNotModelled": false,
+    "equipped": null
+  },
+  {
+    "turn": 100,
+    "lighting": "plain",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 101,
+    "lighting": "backlit",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 102,
+    "lighting": "backlit",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 103,
+    "lighting": "plain",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 104,
+    "lighting": "backlit",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 105,
+    "lighting": "backlit",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 106,
+    "lighting": "umbra",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 107,
+    "lighting": "backlit",
+    "ownHaloNotModelled": true,
+    "equipped": {
+      "state": "missing"
+    }
+  },
+  {
+    "turn": 108,
+    "lighting": "plain",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "known",
+      "value": [
+        "c",
+        "b"
+      ],
+      "turn": 108,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    }
+  },
+  {
+    "turn": 109,
+    "lighting": "plain",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "stale",
+      "value": [
+        "c",
+        "b"
+      ],
+      "turn": 108,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    }
+  },
+  {
+    "turn": 110,
+    "lighting": "backlit",
+    "ownHaloNotModelled": true,
+    "equipped": {
+      "state": "stale",
+      "value": [
+        "c",
+        "b"
+      ],
+      "turn": 108,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    }
+  },
+  {
+    "turn": 111,
+    "lighting": "plain",
+    "ownHaloNotModelled": false,
+    "equipped": {
+      "state": "stale",
+      "value": [
+        "c",
+        "b"
+      ],
+      "turn": 108,
+      "screen": {
+        "kind": "characterOverview"
+      }
+    }
+  }
+]
