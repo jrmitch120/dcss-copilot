@@ -59,6 +59,50 @@ static const struct spell_desc spelldata[] =
     TILEG_FIREBALL,
 },
 
+{
+    SPELL_BLINK, "Blink",
+    spschool::translocation,
+    spflag::escape | spflag::selfench,
+    2,
+    50,
+    -1, -1,
+    0,
+    TILEG_BLINK,
+},
+
+{
+    SPELL_SWIFTNESS, "Swiftness",
+    spschool::air,
+    spflag::hasty | spflag::selfench,
+    3,
+    100,
+    -1, -1,
+    0,
+    TILEG_SWIFTNESS,
+},
+
+{
+    SPELL_PASSWALL, "Passwall",
+    spschool::earth,
+    spflag::target | spflag::escape | spflag::not_self | spflag::silent,
+    3,
+    100,
+    3, 3,
+    0,
+    TILEG_PASSWALL,
+},
+
+{
+    SPELL_GOLUBRIAS_PASSAGE, "Passage of Golubria",
+    spschool::translocation,
+    spflag::target | spflag::aim_at_space | spflag::escape | spflag::selfench,
+    4,
+    100,
+    2, LOS_RADIUS,
+    8, // when it closes
+    TILEG_PASSAGE_OF_GOLUBRIA,
+},
+
 // (trimmed for the extractor test)
 
 #if TAG_MAJOR_VERSION == 34

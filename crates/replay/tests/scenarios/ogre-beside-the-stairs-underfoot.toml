@@ -1,0 +1,19 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, turns the staircase out of the dungeon they start on into a down staircase, and creates an ogre beside them: taking the staircase underfoot, they would bring the ogre down with them"
+recording = "ogre-beside-the-stairs-underfoot.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Make a down staircase on the square they stand on.
+  ".",
+  # Create a monster by name beside them: an ogre.
+  "&", "m", "ogre\r",
+  "\u001b",
+]

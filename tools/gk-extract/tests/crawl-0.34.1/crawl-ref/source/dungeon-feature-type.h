@@ -21,6 +21,11 @@ enum dungeon_feature_type
     DNGN_BROKEN_CLEAR_DOOR,
 #endif
     DNGN_RUNED_DOOR,
+    DNGN_SEALED_DOOR,
+#if TAG_MAJOR_VERSION > 34
+    DNGN_SEALED_CLEAR_DOOR,
+#endif
+    DNGN_ROCK_WALL,
 
 #if TAG_MAJOR_VERSION == 34
     DNGN_LAVA            = 30,
@@ -30,6 +35,18 @@ enum dungeon_feature_type
     DNGN_DEEP_WATER,
     DNGN_FLOOR,
     DNGN_STONE_STAIRS_DOWN_I,
+
+    // corresponding up stairs (same order as above)
+    DNGN_STONE_STAIRS_UP_I,
+
+    DNGN_EXIT_DUNGEON,
+
+    DNGN_SEALED_STAIRS_UP,
+    DNGN_SEALED_STAIRS_DOWN,
+
+#if TAG_MAJOR_VERSION == 34
+    DNGN_SEALED_CLEAR_DOOR,
+#endif
 
     NUM_FEATURES
 };

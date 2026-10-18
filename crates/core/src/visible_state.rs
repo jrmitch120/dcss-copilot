@@ -276,6 +276,9 @@ pub struct InventoryItem {
     pub quantity: u32,
     /// What it is, when the bundle for the game's Crawl Version decodes its class and sub-type.
     pub kind: Option<ItemKind>,
+    /// Crawl judges it of no use to the character right now, as the inventory greys it out:
+    /// `is_useless_item` with temporary conditions, such as a scroll while confused.
+    pub useless: bool,
 }
 
 /// A monster the player can see.

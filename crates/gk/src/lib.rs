@@ -92,8 +92,9 @@ pub struct Bundle {
     pub wands: BTreeMap<EnumId, Wand>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
-    /// Every dungeon feature, by its `dungeon_feature_type` enum value: a map cell's webtiles `f`.
-    pub features: BTreeMap<u16, EnumId>,
+    /// Every dungeon feature crawl defines, by its `dungeon_feature_type` enum value: a map
+    /// cell's webtiles `f`.
+    pub features: BTreeMap<u16, Feature>,
     /// Every monster attitude, by its `mon_attitude_type` enum value: a monster's webtiles `att`.
     pub attitudes: BTreeMap<u8, EnumId>,
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
@@ -101,8 +102,116 @@ pub struct Bundle {
     pub monster_threats: BTreeMap<u8, EnumId>,
     /// What the game shows that tells the player's Lighting.
     pub lighting: LightingSigns,
+    /// Which of the player's items, spells and abilities are Ways Out, and the statuses that stop
+    /// them.
+    pub ways_out: WayOutSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
+}
+
+/// Which of the things the player carries, casts and invokes are Ways Out, and what the game
+/// shows that stops them being used, as this Crawl Version has them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WayOutSigns {
+    /// The kinds of item that are Ways Out, such as the scroll of teleportation.
+    pub items: Vec<EscapeItem>,
+    /// The spells that are Ways Out, such as Blink.
+    pub spells: Vec<EscapeSpell>,
+    /// The abilities that are Ways Out, such as Trog's Berserk.
+    pub abilities: Vec<EscapeAbility>,
+    /// The statuses that stop the player using things.
+    pub stops: Vec<Stop>,
+    /// The message crawl gives instead of the spell list when the player knows no spells.
+    pub no_spells: String,
+    /// The message crawl gives instead of the ability menu when the player has no abilities.
+    pub no_abilities: String,
+}
+
+/// A kind of item that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeItem {
+    /// Its class, such as `OBJ_SCROLLS`.
+    pub class: EnumId,
+    /// Its sub-type, such as `SCR_TELEPORTATION`.
+    pub sub_type: EnumId,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// A spell that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeSpell {
+    /// Its `spell_type` identifier, such as `SPELL_BLINK`.
+    pub spell: EnumId,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// An ability that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeAbility {
+    /// Its name, as the ability menu (`a`) lists it, such as `Berserk`.
+    pub name: String,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It is a god's power, invoked aloud, which silence stops (`talent::is_invocation`).
+    pub invocation: bool,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// What a Way Out does for the player in trouble.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Relief {
+    /// Restores hit points.
+    Heals,
+    /// Takes them away from danger at once, such as a blink.
+    Escapes,
+    /// Takes them away after a delay, such as a scroll of teleportation.
+    EscapesLater,
+    /// Keeps monsters from reaching or seeing them, such as fog or fear.
+    Hinders,
+    /// Makes them faster.
+    Hastens,
+    /// Makes them hit harder and take more, such as berserking.
+    Strengthens,
+}
+
+/// A status that stops the player using some things while it lasts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Stop {
+    /// The light or the words the status pane shows for it, such as `Conf` or `silenced`.
+    pub status: String,
+    /// What it stops.
+    pub stops: Vec<Use>,
+}
+
+/// A way the player uses a Way Out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Use {
+    /// Reading a scroll.
+    Reading,
+    /// Drinking a potion.
+    Drinking,
+    /// Casting a spell.
+    Casting,
+    /// Using an ability.
+    UsingAbilities,
+    /// Invoking a god's power aloud.
+    Invoking,
+    /// Being moved by magic, as a blink or a teleport moves them.
+    Translocating,
 }
 
 /// What the game shows that tells how the light falls on the player, the Lighting crawl's
@@ -147,7 +256,7 @@ impl Bundle {
 
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
     #[must_use]
-    pub fn feature(&self, value: u16) -> Option<&EnumId> {
+    pub fn feature(&self, value: u16) -> Option<&Feature> {
         self.features.get(&value)
     }
 
@@ -632,6 +741,10 @@ pub struct ItemClass {
     /// Its sub-types, by enum value: an item's webtiles `sub_type`. Empty for a class the
     /// extractor has no name table for.
     pub sub_types: BTreeMap<u16, ItemSubType>,
+    /// The player doesn't know which sub-type one of its items is until they identify it, as a
+    /// scroll's is unknown until read (crawl's `item_type_has_ids`). Webtiles sends the
+    /// sub-type all the same.
+    pub kinds_hidden: bool,
 }
 
 /// One kind of item within a class, such as the potion of curing.
@@ -740,6 +853,48 @@ pub enum ZapToHit {
         /// See `per_power`.
         per: i32,
     },
+}
+
+/// A dungeon feature, as `feat_defs` in `feature-data.h` defines it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Feature {
+    /// Its `dungeon_feature_type` identifier, such as `DNGN_FLOOR`.
+    pub id: EnumId,
+    /// Crawl's name for it, such as `stone staircase leading down`.
+    pub name: String,
+    /// What it is to someone walking onto it.
+    pub terrain: Terrain,
+    /// Which way it takes the player to another level, when it is a staircase they can take:
+    /// drawn as one, and neither sealed nor leading out of the dungeon.
+    pub stairs: Option<StairDirection>,
+}
+
+/// What a dungeon feature is to someone walking onto it, from its `feat_defs` flags and
+/// minimap colour.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Terrain {
+    /// Walked onto as onto floor, such as floor, shallow water, an open door, a trap or stairs.
+    Open,
+    /// A closed door, which is opened and then walked through.
+    ClosedDoor,
+    /// Deep water, which only swimmers and fliers cross.
+    DeepWater,
+    /// Lava, which only fliers cross.
+    Lava,
+    /// Nothing walks onto it (`FFT_SOLID`), such as a wall, a tree, a statue or a sealed door.
+    Solid,
+}
+
+/// Which way a staircase takes the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum StairDirection {
+    /// To a shallower level, or out of a branch: drawn `<`.
+    Up,
+    /// To a deeper level, or into a branch: drawn `>`.
+    Down,
 }
 
 /// A species' definition, from `dat/species/*.yaml`.

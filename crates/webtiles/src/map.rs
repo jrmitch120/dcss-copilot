@@ -210,7 +210,8 @@ impl LevelMap {
                     .filter(|glyph| !glyph.trim().is_empty())?;
                 let cell = MapCell {
                     glyph: cell.glyph(),
-                    feature: decode(cell.feature, knowledge, Bundle::feature).cloned(),
+                    feature: decode(cell.feature, knowledge, Bundle::feature)
+                        .map(|feature| feature.id.clone()),
                     in_view: cell.in_view(),
                     light: cell.light(),
                 };
@@ -297,12 +298,12 @@ fn low_word(index: &Value) -> u64 {
         .unwrap_or(0)
 }
 
-/// The identifier `knowledge` gives an enum value, through one of its tables.
-fn decode<'a, T: TryFrom<i64>>(
+/// What `knowledge` gives an enum value, through one of its tables.
+fn decode<'a, T: TryFrom<i64>, U>(
     value: Option<i64>,
     knowledge: Option<&'a Bundle>,
-    table: fn(&'a Bundle, T) -> Option<&'a EnumId>,
-) -> Option<&'a EnumId> {
+    table: fn(&'a Bundle, T) -> Option<&'a U>,
+) -> Option<&'a U> {
     table(knowledge?, T::try_from(value?).ok()?)
 }
 

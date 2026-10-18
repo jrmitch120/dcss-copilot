@@ -1,0 +1,19 @@
+description = "A Minotaur Berserker walks from the start of a seeded game on D:1, over its escape hatch, into the one-wide corridor north of it, then enters wizard mode and creates a goblin, which crawl puts in the passage beside the way back: they stand in a corridor, and the goblin, no faster than them, can be beside either staircase by the time they reach it"
+recording = "goblin-in-a-corridor.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Northwest, then five squares north, into the corridor.
+  "y", "k", "k", "k", "k", "k",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Create a monster by name beside them: a goblin.
+  "m", "goblin\r",
+  "\u001b",
+]

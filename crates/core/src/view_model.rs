@@ -87,10 +87,48 @@ pub struct GameView {
     pub now: NowPill,
     /// The one thing that deserves the player's attention now.
     pub focus: FocusCard,
+    /// The player's Ways Out, under the focus card while anything hostile is in view.
+    pub ways_out: Option<WaysOutList>,
     /// The Run Plan, summarised along the bottom of the panel.
     pub run_plan: RunPlanRail,
     /// Where the player asks the Advisor questions.
     pub ask: AskBox,
+}
+
+/// The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WaysOutList {
+    /// One staircase each way, the nearest that can be used or else the nearest, then each
+    /// escape carried, ability and spell.
+    pub rows: Vec<WayOutRow>,
+    /// The ground the player stands on, such as `In a corridor: 2 sides open`, once the Advisor
+    /// can tell.
+    pub ground: Option<String>,
+    /// What keeps the Advisor from judging more, such as a screen to open, one sentence each.
+    pub gaps: Vec<String>,
+}
+
+/// `text` with its first letter capitalised, as a name starts a line in the panel.
+pub(crate) fn capitalised(text: &str) -> String {
+    let mut chars = text.chars();
+    chars.next().map_or_else(String::new, |first| {
+        first.to_uppercase().chain(chars).collect()
+    })
+}
+
+/// One Way Out in the panel's list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WayOutRow {
+    /// It can be used now, as far as the Advisor can tell: drawn ✓, else ✕.
+    pub usable: bool,
+    /// What it is, such as `Stone staircase leading down` or `Teleportation`.
+    pub name: String,
+    /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`.
+    pub detail: Option<String>,
+    /// Why it can't be used, when it can't, such as `Centaur is faster`.
+    pub why_not: Option<String>,
 }
 
 /// The character in the game being followed. A stat is `None` until the game reports it.

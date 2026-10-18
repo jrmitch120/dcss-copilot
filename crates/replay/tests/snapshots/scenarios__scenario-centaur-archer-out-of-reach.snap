@@ -66,6 +66,93 @@ expression: replay
             "awareness",
             "carriedGear"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 6
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 3,
+            "nearestCorridor": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -97,6 +184,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "4 steps",
+              "whyNot": "Centaur is beside it"
+            }
+          ],
+          "ground": "On open ground: 3 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -159,6 +261,93 @@ expression: replay
             "awareness",
             "carriedGear"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 6
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 3,
+            "nearestCorridor": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -190,6 +379,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "4 steps",
+              "whyNot": "Centaur is beside it"
+            }
+          ],
+          "ground": "On open ground: 3 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -254,6 +458,93 @@ expression: replay
           "awareness",
           "carriedGear"
         ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 4
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 6
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 3,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
       }
     },
     "game": {
@@ -285,6 +576,21 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "4 steps",
+            "whyNot": "Centaur is beside it"
+          }
+        ],
+        "ground": "On open ground: 3 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the spell list (I) to judge your spells."
         ]
       },
       "runPlan": {

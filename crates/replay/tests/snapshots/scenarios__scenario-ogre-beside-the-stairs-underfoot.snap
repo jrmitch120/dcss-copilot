@@ -1,0 +1,439 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz293775095",
+    "character": "wiz293775095",
+    "species": "Minotaur",
+    "firstSeenMs": 1792293776426,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 19,
+          "death": {
+            "times": 116,
+            "trials": 10000
+          },
+          "worstHit": 19,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "mayShoot": [],
+          "lighting": "plain",
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "followed",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz293775095",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "line": "Ogre can attack before your next action.",
+          "detail": "Death 1.2% · worst hit 19 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "O",
+                  "colour": "brown"
+                },
+                "tile": "mon/humanoids/ogre"
+              },
+              "name": "ogre",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "underfoot",
+              "whyNot": "Ogre would follow you"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 0,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 19,
+        "death": {
+          "times": 116,
+          "trials": 10000
+        },
+        "worstHit": 19,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "mayShoot": [],
+        "lighting": "plain",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "steps": 0
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "followed",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 2,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz293775095",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 0
+      },
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "line": "Ogre can attack before your next action.",
+        "detail": "Death 1.2% · worst hit 19 of 19 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
+              },
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "ogre",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "underfoot",
+            "whyNot": "Ogre would follow you"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

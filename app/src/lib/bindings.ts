@@ -114,6 +114,8 @@ export type GameView = {
 	now: NowPill,
 	/**  The one thing that deserves the player's attention now. */
 	focus: FocusCard,
+	/**  The player's Ways Out, under the focus card while anything hostile is in view. */
+	waysOut: WaysOutList | null,
 	/**  The Run Plan, summarised along the bottom of the panel. */
 	runPlan: RunPlanRail,
 	/**  Where the player asks the Advisor questions. */
@@ -337,6 +339,34 @@ export type ViewModel = {
 
 /**  The core pushes a new view model to the panel. */
 export type ViewModelChanged = ViewModel;
+
+/**  One Way Out in the panel's list. */
+export type WayOutRow = {
+	/**  It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. */
+	usable: boolean,
+	/**  What it is, such as `Stone staircase leading down` or `Teleportation`. */
+	name: string,
+	/**  A short fact beside the name, such as `7 steps` or `spell · 4% fail`. */
+	detail: string | null,
+	/**  Why it can't be used, when it can't, such as `Centaur is faster`. */
+	whyNot: string | null,
+};
+
+/**  The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not. */
+export type WaysOutList = {
+	/**
+	 *  One staircase each way, the nearest that can be used or else the nearest, then each
+	 *  escape carried, ability and spell.
+	 */
+	rows: WayOutRow[],
+	/**
+	 *  The ground the player stands on, such as `In a corridor: 2 sides open`, once the Advisor
+	 *  can tell.
+	 */
+	ground: string | null,
+	/**  What keeps the Advisor from judging more, such as a screen to open, one sentence each. */
+	gaps: string[],
+};
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

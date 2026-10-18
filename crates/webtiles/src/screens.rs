@@ -108,6 +108,7 @@ impl Screens {
             Frame::Menu { tag, title, items } => ScreenRead {
                 screen: match tag.as_str() {
                     "spell" => Screen::Spells,
+                    "ability" => Screen::Abilities,
                     "" if title == MUTATIONS_TITLE => Screen::Mutations,
                     "" => Screen::Other(UNTAGGED_MENU.to_owned()),
                     tag => Screen::Other(tag.to_owned()),

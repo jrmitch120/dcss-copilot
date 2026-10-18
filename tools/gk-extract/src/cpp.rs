@@ -33,7 +33,7 @@ impl Source {
     /// function-like macros and tokenizes the result. `file` names it in errors.
     pub fn parse(file: &str, text: &str, tag_major: i64) -> Result<Self, ExtractError> {
         let (code, macros) = preprocess(file, text, tag_major)?;
-        let tokens = expand(file, &tokenize(file, &code)?, &macros)?;
+        let tokens = expand(file, &tokenize(file, &code)?, &macros, &[])?;
         Ok(Self {
             file: file.to_owned(),
             tokens: join_strings(tokens),
@@ -468,21 +468,42 @@ fn function_macro(file: &str, define: &str) -> Result<Option<(String, Macro)>, E
     Ok(Some((name.to_owned(), Macro { params, body })))
 }
 
-/// Replaces each use of a function-like macro with its body, substituting the arguments and
-/// pasting tokens joined by `##`.
+/// The text `#` makes of a macro argument of identifiers and numbers, single spaced; `None` for
+/// anything else, which crawl's tables don't stringize.
+fn stringized(arg: &[Token]) -> Option<String> {
+    let words: Option<Vec<&str>> = arg
+        .iter()
+        .map(|token| match token {
+            Token::Ident(text) | Token::Number(text) => Some(text.as_str()),
+            _ => None,
+        })
+        .collect();
+    Some(words?.join(" "))
+}
+
+/// Replaces each use of a function-like macro with its body, substituting the arguments,
+/// stringizing those after `#` and pasting tokens joined by `##`. Each body is rescanned for
+/// the macros it uses, as `COLOUR_IS` uses `COLOURS`, but never for the macros being expanded
+/// (`expanding`), as the compiler never expands a macro inside itself.
 fn expand(
     file: &str,
     tokens: &[Token],
     macros: &HashMap<String, Macro>,
+    expanding: &[&str],
 ) -> Result<Vec<Token>, ExtractError> {
     let mut out = Vec::with_capacity(tokens.len());
     let mut i = 0;
     while i < tokens.len() {
         let mac = match &tokens[i] {
-            Token::Ident(name) if tokens.get(i + 1) == Some(&Token::Punct('(')) => macros.get(name),
+            Token::Ident(name)
+                if tokens.get(i + 1) == Some(&Token::Punct('('))
+                    && !expanding.contains(&name.as_str()) =>
+            {
+                macros.get(name).map(|mac| (name.as_str(), mac))
+            }
             _ => None,
         };
-        let Some(mac) = mac else {
+        let Some((name, mac)) = mac else {
             out.push(tokens[i].clone());
             i += 1;
             continue;
@@ -491,17 +512,36 @@ fn expand(
             file: file.to_owned(),
             what: format!("a use of the macro {:?}", tokens[i]),
         })?;
+        let param = |token: Option<&Token>| match token {
+            Some(Token::Ident(ident)) => mac.params.iter().position(|p| p == ident),
+            _ => None,
+        };
         let mut body: Vec<Token> = Vec::new();
-        for token in &mac.body {
-            match token {
-                Token::Ident(ident) => match mac.params.iter().position(|p| p == ident) {
-                    Some(arg) => body.extend(args.get(arg).cloned().unwrap_or_default()),
-                    None => body.push(token.clone()),
-                },
-                _ => body.push(token.clone()),
+        let mut at = 0;
+        while let Some(token) = mac.body.get(at) {
+            let pasting = at > 0 && mac.body.get(at - 1) == Some(&Token::Punct('#'));
+            match (token, param(mac.body.get(at + 1))) {
+                // `#param` makes the argument a string literal; `##` is pasting, below.
+                (Token::Punct('#'), Some(arg)) if !pasting => {
+                    let text = stringized(args.get(arg).map_or(&[][..], Vec::as_slice))
+                        .ok_or_else(|| ExtractError::Unreadable {
+                            file: file.to_owned(),
+                            what: format!("a stringized argument of the macro {:?}", tokens[i]),
+                        })?;
+                    body.push(Token::Str(text));
+                    at += 2;
+                    continue;
+                }
+                _ => {}
             }
+            match param(Some(token)) {
+                Some(arg) => body.extend(args.get(arg).cloned().unwrap_or_default()),
+                None => body.push(token.clone()),
+            }
+            at += 1;
         }
-        out.extend(paste(body));
+        let within = [expanding, &[name]].concat();
+        out.extend(expand(file, &paste(body), macros, &within)?);
         i = after;
     }
     Ok(out)

@@ -46,5 +46,11 @@ expression: replayer.advisor().accumulated()
     "screen": {
       "kind": "characterOverview"
     }
+  },
+  "spells": {
+    "state": "missing"
+  },
+  "abilities": {
+    "state": "missing"
   }
 }

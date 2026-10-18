@@ -35,5 +35,60 @@ expression: replayer.advisor().fact_sheet()
       "paths",
       "awareness"
     ]
+  },
+  "waysOut": {
+    "options": [
+      {
+        "option": {
+          "kind": "stairs",
+          "name": "stone staircase leading down",
+          "direction": "down",
+          "position": {
+            "x": 2,
+            "y": 0
+          },
+          "steps": 2
+        },
+        "usable": {
+          "state": "no",
+          "because": [
+            {
+              "blocker": "cutOff",
+              "by": [
+                {
+                  "name": "hobgoblin",
+                  "position": {
+                    "x": 1,
+                    "y": -1
+                  },
+                  "moves": 0,
+                  "arrivesAfter": 0,
+                  "faster": false
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "ground": {
+      "ground": "openGround",
+      "openSides": 8,
+      "nearestCorridor": null
+    },
+    "gaps": [
+      {
+        "gap": "abilityMenu"
+      },
+      {
+        "gap": "spellList"
+      }
+    ],
+    "notModelled": [
+      "swimmingAndFlying",
+      "unexploredSquares",
+      "playerSpeed",
+      "hitsOnTheWay"
+    ]
   }
 }

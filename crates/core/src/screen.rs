@@ -29,11 +29,13 @@ pub enum Screen {
     Skills,
     /// The spell list (`I`, or choosing a spell to cast).
     Spells,
+    /// The ability menu (`a`).
+    Abilities,
     /// Innate abilities, weirdness and mutations (`A`).
     Mutations,
     /// The character dump (`#`, or from the help menu).
     CharacterDump,
-    /// Any other menu or popup, by crawl's name for it, such as `ability` or `describe-monster`.
+    /// Any other menu or popup, by crawl's name for it, such as `describe-monster`.
     Other(String),
 }
 
@@ -73,6 +75,118 @@ pub enum Resistance {
 /// The width of the resistance names in the character overview's first column
 /// (`_get_overview_resistances` in crawl's `output.cc`): the pips start after it.
 const RESIST_NAME_WIDTH: usize = 8;
+
+/// A spell the character knows, as the spell list shows it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KnownSpell {
+    /// Its name, such as `Blink`.
+    pub name: String,
+    /// The chance of failing to cast it, in percent.
+    pub failure_percent: u32,
+    /// Its level, which is also the magic points it costs.
+    pub level: u32,
+}
+
+/// An ability the character has, as the ability menu shows it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KnownAbility {
+    /// Its name, such as `Berserk`.
+    pub name: String,
+    /// What it costs, in crawl's words, such as `3 MP, Piety` or `None`.
+    pub cost: String,
+    /// The magic points it costs, none when its cost names none.
+    pub magic_cost: u32,
+    /// The chance of failing to use it, in percent.
+    pub failure_percent: u32,
+}
+
+impl ScreenRead {
+    /// The spells, when this is the spell list showing failure rates rather than its other
+    /// columns: one per row as `a - Blink    Translocation    4%    2`, the name, the schools,
+    /// the failure rate and the level (`_spell_base_description` in crawl's `spl-cast.cc`). `None`
+    /// when a row reads otherwise, as the list's other columns do.
+    #[must_use]
+    pub fn spells(&self) -> Option<Vec<KnownSpell>> {
+        if self.screen != Screen::Spells {
+            return None;
+        }
+        self.lines
+            .iter()
+            .filter_map(|line| menu_entry(line))
+            .map(|row| {
+                let columns = columns(row);
+                let [name, _schools, failure, .., level] = columns.as_slice() else {
+                    return None;
+                };
+                // The failure rate may be followed by another, as a revenant's enkindled one.
+                let failure = failure.split_whitespace().next()?;
+                Some(KnownSpell {
+                    name: (*name).to_owned(),
+                    failure_percent: percent(failure)?,
+                    level: level.parse().ok()?,
+                })
+            })
+            .collect()
+    }
+
+    /// The abilities, when this is the ability menu: one per row as `a - Berserk    None    0%`,
+    /// the name, the cost and the failure rate (`describe_talent` in crawl's `ability.cc`).
+    #[must_use]
+    pub fn abilities(&self) -> Option<Vec<KnownAbility>> {
+        if self.screen != Screen::Abilities {
+            return None;
+        }
+        self.lines
+            .iter()
+            .filter_map(|line| menu_entry(line))
+            .map(|row| {
+                let columns = columns(row);
+                let [name, cost, failure] = columns.as_slice() else {
+                    return None;
+                };
+                Some(KnownAbility {
+                    name: (*name).to_owned(),
+                    cost: (*cost).to_owned(),
+                    magic_cost: magic_cost(cost),
+                    failure_percent: percent(failure)?,
+                })
+            })
+            .collect()
+    }
+}
+
+/// The text of a menu row after its hotkey, as `a - Blink ...` is drawn: `None` for a row
+/// without one, such as the ability menu's `Invocations -` subtitle.
+fn menu_entry(line: &str) -> Option<&str> {
+    let line = line.trim_start();
+    let mut chars = line.chars();
+    let hotkey = chars.next()?;
+    let rest = chars.as_str().strip_prefix(" - ")?;
+    hotkey.is_ascii_alphabetic().then_some(rest)
+}
+
+/// The columns of a menu row, which crawl pads apart with spaces (`chop_string`): split where
+/// two or more spaces run, as none of their texts holds two together.
+fn columns(row: &str) -> Vec<&str> {
+    row.split("  ")
+        .map(str::trim)
+        .filter(|column| !column.is_empty())
+        .collect()
+}
+
+/// A failure rate as crawl writes one, such as `4%`.
+fn percent(word: &str) -> Option<u32> {
+    word.strip_suffix('%')?.parse().ok()
+}
+
+/// The magic points a cost names, as `3 MP, Piety` names 3: none when it names none.
+fn magic_cost(cost: &str) -> u32 {
+    cost.split(',')
+        .find_map(|part| part.trim().strip_suffix(" MP")?.trim().parse().ok())
+        .unwrap_or(0)
+}
 
 impl ScreenRead {
     /// The resistances, when this is the character overview or the character dump, which draws

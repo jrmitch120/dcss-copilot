@@ -15,6 +15,7 @@ use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
+use crate::ways_out::WaysOut;
 
 /// LETHAL from this chance of death before the player's next action, per mille: 5%. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
@@ -37,6 +38,8 @@ const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
 pub struct FactSheet {
     /// How dangerous this moment is.
     pub threat: Threat,
+    /// The player's escapes and emergency options, and the ground they stand on.
+    pub ways_out: WaysOut,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -163,7 +166,8 @@ pub struct MayShoot {
     pub distance: i32,
 }
 
-/// Something the Threat Level's simulation doesn't model.
+/// Something the engine doesn't model, in the Threat Level's simulation or in judging the Ways
+/// Out.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
@@ -211,6 +215,21 @@ pub enum NotModelled {
     /// armour of light, and the Advisor doesn't know whether they wear it. They are assumed to
     /// have none, and to be backlit. The character overview (`%`) tells it.
     OwnHalo,
+    /// The player is assumed to walk at standard speed, a square an action, whatever their
+    /// species, statuses or gear.
+    PlayerSpeed,
+    /// Everyone is assumed to walk: deep water and lava stop them, even those who swim or fly.
+    SwimmingAndFlying,
+    /// Monsters are assumed able to cross every unexplored square, and to stand on one to
+    /// attack, and the player to walk only over explored ones.
+    UnexploredSquares,
+    /// A staircase is cut off only by monsters that can stand beside it as the player takes it:
+    /// the blows, shots and spells they could land on the way there aren't counted.
+    HitsOnTheWay,
+    /// Abilities and spells are judged only by their cost in magic and the statuses that stop
+    /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
+    /// free square to blink to, isn't checked.
+    OwnConditions,
 }
 
 /// What the simulation leaves out, whatever is in view.
@@ -232,6 +251,8 @@ pub enum Gap {
     Defences,
     /// The game hasn't sent its map, so the monsters in view aren't known.
     MonstersInView,
+    /// The game hasn't sent its map, so the level's paths aren't known.
+    Map,
     /// Where the player stands hasn't been reported.
     Position,
     /// There is no Game Knowledge for the game's Crawl Version, so monsters can't be judged.
@@ -241,6 +262,12 @@ pub enum Gap {
         /// The monster, as the game names it.
         monster: String,
     },
+    /// The player hasn't opened the ability menu (`a`), so which of their abilities are Ways Out
+    /// isn't known.
+    AbilityMenu,
+    /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
+    /// how often they fail, isn't known.
+    SpellList,
 }
 
 impl FactSheet {
@@ -254,13 +281,14 @@ impl FactSheet {
     ) -> Self {
         Self {
             threat: threat(visible, remembered, knowledge),
+            ways_out: WaysOut::compute(visible, remembered, knowledge),
         }
     }
 }
 
 /// Monsters on these sides attack the player: crawl's `mons_att_wont_attack` (`mon-util.cc`)
 /// spares only friends, good neutrals and marionettes, and strict neutrals don't hunt the player.
-fn attacks_player(attitude: Attitude) -> bool {
+pub(crate) fn attacks_player(attitude: Attitude) -> bool {
     matches!(attitude, Attitude::Hostile | Attitude::Neutral)
 }
 

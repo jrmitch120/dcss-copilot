@@ -53,6 +53,90 @@ expression: replay
             "paths",
             "awareness"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -84,6 +168,20 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Ogre is beside it"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
           ]
         },
         "runPlan": {
@@ -135,6 +233,90 @@ expression: replay
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 2,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
       }
     },
     "game": {
@@ -166,6 +348,20 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Ogre is beside it"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
         ]
       },
       "runPlan": {

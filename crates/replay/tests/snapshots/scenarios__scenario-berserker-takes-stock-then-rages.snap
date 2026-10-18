@@ -1,0 +1,566 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz291465373",
+    "character": "wiz291465373",
+    "species": "Minotaur",
+    "firstSeenMs": 1792291466617,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 2,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 3,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -2,
+                "y": -1
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "mayShoot": [],
+          "lighting": "plain",
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "c",
+                "name": "scroll labelled YMAYFF GACUBBO",
+                "kindName": "teleportation",
+                "quantity": 1,
+                "effect": "escapesLater"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "d",
+                "name": "clear potion",
+                "kindName": "heal wounds",
+                "quantity": 1,
+                "effect": "heals"
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "fullHealth"
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "ability",
+                "name": "Berserk",
+                "effect": "strengthens",
+                "failurePercent": 10,
+                "read": {
+                  "turn": 2,
+                  "stale": false
+                }
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "spell",
+                "name": "Blink",
+                "effect": "escapes",
+                "failurePercent": 65,
+                "read": {
+                  "turn": 2,
+                  "stale": false
+                }
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "magic",
+                    "needs": 2,
+                    "has": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay",
+            "ownConditions"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz291465373",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 2
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Jackal can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Jackal is beside it"
+            },
+            {
+              "usable": true,
+              "name": "Teleportation",
+              "detail": "escapes after a delay",
+              "whyNot": null
+            },
+            {
+              "usable": false,
+              "name": "Heal wounds",
+              "detail": "heals",
+              "whyNot": "you're at full health"
+            },
+            {
+              "usable": true,
+              "name": "Berserk",
+              "detail": "ability · 10% fail",
+              "whyNot": null
+            },
+            {
+              "usable": false,
+              "name": "Blink",
+              "detail": "spell · 65% fail",
+              "whyNot": "needs 2 MP, you have 0"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": []
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 3,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 28,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 3,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -2,
+              "y": -1
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "mayShoot": [],
+        "lighting": "plain",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -2,
+                        "y": -1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -2,
+                        "y": -1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "c",
+              "name": "scroll labelled YMAYFF GACUBBO",
+              "kindName": "teleportation",
+              "quantity": 1,
+              "effect": "escapesLater"
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "d",
+              "name": "clear potion",
+              "kindName": "heal wounds",
+              "quantity": 1,
+              "effect": "heals"
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "ability",
+              "name": "Berserk",
+              "effect": "strengthens",
+              "failurePercent": 10,
+              "read": {
+                "turn": 2,
+                "stale": false
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "spell",
+              "name": "Blink",
+              "effect": "escapes",
+              "failurePercent": 65,
+              "read": {
+                "turn": 2,
+                "stale": false
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                },
+                {
+                  "blocker": "magic",
+                  "needs": 2,
+                  "has": 0
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "ownConditions"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz291465373",
+        "species": "Minotaur",
+        "hp": 28,
+        "hpMax": 28,
+        "turn": 3
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Jackal can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 3 of 28 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Jackal is beside it"
+          },
+          {
+            "usable": false,
+            "name": "Teleportation",
+            "detail": "escapes after a delay",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Heal wounds",
+            "detail": "heals",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Berserk",
+            "detail": "ability · 10% fail",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Blink",
+            "detail": "spell · 65% fail",
+            "whyNot": "you're berserking; needs 2 MP, you have 0"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

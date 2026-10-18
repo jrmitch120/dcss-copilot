@@ -170,8 +170,7 @@ expression: replay.timeline
     "turn": 1234,
     "event": "screenRead",
     "screen": {
-      "kind": "other",
-      "name": "ability"
+      "kind": "abilities"
     },
     "title": "  Ability - do what?                  Cost                          Failure",
     "lines": [

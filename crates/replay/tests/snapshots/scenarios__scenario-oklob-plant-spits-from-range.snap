@@ -56,6 +56,65 @@ expression: replay
             "awareness",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 5
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -87,6 +146,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "1 step",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 5 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -139,6 +213,65 @@ expression: replay
             "awareness",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 4
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -170,6 +303,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "underfoot",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -222,6 +370,65 @@ expression: replay
             "awareness",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 4
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -253,6 +460,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "underfoot",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -307,6 +529,65 @@ expression: replay
           "awareness",
           "playerResistances"
         ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 0
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": {
+            "position": {
+              "x": -1,
+              "y": -6
+            },
+            "steps": 4
+          }
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
       }
     },
     "game": {
@@ -338,6 +619,21 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": true,
+            "name": "Escape hatch in the floor",
+            "detail": "underfoot",
+            "whyNot": null
+          }
+        ],
+        "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the spell list (I) to judge your spells."
         ]
       },
       "runPlan": {

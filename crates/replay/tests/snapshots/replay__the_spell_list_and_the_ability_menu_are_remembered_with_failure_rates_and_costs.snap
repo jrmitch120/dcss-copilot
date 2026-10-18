@@ -1,0 +1,35 @@
+---
+source: crates/replay/tests/replay.rs
+expression: "serde_json::json!({\n    \"spells\": remembered.spells, \"abilities\": remembered.abilities,\n})"
+---
+{
+  "spells": {
+    "state": "known",
+    "value": [
+      {
+        "name": "Sting",
+        "failurePercent": 3,
+        "level": 1
+      }
+    ],
+    "turn": 1234,
+    "screen": {
+      "kind": "spells"
+    }
+  },
+  "abilities": {
+    "state": "known",
+    "value": [
+      {
+        "name": "Berserk",
+        "cost": "None",
+        "magicCost": 0,
+        "failurePercent": 0
+      }
+    ],
+    "turn": 1234,
+    "screen": {
+      "kind": "abilities"
+    }
+  }
+}

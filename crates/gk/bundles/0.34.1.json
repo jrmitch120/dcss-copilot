@@ -42044,7 +42044,8 @@
           "id": "WPN_PARTISAN",
           "name": "partisan"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "1": {
       "id": "OBJ_MISSILES",
@@ -42093,7 +42094,8 @@
           "id": "MI_SLUG",
           "name": "slug"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "2": {
       "id": "OBJ_ARMOUR",
@@ -42270,7 +42272,8 @@
           "id": "ARM_ORB",
           "name": "orb"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "3": {
       "id": "OBJ_WANDS",
@@ -42323,11 +42326,13 @@
           "id": "WAND_WARPING",
           "name": "warping"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "4": {
       "id": "OBJ_FOOD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "5": {
       "id": "OBJ_SCROLLS",
@@ -42424,7 +42429,8 @@
           "id": "SCR_BUTTERFLIES",
           "name": "butterflies"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "6": {
       "id": "OBJ_JEWELLERY",
@@ -42589,7 +42595,8 @@
           "id": "AMU_DISSIPATION",
           "name": "dissipation"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "7": {
       "id": "OBJ_POTIONS",
@@ -42662,7 +42669,8 @@
           "id": "POT_LIGNIFY",
           "name": "lignification"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "8": {
       "id": "OBJ_BOOKS",
@@ -42951,7 +42959,8 @@
           "id": "BOOK_CONTRAPTIONS",
           "name": "Contraptions"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "9": {
       "id": "OBJ_STAVES",
@@ -43008,11 +43017,13 @@
           "id": "STAFF_CHANNELLING",
           "name": "channelling"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "10": {
       "id": "OBJ_ORBS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "11": {
       "id": "OBJ_MISCELLANY",
@@ -43101,19 +43112,23 @@
           "id": "MISC_SHOP_VOUCHER",
           "name": "shop voucher"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "12": {
       "id": "OBJ_CORPSES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "13": {
       "id": "OBJ_GOLD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "14": {
       "id": "OBJ_RODS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "15": {
       "id": "OBJ_RUNES",
@@ -43194,7 +43209,8 @@
           "id": "RUNE_FOREST",
           "name": "mossy"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "16": {
       "id": "OBJ_TALISMANS",
@@ -43287,19 +43303,23 @@
           "id": "TALISMAN_SPORE",
           "name": "spore talisman"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "17": {
       "id": "OBJ_GEMS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "18": {
       "id": "OBJ_GIZMOS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "19": {
       "id": "OBJ_BAUBLES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     }
   },
   "spells": {
@@ -50634,217 +50654,1272 @@
     }
   ],
   "features": {
-    "0": "DNGN_UNSEEN",
-    "1": "DNGN_CLOSED_DOOR",
-    "2": "DNGN_RUNED_DOOR",
-    "3": "DNGN_SEALED_DOOR",
-    "4": "DNGN_TREE",
-    "5": "DNGN_METAL_WALL",
-    "6": "DNGN_CRYSTAL_WALL",
-    "7": "DNGN_ROCK_WALL",
-    "8": "DNGN_SLIMY_WALL",
-    "9": "DNGN_STONE_WALL",
-    "10": "DNGN_PERMAROCK_WALL",
-    "11": "DNGN_CLEAR_ROCK_WALL",
-    "12": "DNGN_CLEAR_STONE_WALL",
-    "13": "DNGN_CLEAR_PERMAROCK_WALL",
-    "14": "DNGN_GRATE",
-    "15": "DNGN_OPEN_SEA",
-    "16": "DNGN_LAVA_SEA",
-    "17": "DNGN_ORCISH_IDOL",
-    "18": "DNGN_GRANITE_STATUE",
-    "19": "DNGN_MALIGN_GATEWAY",
-    "30": "DNGN_LAVA",
-    "31": "DNGN_DEEP_WATER",
-    "32": "DNGN_SHALLOW_WATER",
-    "33": "DNGN_FLOOR",
-    "34": "DNGN_OPEN_DOOR",
-    "35": "DNGN_TRAP_MECHANICAL",
-    "36": "DNGN_TRAP_TELEPORT",
-    "37": "DNGN_TRAP_SHAFT",
-    "38": "DNGN_TRAP_WEB",
-    "39": "DNGN_UNDISCOVERED_TRAP",
-    "40": "DNGN_ENTER_SHOP",
-    "41": "DNGN_ABANDONED_SHOP",
-    "42": "DNGN_STONE_STAIRS_DOWN_I",
-    "43": "DNGN_STONE_STAIRS_DOWN_II",
-    "44": "DNGN_STONE_STAIRS_DOWN_III",
-    "45": "DNGN_ESCAPE_HATCH_DOWN",
-    "46": "DNGN_STONE_STAIRS_UP_I",
-    "47": "DNGN_STONE_STAIRS_UP_II",
-    "48": "DNGN_STONE_STAIRS_UP_III",
-    "49": "DNGN_ESCAPE_HATCH_UP",
-    "50": "DNGN_ENTER_DIS",
-    "51": "DNGN_ENTER_GEHENNA",
-    "52": "DNGN_ENTER_COCYTUS",
-    "53": "DNGN_ENTER_TARTARUS",
-    "54": "DNGN_ENTER_ABYSS",
-    "55": "DNGN_EXIT_ABYSS",
-    "56": "DNGN_STONE_ARCH",
-    "57": "DNGN_ENTER_PANDEMONIUM",
-    "58": "DNGN_EXIT_PANDEMONIUM",
-    "59": "DNGN_TRANSIT_PANDEMONIUM",
-    "60": "DNGN_EXIT_DUNGEON",
-    "61": "DNGN_EXIT_THROUGH_ABYSS",
-    "62": "DNGN_EXIT_HELL",
-    "63": "DNGN_ENTER_HELL",
-    "64": "DNGN_ENTER_LABYRINTH",
-    "65": "DNGN_TELEPORTER",
-    "66": "DNGN_ENTER_PORTAL_VAULT",
-    "67": "DNGN_EXIT_PORTAL_VAULT",
-    "68": "DNGN_EXPIRED_PORTAL",
-    "69": "DNGN_ENTER_DWARF",
-    "70": "DNGN_ENTER_ORC",
-    "71": "DNGN_ENTER_LAIR",
-    "72": "DNGN_ENTER_SLIME",
-    "73": "DNGN_ENTER_VAULTS",
-    "74": "DNGN_ENTER_CRYPT",
-    "75": "DNGN_ENTER_BLADE",
-    "76": "DNGN_ENTER_ZOT",
-    "77": "DNGN_ENTER_TEMPLE",
-    "78": "DNGN_ENTER_SNAKE",
-    "79": "DNGN_ENTER_ELF",
-    "80": "DNGN_ENTER_TOMB",
-    "81": "DNGN_ENTER_SWAMP",
-    "82": "DNGN_ENTER_SHOALS",
-    "83": "DNGN_ENTER_SPIDER",
-    "84": "DNGN_ENTER_FOREST",
-    "85": "DNGN_ENTER_DEPTHS",
-    "86": "DNGN_EXIT_DWARF",
-    "87": "DNGN_EXIT_ORC",
-    "88": "DNGN_EXIT_LAIR",
-    "89": "DNGN_EXIT_SLIME",
-    "90": "DNGN_EXIT_VAULTS",
-    "91": "DNGN_EXIT_CRYPT",
-    "92": "DNGN_EXIT_BLADE",
-    "93": "DNGN_EXIT_ZOT",
-    "94": "DNGN_EXIT_TEMPLE",
-    "95": "DNGN_EXIT_SNAKE",
-    "96": "DNGN_EXIT_ELF",
-    "97": "DNGN_EXIT_TOMB",
-    "98": "DNGN_EXIT_SWAMP",
-    "99": "DNGN_EXIT_SHOALS",
-    "100": "DNGN_EXIT_SPIDER",
-    "101": "DNGN_EXIT_FOREST",
-    "102": "DNGN_EXIT_DEPTHS",
-    "103": "DNGN_ALTAR_ZIN",
-    "104": "DNGN_ALTAR_SHINING_ONE",
-    "105": "DNGN_ALTAR_KIKUBAAQUDGHA",
-    "106": "DNGN_ALTAR_YREDELEMNUL",
-    "107": "DNGN_ALTAR_XOM",
-    "108": "DNGN_ALTAR_VEHUMET",
-    "109": "DNGN_ALTAR_OKAWARU",
-    "110": "DNGN_ALTAR_MAKHLEB",
-    "111": "DNGN_ALTAR_SIF_MUNA",
-    "112": "DNGN_ALTAR_TROG",
-    "113": "DNGN_ALTAR_NEMELEX_XOBEH",
-    "114": "DNGN_ALTAR_ELYVILON",
-    "115": "DNGN_ALTAR_LUGONU",
-    "116": "DNGN_ALTAR_BEOGH",
-    "117": "DNGN_ALTAR_JIYVA",
-    "118": "DNGN_ALTAR_FEDHAS",
-    "119": "DNGN_ALTAR_CHEIBRIADOS",
-    "120": "DNGN_ALTAR_ASHENZARI",
-    "121": "DNGN_ALTAR_DITHMENOS",
-    "122": "DNGN_FOUNTAIN_BLUE",
-    "123": "DNGN_FOUNTAIN_SPARKLING",
-    "124": "DNGN_FOUNTAIN_BLOOD",
-    "125": "DNGN_DRY_FOUNTAIN_BLUE",
-    "126": "DNGN_DRY_FOUNTAIN_SPARKLING",
-    "127": "DNGN_DRY_FOUNTAIN_BLOOD",
-    "128": "DNGN_DRY_FOUNTAIN",
-    "129": "DNGN_EXPLORE_HORIZON",
-    "130": "DNGN_UNKNOWN_ALTAR",
-    "131": "DNGN_UNKNOWN_PORTAL",
-    "132": "DNGN_ABYSSAL_STAIR",
-    "133": "DNGN_BADLY_SEALED_DOOR",
-    "134": "DNGN_SEALED_STAIRS_UP",
-    "135": "DNGN_SEALED_STAIRS_DOWN",
-    "136": "DNGN_TRAP_ALARM",
-    "137": "DNGN_TRAP_ZOT",
-    "138": "DNGN_PASSAGE_OF_GOLUBRIA",
-    "139": "DNGN_ENTER_ZIGGURAT",
-    "140": "DNGN_ENTER_BAZAAR",
-    "141": "DNGN_ENTER_TROVE",
-    "142": "DNGN_ENTER_SEWER",
-    "143": "DNGN_ENTER_OSSUARY",
-    "144": "DNGN_ENTER_BAILEY",
-    "145": "DNGN_ENTER_ICE_CAVE",
-    "146": "DNGN_ENTER_VOLCANO",
-    "147": "DNGN_ENTER_WIZLAB",
-    "148": "DNGN_ENTER_DESOLATION",
-    "149": "DNGN_EXIT_ZIGGURAT",
-    "150": "DNGN_EXIT_BAZAAR",
-    "151": "DNGN_EXIT_TROVE",
-    "152": "DNGN_EXIT_SEWER",
-    "153": "DNGN_EXIT_OSSUARY",
-    "154": "DNGN_EXIT_BAILEY",
-    "155": "DNGN_EXIT_ICE_CAVE",
-    "156": "DNGN_EXIT_VOLCANO",
-    "157": "DNGN_EXIT_WIZLAB",
-    "158": "DNGN_EXIT_LABYRINTH",
-    "159": "DNGN_EXIT_DESOLATION",
-    "160": "DNGN_ALTAR_GOZAG",
-    "161": "DNGN_ALTAR_QAZLAL",
-    "162": "DNGN_ALTAR_RU",
-    "163": "DNGN_TRAP_SHADOW",
-    "164": "DNGN_TRAP_SHADOW_DORMANT",
-    "165": "DNGN_ALTAR_ECUMENICAL",
-    "166": "DNGN_ALTAR_PAKELLAS",
-    "167": "DNGN_ALTAR_USKAYAW",
-    "168": "DNGN_ALTAR_HEPLIAKLQANA",
-    "169": "DNGN_ENDLESS_SALT",
-    "170": "DNGN_ALTAR_WU_JIAN",
-    "171": "DNGN_TRANSPORTER",
-    "172": "DNGN_TRANSPORTER_LANDING",
-    "173": "DNGN_TRAP_DISPERSAL",
-    "174": "DNGN_ENTER_GAUNTLET",
-    "175": "DNGN_EXIT_GAUNTLET",
-    "176": "DNGN_CLOSED_CLEAR_DOOR",
-    "177": "DNGN_OPEN_CLEAR_DOOR",
-    "178": "DNGN_RUNED_CLEAR_DOOR",
-    "179": "DNGN_SEALED_CLEAR_DOOR",
-    "180": "DNGN_TOXIC_BOG",
-    "181": "DNGN_TRAP_ARCHMAGE",
-    "182": "DNGN_TRAP_SPEAR",
-    "183": "DNGN_TRAP_TYRANT",
-    "184": "DNGN_TRAP_HARLEQUIN",
-    "185": "DNGN_TRAP_BOLT",
-    "186": "DNGN_TRAP_NET",
-    "187": "DNGN_TRAP_PLATE",
-    "188": "DNGN_TRAP_TELEPORT_PERMANENT",
-    "189": "DNGN_TRAVEL_TRAIL",
-    "190": "DNGN_PETRIFIED_TREE",
-    "191": "DNGN_MANGROVE",
-    "192": "DNGN_DEMONIC_TREE",
-    "193": "DNGN_ENTER_ARENA",
-    "194": "DNGN_EXIT_ARENA",
-    "195": "DNGN_ALTAR_IGNIS",
-    "196": "DNGN_BROKEN_DOOR",
-    "197": "DNGN_BROKEN_CLEAR_DOOR",
-    "198": "DNGN_EXIT_DIS",
-    "199": "DNGN_EXIT_GEHENNA",
-    "200": "DNGN_EXIT_COCYTUS",
-    "201": "DNGN_EXIT_TARTARUS",
-    "202": "DNGN_RUNELIGHT",
-    "203": "DNGN_MUD",
-    "204": "DNGN_BINDING_SIGIL",
-    "205": "DNGN_METAL_STATUE",
-    "206": "DNGN_CACHE_OF_FRUIT",
-    "207": "DNGN_CACHE_OF_MEAT",
-    "208": "DNGN_ORB_DAIS",
-    "209": "DNGN_ENTER_CRUCIBLE",
-    "210": "DNGN_EXIT_CRUCIBLE",
-    "211": "DNGN_FOUNTAIN_EYES",
-    "212": "DNGN_CACHE_OF_BAKED_GOODS",
-    "213": "DNGN_DECORATIVE_FLOOR",
-    "214": "DNGN_SPIKE_LAUNCHER",
-    "215": "DNGN_TRAP_DEVOURER",
-    "216": "DNGN_ENTER_NECROPOLIS",
-    "217": "DNGN_EXIT_NECROPOLIS",
-    "218": "DNGN_FRIGID_WALL",
-    "219": "DNGN_ZOT_STATUE",
-    "220": "DNGN_TRAP_DISPERSAL_INACTIVE"
+    "0": {
+      "id": "DNGN_UNSEEN",
+      "name": "",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "1": {
+      "id": "DNGN_CLOSED_DOOR",
+      "name": "closed door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "2": {
+      "id": "DNGN_RUNED_DOOR",
+      "name": "runed door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "3": {
+      "id": "DNGN_SEALED_DOOR",
+      "name": "sealed door",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "4": {
+      "id": "DNGN_TREE",
+      "name": "tree",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "5": {
+      "id": "DNGN_METAL_WALL",
+      "name": "metal wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "6": {
+      "id": "DNGN_CRYSTAL_WALL",
+      "name": "crystal wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "7": {
+      "id": "DNGN_ROCK_WALL",
+      "name": "rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "8": {
+      "id": "DNGN_SLIMY_WALL",
+      "name": "slime covered rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "9": {
+      "id": "DNGN_STONE_WALL",
+      "name": "stone wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "10": {
+      "id": "DNGN_PERMAROCK_WALL",
+      "name": "unnaturally hard rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "11": {
+      "id": "DNGN_CLEAR_ROCK_WALL",
+      "name": "translucent rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "12": {
+      "id": "DNGN_CLEAR_STONE_WALL",
+      "name": "translucent stone wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "13": {
+      "id": "DNGN_CLEAR_PERMAROCK_WALL",
+      "name": "translucent unnaturally hard rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "14": {
+      "id": "DNGN_GRATE",
+      "name": "iron grate",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "15": {
+      "id": "DNGN_OPEN_SEA",
+      "name": "the open sea",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "16": {
+      "id": "DNGN_LAVA_SEA",
+      "name": "the endless lava",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "17": {
+      "id": "DNGN_ORCISH_IDOL",
+      "name": "orcish idol",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "18": {
+      "id": "DNGN_GRANITE_STATUE",
+      "name": "granite statue",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "19": {
+      "id": "DNGN_MALIGN_GATEWAY",
+      "name": "portal to somewhere",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "30": {
+      "id": "DNGN_LAVA",
+      "name": "some lava",
+      "terrain": "lava",
+      "stairs": null
+    },
+    "31": {
+      "id": "DNGN_DEEP_WATER",
+      "name": "some deep water",
+      "terrain": "deepWater",
+      "stairs": null
+    },
+    "32": {
+      "id": "DNGN_SHALLOW_WATER",
+      "name": "some shallow water",
+      "terrain": "open",
+      "stairs": null
+    },
+    "33": {
+      "id": "DNGN_FLOOR",
+      "name": "floor",
+      "terrain": "open",
+      "stairs": null
+    },
+    "34": {
+      "id": "DNGN_OPEN_DOOR",
+      "name": "open door",
+      "terrain": "open",
+      "stairs": null
+    },
+    "35": {
+      "id": "DNGN_TRAP_MECHANICAL",
+      "name": "mechanical trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "36": {
+      "id": "DNGN_TRAP_TELEPORT",
+      "name": "teleport trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "37": {
+      "id": "DNGN_TRAP_SHAFT",
+      "name": "shaft",
+      "terrain": "open",
+      "stairs": null
+    },
+    "38": {
+      "id": "DNGN_TRAP_WEB",
+      "name": "web",
+      "terrain": "open",
+      "stairs": null
+    },
+    "39": {
+      "id": "DNGN_UNDISCOVERED_TRAP",
+      "name": "floor",
+      "terrain": "open",
+      "stairs": null
+    },
+    "40": {
+      "id": "DNGN_ENTER_SHOP",
+      "name": "shop",
+      "terrain": "open",
+      "stairs": null
+    },
+    "41": {
+      "id": "DNGN_ABANDONED_SHOP",
+      "name": "abandoned shop",
+      "terrain": "open",
+      "stairs": null
+    },
+    "42": {
+      "id": "DNGN_STONE_STAIRS_DOWN_I",
+      "name": "stone staircase leading down",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "43": {
+      "id": "DNGN_STONE_STAIRS_DOWN_II",
+      "name": "stone staircase leading down",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "44": {
+      "id": "DNGN_STONE_STAIRS_DOWN_III",
+      "name": "stone staircase leading down",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "45": {
+      "id": "DNGN_ESCAPE_HATCH_DOWN",
+      "name": "escape hatch in the floor",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "46": {
+      "id": "DNGN_STONE_STAIRS_UP_I",
+      "name": "stone staircase leading up",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "47": {
+      "id": "DNGN_STONE_STAIRS_UP_II",
+      "name": "stone staircase leading up",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "48": {
+      "id": "DNGN_STONE_STAIRS_UP_III",
+      "name": "stone staircase leading up",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "49": {
+      "id": "DNGN_ESCAPE_HATCH_UP",
+      "name": "escape hatch in the ceiling",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "50": {
+      "id": "DNGN_ENTER_DIS",
+      "name": "gateway to the Iron City of Dis",
+      "terrain": "open",
+      "stairs": null
+    },
+    "51": {
+      "id": "DNGN_ENTER_GEHENNA",
+      "name": "gateway to the ashen valley of Gehenna",
+      "terrain": "open",
+      "stairs": null
+    },
+    "52": {
+      "id": "DNGN_ENTER_COCYTUS",
+      "name": "gateway to the freezing wastes of Cocytus",
+      "terrain": "open",
+      "stairs": null
+    },
+    "53": {
+      "id": "DNGN_ENTER_TARTARUS",
+      "name": "gateway to the decaying netherworld of Tartarus",
+      "terrain": "open",
+      "stairs": null
+    },
+    "54": {
+      "id": "DNGN_ENTER_ABYSS",
+      "name": "one-way gate to the infinite horrors of the Abyss",
+      "terrain": "open",
+      "stairs": null
+    },
+    "55": {
+      "id": "DNGN_EXIT_ABYSS",
+      "name": "gateway leading out of the Abyss",
+      "terrain": "open",
+      "stairs": null
+    },
+    "56": {
+      "id": "DNGN_STONE_ARCH",
+      "name": "empty arch of ancient stone",
+      "terrain": "open",
+      "stairs": null
+    },
+    "57": {
+      "id": "DNGN_ENTER_PANDEMONIUM",
+      "name": "one-way gate leading to the halls of Pandemonium",
+      "terrain": "open",
+      "stairs": null
+    },
+    "58": {
+      "id": "DNGN_EXIT_PANDEMONIUM",
+      "name": "gate leading out of Pandemonium",
+      "terrain": "open",
+      "stairs": null
+    },
+    "59": {
+      "id": "DNGN_TRANSIT_PANDEMONIUM",
+      "name": "gate leading to another region of Pandemonium",
+      "terrain": "open",
+      "stairs": null
+    },
+    "60": {
+      "id": "DNGN_EXIT_DUNGEON",
+      "name": "staircase leading out of the dungeon",
+      "terrain": "open",
+      "stairs": null
+    },
+    "61": {
+      "id": "DNGN_EXIT_THROUGH_ABYSS",
+      "name": "exit through the horrors of the Abyss",
+      "terrain": "open",
+      "stairs": null
+    },
+    "62": {
+      "id": "DNGN_EXIT_HELL",
+      "name": "gateway back to the Dungeon",
+      "terrain": "open",
+      "stairs": null
+    },
+    "63": {
+      "id": "DNGN_ENTER_HELL",
+      "name": "gateway to Hell",
+      "terrain": "open",
+      "stairs": null
+    },
+    "64": {
+      "id": "DNGN_ENTER_LABYRINTH",
+      "name": "labyrinth entrance",
+      "terrain": "open",
+      "stairs": null
+    },
+    "65": {
+      "id": "DNGN_TELEPORTER",
+      "name": "short-range portal",
+      "terrain": "open",
+      "stairs": null
+    },
+    "66": {
+      "id": "DNGN_ENTER_PORTAL_VAULT",
+      "name": "gate leading to a distant place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "67": {
+      "id": "DNGN_EXIT_PORTAL_VAULT",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "68": {
+      "id": "DNGN_EXPIRED_PORTAL",
+      "name": "collapsed entrance",
+      "terrain": "open",
+      "stairs": null
+    },
+    "69": {
+      "id": "DNGN_ENTER_DWARF",
+      "name": "staircase to the Dwarven Hall",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "70": {
+      "id": "DNGN_ENTER_ORC",
+      "name": "staircase to the Orcish Mines",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "71": {
+      "id": "DNGN_ENTER_LAIR",
+      "name": "staircase to the Lair",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "72": {
+      "id": "DNGN_ENTER_SLIME",
+      "name": "staircase to the Slime Pits",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "73": {
+      "id": "DNGN_ENTER_VAULTS",
+      "name": "gate to the Vaults",
+      "terrain": "open",
+      "stairs": null
+    },
+    "74": {
+      "id": "DNGN_ENTER_CRYPT",
+      "name": "staircase to the Crypt",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "75": {
+      "id": "DNGN_ENTER_BLADE",
+      "name": "staircase to the Hall of Blades",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "76": {
+      "id": "DNGN_ENTER_ZOT",
+      "name": "gate to the Realm of Zot",
+      "terrain": "open",
+      "stairs": null
+    },
+    "77": {
+      "id": "DNGN_ENTER_TEMPLE",
+      "name": "staircase to the Ecumenical Temple",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "78": {
+      "id": "DNGN_ENTER_SNAKE",
+      "name": "staircase to the Snake Pit",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "79": {
+      "id": "DNGN_ENTER_ELF",
+      "name": "staircase to the Elven Halls",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "80": {
+      "id": "DNGN_ENTER_TOMB",
+      "name": "staircase to the Tomb",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "81": {
+      "id": "DNGN_ENTER_SWAMP",
+      "name": "staircase to the Swamp",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "82": {
+      "id": "DNGN_ENTER_SHOALS",
+      "name": "staircase to the Shoals",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "83": {
+      "id": "DNGN_ENTER_SPIDER",
+      "name": "hole to the Spider Nest",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "84": {
+      "id": "DNGN_ENTER_FOREST",
+      "name": "staircase to the Enchanted Forest",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "85": {
+      "id": "DNGN_ENTER_DEPTHS",
+      "name": "staircase to the Depths",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "86": {
+      "id": "DNGN_EXIT_DWARF",
+      "name": "staircase back to the Vaults",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "87": {
+      "id": "DNGN_EXIT_ORC",
+      "name": "staircase back to the Dungeon",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "88": {
+      "id": "DNGN_EXIT_LAIR",
+      "name": "staircase back to the Dungeon",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "89": {
+      "id": "DNGN_EXIT_SLIME",
+      "name": "staircase back to the Lair",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "90": {
+      "id": "DNGN_EXIT_VAULTS",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "91": {
+      "id": "DNGN_EXIT_CRYPT",
+      "name": "staircase back to the Vaults",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "92": {
+      "id": "DNGN_EXIT_BLADE",
+      "name": "staircase back to the Vaults",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "93": {
+      "id": "DNGN_EXIT_ZOT",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "94": {
+      "id": "DNGN_EXIT_TEMPLE",
+      "name": "staircase back to the Dungeon",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "95": {
+      "id": "DNGN_EXIT_SNAKE",
+      "name": "staircase back to the Lair",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "96": {
+      "id": "DNGN_EXIT_ELF",
+      "name": "staircase back to the Mines",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "97": {
+      "id": "DNGN_EXIT_TOMB",
+      "name": "staircase back to the Crypt",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "98": {
+      "id": "DNGN_EXIT_SWAMP",
+      "name": "staircase back to the Lair",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "99": {
+      "id": "DNGN_EXIT_SHOALS",
+      "name": "staircase back to the Lair",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "100": {
+      "id": "DNGN_EXIT_SPIDER",
+      "name": "crawl-hole back to the Lair",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "101": {
+      "id": "DNGN_EXIT_FOREST",
+      "name": "staircase back to the Vaults",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "102": {
+      "id": "DNGN_EXIT_DEPTHS",
+      "name": "staircase back to the Dungeon",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "103": {
+      "id": "DNGN_ALTAR_ZIN",
+      "name": "glowing silver altar of Zin",
+      "terrain": "open",
+      "stairs": null
+    },
+    "104": {
+      "id": "DNGN_ALTAR_SHINING_ONE",
+      "name": "glowing golden altar of the Shining One",
+      "terrain": "open",
+      "stairs": null
+    },
+    "105": {
+      "id": "DNGN_ALTAR_KIKUBAAQUDGHA",
+      "name": "ancient bone altar of Kikubaaqudgha",
+      "terrain": "open",
+      "stairs": null
+    },
+    "106": {
+      "id": "DNGN_ALTAR_YREDELEMNUL",
+      "name": "basalt altar of Yredelemnul",
+      "terrain": "open",
+      "stairs": null
+    },
+    "107": {
+      "id": "DNGN_ALTAR_XOM",
+      "name": "shimmering altar of Xom",
+      "terrain": "open",
+      "stairs": null
+    },
+    "108": {
+      "id": "DNGN_ALTAR_VEHUMET",
+      "name": "radiant altar of Vehumet",
+      "terrain": "open",
+      "stairs": null
+    },
+    "109": {
+      "id": "DNGN_ALTAR_OKAWARU",
+      "name": "iron altar of Okawaru",
+      "terrain": "open",
+      "stairs": null
+    },
+    "110": {
+      "id": "DNGN_ALTAR_MAKHLEB",
+      "name": "burning altar of Makhleb",
+      "terrain": "open",
+      "stairs": null
+    },
+    "111": {
+      "id": "DNGN_ALTAR_SIF_MUNA",
+      "name": "shimmering blue altar of Sif Muna",
+      "terrain": "open",
+      "stairs": null
+    },
+    "112": {
+      "id": "DNGN_ALTAR_TROG",
+      "name": "bloodstained altar of Trog",
+      "terrain": "open",
+      "stairs": null
+    },
+    "113": {
+      "id": "DNGN_ALTAR_NEMELEX_XOBEH",
+      "name": "sparkling altar of Nemelex Xobeh",
+      "terrain": "open",
+      "stairs": null
+    },
+    "114": {
+      "id": "DNGN_ALTAR_ELYVILON",
+      "name": "white marble altar of Elyvilon",
+      "terrain": "open",
+      "stairs": null
+    },
+    "115": {
+      "id": "DNGN_ALTAR_LUGONU",
+      "name": "corrupted altar of Lugonu",
+      "terrain": "open",
+      "stairs": null
+    },
+    "116": {
+      "id": "DNGN_ALTAR_BEOGH",
+      "name": "roughly hewn altar of Beogh",
+      "terrain": "open",
+      "stairs": null
+    },
+    "117": {
+      "id": "DNGN_ALTAR_JIYVA",
+      "name": "viscous altar of Jiyva",
+      "terrain": "open",
+      "stairs": null
+    },
+    "118": {
+      "id": "DNGN_ALTAR_FEDHAS",
+      "name": "blossoming altar of Fedhas",
+      "terrain": "open",
+      "stairs": null
+    },
+    "119": {
+      "id": "DNGN_ALTAR_CHEIBRIADOS",
+      "name": "snail-covered altar of Cheibriados",
+      "terrain": "open",
+      "stairs": null
+    },
+    "120": {
+      "id": "DNGN_ALTAR_ASHENZARI",
+      "name": "broken altar of Ashenzari",
+      "terrain": "open",
+      "stairs": null
+    },
+    "121": {
+      "id": "DNGN_ALTAR_DITHMENOS",
+      "name": "shadowy altar of Dithmenos",
+      "terrain": "open",
+      "stairs": null
+    },
+    "122": {
+      "id": "DNGN_FOUNTAIN_BLUE",
+      "name": "fountain of clear blue water",
+      "terrain": "open",
+      "stairs": null
+    },
+    "123": {
+      "id": "DNGN_FOUNTAIN_SPARKLING",
+      "name": "fountain of sparkling water",
+      "terrain": "open",
+      "stairs": null
+    },
+    "124": {
+      "id": "DNGN_FOUNTAIN_BLOOD",
+      "name": "fountain of blood",
+      "terrain": "open",
+      "stairs": null
+    },
+    "125": {
+      "id": "DNGN_DRY_FOUNTAIN_BLUE",
+      "name": "dry fountain",
+      "terrain": "open",
+      "stairs": null
+    },
+    "126": {
+      "id": "DNGN_DRY_FOUNTAIN_SPARKLING",
+      "name": "dry fountain",
+      "terrain": "open",
+      "stairs": null
+    },
+    "127": {
+      "id": "DNGN_DRY_FOUNTAIN_BLOOD",
+      "name": "dry fountain",
+      "terrain": "open",
+      "stairs": null
+    },
+    "128": {
+      "id": "DNGN_DRY_FOUNTAIN",
+      "name": "dry fountain",
+      "terrain": "open",
+      "stairs": null
+    },
+    "129": {
+      "id": "DNGN_EXPLORE_HORIZON",
+      "name": "explore horizon",
+      "terrain": "open",
+      "stairs": null
+    },
+    "130": {
+      "id": "DNGN_UNKNOWN_ALTAR",
+      "name": "detected altar",
+      "terrain": "open",
+      "stairs": null
+    },
+    "131": {
+      "id": "DNGN_UNKNOWN_PORTAL",
+      "name": "detected shop or portal",
+      "terrain": "open",
+      "stairs": null
+    },
+    "132": {
+      "id": "DNGN_ABYSSAL_STAIR",
+      "name": "gateway leading deeper into the Abyss",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "133": {
+      "id": "DNGN_BADLY_SEALED_DOOR",
+      "name": "",
+      "terrain": "open",
+      "stairs": null
+    },
+    "134": {
+      "id": "DNGN_SEALED_STAIRS_UP",
+      "name": "sealed passage leading up",
+      "terrain": "open",
+      "stairs": null
+    },
+    "135": {
+      "id": "DNGN_SEALED_STAIRS_DOWN",
+      "name": "sealed passage leading down",
+      "terrain": "open",
+      "stairs": null
+    },
+    "136": {
+      "id": "DNGN_TRAP_ALARM",
+      "name": "alarm trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "137": {
+      "id": "DNGN_TRAP_ZOT",
+      "name": "Zot trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "138": {
+      "id": "DNGN_PASSAGE_OF_GOLUBRIA",
+      "name": "passage of Golubria",
+      "terrain": "open",
+      "stairs": null
+    },
+    "139": {
+      "id": "DNGN_ENTER_ZIGGURAT",
+      "name": "one-way gateway to a ziggurat",
+      "terrain": "open",
+      "stairs": null
+    },
+    "140": {
+      "id": "DNGN_ENTER_BAZAAR",
+      "name": "gateway to a bazaar",
+      "terrain": "open",
+      "stairs": null
+    },
+    "141": {
+      "id": "DNGN_ENTER_TROVE",
+      "name": "portal to a secret trove of treasure",
+      "terrain": "open",
+      "stairs": null
+    },
+    "142": {
+      "id": "DNGN_ENTER_SEWER",
+      "name": "glowing drain",
+      "terrain": "open",
+      "stairs": null
+    },
+    "143": {
+      "id": "DNGN_ENTER_OSSUARY",
+      "name": "sand-covered staircase",
+      "terrain": "open",
+      "stairs": null
+    },
+    "144": {
+      "id": "DNGN_ENTER_BAILEY",
+      "name": "flagged portal",
+      "terrain": "open",
+      "stairs": null
+    },
+    "145": {
+      "id": "DNGN_ENTER_ICE_CAVE",
+      "name": "frozen archway",
+      "terrain": "open",
+      "stairs": null
+    },
+    "146": {
+      "id": "DNGN_ENTER_VOLCANO",
+      "name": "dark tunnel",
+      "terrain": "open",
+      "stairs": null
+    },
+    "147": {
+      "id": "DNGN_ENTER_WIZLAB",
+      "name": "magical portal",
+      "terrain": "open",
+      "stairs": null
+    },
+    "148": {
+      "id": "DNGN_ENTER_DESOLATION",
+      "name": "crumbling gateway",
+      "terrain": "open",
+      "stairs": null
+    },
+    "149": {
+      "id": "DNGN_EXIT_ZIGGURAT",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "150": {
+      "id": "DNGN_EXIT_BAZAAR",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "151": {
+      "id": "DNGN_EXIT_TROVE",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "152": {
+      "id": "DNGN_EXIT_SEWER",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "153": {
+      "id": "DNGN_EXIT_OSSUARY",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "154": {
+      "id": "DNGN_EXIT_BAILEY",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "155": {
+      "id": "DNGN_EXIT_ICE_CAVE",
+      "name": "ice covered gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "156": {
+      "id": "DNGN_EXIT_VOLCANO",
+      "name": "rocky tunnel leading out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "157": {
+      "id": "DNGN_EXIT_WIZLAB",
+      "name": "portal leading out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "158": {
+      "id": "DNGN_EXIT_LABYRINTH",
+      "name": "escape hatch in the ceiling",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "159": {
+      "id": "DNGN_EXIT_DESOLATION",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "160": {
+      "id": "DNGN_ALTAR_GOZAG",
+      "name": "opulent altar of Gozag",
+      "terrain": "open",
+      "stairs": null
+    },
+    "161": {
+      "id": "DNGN_ALTAR_QAZLAL",
+      "name": "stormy altar of Qazlal",
+      "terrain": "open",
+      "stairs": null
+    },
+    "162": {
+      "id": "DNGN_ALTAR_RU",
+      "name": "sacrificial altar of Ru",
+      "terrain": "open",
+      "stairs": null
+    },
+    "163": {
+      "id": "DNGN_TRAP_SHADOW",
+      "name": "shadow trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "164": {
+      "id": "DNGN_TRAP_SHADOW_DORMANT",
+      "name": "dormant shadow trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "165": {
+      "id": "DNGN_ALTAR_ECUMENICAL",
+      "name": "faded altar of an unknown god",
+      "terrain": "open",
+      "stairs": null
+    },
+    "166": {
+      "id": "DNGN_ALTAR_PAKELLAS",
+      "name": "oddly glowing altar of Pakellas",
+      "terrain": "open",
+      "stairs": null
+    },
+    "167": {
+      "id": "DNGN_ALTAR_USKAYAW",
+      "name": "hide-covered altar of Uskayaw",
+      "terrain": "open",
+      "stairs": null
+    },
+    "168": {
+      "id": "DNGN_ALTAR_HEPLIAKLQANA",
+      "name": "hazy altar of Hepliaklqana",
+      "terrain": "open",
+      "stairs": null
+    },
+    "169": {
+      "id": "DNGN_ENDLESS_SALT",
+      "name": "endless expanse of salt",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "170": {
+      "id": "DNGN_ALTAR_WU_JIAN",
+      "name": "ornate altar of the Wu Jian Council",
+      "terrain": "open",
+      "stairs": null
+    },
+    "171": {
+      "id": "DNGN_TRANSPORTER",
+      "name": "transporter",
+      "terrain": "open",
+      "stairs": null
+    },
+    "172": {
+      "id": "DNGN_TRANSPORTER_LANDING",
+      "name": "transporter landing site",
+      "terrain": "open",
+      "stairs": null
+    },
+    "173": {
+      "id": "DNGN_TRAP_DISPERSAL",
+      "name": "dispersal trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "174": {
+      "id": "DNGN_ENTER_GAUNTLET",
+      "name": "gate leading to a gauntlet",
+      "terrain": "open",
+      "stairs": null
+    },
+    "175": {
+      "id": "DNGN_EXIT_GAUNTLET",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "176": {
+      "id": "DNGN_CLOSED_CLEAR_DOOR",
+      "name": "closed translucent door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "177": {
+      "id": "DNGN_OPEN_CLEAR_DOOR",
+      "name": "open translucent door",
+      "terrain": "open",
+      "stairs": null
+    },
+    "178": {
+      "id": "DNGN_RUNED_CLEAR_DOOR",
+      "name": "runed translucent door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "179": {
+      "id": "DNGN_SEALED_CLEAR_DOOR",
+      "name": "sealed translucent door",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "180": {
+      "id": "DNGN_TOXIC_BOG",
+      "name": "a toxic bog",
+      "terrain": "open",
+      "stairs": null
+    },
+    "181": {
+      "id": "DNGN_TRAP_ARCHMAGE",
+      "name": "archmage's trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "182": {
+      "id": "DNGN_TRAP_SPEAR",
+      "name": "spear trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "183": {
+      "id": "DNGN_TRAP_TYRANT",
+      "name": "tyrant's trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "184": {
+      "id": "DNGN_TRAP_HARLEQUIN",
+      "name": "harlequin's trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "185": {
+      "id": "DNGN_TRAP_BOLT",
+      "name": "bolt trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "186": {
+      "id": "DNGN_TRAP_NET",
+      "name": "net trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "187": {
+      "id": "DNGN_TRAP_PLATE",
+      "name": "pressure plate",
+      "terrain": "open",
+      "stairs": null
+    },
+    "188": {
+      "id": "DNGN_TRAP_TELEPORT_PERMANENT",
+      "name": "permanent teleport trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "189": {
+      "id": "DNGN_TRAVEL_TRAIL",
+      "name": "travel trail",
+      "terrain": "open",
+      "stairs": null
+    },
+    "190": {
+      "id": "DNGN_PETRIFIED_TREE",
+      "name": "petrified tree",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "191": {
+      "id": "DNGN_MANGROVE",
+      "name": "mangrove",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "192": {
+      "id": "DNGN_DEMONIC_TREE",
+      "name": "demonic tree",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "193": {
+      "id": "DNGN_ENTER_ARENA",
+      "name": "gate leading to Okawaru's Arena",
+      "terrain": "open",
+      "stairs": null
+    },
+    "194": {
+      "id": "DNGN_EXIT_ARENA",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "195": {
+      "id": "DNGN_ALTAR_IGNIS",
+      "name": "candlelit altar of Ignis",
+      "terrain": "open",
+      "stairs": null
+    },
+    "196": {
+      "id": "DNGN_BROKEN_DOOR",
+      "name": "broken door",
+      "terrain": "open",
+      "stairs": null
+    },
+    "197": {
+      "id": "DNGN_BROKEN_CLEAR_DOOR",
+      "name": "broken translucent door",
+      "terrain": "open",
+      "stairs": null
+    },
+    "198": {
+      "id": "DNGN_EXIT_DIS",
+      "name": "gateway leading out of Dis",
+      "terrain": "open",
+      "stairs": null
+    },
+    "199": {
+      "id": "DNGN_EXIT_GEHENNA",
+      "name": "gateway leading out of Gehenna",
+      "terrain": "open",
+      "stairs": null
+    },
+    "200": {
+      "id": "DNGN_EXIT_COCYTUS",
+      "name": "gateway leading out of Cocytus",
+      "terrain": "open",
+      "stairs": null
+    },
+    "201": {
+      "id": "DNGN_EXIT_TARTARUS",
+      "name": "gateway leading out of Tartarus",
+      "terrain": "open",
+      "stairs": null
+    },
+    "202": {
+      "id": "DNGN_RUNELIGHT",
+      "name": "runelight",
+      "terrain": "open",
+      "stairs": null
+    },
+    "203": {
+      "id": "DNGN_MUD",
+      "name": "some mud",
+      "terrain": "open",
+      "stairs": null
+    },
+    "204": {
+      "id": "DNGN_BINDING_SIGIL",
+      "name": "a binding sigil",
+      "terrain": "open",
+      "stairs": null
+    },
+    "205": {
+      "id": "DNGN_METAL_STATUE",
+      "name": "metal statue",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "206": {
+      "id": "DNGN_CACHE_OF_FRUIT",
+      "name": "cache of fruit",
+      "terrain": "open",
+      "stairs": null
+    },
+    "207": {
+      "id": "DNGN_CACHE_OF_MEAT",
+      "name": "cache of meat",
+      "terrain": "open",
+      "stairs": null
+    },
+    "208": {
+      "id": "DNGN_ORB_DAIS",
+      "name": "the orb dais",
+      "terrain": "open",
+      "stairs": null
+    },
+    "209": {
+      "id": "DNGN_ENTER_CRUCIBLE",
+      "name": "gate leading to the Crucible of Flesh",
+      "terrain": "open",
+      "stairs": null
+    },
+    "210": {
+      "id": "DNGN_EXIT_CRUCIBLE",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "211": {
+      "id": "DNGN_FOUNTAIN_EYES",
+      "name": "fountain of eyes",
+      "terrain": "open",
+      "stairs": null
+    },
+    "212": {
+      "id": "DNGN_CACHE_OF_BAKED_GOODS",
+      "name": "cache of baked goods",
+      "terrain": "open",
+      "stairs": null
+    },
+    "213": {
+      "id": "DNGN_DECORATIVE_FLOOR",
+      "name": "decorative floor",
+      "terrain": "open",
+      "stairs": null
+    },
+    "214": {
+      "id": "DNGN_SPIKE_LAUNCHER",
+      "name": "spike launcher",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "215": {
+      "id": "DNGN_TRAP_DEVOURER",
+      "name": "devourer's trap",
+      "terrain": "open",
+      "stairs": null
+    },
+    "216": {
+      "id": "DNGN_ENTER_NECROPOLIS",
+      "name": "phantasmal passage",
+      "terrain": "open",
+      "stairs": null
+    },
+    "217": {
+      "id": "DNGN_EXIT_NECROPOLIS",
+      "name": "gate leading back out of this place",
+      "terrain": "open",
+      "stairs": null
+    },
+    "218": {
+      "id": "DNGN_FRIGID_WALL",
+      "name": "frigid wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "219": {
+      "id": "DNGN_ZOT_STATUE",
+      "name": "zot statue",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "220": {
+      "id": "DNGN_TRAP_DISPERSAL_INACTIVE",
+      "name": "dispersal trap (recharging)",
+      "terrain": "open",
+      "stairs": null
+    }
   },
   "attitudes": {
     "0": "ATT_HOSTILE",
@@ -50880,6 +51955,225 @@
       "vainglory",
       "of light"
     ]
+  },
+  "waysOut": {
+    "items": [
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_HEAL_WOUNDS",
+        "effect": "heals",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_CURING",
+        "effect": "heals",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_HASTE",
+        "effect": "hastens",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_INVISIBILITY",
+        "effect": "hinders",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_BERSERK_RAGE",
+        "effect": "strengthens",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_BLINKING",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_TELEPORTATION",
+        "effect": "escapesLater",
+        "translocation": true
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_FOG",
+        "effect": "hinders",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_FEAR",
+        "effect": "hinders",
+        "translocation": false
+      }
+    ],
+    "spells": [
+      {
+        "spell": "SPELL_BLINK",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "spell": "SPELL_GOLUBRIAS_PASSAGE",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "spell": "SPELL_PASSWALL",
+        "effect": "escapesLater",
+        "translocation": false
+      },
+      {
+        "spell": "SPELL_SWIFTNESS",
+        "effect": "hastens",
+        "translocation": false
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Evoke Blink",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": true
+      },
+      {
+        "name": "Blinkbolt",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": true
+      },
+      {
+        "name": "Hop",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": false
+      },
+      {
+        "name": "Heal Wounds",
+        "effect": "heals",
+        "invocation": false,
+        "translocation": false
+      },
+      {
+        "name": "Berserk",
+        "effect": "strengthens",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Sanctuary",
+        "effect": "hinders",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Heal Self",
+        "effect": "heals",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Draw Escape",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Bend Time",
+        "effect": "hinders",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Step From Time",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Shadowslip",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Draw Out Power",
+        "effect": "heals",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Serpent's Lash",
+        "effect": "hastens",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Rising Flame",
+        "effect": "escapesLater",
+        "invocation": true,
+        "translocation": false
+      }
+    ],
+    "stops": [
+      {
+        "status": "Conf",
+        "stops": [
+          "reading",
+          "casting",
+          "usingAbilities"
+        ]
+      },
+      {
+        "status": "Berserk",
+        "stops": [
+          "reading",
+          "drinking",
+          "casting",
+          "usingAbilities"
+        ]
+      },
+      {
+        "status": "silenced",
+        "stops": [
+          "reading",
+          "casting",
+          "invoking"
+        ]
+      },
+      {
+        "status": "-Scroll",
+        "stops": [
+          "reading"
+        ]
+      },
+      {
+        "status": "-Potion",
+        "stops": [
+          "drinking"
+        ]
+      },
+      {
+        "status": "-Cast",
+        "stops": [
+          "casting"
+        ]
+      },
+      {
+        "status": "-Tele",
+        "stops": [
+          "translocating"
+        ]
+      }
+    ],
+    "noSpells": "You don't know any spells.",
+    "noAbilities": "Sorry, you're not good enough to have a special ability."
   },
   "formulas": {
     "monsterToHit": "crawl-0.34",

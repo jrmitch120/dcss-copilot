@@ -28,6 +28,9 @@ const char* potion_type_name(int potiontype)
     {
     case POT_CURING:            return "curing";
     case POT_HEAL_WOUNDS:       return "heal wounds";
+    case POT_HASTE:             return "haste";
+    case POT_INVISIBILITY:      return "invisibility";
+    case POT_BERSERK_RAGE:      return "berserk rage";
 
     // FIXME: Remove this once known-items no longer uses this as a sentinel.
     default:
@@ -42,6 +45,9 @@ const char* scroll_type_name(int scrolltype)
     {
     case SCR_IDENTIFY:           return "identify";
     case SCR_TELEPORTATION:      return "teleportation";
+    case SCR_FEAR:               return "fear";
+    case SCR_BLINKING:           return "blinking";
+    case SCR_FOG:                return "fog";
 #if TAG_MAJOR_VERSION == 34
     case SCR_HOLY_WORD:          return "holy word";
 #endif

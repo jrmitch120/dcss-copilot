@@ -17,6 +17,22 @@ expression: by_turn
             "gap": "monstersInView"
           }
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": null,
+        "gaps": [
+          {
+            "gap": "map"
+          },
+          {
+            "gap": "position"
+          },
+          {
+            "gap": "gameKnowledge"
+          }
+        ],
+        "notModelled": []
       }
     }
   },
@@ -80,6 +96,26 @@ expression: by_turn
           "paths",
           "awareness",
           "wornShield"
+        ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
         ]
       }
     }
@@ -149,6 +185,26 @@ expression: by_turn
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -217,6 +273,26 @@ expression: by_turn
           "paths",
           "awareness",
           "wornShield"
+        ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
         ]
       }
     }

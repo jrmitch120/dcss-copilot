@@ -16,6 +16,22 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "monstersInView"
           }
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": null,
+        "gaps": [
+          {
+            "gap": "map"
+          },
+          {
+            "gap": "position"
+          },
+          {
+            "gap": "gameKnowledge"
+          }
+        ],
+        "notModelled": []
       }
     }
   },
@@ -41,6 +57,26 @@ expression: fact_sheets_by_turn(JACKALS)
           "statuses",
           "paths",
           "awareness"
+        ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
         ]
       }
     }
@@ -102,6 +138,26 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -161,6 +217,26 @@ expression: fact_sheets_by_turn(JACKALS)
           "statuses",
           "paths",
           "awareness"
+        ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
         ]
       }
     }
