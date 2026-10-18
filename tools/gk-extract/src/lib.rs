@@ -20,7 +20,7 @@ use std::process::Command;
 
 use copilot_gk::{
     Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, LightingSigns, MonsterSpell,
-    Spell,
+    Spell, WeaponBrand,
 };
 
 use crate::cpp::{Source, Token};
@@ -201,6 +201,9 @@ const ITEM_SUB_TYPE_ENUMS: &[(&str, &str, &str)] = &[
     ("OBJ_RUNES", "item-prop-enum.h", "rune_type"),
     ("OBJ_TALISMANS", "item-prop-enum.h", "talisman_type"),
 ];
+
+/// What `weapon_brands_verbose` names a brand crawl has retired, kept only so old saves load.
+const RETIRED_BRAND: &str = "obsolescence";
 
 /// Where crawl names item sub-types, file by file.
 const ITEM_NAMES: &[ItemNames] = &[
@@ -435,6 +438,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         spells,
         missile_weapons,
         wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
+        weapon_brands: crawl.weapon_brands()?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,
         features: features::features(
             &crawl.parse("feature-data.h")?,
@@ -568,6 +572,63 @@ impl Crawl {
         Ok(classes)
     }
 
+    /// The brands a weapon may have, by `brand_type` identifier, with how a weapon's name shows
+    /// each (`weapon_brand_desc` in `item-name.cc`): its words from `weapon_brands_adj` when it is
+    /// in `brand_prefers_adj` and named before the weapon, from `weapon_brands_verbose` otherwise.
+    /// Both tables run in `brand_type` order. Brands crawl has retired, which it names
+    /// `obsolescence`, and the brand of none are left out.
+    fn weapon_brands(&self) -> Result<BTreeMap<EnumId, WeaponBrand>, ExtractError> {
+        let file = "item-name.cc";
+        let source = self.parse(file)?;
+        let unreadable = |what: &str| ExtractError::Unreadable {
+            file: file.to_owned(),
+            what: what.to_owned(),
+        };
+        let words = |table: &str| -> Result<Vec<String>, ExtractError> {
+            cpp::split_top_level(source.initializer(table)?)
+                .into_iter()
+                .map(|entry| match entry.as_slice() {
+                    [Token::Str(words)] => Ok(words.clone()),
+                    _ => Err(unreadable(&format!("an entry of {table}"))),
+                })
+                .collect()
+        };
+        let verbose = words("weapon_brands_verbose")?;
+        let adjectives = words("weapon_brands_adj")?;
+        let before = cpp::split_top_level(source.initializer("brand_prefers_adj")?)
+            .into_iter()
+            .map(|entry| match entry.as_slice() {
+                [Token::Ident(id)] => Ok(id.clone()),
+                _ => Err(unreadable("an entry of brand_prefers_adj")),
+            })
+            .collect::<Result<BTreeSet<String>, ExtractError>>()?;
+        let mut brands = BTreeMap::new();
+        for (id, value) in self.enumeration("item-prop-enum.h", "brand_type")? {
+            // `NUM_` and `MAX_` enumerators count brands rather than name one.
+            let Some(index) = usize::try_from(value)
+                .ok()
+                .filter(|_| id.starts_with("SPWPN_"))
+            else {
+                continue;
+            };
+            let (Some(name), Some(adjective)) = (verbose.get(index), adjectives.get(index)) else {
+                return Err(unreadable(&format!("the name of {id}")));
+            };
+            if name.is_empty() || name == RETIRED_BRAND {
+                continue;
+            }
+            let before = before.contains(&id);
+            brands.insert(
+                EnumId(id),
+                WeaponBrand {
+                    name: if before { adjective } else { name }.clone(),
+                    before,
+                },
+            );
+        }
+        Ok(brands)
+    }
+
     /// The integer constants crawl's tables use, such as `LOS_RADIUS` and `AUTOMATIC_HIT`.
     fn constants(&self) -> Result<HashMap<String, i64>, ExtractError> {
         Ok(cpp::integer_defines(&read(&self.source.join("defines.h"))?))
@@ -603,6 +664,7 @@ impl Crawl {
                 Spell {
                     id: EnumId(entry.id),
                     name: entry.name,
+                    schools: entry.schools,
                     range: entry.range,
                     zap,
                 },

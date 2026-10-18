@@ -129,3 +129,99 @@ const char* special_armour_type_name(special_armour_type ego, bool terse)
     }
     return "buggy";
 }
+static const char *weapon_brands_terse[] =
+{
+    "", "flame", "freeze", "holy", "elec",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "venom", "protect", "drain", "speed", "heavy",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "vamp", "pain", "antimagic", "distort",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "chaos",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "confuse",
+#endif
+    "penet", "reap", "spect", "rebuke", "valour",
+    "entangle", "sunder", "concuss", "devious",
+    "num_special", "acid",
+#if TAG_MAJOR_VERSION > 34
+    "confuse",
+#endif
+    "weak",
+    "vuln",
+    "foul flame",
+    "debug",
+};
+
+static const char *weapon_brands_verbose[] =
+{
+    "", "flaming", "freezing", "holy wrath", "electrocution",
+#if TAG_MAJOR_VERSION == 34
+    "obsolescence", "obsolescence",
+#endif
+    "venom", "protection", "draining", "speed", "heavy",
+#if TAG_MAJOR_VERSION == 34
+    "obsolescence", "obsolescence",
+#endif
+    "vampirism", "pain", "antimagic", "distortion",
+#if TAG_MAJOR_VERSION == 34
+    "obsolescence", "obsolescence",
+#endif
+    "chaos",
+#if TAG_MAJOR_VERSION == 34
+    "obsolescence", "confusion",
+#endif
+    "penetration", "reaping", "spectralising", "rebuke", "valour",
+    "entangling", "sundering", "concussion", "devious",
+    "num_special", "acid",
+#if TAG_MAJOR_VERSION > 34
+    "confusion",
+#endif
+    "weakness",
+    "vulnerability",
+    "foul flame",
+    "debug",
+};
+
+static const char *weapon_brands_adj[] =
+{
+    "", "flaming", "freezing", "holy", "electric",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "venomous", "protective", "draining", "fast", "heavy",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "vampiric", "painful", "antimagic", "distorting",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "obsolete",
+#endif
+    "chaotic",
+#if TAG_MAJOR_VERSION == 34
+    "obsolete", "confusing",
+#endif
+    "penetrating", "reaping", "spectral", "rebuking", "valourous",
+    "entangling", "sundering", "concussing", "devious",
+    "num_special", "acidic",
+#if TAG_MAJOR_VERSION > 34
+    "confusing",
+#endif
+    "weakening",
+    "will-reducing",
+    "foul flame",
+    "debug",
+};
+
+COMPILE_CHECK(ARRAYSZ(weapon_brands_terse) == NUM_SPECIAL_WEAPONS);
+COMPILE_CHECK(ARRAYSZ(weapon_brands_verbose) == NUM_SPECIAL_WEAPONS);
+COMPILE_CHECK(ARRAYSZ(weapon_brands_adj) == NUM_SPECIAL_WEAPONS);
+
+static const set<brand_type> brand_prefers_adj =
+            { SPWPN_VAMPIRISM, SPWPN_ANTIMAGIC, SPWPN_HEAVY, SPWPN_SPECTRAL, SPWPN_DEVIOUS };

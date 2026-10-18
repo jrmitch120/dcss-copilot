@@ -34,6 +34,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_BAT",
       "itemUse": "nothing",
       "spells": {
@@ -85,6 +87,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_SNAKE",
       "itemUse": "nothing",
       "spells": {
@@ -136,6 +140,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_RAT",
       "itemUse": "nothing",
       "spells": {
@@ -187,6 +193,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_QUOKKA",
       "itemUse": "nothing",
       "spells": {
@@ -238,6 +246,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_HOUND",
       "itemUse": "nothing",
       "spells": {
@@ -289,6 +299,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_SNAPPING_TURTLE",
       "itemUse": "nothing",
       "spells": {
@@ -340,6 +352,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_GOBLIN",
       "itemUse": "startingEquipment",
       "spells": {
@@ -391,6 +405,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_ORC",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -471,6 +487,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_DRACONIAN",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -522,6 +540,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_KOBOLD",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -587,6 +607,8 @@ expression: bundle
       "nightvision": false,
       "archer": true,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_CENTAUR",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -652,6 +674,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": true,
+      "intelligence": "human",
       "genus": "MONS_VINE_STALKER",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -740,6 +764,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "brainless",
       "genus": "MONS_FUNGUS",
       "itemUse": "nothing",
       "spells": {
@@ -783,6 +809,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "animal",
       "genus": "MONS_ELDRITCH_TENTACLE",
       "itemUse": "nothing",
       "spells": {
@@ -828,6 +856,8 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "brainless",
       "genus": "MONS_TEST_STATUE",
       "itemUse": "nothing",
       "spells": {
@@ -879,6 +909,8 @@ expression: bundle
       "nightvision": true,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_PHANTOM",
       "itemUse": "openDoors",
       "spells": {
@@ -930,6 +962,8 @@ expression: bundle
       "nightvision": true,
       "archer": false,
       "prefersRanged": false,
+      "unique": false,
+      "intelligence": "human",
       "genus": "MONS_HUMAN",
       "itemUse": "weaponsArmour",
       "spells": {
@@ -1219,6 +1253,9 @@ expression: bundle
     "2": {
       "id": "SPELL_CAUSE_FEAR",
       "name": "Cause Fear",
+      "schools": [
+        "hexes"
+      ],
       "range": {
         "min": 8,
         "max": 8,
@@ -1229,6 +1266,9 @@ expression: bundle
     "3": {
       "id": "SPELL_MAGIC_DART",
       "name": "Magic Dart",
+      "schools": [
+        "conjuration"
+      ],
       "range": {
         "min": 8,
         "max": 8,
@@ -1255,6 +1295,10 @@ expression: bundle
     "4": {
       "id": "SPELL_FIREBALL",
       "name": "Fireball",
+      "schools": [
+        "conjuration",
+        "fire"
+      ],
       "range": {
         "min": 5,
         "max": 5,
@@ -1284,24 +1328,34 @@ expression: bundle
     "39": {
       "id": "SPELL_BOLT_OF_INACCURACY",
       "name": "Bolt of Inaccuracy",
+      "schools": [],
       "range": null,
       "zap": null
     },
     "42": {
       "id": "SPELL_BLINK",
       "name": "Blink",
+      "schools": [
+        "translocation"
+      ],
       "range": null,
       "zap": null
     },
     "84": {
       "id": "SPELL_SWIFTNESS",
       "name": "Swiftness",
+      "schools": [
+        "air"
+      ],
       "range": null,
       "zap": null
     },
     "110": {
       "id": "SPELL_PASSWALL",
       "name": "Passwall",
+      "schools": [
+        "earth"
+      ],
       "range": {
         "min": 3,
         "max": 3,
@@ -1312,6 +1366,9 @@ expression: bundle
     "139": {
       "id": "SPELL_GOLUBRIAS_PASSAGE",
       "name": "Passage of Golubria",
+      "schools": [
+        "translocation"
+      ],
       "range": {
         "min": 2,
         "max": 8,
@@ -1322,12 +1379,14 @@ expression: bundle
     "220": {
       "id": "SPELL_AURA_OF_ABJURATION",
       "name": "Aura of Abjuration",
+      "schools": [],
       "range": null,
       "zap": null
     },
     "328": {
       "id": "SPELL_CHANT_FIRE_STORM",
       "name": "Chant Fire Storm",
+      "schools": [],
       "range": null,
       "zap": null
     }
@@ -1366,6 +1425,124 @@ expression: bundle
     "WAND_PARALYSIS": {
       "name": "paralysis",
       "spell": "SPELL_PARALYSE"
+    }
+  },
+  "weaponBrands": {
+    "SPWPN_ACID": {
+      "name": "acid",
+      "before": false
+    },
+    "SPWPN_ANTIMAGIC": {
+      "name": "antimagic",
+      "before": true
+    },
+    "SPWPN_CHAOS": {
+      "name": "chaos",
+      "before": false
+    },
+    "SPWPN_CONCUSSION": {
+      "name": "concussion",
+      "before": false
+    },
+    "SPWPN_CONFUSE": {
+      "name": "confusion",
+      "before": false
+    },
+    "SPWPN_DEBUG_RANDART": {
+      "name": "debug",
+      "before": false
+    },
+    "SPWPN_DEVIOUS": {
+      "name": "devious",
+      "before": true
+    },
+    "SPWPN_DISTORTION": {
+      "name": "distortion",
+      "before": false
+    },
+    "SPWPN_DRAINING": {
+      "name": "draining",
+      "before": false
+    },
+    "SPWPN_ELECTROCUTION": {
+      "name": "electrocution",
+      "before": false
+    },
+    "SPWPN_ENTANGLING": {
+      "name": "entangling",
+      "before": false
+    },
+    "SPWPN_FLAMING": {
+      "name": "flaming",
+      "before": false
+    },
+    "SPWPN_FOUL_FLAME": {
+      "name": "foul flame",
+      "before": false
+    },
+    "SPWPN_FREEZING": {
+      "name": "freezing",
+      "before": false
+    },
+    "SPWPN_HEAVY": {
+      "name": "heavy",
+      "before": true
+    },
+    "SPWPN_HOLY_WRATH": {
+      "name": "holy wrath",
+      "before": false
+    },
+    "SPWPN_PAIN": {
+      "name": "pain",
+      "before": false
+    },
+    "SPWPN_PENETRATION": {
+      "name": "penetration",
+      "before": false
+    },
+    "SPWPN_PROTECTION": {
+      "name": "protection",
+      "before": false
+    },
+    "SPWPN_REAPING": {
+      "name": "reaping",
+      "before": false
+    },
+    "SPWPN_REBUKE": {
+      "name": "rebuke",
+      "before": false
+    },
+    "SPWPN_SPECTRAL": {
+      "name": "spectral",
+      "before": true
+    },
+    "SPWPN_SPEED": {
+      "name": "speed",
+      "before": false
+    },
+    "SPWPN_SUNDERING": {
+      "name": "sundering",
+      "before": false
+    },
+    "SPWPN_VALOUR": {
+      "name": "valour",
+      "before": false
+    },
+    "SPWPN_VAMPIRISM": {
+      "name": "vampiric",
+      "before": true
+    },
+    "SPWPN_VENOM": {
+      "name": "venom",
+      "before": false
+    },
+    "SPWPN_VULNERABILITY": {
+      "name": "vulnerability",
+      "before": false
+    },
+    "SPWPN_WEAKNESS": {
+      "name": "weakness",
+      "before": false
     }
   },
   "species": [
@@ -1731,6 +1908,7 @@ expression: bundle
     "beamDamage": "crawl-0.34",
     "monsterFire": "crawl-0.34",
     "missileAttack": "crawl-0.34",
-    "monsterWand": "crawl-0.34"
+    "monsterWand": "crawl-0.34",
+    "damageBrand": "crawl-0.34"
   }
 }

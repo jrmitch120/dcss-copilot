@@ -90,6 +90,9 @@ pub struct Bundle {
     pub missile_weapons: BTreeMap<EnumId, MissileWeapon>,
     /// Every wand, by its `wand_type` identifier, such as `WAND_FLAME`.
     pub wands: BTreeMap<EnumId, Wand>,
+    /// The brands a weapon may have, by their `brand_type` identifier, such as `SPWPN_FLAMING`,
+    /// with how its name shows them. Brands crawl has retired or never names are left out.
+    pub weapon_brands: BTreeMap<EnumId, WeaponBrand>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
     /// Every dungeon feature crawl defines, by its `dungeon_feature_type` enum value: a map
@@ -328,6 +331,9 @@ pub struct Formulas {
     /// Whether a monster zaps its wand this action, with what power, and the energy it takes:
     /// `_handle_wand` and `mons_wand_power`.
     pub monster_wand: MonsterWand,
+    /// What a weapon's brand adds to a hit, and how it changes the weapon's damage and delay:
+    /// `attack::apply_damage_brand`, `brand_adjust_weapon_damage` and `weapon_adjust_delay`.
+    pub damage_brand: DamageBrand,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -452,6 +458,14 @@ pub enum MonsterWand {
     Crawl034,
 }
 
+/// The variants of a weapon's brand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DamageBrand {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -470,6 +484,7 @@ impl Formulas {
         monster_fire: MonsterFire::Crawl034,
         missile_attack: MissileAttack::Crawl034,
         monster_wand: MonsterWand::Crawl034,
+        damage_brand: DamageBrand::Crawl034,
     };
 }
 
@@ -531,6 +546,10 @@ pub struct Monster {
     pub archer: bool,
     /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.
     pub prefers_ranged: bool,
+    /// It has crawl's `unique` flag: there is only one of it, such as Sigmund.
+    pub unique: bool,
+    /// How clever it is: crawl's `mon_intel_type`.
+    pub intelligence: Intelligence,
     /// Its genus, as a `monster_type` identifier such as `MONS_DRACONIAN`: the kind crawl
     /// counts it as for rules that apply to a whole family (`mons_genus`).
     pub genus: EnumId,
@@ -548,6 +567,18 @@ pub struct Monster {
     pub tile: Option<String>,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,
+}
+
+/// How clever a kind of monster is: crawl's `mon_intel_type`, as `dat/mons` sets `intelligence`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Intelligence {
+    /// `I_BRAINLESS`.
+    Brainless,
+    /// `I_ANIMAL`.
+    Animal,
+    /// `I_HUMAN`: as clever as a person, which it needs to use a skill such as necromancy.
+    Human,
 }
 
 /// Which items a kind of monster can use: crawl's `mon_itemuse_type`, as `dat/mons` sets `uses`.
@@ -658,6 +689,18 @@ pub struct Wand {
     pub name: String,
     /// The spell it zaps, by its `spell_type` identifier.
     pub spell: EnumId,
+}
+
+/// How a weapon's name shows its brand, as `weapon_brand_desc` (`item-name.cc`) names a weapon
+/// whose brand is known: `+0 shortbow of flaming`, or `+0 heavy shortbow` for a brand named
+/// before the weapon.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WeaponBrand {
+    /// The brand's words in a weapon's name, such as `flaming` or `heavy`.
+    pub name: String,
+    /// The words come before the weapon's name rather than after `of`.
+    pub before: bool,
 }
 
 /// One of a monster's melee attacks, as `dat/mons` defines it.
@@ -775,6 +818,8 @@ pub struct Spell {
     pub id: EnumId,
     /// Its name, such as `Magic Dart`.
     pub name: String,
+    /// Its schools of magic, as `spschool` names them, such as `necromancy`.
+    pub schools: Vec<String>,
     /// How far it reaches, or `None` for a spell without a range.
     pub range: Option<SpellRange>,
     /// The zap it fires, from `_spl_zaps` in `spl-zap.cc`, when it fires one.
