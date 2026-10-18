@@ -314,6 +314,14 @@ static coord_def _behind_player()
     return you.pos() + coord_def(-1, 0);
 }
 
+// Floor everywhere within sight of the player, the square behind them walled if `walled`.
+static void _lay_terrain(bool walled)
+{
+    _reset_terrain();
+    if (walled)
+        env.grid(_behind_player()) = DNGN_ROCK_WALL;
+}
+
 // What a kind of monster that a turn case may draw is like.
 struct turn_kind
 {
@@ -470,9 +478,7 @@ static const char *_play_turns(monster &mon, int distance, bool corona, bool wal
         _restore_player();
         if (corona)
             you.duration[DUR_CORONA] = 1000;
-        _reset_terrain();
-        if (walled)
-            env.grid(_behind_player()) = DNGN_ROCK_WALL;
+        _lay_terrain(walled);
         delete_all_clouds();
         if (mon.pos() != start)
             mon.move_to(start);
@@ -494,8 +500,7 @@ static const char *_play_turns(monster &mon, int distance, bool corona, bool wal
             return "moves the player";
         if (grid_distance(mon.pos(), you.pos()) > distance)
             return "moves away from the player";
-        if (spells_cast > 0 && _casts_blinkbolt(mon.spells)
-            && grid_distance(mon.pos(), you.pos()) > 1)
+        if (walled && spells_cast > 0 && grid_distance(mon.pos(), you.pos()) > 1)
         {
             return "lands its blinkbolt away from the player";
         }
@@ -549,7 +554,7 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         const bool walled = _casts_blinkbolt(kind.book);
         if (walled)
         {
-            env.grid(_behind_player()) = DNGN_ROCK_WALL;
+            _lay_terrain(true);
             los_changed();
             if (walled_for.insert(kind.type).second)
                 fprintf(stderr, "%s casts a blinkbolt: walled behind the player\n", name.c_str());
@@ -560,7 +565,7 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         _clear_monsters();
         if (walled)
         {
-            _reset_terrain();
+            _lay_terrain(false);
             los_changed();
         }
         if (unfollowed)

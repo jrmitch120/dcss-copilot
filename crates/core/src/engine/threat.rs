@@ -655,8 +655,8 @@ pub(crate) fn turn(
                     nightvision: monster.nightvision,
                 };
                 turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                land(&cast.spell, &mut distance, &mut turn);
             }
-            land(&cast.spell, &mut distance, &mut turn);
             if cast.slot.breath {
                 breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
             }
@@ -679,8 +679,8 @@ pub(crate) fn turn(
                     nightvision: monster.nightvision,
                 };
                 turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                land(&zap.spell, &mut distance, &mut turn);
             }
-            land(&zap.spell, &mut distance, &mut turn);
             energy -= wands::energy(formulas.monster_wand);
             continue;
         }
@@ -735,7 +735,8 @@ pub(crate) fn turn(
 }
 
 /// Moves a monster `distance` squares from the player to where casting `spell` at them leaves
-/// it ([`spells::Landing`]), counting the squares it closed in `turn`.
+/// it ([`spells::Landing`]), counting the squares it closed in `turn`. Only a beam that reaches
+/// the player lands its caster by them; one that falls short would carry it to its end.
 fn land(spell: &DamagingSpell<'_>, distance: &mut i32, turn: &mut Turn) {
     match spell.landing {
         Landing::Stays => {}
