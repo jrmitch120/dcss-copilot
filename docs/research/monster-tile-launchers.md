@@ -1,6 +1,6 @@
 # Can a monster's tile show its wielded launcher?
 
-Research for #97, against crawl 0.34.1 (`~/Development/crawl` at tag `0.34.1`). Claims cite crawl's functions and tables. Tile numbers come from the generated `rltiles/tiledef-player.h` of a 0.34.1 webtiles build. The webtiles payloads were captured from a local 0.34.1 server; [Captured payloads](#captured-payloads) quotes them.
+Research for #97, against crawl 0.34.1 (`~/Development/crawl` at tag `0.34.1`). Claims cite crawl's functions and tables. Tile numbers come from the generated `rltiles/tiledef-player.h` of a 0.34.1 webtiles build. The webtiles payloads come from Recordings made on a local 0.34.1 server; [Captured payloads](#captured-payloads) quotes them.
 
 **Answer: partly.** A monster's doll parts show the weapon in its main hand only. For most monsters that may carry a launcher, they name the launcher's type and nothing more. That is the case #83 leaves to Possible Gear: a plain launcher in a group member's main hand. The tile can't see a launcher held in reserve, and seeing no weapon part never means the monster has no launcher.
 
@@ -8,8 +8,8 @@ Research for #97, against crawl 0.34.1 (`~/Development/crawl` at tag `0.34.1`). 
 
 - `_tile_place_monster` (`tileview.cc`) calls `mcache_manager::register_monster` for every monster that isn't stationary. If an `mcache_*` kind accepts the monster, the cell's foreground tile becomes `TILEP_MCACHE_START + index` (7578 and up at 0.34.1). Otherwise it stays the monster's plain tile.
 - When the cell's `fg` changes, `TilesFramework::_send_cell` (`tileweb.cc`) calls `send_mcache`. That writes an `mcache` array of `[tile, x offset, y offset]` triples, the entry's `info()` parts in drawing order, plus `"doll":[]`. A cell with a plain player-sheet tile gets `"doll":[[tile,32]]` and `"mcache":null` instead.
-- `mcache_manager::clear_nonref` runs on every view update, and a monster's entry is registered again each time. So a monster's `fg` index changes on almost every update, and its `mcache` is sent again with it. The captures show this: one orc warrior's `fg` alternates between two indices from turn to turn. `mcache` is still only sent with a changed `fg`, so a decoder has to keep it for each cell.
-- `fg` comes as a number, as a negative 32-bit number when high flag bits are set, or as a `[low, high]` pair (`write_tileidx`). The tile index is the low 16 bits (`TILE_FLAG_MASK`). The captures have all three forms. `crates/webtiles/src/map.rs`'s `low_word` already handles them.
+- `mcache_manager::clear_nonref` runs on every view update, and a monster's entry is registered again each time. So a monster's `fg` index changes on almost every update, and its `mcache` is sent again with it. The Recordings show this: one orc warrior's `fg` alternates between two indices from turn to turn. `mcache` is still only sent with a changed `fg`, so a decoder has to keep it for each cell.
+- `fg` comes as a number, as a negative 32-bit number when high flag bits are set, or as a `[low, high]` pair (`write_tileidx`). The tile index is the low 16 bits (`TILE_FLAG_MASK`). The Recordings have all three forms. `crates/webtiles/src/map.rs` doesn't read `fg` yet. Its `low_word`, which it uses for `bg`, takes a plain number or a pair's first word but turns a negative number into 0, so it would need extending for `fg`.
 
 ## 1. Coverage: which monsters get doll parts
 
@@ -81,7 +81,7 @@ The 0.34.1 bundle names each monster's tile by its image path (`Monster::tile`, 
 1. **A tile number for each weapon tile it decodes**, mapped to the weapon sub-type or types it means. At minimum that's the launcher rows above and the unrandart tiles, with 8265–8267 meaning "orcbow or longbow". Crawl numbers player-sheet tiles from `TILE_MAIN_MAX` (5215 at 0.34.1). That number is the count of every image in `dc-floor.txt`, `dc-wall.txt`, `dc-feat.txt` and `dc-main.txt`, chained by `%startvalue`, and the player sheet then counts on through `dc-player.txt`. The extractor already reads `dc-player.txt` the way `rltiles/tool` does, but it doesn't count images or read the other lists. The numbers change between versions as tiles are added, like every other enum the bundle keeps.
 2. **The taurs' and Nessos's bow-drawn base tiles** (7152, 7154, 7156, 7158, 7160 at 0.34.1), if the coarse "bow-class launcher in hand" signal is to be used.
 
-The numbers in this note are what a test of that extraction should check against: they come from crawl's generated header and the captured payloads.
+The numbers in this note are what a test of that extraction should check against: they come from crawl's generated header and the payloads quoted below.
 
 ## 3. Interference
 
@@ -99,18 +99,18 @@ Use the weapon part as a Carried Gear source for **the launcher in the monster's
 
 The rules, most important first:
 
-1. **The tile only adds; no part removes nothing.** No weapon part, or a melee weapon part, says nothing about a launcher in reserve. The captures show both cases. Never take a launcher out of Carried Gear because the tile doesn't show it, and never conclude "no launcher" from the tile.
-2. **Type only.** The tile gives the launcher's sub-type. For the orcbow, longbow and hand cannon, it also says whether it's branded, enchanted or a randart. It never gives the brand or the plus. Where the sighting message or describe popup named the same launcher, keep their detail. Where only the tile did, take the brand and plus as unknown and say so, as for any other approximation.
+1. **The tile only adds.** A missing weapon part, or a melee weapon part, says nothing about a launcher in reserve. The Recordings show both cases. Never take a launcher out of Carried Gear because the tile doesn't show it, and never conclude "no launcher" from the tile.
+2. **Type only.** The tile gives the launcher's sub-type. For the orcbow, longbow and hand cannon, it also says whether it's branded, enchanted or a randart. It never gives the brand or the plus. Where the sighting message or describe popup named the same launcher, keep their detail. Where only the tile did, the brand and plus are Missing, and the Fact Sheet says so, as for any other approximation.
 3. **8265–8267 means orcbow or longbow.** Settle it with the kind's Possible Gear when only one of the two is possible. That holds for every kind at 0.34.1: orc warriors and kobold blastminers have orcbows, and every elf, naga, satyr, cherub, warmonger and Vashnia has longbows. Otherwise keep both and label it, because a monster may have picked up the other one. 8268 and 8269 name one longbow each (Piercer and the storm bow), and the other unrandart tiles one launcher each.
-4. **When the tile and the text disagree, the latest wins.** All three read the same `monster_info` at different moments: the sighting message on the turn it comes into view, the describe popup when the player opens it, and the tile on every view update. A tile showing a different wielded weapon from an older message means the monster swapped or picked something up. So the tile updates which weapon is in hand, and the older text's reserve item stays Carried Gear. A popup opened after the tile is the fullest and newest. It wins outright, and its plus and brand replace the tile's unknowns.
+4. **When the tile and the text disagree, the latest wins.** All three read the same `monster_info` at different moments: the sighting message on the turn it comes into view, the describe popup when the player opens it, and the tile on every view update. A tile showing a different wielded weapon from an older message means the monster swapped or picked something up. So the tile updates which weapon is in hand, and the older text's reserve item stays Carried Gear. A popup opened after the tile is the fullest and newest. It wins outright, and its plus and brand fill in what the tile left Missing.
 5. **Taurs and Nessos:** the bow-drawn base tile (7154 and the others) means "a shortbow, orcbow, longbow or arbalest in hand". Combined with Possible Gear, that's a centaur's orcbow or shortbow, a yaktaur's arbalest and Nessos's longbow. Because one tile covers several launchers, treat it as a weaker signal, behind the text, and only where Possible Gear narrows it.
 6. **Leave out** player ghosts (made-up doll), Pandemonium lords, mutant beasts and armour echoes (no weapon part).
 
-The follow-up implementation issue is a child of #24, linked from #97.
+The follow-up implementation issue is #125, a child of #24.
 
 ## Captured payloads
 
-Three wizard-mode recordings from local webtiles (0.34.1, `combo = MiBe.handaxe`, `game_seed = 1`), made with `cargo run -p corpus -- record-scenario`. The creating keys were `&` `m` and a monster spec. They are throwaway captures and aren't committed. Each cell is quoted as the `map` message sent it.
+Three wizard-mode recordings from local webtiles (0.34.1, `combo = MiBe.handaxe`, `game_seed = 1`), made with `cargo run -p corpus -- record-scenario`. The creating keys were `&` `m` and a monster spec. They are throwaway Recordings and aren't committed. Each cell is quoted as the `map` message sent it.
 
 **A group of launcher-wielding monsters made by spec, so each holds its launcher.** The `fg`s are mcache indices, 7578 + entry:
 
