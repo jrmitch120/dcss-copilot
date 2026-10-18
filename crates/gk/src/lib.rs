@@ -92,8 +92,9 @@ pub struct Bundle {
     pub wands: BTreeMap<EnumId, Wand>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
-    /// Every dungeon feature, by its `dungeon_feature_type` enum value: a map cell's webtiles `f`.
-    pub features: BTreeMap<u16, EnumId>,
+    /// Every dungeon feature crawl defines, by its `dungeon_feature_type` enum value: a map
+    /// cell's webtiles `f`.
+    pub features: BTreeMap<u16, Feature>,
     /// Every monster attitude, by its `mon_attitude_type` enum value: a monster's webtiles `att`.
     pub attitudes: BTreeMap<u8, EnumId>,
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
@@ -147,8 +148,15 @@ impl Bundle {
 
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
     #[must_use]
-    pub fn feature(&self, value: u16) -> Option<&EnumId> {
+    pub fn feature(&self, value: u16) -> Option<&Feature> {
         self.features.get(&value)
+    }
+
+    /// The dungeon feature with this `dungeon_feature_type` identifier, such as `DNGN_FLOOR`, if
+    /// this version defines one.
+    #[must_use]
+    pub fn feature_by_id(&self, id: &EnumId) -> Option<&Feature> {
+        self.features.values().find(|feature| feature.id == *id)
     }
 
     /// The monster attitude whose `mon_attitude_type` enum value is `value`.
@@ -740,6 +748,48 @@ pub enum ZapToHit {
         /// See `per_power`.
         per: i32,
     },
+}
+
+/// A dungeon feature, as `feat_defs` in `feature-data.h` defines it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Feature {
+    /// Its `dungeon_feature_type` identifier, such as `DNGN_FLOOR`.
+    pub id: EnumId,
+    /// Crawl's name for it, such as `stone staircase leading down`.
+    pub name: String,
+    /// What it is to someone walking onto it.
+    pub terrain: Terrain,
+    /// Which way it takes the player to another level, when it is a staircase they can take:
+    /// drawn as one, and neither sealed nor leading out of the dungeon.
+    pub stairs: Option<StairDirection>,
+}
+
+/// What a dungeon feature is to someone walking onto it, from its `feat_defs` flags and
+/// minimap colour.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Terrain {
+    /// Walked onto as onto floor, such as floor, shallow water, an open door, a trap or stairs.
+    Open,
+    /// A closed door, which is opened and then walked through.
+    ClosedDoor,
+    /// Deep water, which only swimmers and fliers cross.
+    DeepWater,
+    /// Lava, which only fliers cross.
+    Lava,
+    /// Nothing walks onto it (`FFT_SOLID`), such as a wall, a tree, a statue or a sealed door.
+    Solid,
+}
+
+/// Which way a staircase takes the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum StairDirection {
+    /// To a shallower level, or out of a branch: drawn `<`.
+    Up,
+    /// To a deeper level, or into a branch: drawn `>`.
+    Down,
 }
 
 /// A species' definition, from `dat/species/*.yaml`.

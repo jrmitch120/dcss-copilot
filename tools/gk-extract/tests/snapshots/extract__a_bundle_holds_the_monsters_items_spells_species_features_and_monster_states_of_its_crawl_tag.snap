@@ -1307,13 +1307,84 @@ expression: bundle
     }
   ],
   "features": {
-    "0": "DNGN_UNSEEN",
-    "1": "DNGN_CLOSED_DOOR",
-    "2": "DNGN_RUNED_DOOR",
-    "30": "DNGN_LAVA",
-    "31": "DNGN_DEEP_WATER",
-    "32": "DNGN_FLOOR",
-    "33": "DNGN_STONE_STAIRS_DOWN_I"
+    "0": {
+      "id": "DNGN_UNSEEN",
+      "name": "",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "1": {
+      "id": "DNGN_CLOSED_DOOR",
+      "name": "closed door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "2": {
+      "id": "DNGN_RUNED_DOOR",
+      "name": "runed door",
+      "terrain": "closedDoor",
+      "stairs": null
+    },
+    "3": {
+      "id": "DNGN_SEALED_DOOR",
+      "name": "sealed door",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "4": {
+      "id": "DNGN_ROCK_WALL",
+      "name": "rock wall",
+      "terrain": "solid",
+      "stairs": null
+    },
+    "30": {
+      "id": "DNGN_LAVA",
+      "name": "some lava",
+      "terrain": "lava",
+      "stairs": null
+    },
+    "31": {
+      "id": "DNGN_DEEP_WATER",
+      "name": "some deep water",
+      "terrain": "deepWater",
+      "stairs": null
+    },
+    "32": {
+      "id": "DNGN_FLOOR",
+      "name": "floor",
+      "terrain": "open",
+      "stairs": null
+    },
+    "33": {
+      "id": "DNGN_STONE_STAIRS_DOWN_I",
+      "name": "stone staircase leading down",
+      "terrain": "open",
+      "stairs": "down"
+    },
+    "34": {
+      "id": "DNGN_STONE_STAIRS_UP_I",
+      "name": "stone staircase leading up",
+      "terrain": "open",
+      "stairs": "up"
+    },
+    "35": {
+      "id": "DNGN_EXIT_DUNGEON",
+      "name": "staircase leading out of the dungeon",
+      "terrain": "open",
+      "stairs": null
+    },
+    "36": {
+      "id": "DNGN_SEALED_STAIRS_UP",
+      "name": "sealed passage leading up",
+      "terrain": "open",
+      "stairs": null
+    },
+    "37": {
+      "id": "DNGN_SEALED_STAIRS_DOWN",
+      "name": "sealed passage leading down",
+      "terrain": "open",
+      "stairs": null
+    }
   },
   "attitudes": {
     "0": "ATT_HOSTILE",

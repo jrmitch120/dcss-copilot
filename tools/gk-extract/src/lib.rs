@@ -6,6 +6,7 @@
 //! the enum values match what webtiles sends.
 
 mod cpp;
+mod features;
 mod gear;
 mod image;
 mod spells;
@@ -40,6 +41,7 @@ const SERIES: &[Series] = &[Series {
     test_monsters: &["MONS_TEST_SPAWNER", "MONS_TEST_STATUE", "MONS_TEST_BLOB"],
     innate_umbras: &["MONS_DEATH_KNIGHT"],
     lighting: &LIGHTING_0_34,
+    features: &features::FEATURE_RULES_0_34,
 }];
 
 /// What crawl 0.34 shows that tells the player's Lighting: `player::backlit` and
@@ -134,6 +136,8 @@ struct Series {
     innate_umbras: &'static [&'static str],
     /// What it shows that tells the player's Lighting.
     lighting: &'static LightingRules,
+    /// What it decides about dungeon features in code rather than in `feat_defs`.
+    features: &'static features::FeatureRules,
 }
 
 /// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
@@ -415,10 +419,11 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         missile_weapons,
         wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,
-        features: crawl.values(
-            "dungeon-feature-type.h",
-            "dungeon_feature_type",
-            "NUM_FEATURES",
+        features: features::features(
+            &crawl.parse("feature-data.h")?,
+            "feature-data.h",
+            &crawl.enumeration("dungeon-feature-type.h", "dungeon_feature_type")?,
+            series.features,
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
