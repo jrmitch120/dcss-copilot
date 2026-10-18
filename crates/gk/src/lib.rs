@@ -548,6 +548,28 @@ pub struct Monster {
     pub prefers_ranged: bool,
     /// It has crawl's `unique` flag: there is only one of it, such as Sigmund.
     pub unique: bool,
+    /// It has crawl's `batty` flag: it flits away after it attacks (`_handle_battiness`).
+    pub batty: bool,
+    /// It has crawl's `maintain_range` flag: it holds a firing position away from its foe
+    /// rather than close in (`_decide_monster_firing_position`).
+    pub keeps_range: bool,
+    /// It has crawl's `flies` flag, so it crosses deep water and lava.
+    pub flies: bool,
+    /// The terrain it can stand on, as `dat/mons` sets `habitat`, before its flying is added.
+    pub habitat: Habitat,
+    /// It is a tentacle or a tentacle segment, which moves with its parent
+    /// (`mons_is_tentacle_or_tentacle_segment`), such as the snaplasher vine.
+    pub tentacle: bool,
+    /// `handle_monster_move` acts or moves for it with code of its own rather than by walking,
+    /// fighting and casting, such as a prism or a hellfire mortar; or it is a projectile, such as
+    /// an orb of destruction, which flies by its own code (`iood_act`).
+    pub own_actions: bool,
+    /// It won't step toward a foe that watches it (`_fungal_move_check`), such as the wandering
+    /// mushroom.
+    pub wont_move_while_watched: bool,
+    /// It has a special ability of its own, outside its spells (`mon_special_ability`), such as
+    /// a slime creature's splitting or a foxfire's burst.
+    pub special_ability: bool,
     /// How clever it is: crawl's `mon_intel_type`.
     pub intelligence: Intelligence,
     /// Its genus, as a `monster_type` identifier such as `MONS_DRACONIAN`: the kind crawl
@@ -567,6 +589,51 @@ pub struct Monster {
     pub tile: Option<String>,
     /// Crawl's description text, verbatim, when it has one.
     pub description: Option<String>,
+}
+
+impl Monster {
+    /// Whether one of its kind can stand on the dungeon's floor: crawl's
+    /// `monster_habitable_feat(type, DNGN_FLOOR)`, which a habitat on dry land or flying allows.
+    #[must_use]
+    pub fn stands_on_floor(&self) -> bool {
+        self.flies || self.habitat.dry_land()
+    }
+}
+
+/// The terrain a kind of monster can stand on: crawl's `habitat_type`, as `dat/mons` sets
+/// `habitat`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Habitat {
+    /// `HT_LAND`: dry land and shallow water.
+    Land,
+    /// `HT_AMPHIBIOUS`: land and deep water.
+    Amphibious,
+    /// `HT_WATER`: shallow and deep water only.
+    Water,
+    /// `HT_LAVA`: lava only.
+    Lava,
+    /// `HT_AMPHIBIOUS_LAVA`: land and lava.
+    AmphibiousLava,
+    /// `HT_DEEP_WATER`: deep water only.
+    DeepWater,
+    /// `HT_ELDRITCH_TENTACLE`: land, deep water and malign gateways.
+    EldritchTentacle,
+    /// `HT_WALL`: land and walls.
+    Wall,
+    /// `HT_WALLS_ONLY`: walls only.
+    WallsOnly,
+}
+
+impl Habitat {
+    /// Whether it includes dry land: crawl's `HT_DRY_LAND` bit.
+    #[must_use]
+    pub fn dry_land(self) -> bool {
+        !matches!(
+            self,
+            Self::Water | Self::Lava | Self::DeepWater | Self::WallsOnly
+        )
+    }
 }
 
 /// How clever a kind of monster is: crawl's `mon_intel_type`, as `dat/mons` sets `intelligence`.

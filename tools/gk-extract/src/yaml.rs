@@ -4,8 +4,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
-    Energy, EnumId, Intelligence, ItemUse, Monster, MonsterAttack, MonsterSpell, MonsterSpells,
-    Species, Will,
+    Energy, EnumId, Habitat, Intelligence, ItemUse, Monster, MonsterAttack, MonsterSpell,
+    MonsterSpells, Species, Will,
 };
 use serde::Deserialize;
 
@@ -43,6 +43,8 @@ struct MonsterFile {
     genus: Option<String>,
     /// Its species, by name: itself unless set.
     species: Option<String>,
+    /// The terrain it can stand on, as `habitat_type` names it without the `HT_` prefix.
+    habitat: Option<String>,
     /// Which items it can use, as `mon_itemuse_type` names it without the `MONUSE_` prefix.
     uses: Option<String>,
     /// How clever it is, as `mon_intel_type` names it without the `I_` prefix.
@@ -150,6 +152,19 @@ const PREFER_RANGED_FLAG: &str = "prefer_ranged";
 /// The flag `dat/mons` gives a monster there is only one of: crawl's `M_UNIQUE`.
 const UNIQUE_FLAG: &str = "unique";
 
+/// The flag `dat/mons` gives a monster that flits away after it attacks: crawl's `M_BATTY`.
+const BATTY_FLAG: &str = "batty";
+
+/// The flag `dat/mons` gives a monster that keeps its distance to fire: crawl's
+/// `M_MAINTAIN_RANGE`.
+const MAINTAIN_RANGE_FLAG: &str = "maintain_range";
+
+/// The flag `dat/mons` gives a monster that flies: crawl's `M_FLIES`.
+const FLIES_FLAG: &str = "flies";
+
+/// The flag `dat/mons` gives a projectile, which `iood_act` flies: crawl's `M_PROJECTILE`.
+const PROJECTILE_FLAG: &str = "projectile";
+
 /// The kinds of monster crawl singles out in code rather than in `dat/mons`, by `monster_type`
 /// identifier.
 pub struct KindExceptions {
@@ -157,6 +172,14 @@ pub struct KindExceptions {
     pub never_firewood: BTreeSet<String>,
     /// Kinds that have an umbra of their own.
     pub innate_umbras: BTreeSet<String>,
+    /// Tentacles and tentacle segments.
+    pub tentacles: BTreeSet<String>,
+    /// Kinds `handle_monster_move` acts or moves for with code of its own.
+    pub own_actions: BTreeSet<String>,
+    /// Kinds that won't step while their foe watches them.
+    pub wont_move_while_watched: BTreeSet<String>,
+    /// Kinds with a special ability of their own.
+    pub special_abilities: BTreeSet<String>,
 }
 
 /// Every monster defined in `dat/mons` for this build, by its value in `monster_type`, with the
@@ -253,6 +276,15 @@ pub fn monsters(
         let nightvision = monster.holiness.iter().any(|holy| holy == UNDEAD_HOLINESS)
             || monster.god.as_deref() == Some(NIGHTVISION_GOD)
             || exceptions.innate_umbras.contains(&id);
+        let tentacle = exceptions.tentacles.contains(&id);
+        let own_actions = flag(PROJECTILE_FLAG) || exceptions.own_actions.contains(&id);
+        let wont_move_while_watched = exceptions.wont_move_while_watched.contains(&id);
+        let special_ability = exceptions.special_abilities.contains(&id);
+        let habitat =
+            habitat(monster.habitat.as_deref()).ok_or_else(|| ExtractError::Unreadable {
+                file: file.clone(),
+                what: "habitat".to_owned(),
+            })?;
         monsters.insert(
             in_range(&id, value)?,
             Monster {
@@ -287,6 +319,14 @@ pub fn monsters(
                 archer: flag(ARCHER_FLAG),
                 prefers_ranged: flag(PREFER_RANGED_FLAG),
                 unique: flag(UNIQUE_FLAG),
+                batty: flag(BATTY_FLAG),
+                keeps_range: flag(MAINTAIN_RANGE_FLAG),
+                flies: flag(FLIES_FLAG),
+                habitat,
+                tentacle,
+                own_actions,
+                wont_move_while_watched,
+                special_ability,
                 intelligence,
                 genus: EnumId(genus),
                 item_use,
@@ -306,6 +346,23 @@ pub fn monsters(
         );
     }
     Ok(monsters)
+}
+
+/// A monster's `habitat`, as `parse_habitat` in `util/mon-gen.py` reads it: `land` when unset,
+/// and `None` for a value it refuses.
+fn habitat(habitat: Option<&str>) -> Option<Habitat> {
+    match habitat.unwrap_or("land") {
+        "land" => Some(Habitat::Land),
+        "amphibious" => Some(Habitat::Amphibious),
+        "water" => Some(Habitat::Water),
+        "lava" => Some(Habitat::Lava),
+        "amphibious_lava" => Some(Habitat::AmphibiousLava),
+        "deep_water" => Some(Habitat::DeepWater),
+        "eldritch_tentacle" => Some(Habitat::EldritchTentacle),
+        "wall" => Some(Habitat::Wall),
+        "walls_only" => Some(Habitat::WallsOnly),
+        _ => None,
+    }
 }
 
 /// A monster's `uses`, as `parse_use` in `util/mon-gen.py` reads it: `nothing` when unset, and
