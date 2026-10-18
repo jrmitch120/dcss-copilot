@@ -220,8 +220,8 @@ pub enum NotModelled {
     PlayerSpeed,
     /// Everyone is assumed to walk: deep water and lava stop them, even those who swim or fly.
     SwimmingAndFlying,
-    /// Monsters are assumed able to cross every unexplored square, and the player only explored
-    /// ones.
+    /// Monsters are assumed able to cross every unexplored square, and to stand on one to
+    /// attack, and the player to walk only over explored ones.
     UnexploredSquares,
     /// A staircase is cut off only by monsters that can stand beside it as the player takes it:
     /// the blows, shots and spells they could land on the way there aren't counted.

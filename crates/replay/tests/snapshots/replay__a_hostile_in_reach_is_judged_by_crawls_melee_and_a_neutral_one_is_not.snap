@@ -85,9 +85,9 @@ expression: replayer.advisor().fact_sheet()
       }
     ],
     "notModelled": [
-      "playerSpeed",
       "swimmingAndFlying",
       "unexploredSquares",
+      "playerSpeed",
       "hitsOnTheWay"
     ]
   }

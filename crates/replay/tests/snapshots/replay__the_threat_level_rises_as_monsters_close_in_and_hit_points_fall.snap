@@ -71,7 +71,10 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -145,7 +148,10 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -219,7 +225,10 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   }

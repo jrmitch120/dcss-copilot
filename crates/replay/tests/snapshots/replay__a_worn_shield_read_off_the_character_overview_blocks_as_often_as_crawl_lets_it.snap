@@ -110,7 +110,10 @@ expression: by_turn
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -192,7 +195,10 @@ expression: by_turn
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   },
@@ -275,7 +281,10 @@ expression: by_turn
             "gap": "spellList"
           }
         ],
-        "notModelled": []
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
       }
     }
   }

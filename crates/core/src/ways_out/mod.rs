@@ -14,13 +14,14 @@ use crate::accumulated_state::AccumulatedState;
 use crate::fact_sheet::{Gap, NotModelled};
 use crate::visible_state::{Position, VisibleState};
 
-/// What the staircase Ways Out leave out, whenever there are any.
-const STAIRS_NOT_MODELLED: [NotModelled; 4] = [
-    NotModelled::PlayerSpeed,
+/// What judging the ground leaves out, whenever it is judged.
+const GROUND_NOT_MODELLED: [NotModelled; 2] = [
     NotModelled::SwimmingAndFlying,
     NotModelled::UnexploredSquares,
-    NotModelled::HitsOnTheWay,
 ];
+
+/// What the staircase Ways Out leave out besides, whenever there are any.
+const STAIRS_NOT_MODELLED: [NotModelled; 2] = [NotModelled::PlayerSpeed, NotModelled::HitsOnTheWay];
 
 /// The player's Ways Out at a moment, and the ground they stand on.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -243,6 +244,7 @@ impl WaysOut {
         match level::on_the_level(visible, knowledge) {
             Ok(here) => {
                 ways_out.ground = Some(here.ground());
+                ways_out.not_modelled.extend(GROUND_NOT_MODELLED);
                 ways_out.options.extend(here.stairs(&mut gaps));
                 if !ways_out.options.is_empty() {
                     ways_out.not_modelled.extend(STAIRS_NOT_MODELLED);

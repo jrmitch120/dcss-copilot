@@ -201,7 +201,13 @@ impl OnTheLevel<'_> {
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
-            if !seen.attitude.is_some_and(attacks_player) {
+            // A monster whose side isn't decoded may be hostile: without Game Knowledge, as the
+            // Threat Level counts it.
+            let Some(attitude) = seen.attitude else {
+                gaps.insert(Gap::GameKnowledge);
+                continue;
+            };
+            if !attacks_player(attitude) {
                 continue;
             }
             let Some(monster) = seen

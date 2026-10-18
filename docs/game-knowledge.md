@@ -20,7 +20,7 @@ The extractor reads the source as a webtiles server's build compiles it: `TAG_MA
 | wands | the spell each wand zaps, from `_wand_spells` in `spl-book.cc`, and the item sets crawl picks one wand of per game, from `item_sets` in `item-prop.cc` |
 | monster spellbooks | `mspell_list` in `mon-spell.h`: each book's spells, how often each is picked and its slot flags. A book of `MST_GHOST` means each monster of the kind is given its own spells when made, which the bundle can't know |
 | monster tiles | the tile lists in `rltiles/`, from `dc-player.txt`, read as crawl's tile build (`rltiles/tool`) reads them |
-| item classes | `object_class_type` in `object-class-type.h` |
+| item classes | `object_class_type` in `object-class-type.h`, and which classes hide which kind an item is until the player identifies it: crawl's `item_type_has_ids` (`item-name.cc`), ported by hand for each release series, each class checked against the enum |
 | item sub-types | the sub-type enums in `item-prop-enum.h`, `potion-type.h` and `book-type.h`, named by the tables and name functions in `item-prop.cc` and `item-name.cc` |
 | spells | `spelldata` in `spl-data.h`, numbered by `spell_type` in `spell-type.h`, with each spell's range and power cap; constants such as `LOS_RADIUS` from `defines.h` |
 | zaps | the zap a spell fires from `_spl_zaps` in `spl-zap.cc` (its first, for a spell listed twice), and that zap's flavour, flags and a monster's damage dice and accuracy by power from `zap_data` in `zap-data.h` |

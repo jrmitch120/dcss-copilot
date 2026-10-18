@@ -132,9 +132,9 @@ expression: replay
             }
           ],
           "notModelled": [
-            "playerSpeed",
             "swimmingAndFlying",
             "unexploredSquares",
+            "playerSpeed",
             "hitsOnTheWay"
           ]
         }
@@ -312,9 +312,9 @@ expression: replay
           }
         ],
         "notModelled": [
-          "playerSpeed",
           "swimmingAndFlying",
           "unexploredSquares",
+          "playerSpeed",
           "hitsOnTheWay"
         ]
       }

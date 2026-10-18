@@ -196,9 +196,9 @@ expression: replay
           },
           "gaps": [],
           "notModelled": [
-            "playerSpeed",
             "swimmingAndFlying",
             "unexploredSquares",
+            "playerSpeed",
             "hitsOnTheWay",
             "ownConditions"
           ]
@@ -480,9 +480,9 @@ expression: replay
         },
         "gaps": [],
         "notModelled": [
-          "playerSpeed",
           "swimmingAndFlying",
           "unexploredSquares",
+          "playerSpeed",
           "hitsOnTheWay",
           "ownConditions"
         ]

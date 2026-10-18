@@ -260,13 +260,6 @@ impl Bundle {
         self.features.get(&value)
     }
 
-    /// The dungeon feature with this `dungeon_feature_type` identifier, such as `DNGN_FLOOR`, if
-    /// this version defines one.
-    #[must_use]
-    pub fn feature_by_id(&self, id: &EnumId) -> Option<&Feature> {
-        self.features.values().find(|feature| feature.id == *id)
-    }
-
     /// The monster attitude whose `mon_attitude_type` enum value is `value`.
     #[must_use]
     pub fn attitude(&self, value: u8) -> Option<&EnumId> {
