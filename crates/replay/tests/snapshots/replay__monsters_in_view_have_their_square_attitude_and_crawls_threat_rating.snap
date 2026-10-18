@@ -15,7 +15,8 @@ expression: replay.visible.monsters.unwrap()
       "y": -1
     },
     "attitude": "hostile",
-    "crawlThreat": "tough"
+    "crawlThreat": "tough",
+    "sighting": 21
   },
   {
     "name": "gnoll",
@@ -29,6 +30,7 @@ expression: replay.visible.monsters.unwrap()
       "y": 0
     },
     "attitude": "goodNeutral",
-    "crawlThreat": "easy"
+    "crawlThreat": "easy",
+    "sighting": 22
   }
 ]

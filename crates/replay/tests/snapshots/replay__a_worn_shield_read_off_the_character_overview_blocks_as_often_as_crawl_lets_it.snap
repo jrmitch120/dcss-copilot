@@ -126,7 +126,7 @@ expression: by_turn
       "state": "known",
       "value": "kiteShield",
       "turn": 101,
-      "screen": {
+      "source": {
         "kind": "characterOverview"
       }
     },
@@ -214,7 +214,7 @@ expression: by_turn
       "state": "stale",
       "value": "kiteShield",
       "turn": 101,
-      "screen": {
+      "source": {
         "kind": "characterOverview"
       }
     },

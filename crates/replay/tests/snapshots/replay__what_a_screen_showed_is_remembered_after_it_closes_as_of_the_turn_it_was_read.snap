@@ -30,7 +30,7 @@ expression: replayer.advisor().accumulated()
       }
     },
     "turn": 1234,
-    "screen": {
+    "source": {
       "kind": "characterOverview"
     }
   },
@@ -43,7 +43,7 @@ expression: replayer.advisor().accumulated()
       "a"
     ],
     "turn": 1234,
-    "screen": {
+    "source": {
       "kind": "characterOverview"
     }
   },
@@ -52,5 +52,7 @@ expression: replayer.advisor().accumulated()
   },
   "abilities": {
     "state": "missing"
-  }
+  },
+  "carriedGear": {},
+  "uniquesGear": {}
 }

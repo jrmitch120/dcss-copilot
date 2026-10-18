@@ -15,7 +15,8 @@ expression: replay.visible.monsters.unwrap()
       "y": 12
     },
     "attitude": "hostile",
-    "crawlThreat": "easy"
+    "crawlThreat": "easy",
+    "sighting": 7
   },
   {
     "name": "adder",
@@ -29,6 +30,7 @@ expression: replay.visible.monsters.unwrap()
       "y": 13
     },
     "attitude": "hostile",
-    "crawlThreat": "tough"
+    "crawlThreat": "tough",
+    "sighting": 10
   }
 ]

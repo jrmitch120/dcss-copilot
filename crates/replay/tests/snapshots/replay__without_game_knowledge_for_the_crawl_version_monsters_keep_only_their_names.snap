@@ -15,6 +15,7 @@ expression: replay.visible.monsters.unwrap()
       "y": 8
     },
     "attitude": null,
-    "crawlThreat": null
+    "crawlThreat": null,
+    "sighting": 3
   }
 ]
