@@ -172,12 +172,11 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### A blinkbolt carries its caster
 
-- **What crawl does:** a blinkbolt carries its caster to the farthest square on its path it can stand on, beside the player or past them (`bolt::affect_endpoint`).
-- **What the engine assumes:** the caster stays where it cast from, and walks the rest of the way.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves out casters of a blinkbolt, the raiju and the spark wasp.
-- **Impact and cost:** errs low: a spark wasp seven squares off can blinkbolt in and sting in the same action. Small to port: #85 lands the caster beside the player, the most dangerous landing and the one crawl gave in every oracle run, and makes this entry an accepted simplification with no `NotModelled` variant, since it errs high.
-- **Issue:** [#85]
+- **What crawl does:** a blinkbolt carries its caster to the farthest square on its path it can stand on, beside the player when something stops the bolt behind them, or past them on open floor, as the bolt pierces (`bolt::affect_endpoint`).
+- **What the engine assumes:** the caster lands beside the player, wherever it cast from.
+- **Surfaced as:** accepted simplification: it is the most dangerous landing, so the Threat Level errs high, and where the bolt really ends needs the map the simulation lacks, as paths do.
+- **Harness:** the turn harness walls the square behind the player for a caster of a blinkbolt, the raiju and the spark wasp, so crawl lands it beside them too.
+- **Impact and cost:** errs high, slightly: a caster landed past the player walks back before it can fight. Needs the map inside the simulation, as paths do.
 
 ### Special abilities
 
@@ -362,7 +361,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#113]: https://github.com/jrmitch120/dcss-copilot/issues/113
 [#114]: https://github.com/jrmitch120/dcss-copilot/issues/114
 [#116]: https://github.com/jrmitch120/dcss-copilot/issues/116
-[#85]: https://github.com/jrmitch120/dcss-copilot/issues/85
 [#86]: https://github.com/jrmitch120/dcss-copilot/issues/86
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94

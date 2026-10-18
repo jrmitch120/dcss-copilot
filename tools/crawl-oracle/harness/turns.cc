@@ -19,17 +19,19 @@
  *   actions it took against the player, the spells it cast and the squares it closed. Turn
  *   cases take turns at drawing from kinds of monster that
  *   each exercise a rule: the slowest and the fastest that act, any, faster or slower than the
- *   player, stationary, reaching, breathing, casting an instant spell, and casting a blast or
- *   cloud. A rule no kind exercises is left out.
+ *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
+ *   cloud, and casting a blinkbolt. A rule no kind exercises is left out.
  *
  * It switches off monster special abilities (mon_special_ability), which the engine doesn't
- * port, and leaves out monsters that crawl moves otherwise than the engine does (#86), casters of
- * a blinkbolt, which carries them along it (#85), draconians, whose breath their book doesn't
- * hold, books crawl fills when a monster is made (MST_GHOST), and shapeshifters, which take
- * another kind's shape as they are made. Any kind that dies in its own turns, moves the player
- * or moves away from them is left out of the case it is found in, and said so on standard error.
- * A caster of an explosion or a cloud starts three squares or more away: crawl's tracer weighs a
- * caster's harm to itself (mons_should_fire), which the engine doesn't port.
+ * port, and leaves out monsters that crawl moves otherwise than the engine does (#86),
+ * draconians, whose breath their book doesn't hold, books crawl fills when a monster is made
+ * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind
+ * that dies in its own turns, moves the player or moves away from them is left out of the case
+ * it is found in, and said so on standard error. A caster of an explosion or a cloud starts three
+ * squares or more away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which
+ * the engine doesn't port. A caster of a blinkbolt has the square behind the player walled, so
+ * crawl lands it beside them, as the engine does, and not past them; said so on standard error,
+ * and a case that lands it anywhere else is left out.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled
@@ -295,6 +297,23 @@ static bool _book_may_catch_caster(const monster_spells &book)
                      [](const mon_spell_slot &slot) { return _may_catch_caster(slot.spell); });
 }
 
+// Whether a monster with `book` casts a blinkbolt, which carries it along the bolt.
+static bool _casts_blinkbolt(const monster_spells &book)
+{
+    return _any_slot(book,
+                     [](const mon_spell_slot &slot) { return slot.spell == SPELL_BLINKBOLT; });
+}
+
+// The square behind the player from a monster east of them, walled for a caster of a blinkbolt.
+// Crawl blinks it to the farthest square of the bolt's path it can stand on
+// (bolt::affect_endpoint), which on open floor lies past the player, as the bolt pierces; the
+// engine lands it beside them. The wall stops the bolt, which a blinkbolt doesn't bounce off
+// (bolt::is_bouncy), so crawl lands it beside them too.
+static coord_def _behind_player()
+{
+    return you.pos() + coord_def(-1, 0);
+}
+
 // What a kind of monster that a turn case may draw is like.
 struct turn_kind
 {
@@ -324,6 +343,7 @@ static const vector<pair<const char *, bool (*)(const turn_kind &)>> TURN_RULES 
           });
       } },
     { "blast", [](const turn_kind &k) { return _book_may_catch_caster(k.book); } },
+    { "blinkbolt", [](const turn_kind &k) { return _casts_blinkbolt(k.book); } },
 };
 
 // Kinds handle_monster_move acts or moves for with code of their own, rather than by walking,
@@ -362,11 +382,6 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
             continue;
         const monster_spells book = _ported_book(*mon, ported);
         const attack_flavour first = mons_attack_spec(*mon, 0, true).flavour;
-        // A blinkbolt carries its caster along it (bolt::affect_endpoint), which the engine
-        // doesn't model (#85).
-        const bool blinks = _any_slot(book, [](const mon_spell_slot &slot) {
-            return slot.spell == SPELL_BLINKBOLT;
-        });
         // Crawl seldom casts a cloud again through the clouds its last cast left, which the
         // engine doesn't model (#86): only a monster faster than the player casts twice before
         // the player's next action.
@@ -376,7 +391,7 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
                                                        & spflag::cloud);
                                        });
         if ((_has_melee(*mon) || !book.empty()) && first != AF_SWOOP && first != AF_FLANK
-            && !blinks && !recasts_clouds)
+            && !recasts_clouds)
         {
             kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(),
                               book });
@@ -440,11 +455,11 @@ struct turn_tally
 };
 
 // Plays out the player's next standard-speed action `trials` times against `mon`, `distance`
-// squares away, each time as it starts, the player under a corona if `corona`. Returns why the
-// engine can't follow it, or nullptr if it can: a monster may burst or crumble in its own turns,
-// move the player, as a trampling or pulling hit does, or move away from them, as a blinking one
-// does.
-static const char *_play_turns(monster &mon, int distance, bool corona, int trials,
+// squares away, each time as it starts, the player under a corona if `corona` and walled behind
+// if `walled`. Returns why the engine can't follow it, or nullptr if it can: a monster may burst
+// or crumble in its own turns, move the player, as a trampling or pulling hit does, move away
+// from them, as a blinking one does, or cast a blinkbolt and land anywhere but beside them.
+static const char *_play_turns(monster &mon, int distance, bool corona, bool walled, int trials,
                                turn_tally &tally)
 {
     const coord_def start = mon.pos();
@@ -456,6 +471,8 @@ static const char *_play_turns(monster &mon, int distance, bool corona, int tria
         if (corona)
             you.duration[DUR_CORONA] = 1000;
         _reset_terrain();
+        if (walled)
+            env.grid(_behind_player()) = DNGN_ROCK_WALL;
         delete_all_clouds();
         if (mon.pos() != start)
             mon.move_to(start);
@@ -477,6 +494,11 @@ static const char *_play_turns(monster &mon, int distance, bool corona, int tria
             return "moves the player";
         if (grid_distance(mon.pos(), you.pos()) > distance)
             return "moves away from the player";
+        if (spells_cast > 0 && _casts_blinkbolt(mon.spells)
+            && grid_distance(mon.pos(), you.pos()) > 1)
+        {
+            return "lands its blinkbolt away from the player";
+        }
         ++tally.melee[melee_actions];
         ++tally.casts[spells_cast];
         ++tally.closed[distance - grid_distance(mon.pos(), you.pos())];
@@ -485,8 +507,9 @@ static const char *_play_turns(monster &mon, int distance, bool corona, int tria
     return nullptr;
 }
 
-// Kinds already said to be left out, so each is said once.
+// Kinds already said to be left out or walled behind the player, so each is said once.
 static set<monster_type> reported;
+static set<monster_type> walled_for;
 
 static void _turn_case(int index, int trials, const turn_rule &rule)
 {
@@ -523,9 +546,23 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         // changes no tally here.
         const char *lighting = _lighting();
 
+        const bool walled = _casts_blinkbolt(kind.book);
+        if (walled)
+        {
+            env.grid(_behind_player()) = DNGN_ROCK_WALL;
+            los_changed();
+            if (walled_for.insert(kind.type).second)
+                fprintf(stderr, "%s casts a blinkbolt: walled behind the player\n", name.c_str());
+        }
+
         turn_tally tally;
-        const char *unfollowed = _play_turns(*mon, distance, corona, trials, tally);
+        const char *unfollowed = _play_turns(*mon, distance, corona, walled, trials, tally);
         _clear_monsters();
+        if (walled)
+        {
+            _reset_terrain();
+            los_changed();
+        }
         if (unfollowed)
         {
             // Back where it was, for the next kind this case draws.
