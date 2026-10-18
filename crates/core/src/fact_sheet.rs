@@ -854,18 +854,17 @@ mod tests {
         assert_eq!(level(50, chance(0), 19), ThreatLevel::Calm);
     }
 
+    /// No defences to show, so no guessed fractions.
+    const NO_DEFENCES: DisplayedDefences = DisplayedDefences {
+        ac: 0,
+        ev: 0,
+        sh: 0,
+    };
+
     /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
     /// 100 HP with no defences.
     fn assessed_with(name: &str, distance: i32) -> ThreatAssessment {
-        assessed_defending(
-            name,
-            distance,
-            DisplayedDefences {
-                ac: 0,
-                ev: 0,
-                sh: 0,
-            },
-        )
+        assessed_defending(name, distance, NO_DEFENCES)
     }
 
     /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
@@ -875,10 +874,39 @@ mod tests {
         distance: i32,
         defences: DisplayedDefences,
     ) -> ThreatAssessment {
+        assessed_among(&[(name, distance, Attitude::Hostile)], defences)
+    }
+
+    /// The Threat Level with each `(name, distance, attitude)` in view, `distance` squares east
+    /// of a player on 100 HP who shows `defences`.
+    fn assessed_among(
+        monsters: &[(&str, i32, Attitude)],
+        defences: DisplayedDefences,
+    ) -> ThreatAssessment {
         let library = Library::shipped().unwrap();
         let bundle = library.for_version("0.34.1").unwrap();
-        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
         let player = Position { x: 10, y: 10 };
+        let in_view = monsters
+            .iter()
+            .map(|&(name, distance, attitude)| {
+                let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
+                VisibleMonster {
+                    name: name.to_owned(),
+                    glyph: Glyph {
+                        text: monster.glyph.clone(),
+                        colour: Colour::White,
+                    },
+                    id: Some(monster.id.clone()),
+                    position: Position {
+                        x: player.x + distance,
+                        y: player.y,
+                    },
+                    attitude: Some(attitude),
+                    crawl_threat: None,
+                    sighting: None,
+                }
+            })
+            .collect();
         let visible = VisibleState {
             stats: Stats {
                 hp: Some(100),
@@ -888,26 +916,12 @@ mod tests {
                 ..Stats::default()
             },
             position: Some(player),
-            monsters: Some(vec![VisibleMonster {
-                name: name.to_owned(),
-                glyph: Glyph {
-                    text: monster.glyph.clone(),
-                    colour: Colour::White,
-                },
-                id: Some(monster.id.clone()),
-                position: Position {
-                    x: player.x + distance,
-                    y: player.y,
-                },
-                attitude: Some(Attitude::Hostile),
-                crawl_threat: None,
-                sighting: None,
-            }]),
+            monsters: Some(in_view),
             ..VisibleState::default()
         };
         match FactSheet::compute(&visible, None, Some(bundle)).threat {
             Threat::Rated(assessment) => *assessment,
-            Threat::Unrated { gaps } => panic!("{name} isn't rated: {gaps:?}"),
+            Threat::Unrated { gaps } => panic!("{monsters:?} isn't rated: {gaps:?}"),
         }
     }
 
