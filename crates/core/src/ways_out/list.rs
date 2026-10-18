@@ -7,10 +7,10 @@ use crate::fact_sheet::Gap;
 use crate::view_model::{WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
-    /// The panel's list: the nearest usable staircase each way, or else the nearest, then each
-    /// escape carried, ability and spell.
+    /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
+    /// of the two first, then each escape carried, ability and spell.
     pub(crate) fn list(&self) -> WaysOutList {
-        let stairs = [StairDirection::Down, StairDirection::Up]
+        let shown: Vec<&WayOut> = [StairDirection::Down, StairDirection::Up]
             .into_iter()
             .filter_map(|direction| {
                 let each_way = || {
@@ -21,7 +21,13 @@ impl WaysOut {
                 each_way()
                     .find(|way_out| way_out.usable == Usable::Yes)
                     .or_else(|| each_way().next())
-            });
+            })
+            .collect();
+        // The staircases come nearest first, so keeping their order puts the nearer one first.
+        let stairs = self
+            .options
+            .iter()
+            .filter(|way_out| shown.iter().any(|shown| std::ptr::eq(*shown, *way_out)));
         let carried = self
             .options
             .iter()

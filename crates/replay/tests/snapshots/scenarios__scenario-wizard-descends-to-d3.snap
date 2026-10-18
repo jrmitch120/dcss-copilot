@@ -145,16 +145,16 @@ expression: replay
         "waysOut": {
           "rows": [
             {
-              "usable": false,
-              "name": "Stone staircase leading down",
-              "detail": "3 steps",
-              "whyNot": "Ball python is faster"
-            },
-            {
               "usable": true,
               "name": "Stone staircase leading up",
               "detail": "underfoot",
               "whyNot": null
+            },
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "3 steps",
+              "whyNot": "Ball python is faster"
             }
           ],
           "ground": "On open ground: 6 sides open",
