@@ -146,7 +146,7 @@ expression: replay
                 "state": "no",
                 "because": [
                   {
-                    "blocker": "useless"
+                    "blocker": "fullHealth"
                   }
                 ]
               }
@@ -253,7 +253,7 @@ expression: replay
               "usable": false,
               "name": "Heal wounds",
               "detail": "heals",
-              "whyNot": "the game greys it out"
+              "whyNot": "you're at full health"
             },
             {
               "usable": true,

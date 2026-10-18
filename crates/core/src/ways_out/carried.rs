@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, Use};
+use copilot_gk::{Bundle, Relief, Use};
 
 use super::{Blocker, Escape, ReadOn, Usable, WayOut};
 use crate::accumulated_state::{AccumulatedState, Remembered};
@@ -61,7 +61,13 @@ impl Carried<'_> {
                     }
                     let mut because = self.stopped(&uses);
                     if because.is_empty() {
-                        because.push(Blocker::Useless);
+                        let stats = &self.visible.stats;
+                        let full_health = stats.hp.is_some() && stats.hp == stats.hp_max;
+                        because.push(if escape.effect == Relief::Heals && full_health {
+                            Blocker::FullHealth
+                        } else {
+                            Blocker::Useless
+                        });
                     }
                     Usable::No { because }
                 } else {

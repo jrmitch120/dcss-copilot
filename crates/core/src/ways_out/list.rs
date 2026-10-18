@@ -141,7 +141,8 @@ fn blocker(blocker: &Blocker) -> String {
         }
         Blocker::Status { status } => format!("you're {status}"),
         Blocker::Magic { needs, has } => format!("needs {needs} MP, you have {has}"),
-        Blocker::Useless => "the game greys it out".to_owned(),
+        Blocker::FullHealth => "you're at full health".to_owned(),
+        Blocker::Useless => "no use right now".to_owned(),
     }
 }
 

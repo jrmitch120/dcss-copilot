@@ -173,6 +173,9 @@ pub enum Blocker {
         /// The magic points the player has.
         has: i32,
     },
+    /// Crawl greys out an item that heals, as it does at full health, and the player is at
+    /// full health.
+    FullHealth,
     /// Crawl greys the item out as of no use to the player right now, for a reason the
     /// Advisor doesn't see.
     Useless,
