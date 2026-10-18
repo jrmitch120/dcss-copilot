@@ -518,7 +518,7 @@ fn threat(
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
     not_modelled.extend(own_halo);
     let defences = DisplayedDefences { ac, ev, sh };
-    if defences.hide_a_fraction() {
+    if defences.any_hides_a_fraction() {
         not_modelled.push(NotModelled::DefenceFractions);
     }
     let defender = Defender {
@@ -912,26 +912,22 @@ mod tests {
     }
 
     #[test]
-    fn any_displayed_defence_above_zero_is_named_as_hiding_a_guessed_fraction() {
-        for (ac, ev, sh) in [(1, 0, 0), (0, 1, 0), (0, 0, 1), (6, 8, 4), (3, -2, 0)] {
+    fn the_guessed_fractions_are_named_whenever_a_displayed_defence_is_above_zero() {
+        for (ac, ev, sh, named) in [
+            (1, 0, 0, true),
+            (0, 1, 0, true),
+            (0, 0, 1, true),
+            (6, 8, 4, true),
+            (3, -2, 0, true),
+            (0, 0, 0, false),
+            (-1, -3, 0, false),
+        ] {
             let assessment = assessed_defending("goblin", 1, DisplayedDefences { ac, ev, sh });
-            assert!(
+            assert_eq!(
                 assessment
                     .not_modelled
                     .contains(&NotModelled::DefenceFractions),
-                "AC {ac}, EV {ev}, SH {sh}"
-            );
-        }
-    }
-
-    #[test]
-    fn no_displayed_defence_above_zero_hides_no_fraction() {
-        for (ac, ev, sh) in [(0, 0, 0), (-1, -3, 0)] {
-            let assessment = assessed_defending("goblin", 1, DisplayedDefences { ac, ev, sh });
-            assert!(
-                !assessment
-                    .not_modelled
-                    .contains(&NotModelled::DefenceFractions),
+                named,
                 "AC {ac}, EV {ev}, SH {sh}"
             );
         }

@@ -280,11 +280,19 @@ pub(crate) struct DisplayedDefences {
 }
 
 impl DisplayedDefences {
-    /// Whether any of them hides a fraction that [`Defences::drawn_behind`] guesses: one shown
-    /// above 0.
-    pub(crate) fn hide_a_fraction(self) -> bool {
-        self.ac > 0 || self.ev > 0 || self.sh > 0
+    /// Whether any of them hides a fraction that [`Defences::drawn_behind`] guesses.
+    pub(crate) fn any_hides_a_fraction(self) -> bool {
+        [self.ac, self.ev, self.sh]
+            .into_iter()
+            .any(hides_a_fraction)
     }
+}
+
+/// Whether a defence displayed as `displayed` hides a fraction: one shown above 0. SH 0 is almost
+/// always no shield at all, which must never block, and below zero the display truncates towards
+/// zero.
+fn hides_a_fraction(displayed: i32) -> bool {
+    displayed > 0
 }
 
 /// The player's AC, EV and SH in hundredths of a point, as crawl keeps them. Crawl rounds each
@@ -314,17 +322,16 @@ impl Defences {
     /// which the display truncates and then halves. That assumption is an approximation: a real
     /// character's fraction comes from their skills, Dexterity and gear.
     ///
-    /// A displayed value of 0 or less is taken as exact: SH 0 is almost always no shield at all,
-    /// which must never block, and below zero the display truncates towards zero.
+    /// A displayed value that hides no fraction ([`hides_a_fraction`]) is taken as exact.
     pub(crate) fn drawn_behind(displayed: DisplayedDefences, rng: &mut Rng) -> Self {
         let mut defences = Self::exact(displayed.ac, displayed.ev, displayed.sh);
-        if displayed.ac > 0 {
+        if hides_a_fraction(displayed.ac) {
             defences.ac += rng.random2(100);
         }
-        if displayed.ev > 0 {
+        if hides_a_fraction(displayed.ev) {
             defences.ev += rng.random2(100);
         }
-        if displayed.sh > 0 {
+        if hides_a_fraction(displayed.sh) {
             defences.sh += rng.random2(200);
         }
         defences
