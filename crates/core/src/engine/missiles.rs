@@ -17,6 +17,7 @@ use copilot_gk::{
 use super::brands::{self, Brand, Necromancy};
 use super::melee::{self, Aim, RolledDamage, Swing, Target};
 use super::rng::Rng;
+use crate::crawl_ids::missile_types;
 
 /// How far a missile flies: `you.current_vision` (`ranged_attack_beam::initialise_beam`,
 /// `throw.cc:478`), the player's normal sight, `LOS_DEFAULT_RANGE` (`defines.h:115`).
@@ -55,8 +56,11 @@ impl<'a> Missile<'a> {
                 let launcher = weapon.kind == MissileKind::Launcher;
                 Self {
                     weapon,
-                    harmless: matches!(id.0.as_str(), "MI_DART" | "MI_THROWING_NET"),
-                    pierces: id.0 == "MI_JAVELIN",
+                    harmless: matches!(
+                        id.0.as_str(),
+                        missile_types::DART | missile_types::THROWING_NET
+                    ),
+                    pierces: id.0 == missile_types::JAVELIN,
                     plus: if launcher { plus } else { 0 },
                     brand: if launcher { brand } else { Brand::Plain },
                 }

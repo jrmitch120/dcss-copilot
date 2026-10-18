@@ -9,6 +9,7 @@ use specta::Type;
 
 use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
 use crate::carried_gear::{Unlisted, Unplayed};
+use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
@@ -29,29 +30,6 @@ const DANGEROUS_DEATHS_PER_MILLE: u32 = 5;
 /// DANGEROUS when the worst-case hit is at least this percentage of current HP. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
 const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
-
-/// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
-const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
-
-/// The kind crawl gives a tier and facets as it is made, so its Game Knowledge entry tells little
-/// of it: `_mutant_beast_facet_attack` and `init_mutant_beast` in `mon-util.cc`.
-const MUTANT_BEAST_ID: &str = "MONS_MUTANT_BEAST";
-
-/// The flavours of a first attack that swoop at or flank the foe: `_handle_swoop_or_flank` in
-/// `mon-act.cc`, which looks at the first attack only.
-const SWOOP_OR_FLANK_FLAVOURS: [&str; 2] = ["AF_SWOOP", "AF_FLANK"];
-
-/// The flavours of an attack whose hit tramples the defender back or drags them along:
-/// `melee_attack::mons_attack_effects` in `melee-attack.cc`.
-const PLAYER_MOVING_FLAVOURS: [&str; 2] = ["AF_TRAMPLE", "AF_DRAG"];
-
-/// The flavour of an attack whose hit may blink the attacker away:
-/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
-const BLINK_FLAVOUR: &str = "AF_BLINK";
-
-/// The flavour of an attack whose hit may blink the attacker away and the defender with it:
-/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
-const BLINK_WITH_FLAVOUR: &str = "AF_BLINK_WITH";
 
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -517,13 +495,13 @@ fn threat(
     }
     if hostile
         .iter()
-        .any(|(_, monster)| monster.genus.0 == DRACONIAN_GENUS)
+        .any(|(_, monster)| monster.genus.0 == genera::DRACONIAN)
     {
         not_modelled.push(NotModelled::DraconianBreath);
     }
     if hostile
         .iter()
-        .any(|(_, monster)| monster.id.0 == MUTANT_BEAST_ID)
+        .any(|(_, monster)| monster.id.0 == monster_types::MUTANT_BEAST)
     {
         not_modelled.push(NotModelled::MutantBeastFacets);
     }
@@ -786,17 +764,22 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
         (NotModelled::OwnActions, monster.own_actions),
         (
             NotModelled::SwoopOrFlank,
-            first_flavour.is_some_and(|flavour| SWOOP_OR_FLANK_FLAVOURS.contains(&flavour)),
+            first_flavour.is_some_and(|flavour| {
+                [attack_flavours::SWOOP, attack_flavours::FLANK].contains(&flavour)
+            }),
         ),
         (NotModelled::SpecialAbilities, monster.special_ability),
         (
             NotModelled::MovesThePlayer,
-            has_flavour(&PLAYER_MOVING_FLAVOURS),
+            has_flavour(&[attack_flavours::TRAMPLE, attack_flavours::DRAG]),
         ),
-        (NotModelled::BlinksAway, has_flavour(&[BLINK_FLAVOUR])),
+        (
+            NotModelled::BlinksAway,
+            has_flavour(&[attack_flavours::BLINK]),
+        ),
         (
             NotModelled::BlinksWithThePlayer,
-            has_flavour(&[BLINK_WITH_FLAVOUR]),
+            has_flavour(&[attack_flavours::BLINK_WITH]),
         ),
         // One that never moves never tries to leave.
         (

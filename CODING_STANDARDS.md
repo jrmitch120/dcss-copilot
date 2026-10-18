@@ -67,6 +67,7 @@ Write a unit test only for logic a seam test can't reach precisely, such as a pr
 - Libraries return typed errors with `thiserror`. Binaries use `anyhow`.
 - Handle every `Option` and `Result` outside tests; `unwrap` and `expect` are denied by lint. The one allowed `expect` is Tauri's startup in `app/src-tauri`, marked with `#[allow]`.
 - Doc comments go on public items, saying what the item is for. Inline comments explain why, in one line.
+- A crawl identifier `core` compares Game Knowledge against, such as `MONS_DRACONIAN`, is named in `crates/core/src/crawl_ids.rs`, whose test checks each against every shipped bundle. A list tied to one Formula Variant stays with its variant's code, with its own such test.
 - Constants tuned against the corpus (Threat Level thresholds, word limits) are named constants with a comment pointing at the decision that set them.
 
 ## TypeScript and Svelte

@@ -7,6 +7,7 @@ use copilot_gk::{Bundle, EnumId, ItemKind};
 use serde::Serialize;
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
+use crate::crawl_ids::{armour_types, object_classes};
 use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
 use crate::visible_state::{GameMessage, InventoryItem, Sighting, VisibleMonster, VisibleState};
 
@@ -121,7 +122,7 @@ impl Shield {
     /// The shield an item is, if it is one: crawl's `is_shield` (`item-prop.cc`), which leaves
     /// out orbs, the other armour worn in the offhand.
     fn of(kind: &ItemKind) -> Option<Self> {
-        if kind.class.0 != "OBJ_ARMOUR" {
+        if kind.class.0 != object_classes::ARMOUR {
             return None;
         }
         Self::of_armour(kind.sub_type.as_ref()?)
@@ -130,9 +131,9 @@ impl Shield {
     /// The shield a kind of armour is, by its `armour_type` identifier, if it is one.
     pub(crate) fn of_armour(sub_type: &EnumId) -> Option<Self> {
         match sub_type.0.as_str() {
-            "ARM_BUCKLER" => Some(Self::Buckler),
-            "ARM_KITE_SHIELD" => Some(Self::KiteShield),
-            "ARM_TOWER_SHIELD" => Some(Self::TowerShield),
+            armour_types::BUCKLER => Some(Self::Buckler),
+            armour_types::KITE_SHIELD => Some(Self::KiteShield),
+            armour_types::TOWER_SHIELD => Some(Self::TowerShield),
             _ => None,
         }
     }

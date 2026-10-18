@@ -71,6 +71,11 @@ impl Library {
     pub fn for_version(&self, crawl_version: &str) -> Option<&Bundle> {
         self.bundles.get(crawl_version)
     }
+
+    /// Every bundle in the library, by Crawl Version.
+    pub fn bundles(&self) -> impl Iterator<Item = &Bundle> {
+        self.bundles.values()
+    }
 }
 
 /// Game Knowledge for one Crawl Version.

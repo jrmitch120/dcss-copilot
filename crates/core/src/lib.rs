@@ -4,6 +4,7 @@
 mod accumulated_state;
 mod advisor;
 mod carried_gear;
+mod crawl_ids;
 mod engine;
 mod fact_sheet;
 mod game_source;

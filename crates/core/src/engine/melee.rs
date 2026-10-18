@@ -16,6 +16,7 @@ use copilot_gk::{
 use super::lighting::Lighting;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
+use crate::crawl_ids::{attack_flavours, attack_types};
 
 /// One of a monster's melee attacks, as the formulas below tell attacks apart: classified once
 /// from crawl's `attack_type` and `attack_flavour` identifiers in its Game Knowledge.
@@ -45,15 +46,16 @@ pub(crate) enum Flavour {
 impl Attack {
     /// The attack `attack` describes, or `None` for the empty attack slot `AT_NONE`.
     pub(crate) fn of(attack: &MonsterAttack) -> Option<Self> {
-        if attack.kind.0 == "AT_NONE" {
+        if attack.kind.0 == attack_types::NONE {
             return None;
         }
         let flavour = match attack.flavour.0.as_str() {
-            "AF_CRUSH" => Flavour::Crush,
-            "AF_REACH" | "AF_REACH_STING" | "AF_REACH_TONGUE" | "AF_REACH_CLEAVE_UGLY" => {
-                Flavour::Reaching
-            }
-            "AF_RIFT" => Flavour::Rift,
+            attack_flavours::CRUSH => Flavour::Crush,
+            attack_flavours::REACH
+            | attack_flavours::REACH_STING
+            | attack_flavours::REACH_TONGUE
+            | attack_flavours::REACH_CLEAVE_UGLY => Flavour::Reaching,
+            attack_flavours::RIFT => Flavour::Rift,
             _ => Flavour::Other,
         };
         Some(Self {

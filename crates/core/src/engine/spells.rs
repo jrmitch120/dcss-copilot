@@ -14,6 +14,7 @@ use copilot_gk::{
 
 use super::melee::{self, AUTOMATIC_HIT, Target};
 use super::rng::Rng;
+use crate::crawl_ids::{beam_types, spell_slot_flags, spell_types};
 
 /// `LOS_DEFAULT_RANGE` (`defines.h:115`): how far a player normally sees, which caps a spell's
 /// range (`calc_spell_range`, `spl-util.cc:1068`).
@@ -109,7 +110,9 @@ pub(crate) enum Landing {
 /// most dangerous landing, and the one that keeps the Threat Level erring high (#85).
 fn landing(variant: MonsterSpellBeam, spell: &Spell) -> Landing {
     match variant {
-        MonsterSpellBeam::Crawl034 if spell.id.0 == "SPELL_BLINKBOLT" => Landing::BesideThePlayer,
+        MonsterSpellBeam::Crawl034 if spell.id.0 == spell_types::BLINKBOLT => {
+            Landing::BesideThePlayer
+        }
         MonsterSpellBeam::Crawl034 => Landing::Stays,
     }
 }
@@ -135,8 +138,8 @@ impl Slot {
         Self {
             frequency: slot.frequency,
             when: SlotRange::of(&slot.flags),
-            breath: has("MON_SPELL_BREATH"),
-            instant: has("MON_SPELL_INSTANT"),
+            breath: has(spell_slot_flags::BREATH),
+            instant: has(spell_slot_flags::INSTANT),
         }
     }
 }
@@ -158,11 +161,11 @@ pub(crate) enum SlotRange {
 impl SlotRange {
     fn of(flags: &[EnumId]) -> Self {
         let has = |flag| has_flag(flags, flag);
-        if has("MON_SPELL_EMERGENCY") {
+        if has(spell_slot_flags::EMERGENCY) {
             Self::Emergency
-        } else if has("MON_SPELL_SHORT_RANGE") {
+        } else if has(spell_slot_flags::SHORT_RANGE) {
             Self::Short
-        } else if has("MON_SPELL_LONG_RANGE") {
+        } else if has(spell_slot_flags::LONG_RANGE) {
             Self::Long
         } else {
             Self::Any
@@ -222,7 +225,7 @@ pub(crate) fn power(variant: MonsterSpellPower, spell: &EnumId, hit_dice: i32) -
         MonsterSpellPower::Crawl034 => {
             // The factors of `_mons_power_hd_factor` for the ported spells; every other is 12.
             let factor = match spell.0.as_str() {
-                "SPELL_STICKY_FLAME" => 8,
+                spell_types::STICKY_FLAME => 8,
                 _ => 12,
             };
             hit_dice * factor
@@ -272,7 +275,7 @@ pub(crate) fn reach(variant: MonsterSpellBeam, spell: &DamagingSpell<'_>, range:
             let id = spell.spell.id.0.as_str();
             if spell.zap.explodes {
                 // `bolt::refine_for_explosion`: a radius of 1 unless the spell sets another.
-                let radius = if id == "SPELL_ORB_OF_ELECTRICITY" {
+                let radius = if id == spell_types::ORB_OF_ELECTRICITY {
                     2
                 } else {
                     1
@@ -283,7 +286,7 @@ pub(crate) fn reach(variant: MonsterSpellBeam, spell: &DamagingSpell<'_>, range:
                 };
             }
             // The ported spells `bolt::get_cloud_size` (`beam.cc:2490`) gives at least ten squares.
-            let wide_cloud = matches!(id, "SPELL_MIASMA_BREATH" | "SPELL_FREEZING_GUST");
+            let wide_cloud = matches!(id, spell_types::MIASMA_BREATH | spell_types::FREEZING_GUST);
             Reach {
                 casts: range + i32::from(wide_cloud),
                 strikes: range,
@@ -422,13 +425,17 @@ pub(crate) fn bolt(variant: BeamDamage, rng: &mut Rng, firing: Firing<'_, '_>) -
             let zap = spell.zap;
             let flavour = zap.flavour.0.as_str();
             // `bolt::is_blockable` (`beam.cc:107`).
-            let blockable =
-                !zap.pierces && !zap.explodes && flavour != "BEAM_ELECTRICITY" && to_hit.is_some();
+            let blockable = !zap.pierces
+                && !zap.explodes
+                && flavour != beam_types::ELECTRICITY
+                && to_hit.is_some();
             // `bolt::apply_AC`, with `get_beam_resist_type` (`fight.cc:759`) for electricity.
             let armour = match flavour {
-                "BEAM_DAMNATION" => ArmourRule::None,
-                "BEAM_ELECTRICITY" | "BEAM_THUNDER" | "BEAM_STUN_BOLT" => ArmourRule::Half,
-                "BEAM_FRAG" => ArmourRule::Triple,
+                beam_types::DAMNATION => ArmourRule::None,
+                beam_types::ELECTRICITY | beam_types::THUNDER | beam_types::STUN_BOLT => {
+                    ArmourRule::Half
+                }
+                beam_types::FRAG => ArmourRule::Triple,
                 _ => ArmourRule::Normal,
             };
             Bolt {
@@ -525,7 +532,26 @@ pub(crate) fn shoot(
 
 #[cfg(test)]
 mod tests {
+    use copilot_gk::Library;
+
     use super::*;
+
+    #[test]
+    fn every_plain_zap_names_a_spell_in_every_shipped_bundle_of_its_variant() {
+        let library = Library::shipped().unwrap();
+        for bundle in library.bundles() {
+            let plain = match bundle.formulas.monster_spell_beam {
+                MonsterSpellBeam::Crawl034 => PLAIN_ZAPS_0_34,
+            };
+            for &id in plain {
+                assert!(
+                    bundle.spell_by_id(&EnumId(id.to_owned())).is_some(),
+                    "{} has no spell {id}",
+                    bundle.crawl.tag
+                );
+            }
+        }
+    }
 
     fn spell_range(min: i32, max: i32, power_cap: i32) -> SpellRange {
         SpellRange {

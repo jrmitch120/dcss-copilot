@@ -7,12 +7,9 @@ use copilot_gk::{Bundle, Relief, Use};
 
 use super::{Blocker, Escape, ReadOn, Usable, WayOut};
 use crate::accumulated_state::{AccumulatedState, Remembered};
+use crate::crawl_ids::object_classes;
 use crate::fact_sheet::Gap;
 use crate::visible_state::VisibleState;
-
-/// The item class whose items are read, and the one whose are drunk.
-const SCROLLS: &str = "OBJ_SCROLLS";
-const POTIONS: &str = "OBJ_POTIONS";
 
 /// What the player carries, has and knows, with the Game Knowledge that says which are Ways
 /// Out.
@@ -52,8 +49,8 @@ impl Carried<'_> {
                 let usable = if item.useless {
                     let mut uses = Vec::new();
                     match escape.class.0.as_str() {
-                        SCROLLS => uses.push(Use::Reading),
-                        POTIONS => uses.push(Use::Drinking),
+                        object_classes::SCROLLS => uses.push(Use::Reading),
+                        object_classes::POTIONS => uses.push(Use::Drinking),
                         _ => {}
                     }
                     if escape.translocation {
