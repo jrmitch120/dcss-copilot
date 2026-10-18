@@ -2,6 +2,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -143,20 +144,31 @@ fn a_monster_drawn_with_crawls_error_tile_has_no_tile() {
     assert_eq!(draconian.tile, None);
 }
 
+/// A copy of the fixture with `edit` made to each file: given its path under the fixture and its
+/// bytes, it returns the bytes to write.
+fn fixture_with(edit: impl Fn(&str, Vec<u8>) -> Vec<u8>) -> tempfile::TempDir {
+    let crawl = tempfile::tempdir().unwrap();
+    for (name, bytes) in files_under(&fixture()) {
+        let path = crawl.path().join(&name);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, edit(&name, bytes)).unwrap();
+    }
+    crawl
+}
+
 #[test]
 fn a_status_light_crawl_no_longer_shows_fails_the_extraction() {
     // A copy of the fixture whose contamination light is renamed.
-    let crawl = tempfile::tempdir().unwrap();
-    for (name, bytes) in files_under(&fixture()) {
-        let path = crawl.path().join(name);
-        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(path, bytes).unwrap();
-    }
-    let status = crawl.path().join("crawl-ref/source/status.cc");
-    let renamed = std::fs::read_to_string(&status)
-        .unwrap()
-        .replace("\"Contam\"", "\"Glow\"");
-    std::fs::write(&status, renamed).unwrap();
+    let crawl = fixture_with(|name, bytes| {
+        if name == "crawl-ref/source/status.cc" {
+            String::from_utf8(bytes)
+                .unwrap()
+                .replace("\"Contam\"", "\"Glow\"")
+                .into_bytes()
+        } else {
+            bytes
+        }
+    });
 
     let refused = extract(crawl.path(), &release());
 
@@ -289,5 +301,82 @@ fn the_shipped_bundle_is_what_the_extractor_makes_of_its_crawl_tag() {
     assert!(
         files_under(&manifest_dir().join("../../app/static/tiles")) == files_under(tiles.path()),
         "the shipped tiles are stale: write them again with gk-extract (see docs/game-knowledge.md)"
+    );
+}
+
+/// Names in the extractor's code that look like crawl identifiers but that crawl's source
+/// doesn't define: the build flags the extractor defines itself, as the webtiles build does.
+const NOT_DEFINED_BY_CRAWL: [&str; 2] = ["USE_TILE", "USE_TILE_WEB"];
+
+/// Whether `byte` may be part of a C++ identifier.
+fn identifier_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || byte == b'_'
+}
+
+/// Every crawl identifier the extractor's code names as a string, such as `"MONS_KOBOLD"`: the
+/// upper-case literals in `src/` outside its tests.
+fn identifiers_the_extractor_names() -> BTreeSet<String> {
+    let mut identifiers = BTreeSet::new();
+    for (_, bytes) in files_under(&manifest_dir().join("src")) {
+        let source = String::from_utf8(bytes).unwrap();
+        let code = source.split("#[cfg(test)]").next().unwrap();
+        for literal in code.split('"').skip(1).step_by(2) {
+            let identifier = literal.contains('_')
+                && literal.split('_').all(|part| {
+                    !part.is_empty()
+                        && part
+                            .bytes()
+                            .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit())
+                });
+            if identifier && !NOT_DEFINED_BY_CRAWL.contains(&literal) {
+                identifiers.insert(literal.to_owned());
+            }
+        }
+    }
+    identifiers
+}
+
+/// `text` with every whole identifier `from` replaced by `to`.
+fn rename_identifier(text: &[u8], from: &str, to: &str) -> Vec<u8> {
+    let from = from.as_bytes();
+    let mut renamed = Vec::with_capacity(text.len());
+    let mut at = 0;
+    while at < text.len() {
+        let whole = text[at..].starts_with(from)
+            && (at == 0 || !identifier_byte(text[at - 1]))
+            && text
+                .get(at + from.len())
+                .is_none_or(|&next| !identifier_byte(next));
+        if whole {
+            renamed.extend_from_slice(to.as_bytes());
+            at += from.len();
+        } else {
+            renamed.push(text[at]);
+            at += 1;
+        }
+    }
+    renamed
+}
+
+#[test]
+fn every_crawl_identifier_the_extractor_names_fails_the_extraction_once_crawl_renames_it() {
+    let identifiers = identifiers_the_extractor_names();
+    assert!(identifiers.contains("MONS_KOBOLD"), "{identifiers:?}");
+    let mut silent = Vec::new();
+    for id in &identifiers {
+        let renamed = format!("{id}_RENAMED");
+        let crawl = fixture_with(|_, bytes| rename_identifier(&bytes, id, &renamed));
+        match extract(crawl.path(), &release()) {
+            Err(error) if error.to_string().contains(id.as_str()) => {}
+            outcome => silent.push(format!(
+                "{id}: {}",
+                outcome.map_or_else(|error| error.to_string(), |_| "extracted".to_owned())
+            )),
+        }
+    }
+    assert!(
+        silent.is_empty(),
+        "renaming these didn't fail the extraction naming them:\n{}",
+        silent.join("\n")
     );
 }

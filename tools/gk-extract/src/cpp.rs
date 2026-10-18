@@ -28,6 +28,9 @@ pub struct Source {
     tokens: Vec<Token>,
 }
 
+/// An enumerator's name, with the tokens of its initializer, if it has one.
+type Enumerator<'a> = (&'a str, Option<&'a [Token]>);
+
 impl Source {
     /// Preprocesses `text` for a build with this `TAG_MAJOR_VERSION`, expands the file's own
     /// function-like macros and tokenizes the result. `file` names it in errors.
@@ -42,6 +45,34 @@ impl Source {
 
     /// The enumerators of `enum <name>`, with their values, in declaration order.
     pub fn enumeration(&self, name: &str) -> Result<Vec<(String, i64)>, ExtractError> {
+        let mut values: Vec<(String, i64)> = Vec::new();
+        let mut next = 0;
+        for (ident, init) in self.enumerators(name)? {
+            let value = match init {
+                None => next,
+                Some(init) => self.constant(init, &values).ok_or_else(|| {
+                    self.unreadable(&format!("the value of {ident} in enum {name}"))
+                })?,
+            };
+            values.push((ident.to_owned(), value));
+            next = value + 1;
+        }
+        Ok(values)
+    }
+
+    /// The names of the enumerators of `enum <name>`, in declaration order, whatever their
+    /// values: an enum of flags such as `1 << 4` has names the extractor can check but values it
+    /// can't read.
+    pub fn enumerator_names(&self, name: &str) -> Result<Vec<&str>, ExtractError> {
+        Ok(self
+            .enumerators(name)?
+            .into_iter()
+            .map(|(ident, _)| ident)
+            .collect())
+    }
+
+    /// The enumerators of `enum <name>`, each with the tokens of its initializer, if it has one.
+    fn enumerators(&self, name: &str) -> Result<Vec<Enumerator<'_>>, ExtractError> {
         let start = self
             .find(&[Token::Ident("enum".into()), Token::Ident(name.into())])
             .ok_or_else(|| self.missing(&format!("enum {name}")))?;
@@ -49,26 +80,17 @@ impl Source {
             .find(|&i| self.tokens[i] == Token::Punct('{'))
             .ok_or_else(|| self.missing(&format!("the body of enum {name}")))?;
         let close = self.matching_brace(open)?;
-
-        let mut values: Vec<(String, i64)> = Vec::new();
-        let mut next = 0;
-        for enumerator in self.tokens[open + 1..close].split(|t| *t == Token::Punct(',')) {
-            let (ident, init) = match enumerator {
-                [] => continue,
-                [Token::Ident(ident)] => (ident, None),
-                [Token::Ident(ident), Token::Punct('='), init @ ..] => (ident, Some(init)),
-                _ => return Err(self.unreadable(&format!("an enumerator of enum {name}"))),
-            };
-            let value = match init {
-                None => next,
-                Some(init) => self.constant(init, &values).ok_or_else(|| {
-                    self.unreadable(&format!("the value of {ident} in enum {name}"))
-                })?,
-            };
-            values.push((ident.clone(), value));
-            next = value + 1;
-        }
-        Ok(values)
+        self.tokens[open + 1..close]
+            .split(|t| *t == Token::Punct(','))
+            .filter(|enumerator| !enumerator.is_empty())
+            .map(|enumerator| match enumerator {
+                [Token::Ident(ident)] => Ok((ident.as_str(), None)),
+                [Token::Ident(ident), Token::Punct('='), init @ ..] => {
+                    Ok((ident.as_str(), Some(init)))
+                }
+                _ => Err(self.unreadable(&format!("an enumerator of enum {name}"))),
+            })
+            .collect()
     }
 
     /// The `(identifier, name)` entries of the array initializer `<name>[] = { ... }`: each

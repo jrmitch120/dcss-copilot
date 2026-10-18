@@ -137,7 +137,7 @@ const NIGHTVISION_GOD: &str = "Yredelemnul";
 
 /// The spellbook of monsters given their own spells when they are made: crawl's `MST_GHOST`,
 /// which `mspell_list` has no entry for.
-const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
+pub const PER_MONSTER_SPELLBOOK: &str = "MST_GHOST";
 
 /// The flag `dat/mons` gives a monster whose melee is more accurate: crawl's `M_FIGHTER`.
 const FIGHTER_FLAG: &str = "fighter";
