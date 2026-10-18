@@ -119,36 +119,47 @@ fn failing(what: &str, percent: u32, read: ReadOn) -> String {
 
 /// Why a Way Out can't be used, in words.
 fn blocker(blocker: &Blocker) -> String {
-    let and_more = |more: usize| match more {
-        0 => String::new(),
-        more => format!(", and {more} more"),
-    };
     match blocker {
-        Blocker::InTheWay { by } => by.first().map_or_else(String::new, |first| {
-            format!(
-                "{} is in the way{}",
-                capitalised(&first.name),
-                and_more(by.len() - 1)
-            )
-        }),
-        Blocker::CutOff { by } => by.first().map_or_else(String::new, |first| {
-            let how = if first.moves == 0 {
-                "is beside it"
-            } else if first.faster {
-                "is faster"
-            } else {
-                "can get there first"
-            };
-            format!(
-                "{} {how}{}",
-                capitalised(&first.name),
-                and_more(by.len() - 1)
-            )
-        }),
+        Blocker::InTheWay { by } => {
+            first_and_more(by, |monster| &monster.name, |_| "is in the way")
+        }
+        Blocker::CutOff { by } => first_and_more(
+            by,
+            |monster| &monster.name,
+            |first| {
+                if first.moves == 0 {
+                    "is beside it"
+                } else if first.faster {
+                    "is faster"
+                } else {
+                    "can get there first"
+                }
+            },
+        ),
+        Blocker::Followed { by } => {
+            first_and_more(by, |monster| &monster.name, |_| "would follow you")
+        }
         Blocker::Status { status } => format!("you're {status}"),
         Blocker::Magic { needs, has } => format!("needs {needs} MP, you have {has}"),
         Blocker::Useless => "the game greys it out".to_owned(),
     }
+}
+
+/// What the first of `monsters` does, by `name` and `how`, and how many more do likewise, such
+/// as `Jackal is faster, and 1 more`.
+fn first_and_more<T>(
+    monsters: &[T],
+    name: impl Fn(&T) -> &String,
+    how: impl Fn(&T) -> &'static str,
+) -> String {
+    let Some(first) = monsters.first() else {
+        return String::new();
+    };
+    let more = match monsters.len() - 1 {
+        0 => String::new(),
+        more => format!(", and {more} more"),
+    };
+    format!("{} {}{more}", capitalised(name(first)), how(first))
 }
 
 /// The ground the player stands on, in words.

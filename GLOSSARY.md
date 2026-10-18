@@ -141,7 +141,7 @@ An escape or emergency option, such as a consumable, ability, spell or staircase
 _Avoid_: Escape (when meaning the whole list), panic button
 
 **Cut Off**:
-A staircase is cut off when a hostile in view can stand beside it by the time the player has walked there and takes it, to attack them or follow them off the level: reckoned from the monster's speed at the most energy it could have, over the explored map and the unexplored squares beyond it. A monster standing on the player's path, rather than racing them, is in the way instead.
+A staircase is cut off when a hostile in view can stand beside it by the time the player has walked there and takes it, to attack them or follow them off the level: reckoned from the monster's speed at the most energy it could have, over the explored map and the unexplored squares beyond it. A monster standing on the player's path, rather than racing them, is in the way instead; and a staircase the player stands on isn't cut off, as nothing races them to it, but hostiles beside them would follow them off the level.
 _Avoid_: Blocked (when meaning this)
 
 **Corridor**:

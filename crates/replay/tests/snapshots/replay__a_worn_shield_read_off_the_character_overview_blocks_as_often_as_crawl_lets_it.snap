@@ -107,6 +107,9 @@ expression: by_turn
         },
         "gaps": [
           {
+            "gap": "abilityMenu"
+          },
+          {
             "gap": "spellList"
           }
         ],
@@ -191,6 +194,9 @@ expression: by_turn
           "nearestCorridor": null
         },
         "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
           {
             "gap": "spellList"
           }
@@ -277,6 +283,9 @@ expression: by_turn
           "nearestCorridor": null
         },
         "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
           {
             "gap": "spellList"
           }

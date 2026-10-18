@@ -154,6 +154,12 @@ pub enum Blocker {
         /// Those that can, the first there first.
         by: Vec<Interceptor>,
     },
+    /// The player stands on the staircase, and hostiles beside them would follow them off the
+    /// level: it takes them away from every other monster, but not from these.
+    Followed {
+        /// Those that would.
+        by: Vec<Interceptor>,
+    },
     /// A status the player has stops it, such as confusion stopping them reading.
     Status {
         /// The status, as the status pane names it: its words, such as `confused`, or its

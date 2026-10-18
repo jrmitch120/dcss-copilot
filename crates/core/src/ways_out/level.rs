@@ -150,8 +150,11 @@ impl OnTheLevel<'_> {
                 if !in_the_way.is_empty() {
                     because.push(Blocker::InTheWay { by: in_the_way });
                 }
-                if !cut_off.is_empty() {
-                    because.push(Blocker::CutOff { by: cut_off });
+                match (cut_off.is_empty(), steps) {
+                    (true, _) => {}
+                    // Standing on it, nothing races them there: those beside them come along.
+                    (false, 0) => because.push(Blocker::Followed { by: cut_off }),
+                    (false, _) => because.push(Blocker::CutOff { by: cut_off }),
                 }
                 let usable = if because.is_empty() {
                     Usable::Yes

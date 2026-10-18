@@ -8,7 +8,7 @@ use copilot_gk::{Bundle, Use};
 use super::{Blocker, Escape, ReadOn, Usable, WayOut};
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::fact_sheet::Gap;
-use crate::visible_state::{Religion, VisibleState};
+use crate::visible_state::VisibleState;
 
 /// The item class whose items are read, and the one whose are drunk.
 const SCROLLS: &str = "OBJ_SCROLLS";
@@ -82,16 +82,15 @@ impl Carried<'_> {
     }
 
     /// The abilities that are Ways Out, as the ability menu last showed them, each stopped by
-    /// the player's statuses or their magic. Never having read the menu is a Gap in `gaps` for
-    /// a player who worships a god, who has abilities to use.
+    /// the player's statuses or their magic. Never having read the menu is a Gap in `gaps`:
+    /// abilities come from gods, species, mutations and gear alike, and crawl answers the menu
+    /// key even when there are none.
     pub(super) fn abilities(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         let Some((abilities, read)) = self
             .remembered
             .and_then(|remembered| current(&remembered.abilities))
         else {
-            if matches!(self.visible.religion, Some(Religion::God { .. })) {
-                gaps.insert(Gap::AbilityMenu);
-            }
+            gaps.insert(Gap::AbilityMenu);
             return Vec::new();
         };
         let signs = &self.bundle.ways_out;

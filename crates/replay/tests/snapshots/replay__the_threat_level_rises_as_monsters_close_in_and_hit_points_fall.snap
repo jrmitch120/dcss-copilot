@@ -68,6 +68,9 @@ expression: fact_sheets_by_turn(JACKALS)
         },
         "gaps": [
           {
+            "gap": "abilityMenu"
+          },
+          {
             "gap": "spellList"
           }
         ],
@@ -145,6 +148,9 @@ expression: fact_sheets_by_turn(JACKALS)
         },
         "gaps": [
           {
+            "gap": "abilityMenu"
+          },
+          {
             "gap": "spellList"
           }
         ],
@@ -221,6 +227,9 @@ expression: fact_sheets_by_turn(JACKALS)
           "nearestCorridor": null
         },
         "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
           {
             "gap": "spellList"
           }
