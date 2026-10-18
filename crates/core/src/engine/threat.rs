@@ -5,8 +5,9 @@
 use copilot_gk::{Bundle, EnumId, Formulas, MissileKind, Monster, MonsterSpells, Odds, Wand};
 
 use crate::accumulated_state::Shield;
-use crate::carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, WAND_OF};
-use crate::fact_sheet::Unplayed;
+use crate::carried_gear::{
+    CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed, WAND_OF, WANDS,
+};
 
 use super::brands::Brand;
 use super::lighting::Lighting;
@@ -256,117 +257,10 @@ impl<'a> Attacker<'a> {
     /// Possible Gear given that it is nothing the listing would have named. With what of the gear
     /// isn't played as it is.
     pub(crate) fn carrying(self, bundle: &'a Bundle, gear: &CarriedGear) -> (Self, Vec<Unplayed>) {
-        let monster = self.monster;
-        let variant = bundle.formulas.missile_attack;
         let mut unplayed = Vec::new();
-        let mut shoots = Vec::new();
-        let (mut launcher, mut thrown, mut wand) = (None, None, None);
-        for item in &gear.items {
-            let Some(kind) = &item.kind else { continue };
-            if kind.class.0 == WANDS {
-                wand = wand.or(Some(item));
-                continue;
-            }
-            let Some((id, weapon)) = kind
-                .sub_type
-                .as_ref()
-                .and_then(|id| bundle.missile_weapons.get_key_value(id))
-            else {
-                continue;
-            };
-            match (weapon.kind, item.slot) {
-                (MissileKind::Launcher, GearSlot::Wielding | GearSlot::Carrying)
-                    if launcher.is_none() =>
-                {
-                    let plus = item.plus.unwrap_or_else(|| {
-                        unplayed.push(Unplayed::UnknownPlus {
-                            item: item.name.clone(),
-                        });
-                        0
-                    });
-                    let brand = launcher_brand(bundle, item, &mut unplayed);
-                    launcher = Some(Missile::of(variant, id, weapon, plus, brand));
-                    shoots.push(item.name.clone());
-                }
-                (MissileKind::Thrown, GearSlot::Quivering) if thrown.is_none() => {
-                    if let ItemBrand::Unnamed(brand) = &item.brand {
-                        unplayed.push(Unplayed::BrandNotPorted {
-                            item: item.name.clone(),
-                            brand: brand.clone(),
-                        });
-                    }
-                    thrown = Some(Missile::plain(variant, id, weapon));
-                    shoots.push(item.name.clone());
-                }
-                _ => {}
-            }
-        }
-        let missiles = if launcher.is_some() || thrown.is_some() {
-            Draw::always(Missiles { launcher, thrown })
-        } else {
-            let wields = gear
-                .items
-                .iter()
-                .any(|item| item.slot == GearSlot::Wielding);
-            let may_be = |id: &EnumId| match gear.unlisted {
-                Unlisted::Nothing => false,
-                Unlisted::PlainLargeRocks => id.0 == LARGE_ROCK,
-                // An ordinary weapon goes unlisted only in the main hand.
-                Unlisted::PlainWeaponsAndLargeRocks => {
-                    id.0 == LARGE_ROCK
-                        || !wields
-                            && bundle
-                                .missile_weapons
-                                .get(id)
-                                .is_some_and(|weapon| weapon.kind == MissileKind::Launcher)
-                }
-            };
-            let missiles = Draw::given(&monster.gear.missile, may_be, |id| {
-                plain_missile(bundle, id)
-            });
-            shoots.extend(
-                missiles
-                    .items()
-                    .flat_map(|missiles| missiles.each())
-                    .map(|missile| missile.weapon.name.clone()),
-            );
-            missiles
-        };
-        let (wands, unported_wand) = match wand {
-            None => (Draw::none(), false),
-            Some(item) => match item.kind.as_ref().and_then(|kind| kind.sub_type.as_ref()) {
-                Some(id) => match wand_zap(bundle, monster, id) {
-                    Some(zap) => {
-                        shoots.push(item.name.clone());
-                        (Draw::always(zap), false)
-                    }
-                    None => {
-                        unplayed.push(Unplayed::WandNotPorted {
-                            item: item.name.clone(),
-                        });
-                        (Draw::none(), true)
-                    }
-                },
-                // An unidentified wand, which can't be told apart from its kind's others: one of
-                // those, by their odds. A named wand the Game Knowledge lacks isn't one of them.
-                None if !item.name.starts_with(WAND_OF) && monster.gear.wand.is_possible() => {
-                    let wands =
-                        Draw::one_of(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
-                    shoots.extend(
-                        wands
-                            .items()
-                            .map(|zap| format!("wand of {}", zap.wand.name)),
-                    );
-                    (wands, unported(bundle, monster, &monster.gear.wand))
-                }
-                None => {
-                    unplayed.push(Unplayed::UnnamedWand {
-                        item: item.name.clone(),
-                    });
-                    (Draw::none(), false)
-                }
-            },
-        };
+        let (missiles, mut shoots) = carried_missiles(bundle, self.monster, gear, &mut unplayed);
+        let (wands, unported_wand, zaps) = carried_wand(bundle, self.monster, gear, &mut unplayed);
+        shoots.extend(zaps);
         let attacker = Self {
             missiles,
             wands,
@@ -390,15 +284,8 @@ impl<'a> Attacker<'a> {
 
     /// The names of the launchers, missiles and wands of its Possible Gear that are played out.
     fn possible_names(&self) -> Vec<String> {
-        self.missiles
-            .items()
-            .flat_map(|missiles| missiles.each())
-            .map(|missile| missile.weapon.name.clone())
-            .chain(
-                self.wands
-                    .items()
-                    .map(|zap| format!("wand of {}", zap.wand.name)),
-            )
+        kinds_of_missile(&self.missiles)
+            .chain(kinds_of_wand(&self.wands))
             .collect()
     }
 
@@ -428,11 +315,141 @@ impl<'a> Attacker<'a> {
     }
 }
 
-/// The class of wands.
-const WANDS: &str = "OBJ_WANDS";
-
 /// The large rock, which crawl doesn't list unless it is branded.
 const LARGE_ROCK: &str = "MI_LARGE_ROCK";
+
+/// What `monster` shoots or throws of its Carried Gear, `gear`, with the names of what is played:
+/// the launcher and the missiles to throw the game named, or, when it named neither, its kind's
+/// Possible Gear given that it is nothing the listing would have named. What isn't played as the
+/// game named it goes in `unplayed`.
+fn carried_missiles<'a>(
+    bundle: &'a Bundle,
+    monster: &Monster,
+    gear: &CarriedGear,
+    unplayed: &mut Vec<Unplayed>,
+) -> (Draw<Missiles<'a>>, Vec<String>) {
+    let variant = bundle.formulas.missile_attack;
+    let mut names = Vec::new();
+    let (mut launcher, mut thrown) = (None, None);
+    for item in &gear.items {
+        let Some((id, weapon)) = item
+            .kind
+            .as_ref()
+            .and_then(|kind| kind.sub_type.as_ref())
+            .and_then(|id| bundle.missile_weapons.get_key_value(id))
+        else {
+            continue;
+        };
+        match (weapon.kind, item.slot) {
+            (MissileKind::Launcher, GearSlot::Wielding | GearSlot::Carrying)
+                if launcher.is_none() =>
+            {
+                let plus = item.plus.unwrap_or_else(|| {
+                    unplayed.push(Unplayed::UnknownPlus {
+                        item: item.name.clone(),
+                    });
+                    0
+                });
+                let brand = launcher_brand(bundle, item, unplayed);
+                launcher = Some(Missile::of(variant, id, weapon, plus, brand));
+                names.push(item.name.clone());
+            }
+            (MissileKind::Thrown, GearSlot::Quivering) if thrown.is_none() => {
+                if let ItemBrand::Unnamed(brand) = &item.brand {
+                    unplayed.push(Unplayed::BrandNotPorted {
+                        item: item.name.clone(),
+                        brand: brand.clone(),
+                    });
+                }
+                thrown = Some(Missile::plain(variant, id, weapon));
+                names.push(item.name.clone());
+            }
+            _ => {}
+        }
+    }
+    if launcher.is_some() || thrown.is_some() {
+        return (Draw::always(Missiles { launcher, thrown }), names);
+    }
+    let wields = gear
+        .items
+        .iter()
+        .any(|item| item.slot == GearSlot::Wielding);
+    let may_be = |id: &EnumId| match gear.unlisted {
+        Unlisted::Nothing => false,
+        Unlisted::PlainLargeRocks => id.0 == LARGE_ROCK,
+        // An ordinary weapon goes unlisted only in the main hand.
+        Unlisted::PlainWeaponsAndLargeRocks => {
+            id.0 == LARGE_ROCK
+                || !wields
+                    && bundle
+                        .missile_weapons
+                        .get(id)
+                        .is_some_and(|weapon| weapon.kind == MissileKind::Launcher)
+        }
+    };
+    let missiles = Draw::given(&monster.gear.missile, may_be, |id| {
+        plain_missile(bundle, id)
+    });
+    let names = kinds_of_missile(&missiles).collect();
+    (missiles, names)
+}
+
+/// The wand `monster` zaps of its Carried Gear, `gear`, whether it may carry one whose spell
+/// isn't ported, and the names of what is played: the wand the game named, or, for one it
+/// couldn't name, one of its kind's wands by their odds. What isn't played goes in `unplayed`.
+fn carried_wand<'a>(
+    bundle: &'a Bundle,
+    monster: &Monster,
+    gear: &CarriedGear,
+    unplayed: &mut Vec<Unplayed>,
+) -> (Draw<WandZap<'a>>, bool, Vec<String>) {
+    let Some(item) = gear
+        .items
+        .iter()
+        .find(|item| item.kind.as_ref().is_some_and(|kind| kind.class.0 == WANDS))
+    else {
+        return (Draw::none(), false, Vec::new());
+    };
+    match item.kind.as_ref().and_then(|kind| kind.sub_type.as_ref()) {
+        Some(id) => match wand_zap(bundle, monster, id) {
+            Some(zap) => (Draw::always(zap), false, vec![item.name.clone()]),
+            None => {
+                unplayed.push(Unplayed::WandNotPorted {
+                    item: item.name.clone(),
+                });
+                (Draw::none(), true, Vec::new())
+            }
+        },
+        // An unidentified wand, which can't be told apart from its kind's others: one of those,
+        // by their odds. A named wand the Game Knowledge lacks isn't one of them.
+        None if !item.name.starts_with(WAND_OF) && monster.gear.wand.is_possible() => {
+            let wands = Draw::one_of(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
+            let names = kinds_of_wand(&wands).collect();
+            (wands, unported(bundle, monster, &monster.gear.wand), names)
+        }
+        None => {
+            unplayed.push(Unplayed::UnnamedWand {
+                item: item.name.clone(),
+            });
+            (Draw::none(), false, Vec::new())
+        }
+    }
+}
+
+/// The names of the kinds of launcher and missile `missiles` may be, such as `shortbow`.
+fn kinds_of_missile<'d>(missiles: &'d Draw<Missiles<'_>>) -> impl Iterator<Item = String> + 'd {
+    missiles
+        .items()
+        .flat_map(|missiles| missiles.each())
+        .map(|missile| missile.weapon.name.clone())
+}
+
+/// The names of the kinds of wand `wands` may be, such as `wand of flame`.
+fn kinds_of_wand<'d>(wands: &'d Draw<WandZap<'_>>) -> impl Iterator<Item = String> + 'd {
+    wands
+        .items()
+        .map(|zap| format!("{WAND_OF}{}", zap.wand.name))
+}
 
 /// The launcher or throwing missile `id`, +0 and unbranded, if the bundle has it.
 fn plain_missile<'a>(bundle: &'a Bundle, id: &EnumId) -> Option<Missiles<'a>> {

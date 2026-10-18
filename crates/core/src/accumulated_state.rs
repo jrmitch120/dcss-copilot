@@ -248,10 +248,17 @@ impl AccumulatedState {
         monster: &VisibleMonster,
         bundle: &Bundle,
     ) -> Option<&Remembered<CarriedGear, GearSource>> {
-        if is_unique(monster, bundle) {
-            self.uniques_gear.get(&monster.name)
-        } else {
-            self.carried_gear.get(&monster.sighting?)
+        match GearKey::of(monster, bundle)? {
+            GearKey::Sighting(sighting) => self.carried_gear.get(&sighting),
+            GearKey::Unique(name) => self.uniques_gear.get(name),
+        }
+    }
+
+    /// The Carried Gear remembered under `key`, to change.
+    fn gear_mut(&mut self, key: GearKey<'_>) -> Option<&mut Remembered<CarriedGear, GearSource>> {
+        match key {
+            GearKey::Sighting(sighting) => self.carried_gear.get_mut(&sighting),
+            GearKey::Unique(name) => self.uniques_gear.get_mut(name),
         }
     }
 
@@ -277,8 +284,8 @@ impl AccumulatedState {
                 .iter()
                 .any(|was| was.name == monster.name && (was.sighting == monster.sighting));
             if came_back
-                && is_unique(monster, bundle)
-                && let Some(gear) = self.uniques_gear.get_mut(&monster.name)
+                && let Some(key @ GearKey::Unique(_)) = GearKey::of(monster, bundle)
+                && let Some(gear) = self.gear_mut(key)
             {
                 gear.go_stale();
             }
@@ -317,14 +324,9 @@ impl AccumulatedState {
                     if !names_match(&name, &monster.name) {
                         continue;
                     }
-                    let gear = if is_unique(monster, bundle) {
-                        self.uniques_gear.get_mut(&monster.name)
-                    } else {
-                        monster
-                            .sighting
-                            .and_then(|sighting| self.carried_gear.get_mut(&sighting))
-                    };
-                    if let Some(gear) = gear {
+                    if let Some(gear) =
+                        GearKey::of(monster, bundle).and_then(|key| self.gear_mut(key))
+                    {
                         gear.go_stale();
                     }
                 }
@@ -340,10 +342,13 @@ impl AccumulatedState {
         for unplaced in std::mem::take(&mut self.unplaced) {
             let mut fits = now.monsters.iter().flatten().filter(|monster| {
                 names_match(&unplaced.name, &monster.name)
-                    && (is_unique(monster, bundle)
-                        || monster
-                            .sighting
-                            .is_some_and(|sighting| !self.carried_gear.contains_key(&sighting)))
+                    && match GearKey::of(monster, bundle) {
+                        Some(GearKey::Sighting(sighting)) => {
+                            !self.carried_gear.contains_key(&sighting)
+                        }
+                        Some(GearKey::Unique(_)) => true,
+                        None => false,
+                    }
             });
             match (fits.next(), fits.next()) {
                 (Some(monster), None) => {
@@ -378,21 +383,41 @@ impl AccumulatedState {
             turn,
             source,
         });
-        if is_unique(monster, bundle) {
-            self.uniques_gear.insert(monster.name.clone(), read);
-        } else if let Some(sighting) = monster.sighting {
-            self.carried_gear.insert(sighting, read);
+        match GearKey::of(monster, bundle) {
+            Some(GearKey::Sighting(sighting)) => {
+                self.carried_gear.insert(sighting, read);
+            }
+            Some(GearKey::Unique(name)) => {
+                self.uniques_gear.insert(name.to_owned(), read);
+            }
+            None => {}
         }
     }
 }
 
-/// Whether `monster` is a unique, whose Carried Gear is its own across sightings.
-fn is_unique(monster: &VisibleMonster, bundle: &Bundle) -> bool {
-    monster
-        .id
-        .as_ref()
-        .and_then(|id| bundle.monster_by_id(id))
-        .is_some_and(|kind| kind.unique)
+/// Whose Carried Gear a monster's is: its Sighting's, or, for a unique, its own across
+/// sightings, by name.
+#[derive(Debug, Clone, Copy)]
+enum GearKey<'a> {
+    Sighting(Sighting),
+    Unique(&'a str),
+}
+
+impl<'a> GearKey<'a> {
+    /// `monster`'s, its kind judged by `bundle`: none for a monster that isn't a unique and that
+    /// the Game Source can't tell apart from others.
+    fn of(monster: &'a VisibleMonster, bundle: &Bundle) -> Option<Self> {
+        let unique = monster
+            .id
+            .as_ref()
+            .and_then(|id| bundle.monster_by_id(id))
+            .is_some_and(|kind| kind.unique);
+        if unique {
+            Some(Self::Unique(&monster.name))
+        } else {
+            monster.sighting.map(Self::Sighting)
+        }
+    }
 }
 
 /// Whether a message's `said` name, without its article, names the monster called `name` in

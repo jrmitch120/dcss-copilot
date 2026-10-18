@@ -83,6 +83,46 @@ pub enum ItemBrand {
     Unknown,
 }
 
+/// Something about a monster's Carried Gear the simulation doesn't play out as the game named it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(
+    tag = "unplayed",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum Unplayed {
+    /// A launcher whose name doesn't show its enchantment: played as +0.
+    UnknownPlus {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
+    /// A launcher whose name doesn't show its brand: played as unbranded.
+    UnknownBrand {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
+    /// A launcher or missile whose brand isn't ported, such as venom or poison: played as
+    /// unbranded, its effect left with the attack flavours.
+    BrandNotPorted {
+        /// Its name, as the game wrote it.
+        item: String,
+        /// The brand, as its name gives it.
+        brand: String,
+    },
+    /// A wand whose spell the engine doesn't port, such as paralysis: assumed never zapped.
+    WandNotPorted {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
+    /// A wand the Advisor can't name, carried by a monster whose kind crawl never makes with a
+    /// wand, so its odds can't say which: not played.
+    UnnamedWand {
+        /// Its name, as the game wrote it, such as `bone wand`, or a wand of a kind the Game
+        /// Knowledge lacks.
+        item: String,
+    },
+}
+
 /// What a message of the game says of monsters' gear.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Said {
@@ -152,6 +192,9 @@ const CHANGES: [&str; 6] = [
 
 /// The articles crawl names a monster or an item with.
 const ARTICLES: [&str; 3] = ["a ", "an ", "the "];
+
+/// The class of wands.
+pub(crate) const WANDS: &str = "OBJ_WANDS";
 
 /// What a wand's name starts with once identified, and ends with before (`item_def::name_aux`,
 /// `item-name.cc:1659`).
@@ -349,9 +392,9 @@ fn item(slot: GearSlot, name: &str, bundle: &Bundle) -> CarriedItem {
             .iter()
             .find(|(_, known)| known.name == wand)
             .map(|(id, _)| id.clone());
-        (kind_of(bundle, "OBJ_WANDS", sub_type), ItemBrand::None)
+        (kind_of(bundle, WANDS, sub_type), ItemBrand::None)
     } else if body.ends_with(WAND) {
-        (kind_of(bundle, "OBJ_WANDS", None), ItemBrand::None)
+        (kind_of(bundle, WANDS, None), ItemBrand::None)
     } else {
         named_kind(body, plus.is_some(), artefact, bundle)
     };

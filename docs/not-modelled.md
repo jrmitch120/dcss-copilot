@@ -110,6 +110,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** `carriedGear`, when a monster whose kind may shoot, throw or zap is in view without its Carried Gear read; and each monster's gear on the Fact Sheet, with what of its Carried Gear isn't played: an enchantment or brand its name doesn't show, a brand the engine doesn't port, or a wand neither named nor one its kind is made with.
 - **Harness:** the missile harness draws a monster's launcher or missile from its gear, so never both: a monster with both, which takes its launcher two times in three (`handle_throw`), isn't checked.
 - **Impact and cost:** large for a monster whose gear isn't read, with a good launcher or a wand its kind seldom has. Looking at it (`x`) reads its gear; reading picked-up gear off the pick-up and wield messages, which only make it Stale, would keep more of it Known.
+- **Issue:** [#113], [#114], [#116]
 
 ### Wands not played out
 
@@ -358,6 +359,9 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 [#40]: https://github.com/jrmitch120/dcss-copilot/issues/40
 [#77]: https://github.com/jrmitch120/dcss-copilot/issues/77
+[#113]: https://github.com/jrmitch120/dcss-copilot/issues/113
+[#114]: https://github.com/jrmitch120/dcss-copilot/issues/114
+[#116]: https://github.com/jrmitch120/dcss-copilot/issues/116
 [#85]: https://github.com/jrmitch120/dcss-copilot/issues/85
 [#86]: https://github.com/jrmitch120/dcss-copilot/issues/86
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92

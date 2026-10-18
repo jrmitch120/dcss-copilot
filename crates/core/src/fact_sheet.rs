@@ -8,7 +8,7 @@ use serde::Serialize;
 use specta::Type;
 
 use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
-use crate::carried_gear::Unlisted;
+use crate::carried_gear::{Unlisted, Unplayed};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
@@ -171,6 +171,15 @@ pub struct GearPlayed {
     pub unplayed: Vec<Unplayed>,
 }
 
+impl GearPlayed {
+    /// Whether it may shoot, throw or zap by its kind's Possible Gear, which is played as its
+    /// Carried Gear isn't read.
+    #[must_use]
+    pub fn guessed_shooter(&self) -> bool {
+        self.basis == GearBasis::Possible { may_shoot: true }
+    }
+}
+
 /// Whose gear the simulation played out for a monster.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(
@@ -207,46 +216,6 @@ pub enum KnownOrStale {
     Known,
     /// Something the game has shown since may have changed it.
     Stale,
-}
-
-/// Something about a monster's Carried Gear the simulation doesn't play out as the game named it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(
-    tag = "unplayed",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum Unplayed {
-    /// A launcher whose name doesn't show its enchantment: played as +0.
-    UnknownPlus {
-        /// Its name, as the game wrote it.
-        item: String,
-    },
-    /// A launcher whose name doesn't show its brand: played as unbranded.
-    UnknownBrand {
-        /// Its name, as the game wrote it.
-        item: String,
-    },
-    /// A launcher or missile whose brand isn't ported, such as venom or poison: played as
-    /// unbranded, its effect left with the attack flavours.
-    BrandNotPorted {
-        /// Its name, as the game wrote it.
-        item: String,
-        /// The brand, as its name gives it.
-        brand: String,
-    },
-    /// A wand whose spell the engine doesn't port, such as paralysis: assumed never zapped.
-    WandNotPorted {
-        /// Its name, as the game wrote it.
-        item: String,
-    },
-    /// A wand the Advisor can't name, carried by a monster whose kind crawl never makes with a
-    /// wand, so its odds can't say which: not played.
-    UnnamedWand {
-        /// Its name, as the game wrote it, such as `bone wand`, or a wand of a kind the Game
-        /// Knowledge lacks.
-        item: String,
-    },
 }
 
 /// Something the engine doesn't model, in the Threat Level's simulation or in judging the Ways
@@ -528,10 +497,7 @@ fn threat(
             attackers.push(attacker);
         }
     }
-    if gear
-        .iter()
-        .any(|played| played.basis == GearBasis::Possible { may_shoot: true })
-    {
+    if gear.iter().any(GearPlayed::guessed_shooter) {
         not_modelled.push(NotModelled::CarriedGear);
     }
     if acting.iter().any(|(_, others)| !others.is_empty()) {

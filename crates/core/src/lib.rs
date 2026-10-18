@@ -14,11 +14,11 @@ mod ways_out;
 
 pub use accumulated_state::{AccumulatedState, AsOf, GearSource, Remembered, Shield};
 pub use advisor::Advisor;
-pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted};
+pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
 pub use engine::oracle;
 pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, Gap, GearBasis, GearPlayed, KnownOrStale, NotModelled,
-    Threat, ThreatAssessment, ThreatLevel, Unplayed,
+    Threat, ThreatAssessment, ThreatLevel,
 };
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead};

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use copilot_gk::{Bundle, Library, Monster};
 
 use crate::accumulated_state::AccumulatedState;
-use crate::fact_sheet::{FactSheet, GearBasis, Threat, ThreatAssessment, attacks_player};
+use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, attacks_player};
 use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
     AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail, TileName,
@@ -239,9 +239,7 @@ fn threat_detail(assessment: &ThreatAssessment) -> Option<String> {
 fn may_shoot_note(assessment: &ThreatAssessment) -> Option<String> {
     let mut names: Vec<&str> = Vec::new();
     for monster in &assessment.gear {
-        if monster.basis == (GearBasis::Possible { may_shoot: true })
-            && !names.contains(&monster.name.as_str())
-        {
+        if monster.guessed_shooter() && !names.contains(&monster.name.as_str()) {
             names.push(&monster.name);
         }
     }
