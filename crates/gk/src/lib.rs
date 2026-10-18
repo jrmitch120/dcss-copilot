@@ -102,8 +102,112 @@ pub struct Bundle {
     pub monster_threats: BTreeMap<u8, EnumId>,
     /// What the game shows that tells the player's Lighting.
     pub lighting: LightingSigns,
+    /// Which of the player's items, spells and abilities are Ways Out, and the statuses that stop
+    /// them.
+    pub ways_out: WayOutSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
+}
+
+/// Which of the things the player carries, casts and invokes are Ways Out, and what the game
+/// shows that stops them being used, as this Crawl Version has them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WayOutSigns {
+    /// The kinds of item that are Ways Out, such as the scroll of teleportation.
+    pub items: Vec<EscapeItem>,
+    /// The spells that are Ways Out, such as Blink.
+    pub spells: Vec<EscapeSpell>,
+    /// The abilities that are Ways Out, such as Trog's Berserk.
+    pub abilities: Vec<EscapeAbility>,
+    /// The statuses that stop the player using things.
+    pub stops: Vec<Stop>,
+}
+
+/// A kind of item that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeItem {
+    /// Its class, such as `OBJ_SCROLLS`.
+    pub class: EnumId,
+    /// Its sub-type, such as `SCR_TELEPORTATION`.
+    pub sub_type: EnumId,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// A spell that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeSpell {
+    /// Its `spell_type` identifier, such as `SPELL_BLINK`.
+    pub spell: EnumId,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// An ability that is a Way Out.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EscapeAbility {
+    /// Its name, as the ability menu (`a`) lists it, such as `Berserk`.
+    pub name: String,
+    /// What it does for the player.
+    pub effect: Relief,
+    /// It is a god's power, invoked aloud, which silence stops (`talent::is_invocation`).
+    pub invocation: bool,
+    /// It moves the player by magic, which a dimension anchor stops.
+    pub translocation: bool,
+}
+
+/// What a Way Out does for the player in trouble.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Relief {
+    /// Restores hit points.
+    Heals,
+    /// Takes them away from danger at once, such as a blink.
+    Escapes,
+    /// Takes them away after a delay, such as a scroll of teleportation.
+    EscapesLater,
+    /// Keeps monsters from reaching or seeing them, such as fog or fear.
+    Hinders,
+    /// Makes them faster.
+    Hastens,
+    /// Makes them hit harder and take more, such as berserking.
+    Strengthens,
+}
+
+/// A status that stops the player using some things while it lasts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Stop {
+    /// The light or the words the status pane shows for it, such as `Conf` or `silenced`.
+    pub status: String,
+    /// What it stops.
+    pub stops: Vec<Use>,
+}
+
+/// A way the player uses a Way Out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Use {
+    /// Reading a scroll.
+    Reading,
+    /// Drinking a potion.
+    Drinking,
+    /// Casting a spell.
+    Casting,
+    /// Using an ability.
+    UsingAbilities,
+    /// Invoking a god's power aloud.
+    Invoking,
+    /// Being moved by magic, as a blink or a teleport moves them.
+    Translocating,
 }
 
 /// What the game shows that tells how the light falls on the player, the Lighting crawl's

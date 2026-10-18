@@ -51936,6 +51936,223 @@
       "of light"
     ]
   },
+  "waysOut": {
+    "items": [
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_HEAL_WOUNDS",
+        "effect": "heals",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_CURING",
+        "effect": "heals",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_HASTE",
+        "effect": "hastens",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_INVISIBILITY",
+        "effect": "hinders",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_POTIONS",
+        "subType": "POT_BERSERK_RAGE",
+        "effect": "strengthens",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_BLINKING",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_TELEPORTATION",
+        "effect": "escapesLater",
+        "translocation": true
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_FOG",
+        "effect": "hinders",
+        "translocation": false
+      },
+      {
+        "class": "OBJ_SCROLLS",
+        "subType": "SCR_FEAR",
+        "effect": "hinders",
+        "translocation": false
+      }
+    ],
+    "spells": [
+      {
+        "spell": "SPELL_BLINK",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "spell": "SPELL_GOLUBRIAS_PASSAGE",
+        "effect": "escapes",
+        "translocation": true
+      },
+      {
+        "spell": "SPELL_PASSWALL",
+        "effect": "escapesLater",
+        "translocation": false
+      },
+      {
+        "spell": "SPELL_SWIFTNESS",
+        "effect": "hastens",
+        "translocation": false
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Evoke Blink",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": true
+      },
+      {
+        "name": "Blinkbolt",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": true
+      },
+      {
+        "name": "Hop",
+        "effect": "escapes",
+        "invocation": false,
+        "translocation": false
+      },
+      {
+        "name": "Heal Wounds",
+        "effect": "heals",
+        "invocation": false,
+        "translocation": false
+      },
+      {
+        "name": "Berserk",
+        "effect": "strengthens",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Sanctuary",
+        "effect": "hinders",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Heal Self",
+        "effect": "heals",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Draw Escape",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Bend Time",
+        "effect": "hinders",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Step From Time",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Shadowslip",
+        "effect": "escapes",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Draw Out Power",
+        "effect": "heals",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Serpent's Lash",
+        "effect": "hastens",
+        "invocation": true,
+        "translocation": false
+      },
+      {
+        "name": "Rising Flame",
+        "effect": "escapesLater",
+        "invocation": true,
+        "translocation": false
+      }
+    ],
+    "stops": [
+      {
+        "status": "Conf",
+        "stops": [
+          "reading",
+          "casting",
+          "usingAbilities"
+        ]
+      },
+      {
+        "status": "Berserk",
+        "stops": [
+          "reading",
+          "drinking",
+          "casting",
+          "usingAbilities"
+        ]
+      },
+      {
+        "status": "silenced",
+        "stops": [
+          "reading",
+          "casting",
+          "invoking"
+        ]
+      },
+      {
+        "status": "-Scroll",
+        "stops": [
+          "reading"
+        ]
+      },
+      {
+        "status": "-Potion",
+        "stops": [
+          "drinking"
+        ]
+      },
+      {
+        "status": "-Cast",
+        "stops": [
+          "casting"
+        ]
+      },
+      {
+        "status": "-Tele",
+        "stops": [
+          "translocating"
+        ]
+      }
+    ]
+  },
   "formulas": {
     "monsterToHit": "crawl-0.34",
     "evasionRoll": "crawl-0.34",

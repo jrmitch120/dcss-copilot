@@ -11,6 +11,7 @@ mod gear;
 mod image;
 mod spells;
 mod tiles;
+mod ways_out;
 mod yaml;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -42,6 +43,7 @@ const SERIES: &[Series] = &[Series {
     innate_umbras: &["MONS_DEATH_KNIGHT"],
     lighting: &LIGHTING_0_34,
     features: &features::FEATURE_RULES_0_34,
+    ways_out: &ways_out::WAY_OUT_RULES_0_34,
 }];
 
 /// What crawl 0.34 shows that tells the player's Lighting: `player::backlit` and
@@ -138,6 +140,8 @@ struct Series {
     lighting: &'static LightingRules,
     /// What it decides about dungeon features in code rather than in `feat_defs`.
     features: &'static features::FeatureRules,
+    /// What it counts as a Way Out, and what stops each.
+    ways_out: &'static ways_out::WayOutRules,
 }
 
 /// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
@@ -399,6 +403,9 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         never_firewood: crawl.never_firewood(series, &monster_type)?,
         innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
     };
+    let item_classes = crawl.item_classes(&item_names)?;
+    let spells = crawl.spells()?;
+    let ways_out = crawl.ways_out(series.ways_out, &item_classes, &spells)?;
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -414,8 +421,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &mut tiles,
             crawl.tag_major,
         )?,
-        item_classes: crawl.item_classes(&item_names)?,
-        spells: crawl.spells()?,
+        item_classes,
+        spells,
         missile_weapons,
         wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,
@@ -428,6 +435,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
         lighting: crawl.lighting(series.lighting)?,
+        ways_out,
         formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })
@@ -611,26 +619,24 @@ impl Crawl {
         known_monsters(never.iter().map(String::as_str), monster_type)
     }
 
+    /// The text of `shown`, once found in crawl's source as it says.
+    fn shown(&self, shown: &Shown) -> Result<String, ExtractError> {
+        let evidence = shown.evidence();
+        let unspaced = |text: &str| text.split_whitespace().collect::<String>();
+        if unspaced(&read(&self.source.join(shown.file))?).contains(&unspaced(&evidence)) {
+            Ok(shown.text.to_owned())
+        } else {
+            Err(ExtractError::Missing {
+                file: shown.file.to_owned(),
+                what: evidence,
+            })
+        }
+    }
+
     /// The texts of `rules`, each found in crawl's source as its rule says.
     fn lighting(&self, rules: &LightingRules) -> Result<LightingSigns, ExtractError> {
         let texts = |shown: &[Shown]| -> Result<Vec<String>, ExtractError> {
-            shown
-                .iter()
-                .map(|shown| {
-                    let evidence = shown.evidence();
-                    let unspaced = |text: &str| text.split_whitespace().collect::<String>();
-                    if unspaced(&read(&self.source.join(shown.file))?)
-                        .contains(&unspaced(&evidence))
-                    {
-                        Ok(shown.text.to_owned())
-                    } else {
-                        Err(ExtractError::Missing {
-                            file: shown.file.to_owned(),
-                            what: evidence,
-                        })
-                    }
-                })
-                .collect()
+            shown.iter().map(|shown| self.shown(shown)).collect()
         };
         Ok(LightingSigns {
             backlighting_lights: texts(rules.backlighting_lights)?,
