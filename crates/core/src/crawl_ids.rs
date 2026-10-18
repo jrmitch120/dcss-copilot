@@ -5,21 +5,9 @@
 //! every shipped Game Knowledge bundle. A list tied to one Formula Variant, such as the spells
 //! crawl 0.34 fires as plain zaps, stays with its variant's code and is checked there.
 
-/// Declares a group of identifiers as constants, and lists them all in `ALL` for the test.
-macro_rules! identifiers {
-    ($(#[$group_doc:meta])* $group:ident { $($(#[$doc:meta])* $name:ident = $id:literal;)+ }) => {
-        $(#[$group_doc])*
-        pub(crate) mod $group {
-            $($(#[$doc])* pub(crate) const $name: &str = $id;)+
+use copilot_gk::crawl_identifiers;
 
-            /// Every identifier in the group.
-            #[cfg(test)]
-            pub(crate) const ALL: &[&str] = &[$($name),+];
-        }
-    };
-}
-
-identifiers! {
+crawl_identifiers! {
     /// `monster_type` identifiers.
     monster_types {
         /// Made with a tier and facets its Game Knowledge entry doesn't carry:
@@ -28,7 +16,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `monster_type` identifiers a monster's kind names as its genus.
     genera {
         /// Draconians, which breathe by their colour, a breath outside their book: `drac_breath`
@@ -37,7 +25,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `attack_type` identifiers.
     attack_types {
         /// The empty slot crawl pads a monster's attacks with.
@@ -45,7 +33,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `attack_flavour` identifiers.
     attack_flavours {
         /// It grabs, and deals no damage itself.
@@ -72,7 +60,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `spell_type` identifiers the engine treats on their own.
     spell_types {
         STICKY_FLAME = "SPELL_STICKY_FLAME";
@@ -83,7 +71,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `mon_spell_slot_flag` identifiers.
     spell_slot_flags {
         BREATH = "MON_SPELL_BREATH";
@@ -94,7 +82,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `beam_type` identifiers: the flavour of a spell's zap.
     beam_types {
         DAMNATION = "BEAM_DAMNATION";
@@ -105,7 +93,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `brand_type` identifiers.
     brand_types {
         /// No brand, as the crawl oracle names a thrown missile's.
@@ -122,7 +110,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `object_class_type` identifiers.
     object_classes {
         WEAPONS = "OBJ_WEAPONS";
@@ -134,7 +122,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `missile_type` identifiers.
     missile_types {
         DART = "MI_DART";
@@ -145,7 +133,7 @@ identifiers! {
     }
 }
 
-identifiers! {
+crawl_identifiers! {
     /// `armour_type` identifiers.
     armour_types {
         BUCKLER = "ARM_BUCKLER";

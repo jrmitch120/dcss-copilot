@@ -505,6 +505,34 @@ pub struct CrawlSource {
     pub license: String,
 }
 
+/// Declares a group of crawl identifiers a crate compares Game Knowledge against, as a module of
+/// constants, and lists them all in the module's `ALL` for that crate's tests to check against
+/// every shipped bundle: a typo, or crawl renaming one, would otherwise compile and quietly never
+/// match.
+///
+/// ```
+/// copilot_gk::crawl_identifiers! {
+///     /// `monster_type` identifiers.
+///     monster_types {
+///         GOBLIN = "MONS_GOBLIN";
+///     }
+/// }
+/// assert_eq!(monster_types::GOBLIN, "MONS_GOBLIN");
+/// ```
+#[macro_export]
+macro_rules! crawl_identifiers {
+    ($(#[$group_doc:meta])* $group:ident { $($(#[$doc:meta])* $name:ident = $id:literal;)+ }) => {
+        $(#[$group_doc])*
+        pub(crate) mod $group {
+            $($(#[$doc])* pub(crate) const $name: &str = $id;)+
+
+            /// Every identifier in the group.
+            #[cfg(test)]
+            pub(crate) const ALL: &[&str] = &[$($name),+];
+        }
+    };
+}
+
 /// A crawl enum identifier, such as `MONS_GOBLIN` or `POT_CURING`. Identifiers stay the same when
 /// crawl renumbers its enums, so they name a thing across Crawl Versions.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

@@ -9,6 +9,8 @@ use copilot_core::{
 use copilot_gk::{Bundle, EnumId};
 use serde_json::Value;
 
+use crate::crawl_ids::{attitudes, monster_threats};
+
 /// Tile background flags that mark a cell the player can't see now, from crawl's
 /// `tile-flags.h` (`TILE_FLAG_MM_UNSEEN | TILE_FLAG_UNSEEN`). The page's `enums.js` reads the same
 /// bits; they have held since tiles came to webtiles.
@@ -339,12 +341,12 @@ fn decode<'a, T: TryFrom<i64>, U>(
 /// The attitude a `mon_attitude_type` identifier names.
 fn attitude(id: &EnumId) -> Option<Attitude> {
     Some(match id.0.as_str() {
-        "ATT_HOSTILE" => Attitude::Hostile,
-        "ATT_NEUTRAL" => Attitude::Neutral,
-        "ATT_GOOD_NEUTRAL" => Attitude::GoodNeutral,
-        "ATT_STRICT_NEUTRAL" | "ATT_OLD_STRICT_NEUTRAL" => Attitude::StrictNeutral,
-        "ATT_FRIENDLY" => Attitude::Friendly,
-        "ATT_MARIONETTE" => Attitude::Marionette,
+        attitudes::HOSTILE => Attitude::Hostile,
+        attitudes::NEUTRAL => Attitude::Neutral,
+        attitudes::GOOD_NEUTRAL => Attitude::GoodNeutral,
+        attitudes::OLD_STRICT_NEUTRAL => Attitude::StrictNeutral,
+        attitudes::FRIENDLY => Attitude::Friendly,
+        attitudes::MARIONETTE => Attitude::Marionette,
         _ => return None,
     })
 }
@@ -352,10 +354,10 @@ fn attitude(id: &EnumId) -> Option<Attitude> {
 /// The rating a `mon_threat_level_type` identifier names.
 fn crawl_threat(id: &EnumId) -> Option<CrawlThreat> {
     Some(match id.0.as_str() {
-        "MTHRT_TRIVIAL" => CrawlThreat::Trivial,
-        "MTHRT_EASY" => CrawlThreat::Easy,
-        "MTHRT_TOUGH" => CrawlThreat::Tough,
-        "MTHRT_NASTY" => CrawlThreat::Nasty,
+        monster_threats::TRIVIAL => CrawlThreat::Trivial,
+        monster_threats::EASY => CrawlThreat::Easy,
+        monster_threats::TOUGH => CrawlThreat::Tough,
+        monster_threats::NASTY => CrawlThreat::Nasty,
         _ => return None,
     })
 }

@@ -1,5 +1,6 @@
 //! The webtiles Game Source adapter: the only crate that knows the webtiles protocol.
 
+mod crawl_ids;
 mod envelope;
 mod inventory;
 mod json;
