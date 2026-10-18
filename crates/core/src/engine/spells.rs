@@ -85,8 +85,33 @@ pub(crate) struct DamagingSpell<'a> {
     pub(crate) spell: &'a Spell,
     /// The zap it fires.
     pub(crate) zap: &'a Zap,
+    /// Where its caster stands once it is cast.
+    pub(crate) landing: Landing,
     damage: ZapDamage,
     to_hit: ZapToHit,
+}
+
+/// Where a monster stands once it has cast a spell at the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Landing {
+    /// Where it cast it from.
+    Stays,
+    /// Beside the player: a blinkbolt carries its caster along it.
+    BesideThePlayer,
+}
+
+/// Where `spell`'s caster stands once it has cast it at the player.
+///
+/// A blinkbolt blinks its caster to the farthest square of the bolt's path it can stand on
+/// (`bolt::affect_endpoint`, `beam.cc:2700`): beside the player when something stops the bolt
+/// behind them, and past them on open floor, as the bolt pierces. The engine has no map
+/// (`NotModelled::Paths`), so it lands the caster beside the player wherever it cast from: the
+/// most dangerous landing, and the one that keeps the Threat Level erring high (#85).
+fn landing(variant: MonsterSpellBeam, spell: &Spell) -> Landing {
+    match variant {
+        MonsterSpellBeam::Crawl034 if spell.id.0 == "SPELL_BLINKBOLT" => Landing::BesideThePlayer,
+        MonsterSpellBeam::Crawl034 => Landing::Stays,
+    }
 }
 
 /// How a monster's spellbook holds a spell: how often and when it is cast.
@@ -183,6 +208,7 @@ pub(crate) fn damaging(variant: MonsterSpellBeam, spell: &Spell) -> Option<Damag
     Some(DamagingSpell {
         spell,
         zap,
+        landing: landing(variant, spell),
         damage: zap.monster_damage?,
         to_hit: zap.monster_to_hit?,
     })
