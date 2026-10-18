@@ -35,7 +35,7 @@ const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
 
 /// The kind crawl gives a tier and facets as it is made, so its Game Knowledge entry tells little
 /// of it: `_mutant_beast_facet_attack` and `init_mutant_beast` in `mon-util.cc`.
-const MUTANT_BEAST: &str = "MONS_MUTANT_BEAST";
+const MUTANT_BEAST_ID: &str = "MONS_MUTANT_BEAST";
 
 /// The flavours of a first attack that swoop at or flank the foe: `_handle_swoop_or_flank` in
 /// `mon-act.cc`, which looks at the first attack only.
@@ -523,7 +523,7 @@ fn threat(
     }
     if hostile
         .iter()
-        .any(|(_, monster)| monster.id.0 == MUTANT_BEAST)
+        .any(|(_, monster)| monster.id.0 == MUTANT_BEAST_ID)
     {
         not_modelled.push(NotModelled::MutantBeastFacets);
     }
