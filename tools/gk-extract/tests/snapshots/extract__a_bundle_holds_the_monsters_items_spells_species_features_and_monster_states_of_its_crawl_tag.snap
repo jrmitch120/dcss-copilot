@@ -981,7 +981,8 @@ expression: bundle
           "id": "WPN_ORCBOW",
           "name": "orcbow"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "1": {
       "id": "OBJ_MISSILES",
@@ -994,7 +995,8 @@ expression: bundle
           "id": "MI_STONE",
           "name": "stone"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "2": {
       "id": "OBJ_ARMOUR",
@@ -1015,7 +1017,8 @@ expression: bundle
           "id": "ARM_STORM_DRAGON_ARMOUR",
           "name": "storm dragon scales"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "3": {
       "id": "OBJ_WANDS",
@@ -1028,11 +1031,13 @@ expression: bundle
           "id": "WAND_PARALYSIS",
           "name": "paralysis"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "4": {
       "id": "OBJ_FOOD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "5": {
       "id": "OBJ_SCROLLS",
@@ -1061,7 +1066,8 @@ expression: bundle
           "id": "SCR_HOLY_WORD",
           "name": "holy word"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "6": {
       "id": "OBJ_JEWELLERY",
@@ -1074,7 +1080,8 @@ expression: bundle
           "id": "AMU_FAITH",
           "name": "faith"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "7": {
       "id": "OBJ_POTIONS",
@@ -1099,7 +1106,8 @@ expression: bundle
           "id": "POT_BERSERK_RAGE",
           "name": "berserk rage"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "8": {
       "id": "OBJ_BOOKS",
@@ -1112,7 +1120,8 @@ expression: bundle
           "id": "BOOK_CONJURATIONS",
           "name": "Conjurations"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "9": {
       "id": "OBJ_STAVES",
@@ -1125,11 +1134,13 @@ expression: bundle
           "id": "STAFF_FIRE",
           "name": "fire"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "10": {
       "id": "OBJ_ORBS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "11": {
       "id": "OBJ_MISCELLANY",
@@ -1142,19 +1153,23 @@ expression: bundle
           "id": "MISC_BOX_OF_BEASTS",
           "name": "box of beasts"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "12": {
       "id": "OBJ_CORPSES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "13": {
       "id": "OBJ_GOLD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "14": {
       "id": "OBJ_RODS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "15": {
       "id": "OBJ_RUNES",
@@ -1167,7 +1182,8 @@ expression: bundle
           "id": "RUNE_GEHENNA",
           "name": "obsidian"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "16": {
       "id": "OBJ_TALISMANS",
@@ -1180,19 +1196,23 @@ expression: bundle
           "id": "TALISMAN_INKWELL",
           "name": "inkwell talisman"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "17": {
       "id": "OBJ_GEMS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "18": {
       "id": "OBJ_GIZMOS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "19": {
       "id": "OBJ_BAUBLES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     }
   },
   "spells": {

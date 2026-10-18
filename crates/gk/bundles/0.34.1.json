@@ -42044,7 +42044,8 @@
           "id": "WPN_PARTISAN",
           "name": "partisan"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "1": {
       "id": "OBJ_MISSILES",
@@ -42093,7 +42094,8 @@
           "id": "MI_SLUG",
           "name": "slug"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "2": {
       "id": "OBJ_ARMOUR",
@@ -42270,7 +42272,8 @@
           "id": "ARM_ORB",
           "name": "orb"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "3": {
       "id": "OBJ_WANDS",
@@ -42323,11 +42326,13 @@
           "id": "WAND_WARPING",
           "name": "warping"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "4": {
       "id": "OBJ_FOOD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "5": {
       "id": "OBJ_SCROLLS",
@@ -42424,7 +42429,8 @@
           "id": "SCR_BUTTERFLIES",
           "name": "butterflies"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "6": {
       "id": "OBJ_JEWELLERY",
@@ -42589,7 +42595,8 @@
           "id": "AMU_DISSIPATION",
           "name": "dissipation"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "7": {
       "id": "OBJ_POTIONS",
@@ -42662,7 +42669,8 @@
           "id": "POT_LIGNIFY",
           "name": "lignification"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "8": {
       "id": "OBJ_BOOKS",
@@ -42951,7 +42959,8 @@
           "id": "BOOK_CONTRAPTIONS",
           "name": "Contraptions"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "9": {
       "id": "OBJ_STAVES",
@@ -43008,11 +43017,13 @@
           "id": "STAFF_CHANNELLING",
           "name": "channelling"
         }
-      }
+      },
+      "kindsHidden": true
     },
     "10": {
       "id": "OBJ_ORBS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "11": {
       "id": "OBJ_MISCELLANY",
@@ -43101,19 +43112,23 @@
           "id": "MISC_SHOP_VOUCHER",
           "name": "shop voucher"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "12": {
       "id": "OBJ_CORPSES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "13": {
       "id": "OBJ_GOLD",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "14": {
       "id": "OBJ_RODS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "15": {
       "id": "OBJ_RUNES",
@@ -43194,7 +43209,8 @@
           "id": "RUNE_FOREST",
           "name": "mossy"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "16": {
       "id": "OBJ_TALISMANS",
@@ -43287,19 +43303,23 @@
           "id": "TALISMAN_SPORE",
           "name": "spore talisman"
         }
-      }
+      },
+      "kindsHidden": false
     },
     "17": {
       "id": "OBJ_GEMS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "18": {
       "id": "OBJ_GIZMOS",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     },
     "19": {
       "id": "OBJ_BAUBLES",
-      "subTypes": {}
+      "subTypes": {},
+      "kindsHidden": false
     }
   },
   "spells": {

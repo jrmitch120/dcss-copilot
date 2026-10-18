@@ -10,7 +10,8 @@ expression: replay.visible.inventory
     "kind": {
       "class": "OBJ_WEAPONS",
       "subType": "WPN_MACE"
-    }
+    },
+    "useless": false
   },
   {
     "letter": "b",
@@ -19,6 +20,7 @@ expression: replay.visible.inventory
     "kind": {
       "class": "OBJ_POTIONS",
       "subType": "POT_CURING"
-    }
+    },
+    "useless": false
   }
 ]

@@ -744,6 +744,10 @@ pub struct ItemClass {
     /// Its sub-types, by enum value: an item's webtiles `sub_type`. Empty for a class the
     /// extractor has no name table for.
     pub sub_types: BTreeMap<u16, ItemSubType>,
+    /// The player doesn't know which sub-type one of its items is until they identify it, as a
+    /// scroll's is unknown until read (crawl's `item_type_has_ids`). Webtiles sends the
+    /// sub-type all the same.
+    pub kinds_hidden: bool,
 }
 
 /// One kind of item within a class, such as the potion of curing.

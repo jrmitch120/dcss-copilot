@@ -44,6 +44,13 @@ const SERIES: &[Series] = &[Series {
     lighting: &LIGHTING_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
+    kinds_hidden: &[
+        "OBJ_WANDS",
+        "OBJ_SCROLLS",
+        "OBJ_JEWELLERY",
+        "OBJ_POTIONS",
+        "OBJ_STAVES",
+    ],
 }];
 
 /// What crawl 0.34 shows that tells the player's Lighting: `player::backlit` and
@@ -142,6 +149,9 @@ struct Series {
     features: &'static features::FeatureRules,
     /// What it counts as a Way Out, and what stops each.
     ways_out: &'static ways_out::WayOutRules,
+    /// The item classes whose items hide their sub-type until identified: crawl's
+    /// `item_type_has_ids` (`item-name.cc`), which is code rather than data.
+    kinds_hidden: &'static [&'static str],
 }
 
 /// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
@@ -403,7 +413,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         never_firewood: crawl.never_firewood(series, &monster_type)?,
         innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
     };
-    let item_classes = crawl.item_classes(&item_names)?;
+    let item_classes = crawl.item_classes(&item_names, series.kinds_hidden)?;
     let spells = crawl.spells()?;
     let ways_out = crawl.ways_out(series.ways_out, &item_classes, &spells)?;
     let bundle = Bundle {
@@ -513,9 +523,19 @@ impl Crawl {
     fn item_classes(
         &self,
         names: &BTreeMap<String, String>,
+        kinds_hidden: &[&str],
     ) -> Result<BTreeMap<u8, ItemClass>, ExtractError> {
         let mut classes = BTreeMap::new();
         let all = self.enumeration("object-class-type.h", "object_class_type")?;
+        if let Some(missing) = kinds_hidden
+            .iter()
+            .find(|class| !all.iter().any(|(id, _)| id == *class))
+        {
+            return Err(ExtractError::Missing {
+                file: "object-class-type.h".to_owned(),
+                what: (*missing).to_owned(),
+            });
+        }
         for (id, value) in all
             .into_iter()
             .take_while(|(id, _)| id != "NUM_OBJECT_CLASSES")
@@ -539,6 +559,7 @@ impl Crawl {
             classes.insert(
                 in_range(&id, value)?,
                 ItemClass {
+                    kinds_hidden: kinds_hidden.contains(&id.as_str()),
                     id: EnumId(id),
                     sub_types,
                 },
