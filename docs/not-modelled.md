@@ -78,6 +78,15 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the spell and turn harnesses leave out draconians.
 - **Impact and cost:** moderate in the Zot and Depths levels where they gather. Game Knowledge would carry each colour's breath, and the turn harness would draw draconians.
 
+### A mutant beast's facets
+
+- **What crawl does:** a mutant beast is made at a tier, which sets its HD and its hit's damage, and with two facets, which may add a reaching sting, a trample and armour, a constricting crush, double speed and flight, fire breath or a blinkbolt (`init_mutant_beast`, `_mutant_beast_facet_attack`).
+- **What the engine assumes:** it is its kind's Game Knowledge entry: HD 15, one hit for 27, no facets.
+- **Surfaced as:** `mutantBeastFacets`, when a hostile mutant beast is in view.
+- **Harness:** the turn harness leaves out mutant beasts.
+- **Impact and cost:** large when one is in view, mostly erring low: its reach, attacks, damage, speed and spells may all be wrong. Its name tells its tier and facets, so they could be read.
+- **Issue:** [#95], [#120]
+
 ### The player's resistances
 
 - **What crawl does:** a beam's damage, and what a launcher's elemental, draining or pain brand adds, is cut by the player's resistances (`check_your_resists`, `resist_adjust_damage`). Holy wrath hurts only an undead or demonic player, and foul flame hurts them less and a holy one more (`player::res_foul_flame`).
@@ -278,15 +287,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the turn harness leaves out shapeshifters.
 - **Impact and cost:** small: it fights as the shape it has until it changes. Listing it needs the game's sign that a monster is a shapeshifter.
 
-### A mutant beast's facets
-
-- **What crawl does:** a mutant beast is given facets as it is made, which may add attacks its kind lacks, such as a reaching sting (`_mutant_beast_facet_attack`).
-- **What the engine assumes:** it has its kind's attacks only.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves out mutant beasts.
-- **Impact and cost:** errs low: its reach, its attacks and their damage may all be wrong. Its name tells its facets, so they could be read.
-- **Issue:** [#95]
-
 ### Dying in its own turns
 
 - **What crawl does:** some monsters die in their own turns (`monster_die`), as one that explodes does.
@@ -354,4 +354,5 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104
 [#106]: https://github.com/jrmitch120/dcss-copilot/issues/106
 [#108]: https://github.com/jrmitch120/dcss-copilot/issues/108
+[#120]: https://github.com/jrmitch120/dcss-copilot/issues/120
 [#121]: https://github.com/jrmitch120/dcss-copilot/issues/121

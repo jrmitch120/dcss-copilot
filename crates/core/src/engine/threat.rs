@@ -6,8 +6,9 @@ use copilot_gk::{Bundle, EnumId, Formulas, MissileKind, Monster, MonsterSpells, 
 
 use crate::accumulated_state::Shield;
 use crate::carried_gear::{
-    CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed, WAND_OF, WANDS,
+    CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed, WAND_OF,
 };
+use crate::crawl_ids::{missile_types, object_classes};
 
 use super::brands::Brand;
 use super::lighting::Lighting;
@@ -315,9 +316,6 @@ impl<'a> Attacker<'a> {
     }
 }
 
-/// The large rock, which crawl doesn't list unless it is branded.
-const LARGE_ROCK: &str = "MI_LARGE_ROCK";
-
 /// What `monster` shoots or throws of its Carried Gear, `gear`, with the names of what is played:
 /// the launcher and the missiles to throw the game named, or, when it named neither, its kind's
 /// Possible Gear given that it is nothing the listing would have named. What isn't played as the
@@ -376,10 +374,10 @@ fn carried_missiles<'a>(
         .any(|item| item.slot == GearSlot::Wielding);
     let may_be = |id: &EnumId| match gear.unlisted {
         Unlisted::Nothing => false,
-        Unlisted::PlainLargeRocks => id.0 == LARGE_ROCK,
+        Unlisted::PlainLargeRocks => id.0 == missile_types::LARGE_ROCK,
         // An ordinary weapon goes unlisted only in the main hand.
         Unlisted::PlainWeaponsAndLargeRocks => {
-            id.0 == LARGE_ROCK
+            id.0 == missile_types::LARGE_ROCK
                 || !wields
                     && bundle
                         .missile_weapons
@@ -403,11 +401,11 @@ fn carried_wand<'a>(
     gear: &CarriedGear,
     unplayed: &mut Vec<Unplayed>,
 ) -> (Draw<WandZap<'a>>, bool, Vec<String>) {
-    let Some(item) = gear
-        .items
-        .iter()
-        .find(|item| item.kind.as_ref().is_some_and(|kind| kind.class.0 == WANDS))
-    else {
+    let Some(item) = gear.items.iter().find(|item| {
+        item.kind
+            .as_ref()
+            .is_some_and(|kind| kind.class.0 == object_classes::WANDS)
+    }) else {
         return (Draw::none(), false, Vec::new());
     };
     match item.kind.as_ref().and_then(|kind| kind.sub_type.as_ref()) {

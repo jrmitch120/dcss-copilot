@@ -8,6 +8,8 @@
 use copilot_gk::{Bundle, EnumId, ItemKind, MissileKind};
 use serde::Serialize;
 
+use crate::crawl_ids::object_classes;
+
 /// What one monster has been seen to wield, quiver or carry, as the game listed it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -192,9 +194,6 @@ const CHANGES: [&str; 6] = [
 
 /// The articles crawl names a monster or an item with.
 const ARTICLES: [&str; 3] = ["a ", "an ", "the "];
-
-/// The class of wands.
-pub(crate) const WANDS: &str = "OBJ_WANDS";
 
 /// What a wand's name starts with once identified, and ends with before (`item_def::name_aux`,
 /// `item-name.cc:1659`).
@@ -392,9 +391,15 @@ fn item(slot: GearSlot, name: &str, bundle: &Bundle) -> CarriedItem {
             .iter()
             .find(|(_, known)| known.name == wand)
             .map(|(id, _)| id.clone());
-        (kind_of(bundle, WANDS, sub_type), ItemBrand::None)
+        (
+            kind_of(bundle, object_classes::WANDS, sub_type),
+            ItemBrand::None,
+        )
     } else if body.ends_with(WAND) {
-        (kind_of(bundle, WANDS, None), ItemBrand::None)
+        (
+            kind_of(bundle, object_classes::WANDS, None),
+            ItemBrand::None,
+        )
     } else {
         named_kind(body, plus.is_some(), artefact, bundle)
     };
@@ -421,7 +426,7 @@ fn named_kind(
     for class in bundle.item_classes.values() {
         if !matches!(
             class.id.0.as_str(),
-            "OBJ_WEAPONS" | "OBJ_MISSILES" | "OBJ_ARMOUR"
+            object_classes::WEAPONS | object_classes::MISSILES | object_classes::ARMOUR
         ) {
             continue;
         }

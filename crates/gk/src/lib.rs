@@ -71,6 +71,11 @@ impl Library {
     pub fn for_version(&self, crawl_version: &str) -> Option<&Bundle> {
         self.bundles.get(crawl_version)
     }
+
+    /// Every bundle in the library, by Crawl Version.
+    pub fn bundles(&self) -> impl Iterator<Item = &Bundle> {
+        self.bundles.values()
+    }
 }
 
 /// Game Knowledge for one Crawl Version.
@@ -498,6 +503,34 @@ pub struct CrawlSource {
     pub commit: String,
     /// Crawl's copyright and license, which the extracted data and text are under.
     pub license: String,
+}
+
+/// Declares a group of crawl identifiers a crate compares Game Knowledge against, as a module of
+/// constants, and lists them all in the module's `ALL` for that crate's tests to check against
+/// every shipped bundle: a typo, or crawl renaming one, would otherwise compile and quietly never
+/// match.
+///
+/// ```
+/// copilot_gk::crawl_identifiers! {
+///     /// `monster_type` identifiers.
+///     monster_types {
+///         GOBLIN = "MONS_GOBLIN";
+///     }
+/// }
+/// assert_eq!(monster_types::GOBLIN, "MONS_GOBLIN");
+/// ```
+#[macro_export]
+macro_rules! crawl_identifiers {
+    ($(#[$group_doc:meta])* $group:ident { $($(#[$doc:meta])* $name:ident = $id:literal;)+ }) => {
+        $(#[$group_doc])*
+        pub(crate) mod $group {
+            $($(#[$doc])* pub(crate) const $name: &str = $id;)+
+
+            /// Every identifier in the group.
+            #[cfg(test)]
+            pub(crate) const ALL: &[&str] = &[$($name),+];
+        }
+    };
 }
 
 /// A crawl enum identifier, such as `MONS_GOBLIN` or `POT_CURING`. Identifiers stay the same when

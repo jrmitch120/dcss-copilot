@@ -11,6 +11,7 @@
 use copilot_gk::{Bundle, DamageBrand, EnumId, Intelligence, Monster, MonsterSpells};
 
 use super::rng::Rng;
+use crate::crawl_ids::brand_types;
 
 /// The school whose spells make a monster a necromancer, as `spschool` names it.
 const NECROMANCY: &str = "necromancy";
@@ -63,16 +64,16 @@ impl Brand {
     pub(crate) fn of(variant: DamageBrand, id: &EnumId) -> Self {
         match variant {
             DamageBrand::Crawl034 => match id.0.as_str() {
-                "SPWPN_NORMAL" => Self::Plain,
-                "SPWPN_FLAMING" => Self::Flaming,
-                "SPWPN_FREEZING" => Self::Freezing,
-                "SPWPN_ELECTROCUTION" => Self::Electrocution,
-                "SPWPN_HOLY_WRATH" => Self::HolyWrath,
-                "SPWPN_FOUL_FLAME" => Self::FoulFlame,
-                "SPWPN_DRAINING" => Self::Draining,
-                "SPWPN_PAIN" => Self::Pain,
-                "SPWPN_HEAVY" => Self::Heavy,
-                "SPWPN_SPEED" => Self::Speed,
+                brand_types::NORMAL => Self::Plain,
+                brand_types::FLAMING => Self::Flaming,
+                brand_types::FREEZING => Self::Freezing,
+                brand_types::ELECTROCUTION => Self::Electrocution,
+                brand_types::HOLY_WRATH => Self::HolyWrath,
+                brand_types::FOUL_FLAME => Self::FoulFlame,
+                brand_types::DRAINING => Self::Draining,
+                brand_types::PAIN => Self::Pain,
+                brand_types::HEAVY => Self::Heavy,
+                brand_types::SPEED => Self::Speed,
                 _ => Self::Other,
             },
         }

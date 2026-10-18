@@ -9,6 +9,7 @@ use specta::Type;
 
 use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
 use crate::carried_gear::{Unlisted, Unplayed};
+use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
@@ -29,25 +30,6 @@ const DANGEROUS_DEATHS_PER_MILLE: u32 = 5;
 /// DANGEROUS when the worst-case hit is at least this percentage of current HP. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
 const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
-
-/// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
-const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
-
-/// The flavours of a first attack that swoop at or flank the foe: `_handle_swoop_or_flank` in
-/// `mon-act.cc`, which looks at the first attack only.
-const SWOOP_OR_FLANK_FLAVOURS: [&str; 2] = ["AF_SWOOP", "AF_FLANK"];
-
-/// The flavours of an attack whose hit tramples the defender back or drags them along:
-/// `melee_attack::mons_attack_effects` in `melee-attack.cc`.
-const PLAYER_MOVING_FLAVOURS: [&str; 2] = ["AF_TRAMPLE", "AF_DRAG"];
-
-/// The flavour of an attack whose hit may blink the attacker away:
-/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
-const BLINK_FLAVOUR: &str = "AF_BLINK";
-
-/// The flavour of an attack whose hit may blink the attacker away and the defender with it:
-/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
-const BLINK_WITH_FLAVOUR: &str = "AF_BLINK_WITH";
 
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -264,6 +246,9 @@ pub enum NotModelled {
     SpellsPerMonster,
     /// A draconian in view breathes by its colour, which isn't played out.
     DraconianBreath,
+    /// A mutant beast in view is judged by its kind alone: the tier and facets it was made with
+    /// aren't played out, so its reach, attacks, damage, speed and spells may all be wrong.
+    MutantBeastFacets,
     /// Spells, and what a launcher's brand adds, land as if the player resists nothing and is a
     /// living mortal who worships no good god, because the engine doesn't apply the player's
     /// resistances yet.
@@ -510,9 +495,15 @@ fn threat(
     }
     if hostile
         .iter()
-        .any(|(_, monster)| monster.genus.0 == DRACONIAN_GENUS)
+        .any(|(_, monster)| monster.genus.0 == genera::DRACONIAN)
     {
         not_modelled.push(NotModelled::DraconianBreath);
+    }
+    if hostile
+        .iter()
+        .any(|(_, monster)| monster.id.0 == monster_types::MUTANT_BEAST)
+    {
+        not_modelled.push(NotModelled::MutantBeastFacets);
     }
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
@@ -773,17 +764,22 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
         (NotModelled::OwnActions, monster.own_actions),
         (
             NotModelled::SwoopOrFlank,
-            first_flavour.is_some_and(|flavour| SWOOP_OR_FLANK_FLAVOURS.contains(&flavour)),
+            first_flavour.is_some_and(|flavour| {
+                [attack_flavours::SWOOP, attack_flavours::FLANK].contains(&flavour)
+            }),
         ),
         (NotModelled::SpecialAbilities, monster.special_ability),
         (
             NotModelled::MovesThePlayer,
-            has_flavour(&PLAYER_MOVING_FLAVOURS),
+            has_flavour(&[attack_flavours::TRAMPLE, attack_flavours::DRAG]),
         ),
-        (NotModelled::BlinksAway, has_flavour(&[BLINK_FLAVOUR])),
+        (
+            NotModelled::BlinksAway,
+            has_flavour(&[attack_flavours::BLINK]),
+        ),
         (
             NotModelled::BlinksWithThePlayer,
-            has_flavour(&[BLINK_WITH_FLAVOUR]),
+            has_flavour(&[attack_flavours::BLINK_WITH]),
         ),
         // One that never moves never tries to leave.
         (
@@ -854,18 +850,17 @@ mod tests {
         assert_eq!(level(50, chance(0), 19), ThreatLevel::Calm);
     }
 
+    /// No defences to show, so no guessed fractions.
+    const NO_DEFENCES: DisplayedDefences = DisplayedDefences {
+        ac: 0,
+        ev: 0,
+        sh: 0,
+    };
+
     /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
     /// 100 HP with no defences.
     fn assessed_with(name: &str, distance: i32) -> ThreatAssessment {
-        assessed_defending(
-            name,
-            distance,
-            DisplayedDefences {
-                ac: 0,
-                ev: 0,
-                sh: 0,
-            },
-        )
+        assessed_defending(name, distance, NO_DEFENCES)
     }
 
     /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
@@ -875,10 +870,39 @@ mod tests {
         distance: i32,
         defences: DisplayedDefences,
     ) -> ThreatAssessment {
+        assessed_among(&[(name, distance, Attitude::Hostile)], defences)
+    }
+
+    /// The Threat Level with each `(name, distance, attitude)` in view, `distance` squares east
+    /// of a player on 100 HP who shows `defences`.
+    fn assessed_among(
+        monsters: &[(&str, i32, Attitude)],
+        defences: DisplayedDefences,
+    ) -> ThreatAssessment {
         let library = Library::shipped().unwrap();
         let bundle = library.for_version("0.34.1").unwrap();
-        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
         let player = Position { x: 10, y: 10 };
+        let in_view = monsters
+            .iter()
+            .map(|&(name, distance, attitude)| {
+                let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
+                VisibleMonster {
+                    name: name.to_owned(),
+                    glyph: Glyph {
+                        text: monster.glyph.clone(),
+                        colour: Colour::White,
+                    },
+                    id: Some(monster.id.clone()),
+                    position: Position {
+                        x: player.x + distance,
+                        y: player.y,
+                    },
+                    attitude: Some(attitude),
+                    crawl_threat: None,
+                    sighting: None,
+                }
+            })
+            .collect();
         let visible = VisibleState {
             stats: Stats {
                 hp: Some(100),
@@ -888,26 +912,50 @@ mod tests {
                 ..Stats::default()
             },
             position: Some(player),
-            monsters: Some(vec![VisibleMonster {
-                name: name.to_owned(),
-                glyph: Glyph {
-                    text: monster.glyph.clone(),
-                    colour: Colour::White,
-                },
-                id: Some(monster.id.clone()),
-                position: Position {
-                    x: player.x + distance,
-                    y: player.y,
-                },
-                attitude: Some(Attitude::Hostile),
-                crawl_threat: None,
-                sighting: None,
-            }]),
+            monsters: Some(in_view),
             ..VisibleState::default()
         };
         match FactSheet::compute(&visible, None, Some(bundle)).threat {
             Threat::Rated(assessment) => *assessment,
-            Threat::Unrated { gaps } => panic!("{name} isn't rated: {gaps:?}"),
+            Threat::Unrated { gaps } => panic!("{monsters:?} isn't rated: {gaps:?}"),
+        }
+    }
+
+    #[test]
+    fn a_hostile_mutant_beast_in_view_names_its_facets_once_however_many_are_in_view() {
+        for in_view in [
+            &[("mutant beast", 3, Attitude::Hostile)][..],
+            &[
+                ("mutant beast", 3, Attitude::Hostile),
+                ("mutant beast", 5, Attitude::Hostile),
+            ],
+        ] {
+            let assessment = assessed_among(in_view, NO_DEFENCES);
+            let named = assessment
+                .not_modelled
+                .iter()
+                .filter(|&&variant| variant == NotModelled::MutantBeastFacets)
+                .count();
+            assert_eq!(named, 1, "{in_view:?}");
+        }
+    }
+
+    #[test]
+    fn no_hostile_mutant_beast_in_view_names_no_facets() {
+        for in_view in [
+            &[("goblin", 3, Attitude::Hostile)][..],
+            &[
+                ("goblin", 3, Attitude::Hostile),
+                ("mutant beast", 5, Attitude::Friendly),
+            ],
+        ] {
+            let assessment = assessed_among(in_view, NO_DEFENCES);
+            assert!(
+                !assessment
+                    .not_modelled
+                    .contains(&NotModelled::MutantBeastFacets),
+                "{in_view:?}"
+            );
         }
     }
 
@@ -957,6 +1005,7 @@ mod tests {
             | NotModelled::OtherSpells
             | NotModelled::SpellsPerMonster
             | NotModelled::DraconianBreath
+            | NotModelled::MutantBeastFacets
             | NotModelled::PlayerResistances
             | NotModelled::CasterSafety
             | NotModelled::CarriedGear
@@ -1071,6 +1120,7 @@ mod tests {
             OtherSpells,
             SpellsPerMonster,
             DraconianBreath,
+            MutantBeastFacets,
             PlayerResistances,
             CasterSafety,
             CarriedGear,
