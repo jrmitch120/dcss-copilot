@@ -33,6 +33,10 @@ const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
 /// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
 const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
 
+/// The kind crawl gives a tier and facets as it is made, so its Game Knowledge entry tells little
+/// of it: `_mutant_beast_facet_attack` and `init_mutant_beast` in `mon-util.cc`.
+const MUTANT_BEAST: &str = "MONS_MUTANT_BEAST";
+
 /// The flavours of a first attack that swoop at or flank the foe: `_handle_swoop_or_flank` in
 /// `mon-act.cc`, which looks at the first attack only.
 const SWOOP_OR_FLANK_FLAVOURS: [&str; 2] = ["AF_SWOOP", "AF_FLANK"];
@@ -264,6 +268,9 @@ pub enum NotModelled {
     SpellsPerMonster,
     /// A draconian in view breathes by its colour, which isn't played out.
     DraconianBreath,
+    /// A mutant beast in view is judged by its kind alone: the tier and facets it was made with
+    /// aren't played out, so its reach, attacks, damage, speed and spells may all be wrong.
+    MutantBeastFacets,
     /// Spells, and what a launcher's brand adds, land as if the player resists nothing and is a
     /// living mortal who worships no good god, because the engine doesn't apply the player's
     /// resistances yet.
@@ -513,6 +520,12 @@ fn threat(
         .any(|(_, monster)| monster.genus.0 == DRACONIAN_GENUS)
     {
         not_modelled.push(NotModelled::DraconianBreath);
+    }
+    if hostile
+        .iter()
+        .any(|(_, monster)| monster.id.0 == MUTANT_BEAST)
+    {
+        not_modelled.push(NotModelled::MutantBeastFacets);
     }
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
@@ -926,6 +939,44 @@ mod tests {
     }
 
     #[test]
+    fn a_hostile_mutant_beast_in_view_names_its_facets_once_however_many_are_in_view() {
+        for in_view in [
+            &[("mutant beast", 3, Attitude::Hostile)][..],
+            &[
+                ("mutant beast", 3, Attitude::Hostile),
+                ("mutant beast", 5, Attitude::Hostile),
+            ],
+        ] {
+            let assessment = assessed_among(in_view, NO_DEFENCES);
+            let named = assessment
+                .not_modelled
+                .iter()
+                .filter(|&&variant| variant == NotModelled::MutantBeastFacets)
+                .count();
+            assert_eq!(named, 1, "{in_view:?}");
+        }
+    }
+
+    #[test]
+    fn no_hostile_mutant_beast_in_view_names_no_facets() {
+        for in_view in [
+            &[("goblin", 3, Attitude::Hostile)][..],
+            &[
+                ("goblin", 3, Attitude::Hostile),
+                ("mutant beast", 5, Attitude::Friendly),
+            ],
+        ] {
+            let assessment = assessed_among(in_view, NO_DEFENCES);
+            assert!(
+                !assessment
+                    .not_modelled
+                    .contains(&NotModelled::MutantBeastFacets),
+                "{in_view:?}"
+            );
+        }
+    }
+
+    #[test]
     fn the_guessed_fractions_are_named_whenever_a_displayed_defence_is_above_zero() {
         for (ac, ev, sh, named) in [
             (1, 0, 0, true),
@@ -971,6 +1022,7 @@ mod tests {
             | NotModelled::OtherSpells
             | NotModelled::SpellsPerMonster
             | NotModelled::DraconianBreath
+            | NotModelled::MutantBeastFacets
             | NotModelled::PlayerResistances
             | NotModelled::CasterSafety
             | NotModelled::CarriedGear
@@ -1085,6 +1137,7 @@ mod tests {
             OtherSpells,
             SpellsPerMonster,
             DraconianBreath,
+            MutantBeastFacets,
             PlayerResistances,
             CasterSafety,
             CarriedGear,
