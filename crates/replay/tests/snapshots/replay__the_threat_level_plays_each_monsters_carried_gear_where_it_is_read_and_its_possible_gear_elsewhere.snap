@@ -90,6 +90,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "playerResistances"
       ]
     }
@@ -165,6 +166,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "playerResistances"
       ]
     }
@@ -331,6 +333,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -494,6 +497,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -657,6 +661,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -820,6 +825,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -914,6 +920,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear"
       ]
     }
@@ -1069,6 +1076,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -1252,6 +1260,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -1451,6 +1460,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",
@@ -1676,6 +1686,7 @@ expression: threats
         "statuses",
         "paths",
         "awareness",
+        "defenceFractions",
         "carriedGear",
         "otherSpells",
         "otherWands",

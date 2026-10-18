@@ -279,6 +279,14 @@ pub(crate) struct DisplayedDefences {
     pub(crate) sh: i32,
 }
 
+impl DisplayedDefences {
+    /// Whether any of them hides a fraction that [`Defences::drawn_behind`] guesses: one shown
+    /// above 0.
+    pub(crate) fn hide_a_fraction(self) -> bool {
+        self.ac > 0 || self.ev > 0 || self.sh > 0
+    }
+}
+
 /// The player's AC, EV and SH in hundredths of a point, as crawl keeps them. Crawl rounds each
 /// at random every time it rolls with it, so the formulas ask for them through these methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

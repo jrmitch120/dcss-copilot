@@ -288,6 +288,10 @@ pub enum NotModelled {
     /// armour of light, and the Advisor doesn't know whether they wear it. They are assumed to
     /// have none, and to be backlit. The character overview (`%`) tells it.
     OwnHalo,
+    /// The player's AC, EV and SH carry fractions crawl rolls with and the game doesn't show:
+    /// each trial guesses them afresh, any as likely as another, so the chance of death is an
+    /// average over what they could be, and the player's own may give more or less.
+    DefenceFractions,
     /// The player is assumed to walk at standard speed, a square an action, whatever their
     /// species, statuses or gear.
     PlayerSpeed,
@@ -513,9 +517,13 @@ fn threat(
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
     not_modelled.extend(own_halo);
+    let defences = DisplayedDefences { ac, ev, sh };
+    if defences.hide_a_fraction() {
+        not_modelled.push(NotModelled::DefenceFractions);
+    }
     let defender = Defender {
         hp,
-        defences: DisplayedDefences { ac, ev, sh },
+        defences,
         lighting,
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
@@ -849,6 +857,24 @@ mod tests {
     /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
     /// 100 HP with no defences.
     fn assessed_with(name: &str, distance: i32) -> ThreatAssessment {
+        assessed_defending(
+            name,
+            distance,
+            DisplayedDefences {
+                ac: 0,
+                ev: 0,
+                sh: 0,
+            },
+        )
+    }
+
+    /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
+    /// 100 HP who shows `defences`.
+    fn assessed_defending(
+        name: &str,
+        distance: i32,
+        defences: DisplayedDefences,
+    ) -> ThreatAssessment {
         let library = Library::shipped().unwrap();
         let bundle = library.for_version("0.34.1").unwrap();
         let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
@@ -856,9 +882,9 @@ mod tests {
         let visible = VisibleState {
             stats: Stats {
                 hp: Some(100),
-                ac: Some(0),
-                ev: Some(0),
-                sh: Some(0),
+                ac: Some(defences.ac),
+                ev: Some(defences.ev),
+                sh: Some(defences.sh),
                 ..Stats::default()
             },
             position: Some(player),
@@ -882,6 +908,32 @@ mod tests {
         match FactSheet::compute(&visible, None, Some(bundle)).threat {
             Threat::Rated(assessment) => *assessment,
             Threat::Unrated { gaps } => panic!("{name} isn't rated: {gaps:?}"),
+        }
+    }
+
+    #[test]
+    fn any_displayed_defence_above_zero_is_named_as_hiding_a_guessed_fraction() {
+        for (ac, ev, sh) in [(1, 0, 0), (0, 1, 0), (0, 0, 1), (6, 8, 4), (3, -2, 0)] {
+            let assessment = assessed_defending("goblin", 1, DisplayedDefences { ac, ev, sh });
+            assert!(
+                assessment
+                    .not_modelled
+                    .contains(&NotModelled::DefenceFractions),
+                "AC {ac}, EV {ev}, SH {sh}"
+            );
+        }
+    }
+
+    #[test]
+    fn no_displayed_defence_above_zero_hides_no_fraction() {
+        for (ac, ev, sh) in [(0, 0, 0), (-1, -3, 0)] {
+            let assessment = assessed_defending("goblin", 1, DisplayedDefences { ac, ev, sh });
+            assert!(
+                !assessment
+                    .not_modelled
+                    .contains(&NotModelled::DefenceFractions),
+                "AC {ac}, EV {ev}, SH {sh}"
+            );
         }
     }
 
@@ -915,6 +967,7 @@ mod tests {
             | NotModelled::OtherWands
             | NotModelled::WornShield
             | NotModelled::OwnHalo
+            | NotModelled::DefenceFractions
             | NotModelled::PlayerSpeed
             | NotModelled::SwimmingAndFlying
             | NotModelled::UnexploredSquares
@@ -1028,6 +1081,7 @@ mod tests {
             OtherWands,
             WornShield,
             OwnHalo,
+            DefenceFractions,
             PlayerSpeed,
             SwimmingAndFlying,
             UnexploredSquares,

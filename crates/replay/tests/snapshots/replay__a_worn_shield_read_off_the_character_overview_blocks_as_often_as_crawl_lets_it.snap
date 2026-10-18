@@ -138,7 +138,8 @@ expression: by_turn
           "statuses",
           "paths",
           "awareness",
-          "wornShield"
+          "wornShield",
+          "defenceFractions"
         ]
       },
       "waysOut": {
@@ -269,7 +270,8 @@ expression: by_turn
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness"
+          "awareness",
+          "defenceFractions"
         ]
       },
       "waysOut": {
@@ -401,7 +403,8 @@ expression: by_turn
           "statuses",
           "paths",
           "awareness",
-          "wornShield"
+          "wornShield",
+          "defenceFractions"
         ]
       },
       "waysOut": {

@@ -75,6 +75,7 @@ expression: replay
             "statuses",
             "paths",
             "awareness",
+            "defenceFractions",
             "otherSpells"
           ]
         },
@@ -279,6 +280,7 @@ expression: replay
           "statuses",
           "paths",
           "awareness",
+          "defenceFractions",
           "otherSpells"
         ]
       },
