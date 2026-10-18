@@ -61,6 +61,86 @@ expression: replay
             "otherSpells",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc wizard",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc wizard",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -148,6 +228,86 @@ expression: replay
             "awareness",
             "otherSpells",
             "playerResistances"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc wizard",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc wizard",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
           ]
         }
       },
@@ -238,6 +398,86 @@ expression: replay
           "awareness",
           "otherSpells",
           "playerResistances"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "orc wizard",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "orc wizard",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 2,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
         ]
       }
     },

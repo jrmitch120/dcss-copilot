@@ -16,6 +16,22 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "monstersInView"
           }
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": null,
+        "gaps": [
+          {
+            "gap": "map"
+          },
+          {
+            "gap": "position"
+          },
+          {
+            "gap": "gameKnowledge"
+          }
+        ],
+        "notModelled": []
       }
     }
   },
@@ -42,6 +58,16 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   },
@@ -102,6 +128,16 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   },
@@ -162,6 +198,16 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   }

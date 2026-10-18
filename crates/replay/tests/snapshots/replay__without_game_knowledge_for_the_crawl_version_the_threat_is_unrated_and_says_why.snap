@@ -10,5 +10,18 @@ expression: replayer.advisor().fact_sheet()
         "gap": "gameKnowledge"
       }
     ]
+  },
+  "waysOut": {
+    "options": [],
+    "ground": null,
+    "gaps": [
+      {
+        "gap": "position"
+      },
+      {
+        "gap": "gameKnowledge"
+      }
+    ],
+    "notModelled": []
   }
 }

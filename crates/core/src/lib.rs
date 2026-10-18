@@ -9,6 +9,7 @@ mod game_source;
 mod screen;
 mod view_model;
 mod visible_state;
+mod ways_out;
 
 pub use accumulated_state::{AccumulatedState, AsOf, Remembered, Shield};
 pub use advisor::Advisor;
@@ -26,4 +27,7 @@ pub use view_model::{
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,
     RECENT_MESSAGES, Religion, SquareLight, Stats, Status, VisibleMonster, VisibleState,
+};
+pub use ways_out::{
+    Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut, WaysOut,
 };

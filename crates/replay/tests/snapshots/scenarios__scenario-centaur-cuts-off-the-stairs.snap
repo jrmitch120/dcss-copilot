@@ -1,0 +1,569 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz288632362",
+    "character": "wiz288632362",
+    "species": "Minotaur",
+    "firstSeenMs": 1792288633630,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 102,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 25,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 2,
+                "y": 2
+              },
+              "distance": 5,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": [
+                "orcbow",
+                "shortbow"
+              ]
+            }
+          ],
+          "mayShoot": [
+            {
+              "name": "centaur",
+              "position": {
+                "x": 2,
+                "y": 2
+              },
+              "distance": 5
+            }
+          ],
+          "lighting": "plain",
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "carriedGear"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "steps": 3
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 3,
+                        "arrivesAfter": 2,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -2,
+                  "y": 24
+                },
+                "steps": 35
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 31,
+                        "arrivesAfter": 21,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 32,
+                  "y": 7
+                },
+                "steps": 36
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 32,
+                        "arrivesAfter": 21,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 7,
+            "nearestCorridor": {
+              "position": {
+                "x": -5,
+                "y": 5
+              },
+              "steps": 4
+            }
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz288632362",
+          "species": "Minotaur",
+          "hp": 102,
+          "hpMax": 102,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Centaur can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 25 of 102 HP · Gear guessed from kind: centaur"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "c",
+                  "colour": "brown"
+                },
+                "tile": "mon/demihumanoids/taurs/centaur"
+              },
+              "name": "centaur",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 1,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 102,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 25,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 2,
+              "y": 2
+            },
+            "distance": 5,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": [
+              "orcbow",
+              "shortbow"
+            ]
+          }
+        ],
+        "mayShoot": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 2,
+              "y": 2
+            },
+            "distance": 5
+          }
+        ],
+        "lighting": "plain",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "carriedGear"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "steps": 3
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 4
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 3,
+                      "arrivesAfter": 2,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -2,
+                "y": 24
+              },
+              "steps": 35
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 31,
+                      "arrivesAfter": 21,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 32,
+                "y": 7
+              },
+              "steps": 36
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 32,
+                      "arrivesAfter": 21,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 7,
+          "nearestCorridor": {
+            "position": {
+              "x": -5,
+              "y": 5
+            },
+            "steps": 4
+          }
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz288632362",
+        "species": "Minotaur",
+        "hp": 102,
+        "hpMax": 102,
+        "turn": 1
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Centaur can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 25 of 102 HP · Gear guessed from kind: centaur"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "centaur",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

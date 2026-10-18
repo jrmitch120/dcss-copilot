@@ -1,0 +1,285 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz289156849",
+    "character": "wiz289156849",
+    "species": "Minotaur",
+    "firstSeenMs": 1792289158102,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 0,
+          "acting": [],
+          "mayShoot": [],
+          "lighting": "plain",
+          "notModelled": []
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz289156849",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "No hostiles in view.",
+          "detail": null
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": []
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 6,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 4,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "goblin",
+            "position": {
+              "x": -2,
+              "y": -4
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": [
+              "sling"
+            ]
+          }
+        ],
+        "mayShoot": [
+          {
+            "name": "goblin",
+            "position": {
+              "x": -2,
+              "y": -4
+            },
+            "distance": 2
+          }
+        ],
+        "lighting": "plain",
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "carriedGear"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 4
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "goblin",
+                      "position": {
+                        "x": -2,
+                        "y": -4
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 6
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "goblin",
+                      "position": {
+                        "x": -2,
+                        "y": -4
+                      },
+                      "moves": 3,
+                      "arrivesAfter": 3,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "corridor",
+          "openSides": 2
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz289156849",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 6
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Goblin can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 4 of 19 HP · Gear guessed from kind: goblin"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "g",
+                "colour": "lightGrey"
+              },
+              "tile": "mon/humanoids/goblin"
+            },
+            "name": "goblin",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

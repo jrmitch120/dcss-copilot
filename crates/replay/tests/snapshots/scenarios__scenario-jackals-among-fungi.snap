@@ -64,6 +64,106 @@ expression: replay
             "paths",
             "awareness"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": 1,
+                          "y": 1
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      },
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": 1,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      },
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": 2,
+                          "y": 2
+                        },
+                        "moves": 3,
+                        "arrivesAfter": 2,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -156,6 +256,106 @@ expression: replay
           "statuses",
           "paths",
           "awareness"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": 1,
+                        "y": 1
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    },
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": 1,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    },
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": 2,
+                        "y": 2
+                      },
+                      "moves": 3,
+                      "arrivesAfter": 2,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
         ]
       }
     },

@@ -66,6 +66,86 @@ expression: replay
             "awareness",
             "carriedGear"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 6
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 3,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -158,6 +238,86 @@ expression: replay
             "paths",
             "awareness",
             "carriedGear"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 6
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "centaur",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 3,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
           ]
         }
       },
@@ -253,6 +413,86 @@ expression: replay
           "paths",
           "awareness",
           "carriedGear"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 4
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 6
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "centaur",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 3,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
         ]
       }
     },

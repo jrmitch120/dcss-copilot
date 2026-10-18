@@ -42,6 +42,69 @@ expression: replay
             "paths",
             "awareness"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading up",
+                "direction": "up",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 3,
+                  "y": 3
+                },
+                "steps": 3
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ball python",
+                        "position": {
+                          "x": 5,
+                          "y": -1
+                        },
+                        "moves": 3,
+                        "arrivesAfter": 2,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 6,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -104,6 +167,36 @@ expression: replay
           "mayShoot": [],
           "lighting": "plain",
           "notModelled": []
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading up",
+                "direction": "up",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "corridor",
+            "openSides": 2
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -154,6 +247,36 @@ expression: replay
         "mayShoot": [],
         "lighting": "plain",
         "notModelled": []
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading up",
+              "direction": "up",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "steps": 0
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "corridor",
+          "openSides": 2
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
+        ]
       }
     },
     "game": {

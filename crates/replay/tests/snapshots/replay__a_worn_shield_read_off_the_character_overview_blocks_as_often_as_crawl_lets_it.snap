@@ -17,6 +17,22 @@ expression: by_turn
             "gap": "monstersInView"
           }
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": null,
+        "gaps": [
+          {
+            "gap": "map"
+          },
+          {
+            "gap": "position"
+          },
+          {
+            "gap": "gameKnowledge"
+          }
+        ],
+        "notModelled": []
       }
     }
   },
@@ -81,6 +97,16 @@ expression: by_turn
           "awareness",
           "wornShield"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   },
@@ -149,6 +175,16 @@ expression: by_turn
           "paths",
           "awareness"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   },
@@ -218,6 +254,16 @@ expression: by_turn
           "awareness",
           "wornShield"
         ]
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": []
       }
     }
   }

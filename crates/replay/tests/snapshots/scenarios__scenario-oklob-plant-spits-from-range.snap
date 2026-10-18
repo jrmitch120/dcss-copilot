@@ -56,6 +56,58 @@ expression: replay
             "awareness",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 5
+            }
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -139,6 +191,58 @@ expression: replay
             "awareness",
             "playerResistances"
           ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 4
+            }
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
         }
       },
       "game": {
@@ -221,6 +325,58 @@ expression: replay
             "paths",
             "awareness",
             "playerResistances"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 0
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": {
+              "position": {
+                "x": -1,
+                "y": -6
+              },
+              "steps": 4
+            }
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
           ]
         }
       },
@@ -306,6 +462,58 @@ expression: replay
           "paths",
           "awareness",
           "playerResistances"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 0
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": {
+            "position": {
+              "x": -1,
+              "y": -6
+            },
+            "steps": 4
+          }
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
         ]
       }
     },

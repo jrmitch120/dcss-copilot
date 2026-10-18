@@ -125,7 +125,7 @@ A monster's sight through an Umbra, so an Umbra around the player doesn't spoil 
 _Avoid_: Darkvision, see in the dark
 
 **Not Modelled**:
-What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
+What the Threat Level's simulation or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
 _Avoid_: Unsupported, ignored, edge cases
 
 **Formula Variant**:
@@ -139,6 +139,14 @@ _Avoid_: Reference implementation, ground truth
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.
 _Avoid_: Escape (when meaning the whole list), panic button
+
+**Cut Off**:
+A staircase is cut off when a hostile in view can stand beside it by the time the player has walked there and takes it, to attack them or follow them off the level: reckoned from the monster's speed at the most energy it could have, over the explored map and the unexplored squares beyond it. A monster standing on the player's path, rather than racing them, is in the way instead.
+_Avoid_: Blocked (when meaning this)
+
+**Corridor**:
+A square monsters can attack the player from at most two sides of, so they come at them one or two at a time. Anywhere else is open ground.
+_Avoid_: Chokepoint, hallway
 
 **Gap**:
 A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it.
