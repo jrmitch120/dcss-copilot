@@ -1,11 +1,14 @@
 //! Accumulated State: what the Advisor remembers of one game that the game no longer shows, each
 //! fact with where it came from and how recent it is.
 
-use copilot_gk::{EnumId, ItemKind, WayOutSigns};
+use std::collections::BTreeMap;
+
+use copilot_gk::{Bundle, EnumId, ItemKind};
 use serde::Serialize;
 
+use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
-use crate::visible_state::{GameMessage, InventoryItem, VisibleState};
+use crate::visible_state::{GameMessage, InventoryItem, Sighting, VisibleMonster, VisibleState};
 
 /// What the Advisor remembers of one game.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -37,6 +40,38 @@ pub struct AccumulatedState {
     /// For each of these, the inventory changes when what is carried does: crawl greying an
     /// item out or not, which follows the character's statuses, isn't a change.
     pub abilities: Remembered<Vec<KnownAbility>>,
+    /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
+    /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
+    /// its name picking up, dropping or wielding something.
+    pub carried_gear: BTreeMap<Sighting, Remembered<CarriedGear, GearSource>>,
+    /// The Carried Gear of each unique the Advisor has read it for, by name, kept for the rest of
+    /// the game. It goes Stale as a monster's does, and when the unique comes back into view.
+    pub uniques_gear: BTreeMap<String, Remembered<CarriedGear, GearSource>>,
+    /// Sighting messages whose monsters the game hadn't yet shown in view: crawl sends the
+    /// message before the map that shows them. Each is dropped once the game's turn moves on.
+    #[serde(skip)]
+    unplaced: Vec<Unplaced>,
+}
+
+/// What the game said a monster's Carried Gear is, in which message.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GearSource {
+    /// The sighting message as it came into view.
+    Sighting,
+    /// The look text, as the look cursor rested on it.
+    Look,
+}
+
+/// A sighting message's read of one monster's gear, waiting for the monster to be in view.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Unplaced {
+    /// The monster's name, as the message gave it.
+    name: String,
+    /// What it was listed with.
+    gear: CarriedGear,
+    /// The turn the message was given on.
+    turn: Option<u32>,
 }
 
 /// A fact the Advisor remembers, and how current it is: an engine input is Known, Stale or
@@ -47,27 +82,27 @@ pub struct AccumulatedState {
     rename_all = "camelCase",
     rename_all_fields = "camelCase"
 )]
-pub enum Remembered<T> {
+pub enum Remembered<T, S = Screen> {
     /// The Advisor has never read it.
     #[default]
     Missing,
     /// Read, and nothing the Advisor has seen since changes it.
-    Known(AsOf<T>),
+    Known(AsOf<T, S>),
     /// Read, but something the Advisor has seen since may have changed it, so it is only an
     /// out-of-date copy.
-    Stale(AsOf<T>),
+    Stale(AsOf<T, S>),
 }
 
 /// A remembered value, with where and when it was read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AsOf<T> {
+pub struct AsOf<T, S = Screen> {
     /// What was read.
     pub value: T,
     /// The game's turn when it was read, if the game had reported one.
     pub turn: Option<u32>,
-    /// The screen it was read off.
-    pub screen: Screen,
+    /// What it was read off: the screen the player opened, or, for Carried Gear, the message.
+    pub source: S,
 }
 
 /// A shield the character can wear, by how many attacks it can block before their next action.
@@ -103,7 +138,7 @@ impl Shield {
     }
 }
 
-impl<T> Remembered<T> {
+impl<T, S> Remembered<T, S> {
     /// The value, when it is Known.
     #[must_use]
     pub fn known(&self) -> Option<&T> {
@@ -113,15 +148,6 @@ impl<T> Remembered<T> {
         }
     }
 
-    /// `value`, Known as of now: read off `read` on `visible`'s turn.
-    fn read(value: T, read: &ScreenRead, visible: &VisibleState) -> Self {
-        Self::Known(AsOf {
-            value,
-            turn: visible.turn,
-            screen: read.screen.clone(),
-        })
-    }
-
     /// Something seen since may have changed it. A Stale fact stays Stale, and a Missing one
     /// Missing.
     fn go_stale(&mut self) {
@@ -129,6 +155,17 @@ impl<T> Remembered<T> {
             Self::Known(fact) | Self::Stale(fact) => Self::Stale(fact),
             Self::Missing => Self::Missing,
         };
+    }
+}
+
+impl<T> Remembered<T> {
+    /// `value`, Known as of now: read off `read` on `visible`'s turn.
+    fn read(value: T, read: &ScreenRead, visible: &VisibleState) -> Self {
+        Self::Known(AsOf {
+            value,
+            turn: visible.turn,
+            source: read.screen.clone(),
+        })
     }
 }
 
@@ -153,13 +190,14 @@ impl AccumulatedState {
     }
 
     /// Notes what changed between the Visible State the game reported before and what it
-    /// reports now, reading through `signs` the messages crawl gives instead of the spell list
-    /// or the ability menu when there is nothing to list.
+    /// reports now, reading through `knowledge` the messages crawl gives instead of the spell
+    /// list or the ability menu when there is nothing to list, and what its messages say of the
+    /// gear of monsters in view.
     pub(crate) fn update(
         &mut self,
         before: &VisibleState,
         now: &VisibleState,
-        signs: Option<&WayOutSigns>,
+        knowledge: Option<&Bundle>,
     ) {
         if before.stats.sh != now.stats.sh {
             self.worn_shield.go_stale();
@@ -184,7 +222,9 @@ impl AccumulatedState {
         {
             self.abilities.go_stale();
         }
-        let Some(signs) = signs else { return };
+        let Some(bundle) = knowledge else { return };
+        let signs = &bundle.ways_out;
+        self.notice_comings_and_goings(before, now, bundle);
         for message in new_messages(before, now) {
             let turn = message.turn.or(now.turn);
             if message.text == signs.no_spells {
@@ -193,8 +233,201 @@ impl AccumulatedState {
             if message.text == signs.no_abilities {
                 self.abilities = Remembered::nothing_on(Screen::Abilities, turn);
             }
+            for said in carried_gear::said(&message.text, bundle) {
+                self.take_in(said, turn, now, bundle);
+            }
+        }
+        self.place_sightings(now, bundle);
+    }
+
+    /// The Carried Gear the Advisor has read for `monster`, by its Sighting, or by name for a
+    /// unique, judged by `bundle`.
+    #[must_use]
+    pub fn gear_of(
+        &self,
+        monster: &VisibleMonster,
+        bundle: &Bundle,
+    ) -> Option<&Remembered<CarriedGear, GearSource>> {
+        match GearKey::of(monster, bundle)? {
+            GearKey::Sighting(sighting) => self.carried_gear.get(&sighting),
+            GearKey::Unique(name) => self.uniques_gear.get(name),
         }
     }
+
+    /// The Carried Gear remembered under `key`, to change.
+    fn gear_mut(&mut self, key: GearKey<'_>) -> Option<&mut Remembered<CarriedGear, GearSource>> {
+        match key {
+            GearKey::Sighting(sighting) => self.carried_gear.get_mut(&sighting),
+            GearKey::Unique(name) => self.uniques_gear.get_mut(name),
+        }
+    }
+
+    /// Forgets the Carried Gear of monsters that left view, and makes a unique's Stale as it
+    /// comes back into view.
+    fn notice_comings_and_goings(
+        &mut self,
+        before: &VisibleState,
+        now: &VisibleState,
+        bundle: &Bundle,
+    ) {
+        let Some(in_view) = &now.monsters else { return };
+        self.carried_gear.retain(|sighting, _| {
+            in_view
+                .iter()
+                .any(|monster| monster.sighting == Some(*sighting))
+        });
+        let Some(was_in_view) = &before.monsters else {
+            return;
+        };
+        for monster in in_view {
+            let came_back = !was_in_view
+                .iter()
+                .any(|was| was.name == monster.name && (was.sighting == monster.sighting));
+            if came_back
+                && let Some(key @ GearKey::Unique(_)) = GearKey::of(monster, bundle)
+                && let Some(gear) = self.gear_mut(key)
+            {
+                gear.go_stale();
+            }
+        }
+    }
+
+    /// Takes in what one message on `turn` said of monsters' gear, as `now` shows them.
+    fn take_in(&mut self, said: Said, turn: Option<u32>, now: &VisibleState, bundle: &Bundle) {
+        match said {
+            Said::Sighting(sighting) => {
+                let reads = sighting
+                    .lone
+                    .map(|LoneSighting { name, gear }| (name, gear))
+                    .into_iter()
+                    .chain(sighting.listed);
+                self.unplaced
+                    .extend(reads.map(|(name, gear)| Unplaced { name, gear, turn }));
+            }
+            Said::Look { name, gear } => {
+                let in_view = now.monsters.iter().flatten();
+                let under_cursor = in_view
+                    .clone()
+                    .find(|monster| Some(monster.position) == now.look_cursor)
+                    .filter(|monster| names_match(&name, &monster.name));
+                let mut named = in_view.filter(|monster| names_match(&name, &monster.name));
+                let only_named = match (named.next(), named.next()) {
+                    (Some(only), None) => Some(only),
+                    _ => None,
+                };
+                if let Some(monster) = under_cursor.or(only_named) {
+                    self.remember(monster, gear, GearSource::Look, turn, bundle);
+                }
+            }
+            Said::Changed { name } => {
+                for monster in now.monsters.iter().flatten() {
+                    if !names_match(&name, &monster.name) {
+                        continue;
+                    }
+                    if let Some(gear) =
+                        GearKey::of(monster, bundle).and_then(|key| self.gear_mut(key))
+                    {
+                        gear.go_stale();
+                    }
+                }
+            }
+        }
+    }
+
+    /// Gives each sighting message's read the monster in `now` it names, once there is just one
+    /// of that name whose gear the Advisor hasn't read in this Sighting. A read whose name fits
+    /// several such monsters is dropped, as which of them it was can't be told; one whose
+    /// monster isn't in view yet waits until the game's turn moves on.
+    fn place_sightings(&mut self, now: &VisibleState, bundle: &Bundle) {
+        for unplaced in std::mem::take(&mut self.unplaced) {
+            let mut fits = now.monsters.iter().flatten().filter(|monster| {
+                names_match(&unplaced.name, &monster.name)
+                    && match GearKey::of(monster, bundle) {
+                        Some(GearKey::Sighting(sighting)) => {
+                            !self.carried_gear.contains_key(&sighting)
+                        }
+                        Some(GearKey::Unique(_)) => true,
+                        None => false,
+                    }
+            });
+            match (fits.next(), fits.next()) {
+                (Some(monster), None) => {
+                    let monster = monster.clone();
+                    self.remember(
+                        &monster,
+                        unplaced.gear,
+                        GearSource::Sighting,
+                        unplaced.turn,
+                        bundle,
+                    );
+                }
+                (None, _) if unplaced.turn.is_none() || unplaced.turn == now.turn => {
+                    self.unplaced.push(unplaced);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    /// Remembers `gear` as `monster`'s, read off `source` on `turn`.
+    fn remember(
+        &mut self,
+        monster: &VisibleMonster,
+        gear: CarriedGear,
+        source: GearSource,
+        turn: Option<u32>,
+        bundle: &Bundle,
+    ) {
+        let read = Remembered::Known(AsOf {
+            value: gear,
+            turn,
+            source,
+        });
+        match GearKey::of(monster, bundle) {
+            Some(GearKey::Sighting(sighting)) => {
+                self.carried_gear.insert(sighting, read);
+            }
+            Some(GearKey::Unique(name)) => {
+                self.uniques_gear.insert(name.to_owned(), read);
+            }
+            None => {}
+        }
+    }
+}
+
+/// Whose Carried Gear a monster's is: its Sighting's, or, for a unique, its own across
+/// sightings, by name.
+#[derive(Debug, Clone, Copy)]
+enum GearKey<'a> {
+    Sighting(Sighting),
+    Unique(&'a str),
+}
+
+impl<'a> GearKey<'a> {
+    /// `monster`'s, its kind judged by `bundle`: none for a monster that isn't a unique and that
+    /// the Game Source can't tell apart from others.
+    fn of(monster: &'a VisibleMonster, bundle: &Bundle) -> Option<Self> {
+        let unique = monster
+            .id
+            .as_ref()
+            .and_then(|id| bundle.monster_by_id(id))
+            .is_some_and(|kind| kind.unique);
+        if unique {
+            Some(Self::Unique(&monster.name))
+        } else {
+            monster.sighting.map(Self::Sighting)
+        }
+    }
+}
+
+/// Whether a message's `said` name, without its article, names the monster called `name` in
+/// view: as it is, or a unique by its title, as `Boris, Master of Life and Death` or `Agnes the
+/// Wanderer` name `Boris` and `Agnes` (`dat/database/montitle.txt`).
+fn names_match(said: &str, name: &str) -> bool {
+    said.eq_ignore_ascii_case(name)
+        || said
+            .strip_prefix(name)
+            .is_some_and(|title| title.starts_with(", ") || title.starts_with(" the "))
 }
 
 impl<T> Remembered<Vec<T>> {
@@ -204,7 +437,7 @@ impl<T> Remembered<Vec<T>> {
         Self::Known(AsOf {
             value: Vec::new(),
             turn,
-            screen,
+            source: screen,
         })
     }
 }

@@ -33,7 +33,24 @@ expression: replay
           "worstHit": 0,
           "hostilesInView": 1,
           "acting": [],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "ball python",
+              "position": {
+                "x": 5,
+                "y": -1
+              },
+              "distance": 5,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
@@ -188,7 +205,7 @@ expression: replay
           "worstHit": 0,
           "hostilesInView": 0,
           "acting": [],
-          "mayShoot": [],
+          "gear": [],
           "lighting": "plain",
           "notModelled": []
         },
@@ -273,7 +290,7 @@ expression: replay
         "worstHit": 0,
         "hostilesInView": 0,
         "acting": [],
-        "mayShoot": [],
+        "gear": [],
         "lighting": "plain",
         "notModelled": []
       },

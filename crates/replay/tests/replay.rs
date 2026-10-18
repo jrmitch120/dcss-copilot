@@ -22,6 +22,7 @@ const STOPPED_UNNAMED: &[u8] =
 const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
 const HALOS_AND_UMBRAS: &[u8] = include_bytes!("recordings/rook-in-halos-and-umbras.dcssrec");
+const CARRIED_GEAR: &[u8] = include_bytes!("recordings/carried-gear-comes-into-view.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
@@ -554,6 +555,66 @@ fn a_worn_shield_read_off_the_character_overview_blocks_as_often_as_crawl_lets_i
 }
 
 #[test]
+fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it_stays_in_view() {
+    // Rook on D:4, turn by turn, in crawl's words:
+    // 101: a lone orc wielding a +3 shortbow of flaming, quivering arrows and carrying a wand of
+    // flame, its message sent before the map that shows it. 102: a lone goblin with nothing
+    // listed: Known to have nothing but what crawl doesn't list. 103: two orcs and Sigmund come
+    // into view at once: "An orc is carrying a bone wand" fits either orc, so neither is read;
+    // Sigmund's +1 heavy sling and bone wand are. 104: the look cursor on one of those orcs reads its gear in
+    // full. 105: look text with the cursor on an empty square and three orcs in view is read for
+    // none. 106: "The orc picks up" something: every orc's gear goes Stale. 107: the first orc and
+    // Sigmund leave view. 108: they come back: the orc as a new Sighting with nothing read,
+    // Sigmund with his gear, Stale. 109: a centaur carrying an unidentified launcher in its off
+    // hand. 110: a merfolk quivering a net. 111: a kobold quivering poisoned darts and carrying a wand of paralysis.
+    let library = Library::shipped().unwrap();
+    let bundle = library.for_version("0.34.1").unwrap();
+    let mut replayer = replayer(CARRIED_GEAR);
+    let mut by_turn: Vec<serde_json::Value> = Vec::new();
+    while !replayer.at_end() {
+        replayer.step();
+        let advisor = replayer.advisor();
+        let in_view: Vec<_> = advisor
+            .visible()
+            .monsters
+            .iter()
+            .flatten()
+            .map(|monster| {
+                serde_json::json!({
+                    "name": monster.name,
+                    "sighting": monster.sighting,
+                    "gear": advisor.accumulated().and_then(|state| state.gear_of(monster, bundle)),
+                })
+            })
+            .collect();
+        let turn = serde_json::json!({ "turn": replayer.turn(), "inView": in_view });
+        // As each turn ended.
+        match by_turn.last_mut() {
+            Some(last) if last["turn"] == turn["turn"] => *last = turn,
+            _ => by_turn.push(turn),
+        }
+    }
+
+    insta::assert_json_snapshot!(by_turn);
+}
+
+#[test]
+fn the_threat_level_plays_each_monsters_carried_gear_where_it_is_read_and_its_possible_gear_elsewhere()
+ {
+    // As above: the orc's +3 shortbow of flaming and its wand of flame are played, the goblin's
+    // nothing, and Sigmund's heavy sling, with his bone wand as one of the wands crawl makes him
+    // with; the orc's bone wand, which crawl never makes an orc with, isn't played, nor the
+    // centaur's runed longbow's unknown plus and brand, nor the kobold's poison or wand of paralysis. An orc whose
+    // gear isn't read is played with its kind's Possible Gear.
+    let threats: Vec<_> = fact_sheets_by_turn(CARRIED_GEAR)
+        .into_iter()
+        .map(|turn| serde_json::json!({ "turn": turn["turn"], "threat": turn["factSheet"]["threat"] }))
+        .collect();
+
+    insta::assert_json_snapshot!(threats);
+}
+
+#[test]
 fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
     // Rook, three jackals beside him, turn by turn:
     // 100: plain light. 101: a halo reaches his square: backlit. 102: the square's tile changes
@@ -590,7 +651,7 @@ fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
 
 /// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
 /// first seen.
-const TAGGED: [(&str, &[u8], &[&str]); 13] = [
+const TAGGED: [(&str, &[u8], &[&str]); 14] = [
     ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
     (
         "spectating-trunk-wizard",
@@ -616,6 +677,7 @@ const TAGGED: [(&str, &[u8], &[&str]); 13] = [
     ("jackals-close-in", JACKALS, &["0.34.1"]),
     ("rook-reads-his-kite-shield", KITE_SHIELD, &["0.34.1"]),
     ("rook-in-halos-and-umbras", HALOS_AND_UMBRAS, &["0.34.1"]),
+    ("carried-gear-comes-into-view", CARRIED_GEAR, &["0.34.1"]),
 ];
 
 #[test]

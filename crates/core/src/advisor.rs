@@ -69,18 +69,17 @@ impl Advisor {
                 self.identity = Some(identity);
             }
             SourceEvent::Visible(visible) => {
-                let signs = self
+                let knowledge = self
                     .identity
                     .as_ref()
-                    .and_then(|identity| identity.knowledge(&self.knowledge))
-                    .map(|bundle| &bundle.ways_out);
+                    .and_then(|identity| identity.knowledge(&self.knowledge));
                 if let Some(remembered) = self
                     .identity
                     .as_ref()
                     .map(GameKey::of)
                     .and_then(|key| self.remembered.get_mut(&key))
                 {
-                    remembered.update(&self.visible, &visible, signs);
+                    remembered.update(&self.visible, &visible, knowledge);
                 }
                 self.visible = *visible;
             }
@@ -236,11 +235,11 @@ fn threat_detail(assessment: &ThreatAssessment) -> Option<String> {
 }
 
 /// Which monsters may shoot or zap, whose gear the numbers guess from what crawl gives their
-/// kind: each kind named once.
+/// kind, as their Carried Gear isn't read: each kind named once.
 fn may_shoot_note(assessment: &ThreatAssessment) -> Option<String> {
     let mut names: Vec<&str> = Vec::new();
-    for monster in &assessment.may_shoot {
-        if !names.contains(&monster.name.as_str()) {
+    for monster in &assessment.gear {
+        if monster.guessed_shooter() && !names.contains(&monster.name.as_str()) {
             names.push(&monster.name);
         }
     }

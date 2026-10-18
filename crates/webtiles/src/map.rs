@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use copilot_core::{
-    Attitude, Colour, CrawlThreat, Glyph, MapCell, Position, SquareLight, VisibleMonster,
+    Attitude, Colour, CrawlThreat, Glyph, MapCell, Position, Sighting, SquareLight, VisibleMonster,
 };
 use copilot_gk::{Bundle, EnumId};
 use serde_json::Value;
@@ -21,6 +21,10 @@ const UNSEEN: u64 = 0x0002_0000 | 0x0004_0000;
 const HALO_RANGE: i64 = 1;
 const HALO_UMBRA: std::ops::RangeInclusive<i64> = 2..=5;
 
+/// The cursor crawl moves as the player looks around or aims, `CURSOR_MOUSE` in crawl's
+/// `cursor_type` (`cursor-type.h`): the page's `enums.js` reads the same value.
+const LOOK_CURSOR: i64 = 0;
+
 /// What a monster is called when neither the game nor Game Knowledge has named it.
 const UNNAMED: &str = "unknown monster";
 
@@ -36,6 +40,8 @@ pub struct LevelMap {
     tracked: HashMap<i64, MonsterInfo>,
     /// Where the last merged cell was: a cell without coordinates follows it on the same row.
     last: (i64, i64),
+    /// The cell the look cursor is on, as `(x, y)`, while crawl shows it.
+    look_cursor: Option<(i64, i64)>,
     /// The game has sent a map since the game started.
     received: bool,
 }
@@ -118,6 +124,26 @@ impl LevelMap {
         self.tracked.retain(|id, _| shown.contains(id));
     }
 
+    /// Merges a `cursor` message: where crawl drew one of its cursors, in the map's coordinates,
+    /// or that it took it away.
+    pub fn merge_cursor(&mut self, msg: &Value) {
+        if msg.get("id").and_then(Value::as_i64) != Some(LOOK_CURSOR) {
+            return;
+        }
+        self.look_cursor = msg.get("loc").and_then(|loc| {
+            Some((
+                loc.get("x").and_then(Value::as_i64)?,
+                loc.get("y").and_then(Value::as_i64)?,
+            ))
+        });
+    }
+
+    /// The square the look cursor is on, while crawl shows it.
+    pub fn look_cursor(&self) -> Option<Position> {
+        let (x, y) = self.look_cursor?;
+        position((y, x))
+    }
+
     fn merge_cell(&mut self, delta: &Value) {
         let x = delta
             .get("x")
@@ -168,9 +194,11 @@ impl LevelMap {
             .iter()
             .filter(|(_, cell)| cell.in_view())
             .filter_map(|(&key, cell)| {
-                let info = match cell.monster.as_ref()? {
-                    CellMonster::Tracked(id) => self.tracked.get(id)?,
-                    CellMonster::Untracked(info) => info,
+                let (info, sighting) = match cell.monster.as_ref()? {
+                    CellMonster::Tracked(id) => {
+                        (self.tracked.get(id)?, u64::try_from(*id).ok().map(Sighting))
+                    }
+                    CellMonster::Untracked(info) => (info, None),
                 };
                 let known = info
                     .kind
@@ -190,6 +218,7 @@ impl LevelMap {
                     attitude: decode(info.attitude, knowledge, Bundle::attitude).and_then(attitude),
                     crawl_threat: decode(info.threat, knowledge, Bundle::monster_threat)
                         .and_then(crawl_threat),
+                    sighting,
                 })
             })
             .collect();

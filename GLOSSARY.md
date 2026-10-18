@@ -70,6 +70,10 @@ _Avoid_: Fresh, expired, cached
 What one particular monster has been seen to wield, quiver or carry, as the game describes it. It belongs to that monster only while it stays in view, except a unique's, which is its own across sightings.
 _Avoid_: Equipment, inventory, loadout
 
+**Sighting**:
+One stretch of a monster in view, from when it comes into view until it leaves. Crawl gives a monster that comes back a new Sighting on purpose, so the player can't be sure it is the one they saw before; Carried Gear read in one Sighting isn't carried over to the next, except a unique's.
+_Avoid_: Encounter (which is a stretch of danger), visit
+
 **Possible Gear**:
 What a monster of its kind may be made with, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read.
 _Avoid_: Kind gear, starting equipment

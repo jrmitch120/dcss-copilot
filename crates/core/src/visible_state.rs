@@ -37,6 +37,8 @@ pub struct VisibleState {
     pub messages: Vec<GameMessage>,
     /// The screen the player has open over the map, if any: the top one, when one opened another.
     pub screen: Option<ScreenRead>,
+    /// The square the player's look or aiming cursor is on, while one is shown.
+    pub look_cursor: Option<Position>,
 }
 
 impl VisibleState {
@@ -298,7 +300,16 @@ pub struct VisibleMonster {
     /// How dangerous crawl itself rates it for this character, when the bundle for the game's
     /// Crawl Version decodes it. Crawl's own rating, not the Advisor's Threat Level.
     pub crawl_threat: Option<CrawlThreat>,
+    /// This stretch of it in view, when the Game Source tells it apart from other monsters.
+    pub sighting: Option<Sighting>,
 }
+
+/// One stretch of a monster in view: what tells it apart from other monsters while it stays in
+/// view. A monster that leaves view and comes back is a new Sighting, as crawl gives it a new
+/// client id on purpose (`reset_client_id`, `player-notices.cc:553`), so the player can't be sure
+/// it is the one they saw before.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+pub struct Sighting(pub u64);
 
 /// Whose side a monster is on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

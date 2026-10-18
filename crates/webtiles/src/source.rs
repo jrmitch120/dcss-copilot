@@ -156,6 +156,7 @@ impl TabGame {
             }
             Some("player") => self.shown.player.merge(msg),
             Some("map") => self.shown.map.merge(msg),
+            Some("cursor") => self.shown.map.merge_cursor(msg),
             Some("msgs") => self.shown.messages.merge(msg),
             Some("game_ended") => {
                 let reason = string(msg, "reason");
@@ -214,6 +215,7 @@ impl TabGame {
             map: map.level(knowledge),
             messages: messages.recent(),
             screen: screens.open(),
+            look_cursor: map.look_cursor(),
         }
     }
 

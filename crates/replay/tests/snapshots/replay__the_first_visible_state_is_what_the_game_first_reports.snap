@@ -34,5 +34,6 @@ expression: replayer.advisor().visible()
   "inventory": null,
   "map": null,
   "messages": [],
-  "screen": null
+  "screen": null,
+  "lookCursor": null
 }

@@ -32,7 +32,7 @@ expression: replay
           "worstHit": 0,
           "hostilesInView": 0,
           "acting": [],
-          "mayShoot": [],
+          "gear": [],
           "lighting": "plain",
           "notModelled": []
         },
@@ -129,11 +129,12 @@ expression: replay
         "hp": 19,
         "death": {
           "times": 0,
-          "trials": 10000
+          "trials": 0
         },
-        "worstHit": 4,
+        "worstHit": 0,
         "hostilesInView": 1,
-        "acting": [
+        "acting": [],
+        "gear": [
           {
             "name": "goblin",
             "position": {
@@ -141,21 +142,14 @@ expression: replay
               "y": -4
             },
             "distance": 2,
-            "casts": [],
-            "spellsNotModelled": [],
-            "shoots": [
-              "sling"
-            ]
-          }
-        ],
-        "mayShoot": [
-          {
-            "name": "goblin",
-            "position": {
-              "x": -2,
-              "y": -4
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 6,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
             },
-            "distance": 2
+            "unplayed": []
           }
         ],
         "lighting": "plain",
@@ -164,8 +158,7 @@ expression: replay
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness",
-          "carriedGear"
+          "awareness"
         ]
       },
       "waysOut": {
@@ -263,8 +256,8 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
-        "line": "Goblin can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 4 of 19 HP · Gear guessed from kind: goblin"
+        "line": "Nothing hostile can reach you before your next action.",
+        "detail": null
       },
       "focus": {
         "card": "inView",

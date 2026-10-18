@@ -4,7 +4,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
-    Energy, EnumId, ItemUse, Monster, MonsterAttack, MonsterSpell, MonsterSpells, Species, Will,
+    Energy, EnumId, Intelligence, ItemUse, Monster, MonsterAttack, MonsterSpell, MonsterSpells,
+    Species, Will,
 };
 use serde::Deserialize;
 
@@ -44,6 +45,8 @@ struct MonsterFile {
     species: Option<String>,
     /// Which items it can use, as `mon_itemuse_type` names it without the `MONUSE_` prefix.
     uses: Option<String>,
+    /// How clever it is, as `mon_intel_type` names it without the `I_` prefix.
+    intelligence: String,
     /// The tile it is drawn with, when not the one named after its enum.
     tile: Option<String>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
@@ -144,6 +147,9 @@ const ARCHER_FLAG: &str = "archer";
 /// The flag `dat/mons` gives a monster that shoots more readily: crawl's `M_PREFER_RANGED`.
 const PREFER_RANGED_FLAG: &str = "prefer_ranged";
 
+/// The flag `dat/mons` gives a monster there is only one of: crawl's `M_UNIQUE`.
+const UNIQUE_FLAG: &str = "unique";
+
 /// The kinds of monster crawl singles out in code rather than in `dat/mons`, by `monster_type`
 /// identifier.
 pub struct KindExceptions {
@@ -232,6 +238,11 @@ pub fn monsters(
             item_use,
             flags: &monster.flags,
         })?;
+        let intelligence =
+            intelligence(&monster.intelligence).ok_or_else(|| ExtractError::Unreadable {
+                file: file.clone(),
+                what: "intelligence".to_owned(),
+            })?;
         let flag = |name: &str| monster.flags.iter().any(|flag| flag == name);
         // As `mons_class_is_firewood` (`mon-util.cc`) judges it.
         let firewood = flag(STATIONARY_FLAG)
@@ -275,6 +286,8 @@ pub fn monsters(
                 nightvision,
                 archer: flag(ARCHER_FLAG),
                 prefers_ranged: flag(PREFER_RANGED_FLAG),
+                unique: flag(UNIQUE_FLAG),
+                intelligence,
                 genus: EnumId(genus),
                 item_use,
                 spells,
@@ -303,6 +316,17 @@ fn item_use(uses: Option<&str>) -> Option<ItemUse> {
         "open_doors" => Some(ItemUse::OpenDoors),
         "starting_equipment" => Some(ItemUse::StartingEquipment),
         "weapons_armour" => Some(ItemUse::WeaponsArmour),
+        _ => None,
+    }
+}
+
+/// A monster's `intelligence`, as `parse_intelligence` in `util/mon-gen.py` reads it, which
+/// requires one: `None` for a value it refuses.
+fn intelligence(intelligence: &str) -> Option<Intelligence> {
+    match intelligence {
+        "brainless" => Some(Intelligence::Brainless),
+        "animal" => Some(Intelligence::Animal),
+        "human" => Some(Intelligence::Human),
         _ => None,
     }
 }

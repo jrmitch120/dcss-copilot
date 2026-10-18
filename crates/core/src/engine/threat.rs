@@ -2,16 +2,20 @@
 //! standard-speed action, casting its spells, zapping its wand, shooting and fighting in melee
 //! through crawl's own dice, many times over.
 
-use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells, Odds, Wand};
+use copilot_gk::{Bundle, EnumId, Formulas, MissileKind, Monster, MonsterSpells, Odds, Wand};
 
 use crate::accumulated_state::Shield;
+use crate::carried_gear::{
+    CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed, WAND_OF, WANDS,
+};
 
+use super::brands::Brand;
 use super::lighting::Lighting;
 use super::melee::{
     self, Aim, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Target, attack_reach,
     energy_gained, starting_energy,
 };
-use super::missiles::{self, MISSILE_RANGE, Missile, Shooter};
+use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Prospect, Reach, Slot};
 use super::wands;
@@ -67,11 +71,19 @@ pub(crate) struct Attacker<'a> {
     pub(crate) distance: i32,
     /// The damaging spells of its book that the engine ports, in book order, as it casts them.
     pub(crate) spells: Vec<Cast<'a>>,
-    /// The launcher or throwing missile it may carry, by the odds crawl makes its kind with.
-    pub(crate) missiles: Draw<Missile<'a>>,
-    /// The wands it may carry whose spells the engine ports, by the odds crawl makes its kind
-    /// with. A wand whose spell isn't ported counts as none: it is assumed never to zap it.
+    /// What it may shoot or throw: its Carried Gear's, or by the odds crawl makes its kind with.
+    pub(crate) missiles: Draw<Missiles<'a>>,
+    /// The wands it may carry whose spells the engine ports: its Carried Gear's, or by the odds
+    /// crawl makes its kind with. A wand whose spell isn't ported counts as none: it is assumed
+    /// never to zap it.
     pub(crate) wands: Draw<WandZap<'a>>,
+    /// It may carry a wand whose spell the engine doesn't port.
+    pub(crate) unported_wand: bool,
+    /// What it may shoot, throw or zap that is played out, by name: `shortbow` or `wand of
+    /// flame` for its kind's, and as the game named them for its Carried Gear's.
+    pub(crate) shoots: Vec<String>,
+    /// It firing what it shoots or throws.
+    shooter: Shooter,
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -100,8 +112,8 @@ pub(crate) struct WandZap<'a> {
     pub(crate) reach: Reach,
 }
 
-/// Which of some items a monster carries, drawn afresh for every trial by the odds crawl makes its
-/// kind with: the Advisor can't see what it carries (#83).
+/// Which of some items a monster carries, drawn afresh for every trial: by the odds crawl makes
+/// its kind with when its Carried Gear isn't read, or what it was seen with.
 #[derive(Debug, Clone)]
 pub(crate) struct Draw<T> {
     out_of: u32,
@@ -110,14 +122,59 @@ pub(crate) struct Draw<T> {
 
 impl<T: Copy> Draw<T> {
     /// The items of `odds`, each as `item` makes it: one it makes nothing of counts as none.
-    pub(crate) fn new<'o>(odds: &'o Odds, mut item: impl FnMut(&'o EnumId) -> Option<T>) -> Self {
+    pub(crate) fn new<'o>(odds: &'o Odds, item: impl FnMut(&'o EnumId) -> Option<T>) -> Self {
+        Self::given(odds, |_| true, item)
+    }
+
+    /// The items of `odds` that `may_be` holds for, each as `item` makes it, given that it isn't
+    /// any of the others: their chances shared out again among those left and none. Never any
+    /// item, when it can only be one of the others.
+    pub(crate) fn given<'o>(
+        odds: &'o Odds,
+        mut may_be: impl FnMut(&EnumId) -> bool,
+        mut item: impl FnMut(&'o EnumId) -> Option<T>,
+    ) -> Self {
+        let (kept, ruled_out): (Vec<_>, Vec<_>) = odds
+            .items
+            .iter()
+            .partition(|weighted| may_be(&weighted.item));
+        let ruled_out: u32 = ruled_out.iter().map(|weighted| weighted.weight).sum();
+        let Some(out_of) = odds.out_of.checked_sub(ruled_out).filter(|&left| left > 0) else {
+            return Self::none();
+        };
         Self {
-            out_of: odds.out_of,
+            out_of,
+            items: kept
+                .into_iter()
+                .filter_map(|weighted| Some((item(&weighted.item)?, weighted.weight)))
+                .collect(),
+        }
+    }
+
+    /// The items of `odds`, each as `item` makes it, given that it is one of them.
+    pub(crate) fn one_of<'o>(
+        odds: &'o Odds,
+        mut item: impl FnMut(&'o EnumId) -> Option<T>,
+    ) -> Self {
+        let out_of: u32 = odds.items.iter().map(|weighted| weighted.weight).sum();
+        if out_of == 0 {
+            return Self::none();
+        }
+        Self {
+            out_of,
             items: odds
                 .items
                 .iter()
                 .filter_map(|weighted| Some((item(&weighted.item)?, weighted.weight)))
                 .collect(),
+        }
+    }
+
+    /// `item`, always.
+    pub(crate) fn always(item: T) -> Self {
+        Self {
+            out_of: 1,
+            items: vec![(item, 1)],
         }
     }
 
@@ -155,8 +212,8 @@ impl<T: Copy> Draw<T> {
 
 impl<'a> Attacker<'a> {
     /// `monster`, `distance` squares from the player, with the spells of its book and the gear
-    /// of its kind the engine ports, looked up in `bundle`. A spell, missile or wand the bundle
-    /// lacks is left out.
+    /// of its kind the engine ports, its Possible Gear, looked up in `bundle`. A spell, missile or
+    /// wand the bundle lacks is left out.
     pub(crate) fn new(bundle: &'a Bundle, monster: &'a Monster, distance: i32) -> Self {
         let formulas = bundle.formulas;
         let hit_dice = hit_dice(monster);
@@ -179,38 +236,39 @@ impl<'a> Attacker<'a> {
                 })
             })
             .collect();
-        let missiles = Draw::new(&monster.gear.missile, |id| {
-            Some(Missile::of(
-                formulas.missile_attack,
-                id,
-                bundle.missile_weapons.get(id)?,
-            ))
-        });
-        let wands = Draw::new(&monster.gear.wand, |id| {
-            let wand = bundle.wands.get(id)?;
-            let spell = bundle.spell_by_id(&wand.spell)?;
-            let damaging = spells::damaging(formulas.monster_spell_beam, spell)?;
-            let power = wands::power(
-                formulas.monster_wand,
-                formulas.monster_spell_power,
-                &spell.id,
-                hit_dice,
-            );
-            let range = spells::range(formulas.monster_spell_power, spell.range?, power);
-            Some(WandZap {
-                wand,
-                spell: damaging,
-                power,
-                reach: spells::reach(formulas.monster_spell_beam, &damaging, range),
-            })
-        });
-        Self {
+        let missiles = Draw::new(&monster.gear.missile, |id| plain_missile(bundle, id));
+        let wands = Draw::new(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
+        let mut attacker = Self {
             monster,
             distance,
             spells,
             missiles,
             wands,
-        }
+            unported_wand: unported(bundle, monster, &monster.gear.wand),
+            shoots: Vec::new(),
+            shooter: Shooter::of(bundle, monster, hit_dice),
+        };
+        attacker.shoots = attacker.possible_names();
+        attacker
+    }
+
+    /// The same monster, playing its Carried Gear, `gear`, in place of its kind's Possible Gear:
+    /// what the game named, and, where the listing would leave out what it carries, its kind's
+    /// Possible Gear given that it is nothing the listing would have named. With what of the gear
+    /// isn't played as it is.
+    pub(crate) fn carrying(self, bundle: &'a Bundle, gear: &CarriedGear) -> (Self, Vec<Unplayed>) {
+        let mut unplayed = Vec::new();
+        let (missiles, mut shoots) = carried_missiles(bundle, self.monster, gear, &mut unplayed);
+        let (wands, unported_wand, zaps) = carried_wand(bundle, self.monster, gear, &mut unplayed);
+        shoots.extend(zaps);
+        let attacker = Self {
+            missiles,
+            wands,
+            unported_wand,
+            shoots,
+            ..self
+        };
+        (attacker, unplayed)
     }
 
     /// The same monster, carrying nothing to shoot, throw or zap.
@@ -218,12 +276,29 @@ impl<'a> Attacker<'a> {
         Self {
             missiles: Draw::none(),
             wands: Draw::none(),
+            unported_wand: false,
+            shoots: Vec::new(),
             ..self
         }
     }
 
+    /// The names of the launchers, missiles and wands of its Possible Gear that are played out.
+    fn possible_names(&self) -> Vec<String> {
+        kinds_of_missile(&self.missiles)
+            .chain(kinds_of_wand(&self.wands))
+            .collect()
+    }
+
+    /// Whether it may shoot a launcher whose brand's damage the player's resistances would cut.
+    pub(crate) fn shoots_resisted_brand(&self) -> bool {
+        self.missiles
+            .items()
+            .filter_map(|missiles| missiles.launcher)
+            .any(|launcher| launcher.brand.resisted())
+    }
+
     /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand
-    /// or a missile, if its kind may carry them.
+    /// or a missile, if it may carry them.
     fn strikes_from(&self, formulas: Formulas, distance: i32) -> bool {
         let monster = self.monster;
         let shoots = !self.missiles.is_empty()
@@ -237,6 +312,207 @@ impl<'a> Attacker<'a> {
                     .any(|cast| cast.reach.strikes >= distance)
                 || self.wands.items().any(|zap| zap.reach.strikes >= distance)
                 || shoots)
+    }
+}
+
+/// The large rock, which crawl doesn't list unless it is branded.
+const LARGE_ROCK: &str = "MI_LARGE_ROCK";
+
+/// What `monster` shoots or throws of its Carried Gear, `gear`, with the names of what is played:
+/// the launcher and the missiles to throw the game named, or, when it named neither, its kind's
+/// Possible Gear given that it is nothing the listing would have named. What isn't played as the
+/// game named it goes in `unplayed`.
+fn carried_missiles<'a>(
+    bundle: &'a Bundle,
+    monster: &Monster,
+    gear: &CarriedGear,
+    unplayed: &mut Vec<Unplayed>,
+) -> (Draw<Missiles<'a>>, Vec<String>) {
+    let variant = bundle.formulas.missile_attack;
+    let mut names = Vec::new();
+    let (mut launcher, mut thrown) = (None, None);
+    for item in &gear.items {
+        let Some((id, weapon)) = item
+            .kind
+            .as_ref()
+            .and_then(|kind| kind.sub_type.as_ref())
+            .and_then(|id| bundle.missile_weapons.get_key_value(id))
+        else {
+            continue;
+        };
+        match (weapon.kind, item.slot) {
+            (MissileKind::Launcher, GearSlot::Wielding | GearSlot::Carrying)
+                if launcher.is_none() =>
+            {
+                let plus = item.plus.unwrap_or_else(|| {
+                    unplayed.push(Unplayed::UnknownPlus {
+                        item: item.name.clone(),
+                    });
+                    0
+                });
+                let brand = launcher_brand(bundle, item, unplayed);
+                launcher = Some(Missile::of(variant, id, weapon, plus, brand));
+                names.push(item.name.clone());
+            }
+            (MissileKind::Thrown, GearSlot::Quivering) if thrown.is_none() => {
+                if let ItemBrand::Unnamed(brand) = &item.brand {
+                    unplayed.push(Unplayed::BrandNotPorted {
+                        item: item.name.clone(),
+                        brand: brand.clone(),
+                    });
+                }
+                thrown = Some(Missile::plain(variant, id, weapon));
+                names.push(item.name.clone());
+            }
+            _ => {}
+        }
+    }
+    if launcher.is_some() || thrown.is_some() {
+        return (Draw::always(Missiles { launcher, thrown }), names);
+    }
+    let wields = gear
+        .items
+        .iter()
+        .any(|item| item.slot == GearSlot::Wielding);
+    let may_be = |id: &EnumId| match gear.unlisted {
+        Unlisted::Nothing => false,
+        Unlisted::PlainLargeRocks => id.0 == LARGE_ROCK,
+        // An ordinary weapon goes unlisted only in the main hand.
+        Unlisted::PlainWeaponsAndLargeRocks => {
+            id.0 == LARGE_ROCK
+                || !wields
+                    && bundle
+                        .missile_weapons
+                        .get(id)
+                        .is_some_and(|weapon| weapon.kind == MissileKind::Launcher)
+        }
+    };
+    let missiles = Draw::given(&monster.gear.missile, may_be, |id| {
+        plain_missile(bundle, id)
+    });
+    let names = kinds_of_missile(&missiles).collect();
+    (missiles, names)
+}
+
+/// The wand `monster` zaps of its Carried Gear, `gear`, whether it may carry one whose spell
+/// isn't ported, and the names of what is played: the wand the game named, or, for one it
+/// couldn't name, one of its kind's wands by their odds. What isn't played goes in `unplayed`.
+fn carried_wand<'a>(
+    bundle: &'a Bundle,
+    monster: &Monster,
+    gear: &CarriedGear,
+    unplayed: &mut Vec<Unplayed>,
+) -> (Draw<WandZap<'a>>, bool, Vec<String>) {
+    let Some(item) = gear
+        .items
+        .iter()
+        .find(|item| item.kind.as_ref().is_some_and(|kind| kind.class.0 == WANDS))
+    else {
+        return (Draw::none(), false, Vec::new());
+    };
+    match item.kind.as_ref().and_then(|kind| kind.sub_type.as_ref()) {
+        Some(id) => match wand_zap(bundle, monster, id) {
+            Some(zap) => (Draw::always(zap), false, vec![item.name.clone()]),
+            None => {
+                unplayed.push(Unplayed::WandNotPorted {
+                    item: item.name.clone(),
+                });
+                (Draw::none(), true, Vec::new())
+            }
+        },
+        // An unidentified wand, which can't be told apart from its kind's others: one of those,
+        // by their odds. A named wand the Game Knowledge lacks isn't one of them.
+        None if !item.name.starts_with(WAND_OF) && monster.gear.wand.is_possible() => {
+            let wands = Draw::one_of(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
+            let names = kinds_of_wand(&wands).collect();
+            (wands, unported(bundle, monster, &monster.gear.wand), names)
+        }
+        None => {
+            unplayed.push(Unplayed::UnnamedWand {
+                item: item.name.clone(),
+            });
+            (Draw::none(), false, Vec::new())
+        }
+    }
+}
+
+/// The names of the kinds of launcher and missile `missiles` may be, such as `shortbow`.
+fn kinds_of_missile<'d>(missiles: &'d Draw<Missiles<'_>>) -> impl Iterator<Item = String> + 'd {
+    missiles
+        .items()
+        .flat_map(|missiles| missiles.each())
+        .map(|missile| missile.weapon.name.clone())
+}
+
+/// The names of the kinds of wand `wands` may be, such as `wand of flame`.
+fn kinds_of_wand<'d>(wands: &'d Draw<WandZap<'_>>) -> impl Iterator<Item = String> + 'd {
+    wands
+        .items()
+        .map(|zap| format!("{WAND_OF}{}", zap.wand.name))
+}
+
+/// The launcher or throwing missile `id`, +0 and unbranded, if the bundle has it.
+fn plain_missile<'a>(bundle: &'a Bundle, id: &EnumId) -> Option<Missiles<'a>> {
+    let weapon = bundle.missile_weapons.get(id)?;
+    Some(Missiles::of(Missile::plain(
+        bundle.formulas.missile_attack,
+        id,
+        weapon,
+    )))
+}
+
+/// The wand `id` as `monster` zaps it, if the bundle has it and the engine ports its spell.
+fn wand_zap<'a>(bundle: &'a Bundle, monster: &Monster, id: &EnumId) -> Option<WandZap<'a>> {
+    let formulas = bundle.formulas;
+    let wand = bundle.wands.get(id)?;
+    let spell = bundle.spell_by_id(&wand.spell)?;
+    let damaging = spells::damaging(formulas.monster_spell_beam, spell)?;
+    let power = wands::power(
+        formulas.monster_wand,
+        formulas.monster_spell_power,
+        &spell.id,
+        hit_dice(monster),
+    );
+    let range = spells::range(formulas.monster_spell_power, spell.range?, power);
+    Some(WandZap {
+        wand,
+        spell: damaging,
+        power,
+        reach: spells::reach(formulas.monster_spell_beam, &damaging, range),
+    })
+}
+
+/// Whether `odds` may give `monster` a wand whose spell the engine doesn't port.
+fn unported(bundle: &Bundle, monster: &Monster, odds: &Odds) -> bool {
+    odds.items
+        .iter()
+        .any(|weighted| weighted.weight > 0 && wand_zap(bundle, monster, &weighted.item).is_none())
+}
+
+/// The brand a launcher seen as `item` is played with, noting in `unplayed` one its name doesn't
+/// show or whose effect isn't ported.
+fn launcher_brand(bundle: &Bundle, item: &CarriedItem, unplayed: &mut Vec<Unplayed>) -> Brand {
+    match &item.brand {
+        ItemBrand::None => Brand::Plain,
+        ItemBrand::Weapon(id) => {
+            let brand = Brand::of(bundle.formulas.damage_brand, id);
+            if brand == Brand::Other {
+                unplayed.push(Unplayed::BrandNotPorted {
+                    item: item.name.clone(),
+                    brand: bundle
+                        .weapon_brands
+                        .get(id)
+                        .map_or_else(|| id.0.clone(), |brand| brand.name.clone()),
+                });
+            }
+            brand
+        }
+        ItemBrand::Unnamed(_) | ItemBrand::Unknown => {
+            unplayed.push(Unplayed::UnknownBrand {
+                item: item.name.clone(),
+            });
+            Brand::Plain
+        }
     }
 }
 
@@ -350,15 +626,15 @@ pub(crate) fn turn(
     let mut distance = attacker.distance;
     let mut energy = starting_energy(formulas.monster_energy, rng)
         + energy_gained(formulas.monster_energy, rng, speed(monster));
-    let missile = attacker.missiles.draw(rng);
+    let missiles = attacker.missiles.draw(rng);
     let wand = attacker.wands.draw(rng);
-    let shooter = Shooter::of(monster, hit_dice);
+    let shooter = attacker.shooter;
     let mut turn = Turn::default();
     // The actions left before it can breathe again.
     let mut breath_timeout: u32 = 0;
     let mut first_action = true;
     while energy >= ENERGY_THRESHOLD
-        && (reach > 0 || !attacker.spells.is_empty() || missile.is_some() || wand.is_some())
+        && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
     {
         // It catches its breath after each action (`_post_monster_move`, `mon-act.cc:2569`).
         if !first_action {
@@ -404,11 +680,11 @@ pub(crate) fn turn(
             energy -= wands::energy(formulas.monster_wand);
             continue;
         }
-        if let Some(missile) = missile
-            && missiles::fires(
+        if let Some(missiles) = missiles
+            && let Some(missile) = missiles::fires(
                 formulas.monster_fire,
                 rng,
-                missile,
+                missiles,
                 monster.prefers_ranged,
                 distance,
             )
@@ -418,8 +694,7 @@ pub(crate) fn turn(
                 *blocks_left -= 1;
             }
             turn.damage += shot.damage;
-            energy -=
-                missiles::fire_energy(formulas.monster_fire, rng, cost(monster.energy.missile));
+            energy -= missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
             continue;
         }
         if reach == 0 || distance > reach {

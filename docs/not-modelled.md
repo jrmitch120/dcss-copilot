@@ -19,7 +19,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What the engine assumes:** monsters fight with their kind's attacks alone, as if they wield nothing and wear nothing.
 - **Surfaced as:** `monsterEquipment`, on every rated Threat Level.
 - **Harness:** melee leaves out monsters that wield items and animated objects; the missile and turn harnesses make their monsters with no items but what they shoot.
-- **Impact and cost:** large for armed monsters, such as orcs with a good weapon; little for beasts. Reading a monster's weapon comes with its Carried Gear ([#83]); then the weapon formulas and brands are ported for monster melee.
+- **Impact and cost:** large for armed monsters, such as orcs with a good weapon; little for beasts. The Advisor reads a monster's weapon and armour with its Carried Gear, and the brands are ported (`brands.rs`); the weapon formulas remain to be ported for monster melee.
 - **Issue:** [#98]
 
 ### Attack flavours
@@ -80,12 +80,20 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### The player's resistances
 
-- **What crawl does:** a beam's damage is cut by the player's resistances (`check_your_resists`).
-- **What the engine assumes:** the player resists nothing.
-- **Surfaced as:** `playerResistances`, when a monster that can attack casts or zaps.
-- **Harness:** the spell harness casts at a human without resistances.
-- **Impact and cost:** errs high, often by half or more of an elemental caster's damage. The Advisor already remembers the resistances from the character overview; the engine needs to apply them.
+- **What crawl does:** a beam's damage, and what a launcher's elemental, draining or pain brand adds, is cut by the player's resistances (`check_your_resists`, `resist_adjust_damage`). Holy wrath hurts only an undead or demonic player, and foul flame hurts them less and a holy one more (`player::res_foul_flame`).
+- **What the engine assumes:** the player resists nothing, and is a living mortal who worships no good god.
+- **Surfaced as:** `playerResistances`, when a monster that can attack casts, zaps or shoots a launcher whose brand's damage the player's resistances would cut.
+- **Harness:** the spell harness casts at a human without resistances, and the missile harness shoots at one who worships no god or Yredelemnul.
+- **Impact and cost:** errs high, often by half or more of an elemental caster's damage, and low for an undead or demonic player shot with holy wrath. The Advisor already remembers the resistances from the character overview, and the player's species and god are in view; the engine needs to apply them.
 - **Issue:** [#99]
+
+### Shooters a brand spares
+
+- **What crawl does:** a holy monster's foul flame launcher, and an undead or demonic one's holy wrath launcher, add nothing, nor does pain in the hands of a follower of Trog (`attack::apply_damage_brand`).
+- **What the engine assumes:** a brand adds the same whoever shoots it.
+- **Surfaced as:** accepted simplification: crawl makes almost none of these monsters with such a launcher, and holy wrath does nothing to the living mortal the engine takes the player for.
+- **Harness:** the missile harness gives neither a holy monster foul flame nor a follower of Trog pain.
+- **Impact and cost:** errs high, and rarely. Game Knowledge would carry each kind's holiness and god.
 
 ### Caster safety
 
@@ -97,12 +105,12 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Carried Gear
 
-- **What crawl does:** a monster carries the launcher, missiles and wand it was made with or picked up, with their enchantments and brands (`give_item`).
-- **What the engine assumes:** a monster is judged by its kind's Possible Gear, the odds crawl makes its kind with, its launcher or missiles +0 and unbranded.
-- **Surfaced as:** `carriedGear`, when a monster whose kind may shoot, throw or zap is in view.
-- **Harness:** the missile harness makes its launchers and missiles +0 and unbranded.
-- **Impact and cost:** large for one monster with a good launcher or a wand its kind seldom has. Read off the sighting message and the describe screen.
-- **Issue:** [#83]
+- **What crawl does:** a monster carries the launcher, missiles and wand it was made with or picked up, with their enchantments and brands (`give_item`), and lists them as it comes into view and in its look text (`get_monster_equipment_desc`).
+- **What the engine assumes:** a monster whose Carried Gear the Advisor hasn't read is judged by its kind's Possible Gear, the odds crawl makes its kind with, its launcher or missiles +0 and unbranded. That is one that came back into view, which crawl doesn't list again, or came with others whose message didn't list it or listed it among others of its name. Where a listing leaves out what a monster may still carry, an ordinary launcher in a group's main hand or unbranded large rocks, Possible Gear is played given that it is nothing the listing would have named, and an unidentified wand by its kind's wand odds given that it has one.
+- **Surfaced as:** `carriedGear`, when a monster whose kind may shoot, throw or zap is in view without its Carried Gear read; and each monster's gear on the Fact Sheet, with what of its Carried Gear isn't played: an enchantment or brand its name doesn't show, a brand the engine doesn't port, or a wand neither named nor one its kind is made with.
+- **Harness:** the missile harness draws a monster's launcher or missile from its gear, so never both: a monster with both, which takes its launcher two times in three (`handle_throw`), isn't checked.
+- **Impact and cost:** large for a monster whose gear isn't read, with a good launcher or a wand its kind seldom has. Looking at it (`x`) reads its gear; reading picked-up gear off the pick-up and wield messages, which only make it Stale, would keep more of it Known.
+- **Issue:** [#113], [#114], [#116]
 
 ### Wands not played out
 
@@ -160,7 +168,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What the engine assumes:** the launcher is already in hand.
 - **Surfaced as:** harness only.
 - **Harness:** the missile harness wields each monster's launcher first.
-- **Impact and cost:** errs high, slightly, on the first shot. Cheap to port once Carried Gear says which hand holds what ([#83]).
+- **Impact and cost:** errs high, slightly, on the first shot. Cheap to port: Carried Gear says which hand holds it, as a launcher in the off hand is listed as carried.
 
 ### A blinkbolt carries its caster
 
@@ -351,7 +359,9 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 [#40]: https://github.com/jrmitch120/dcss-copilot/issues/40
 [#77]: https://github.com/jrmitch120/dcss-copilot/issues/77
-[#83]: https://github.com/jrmitch120/dcss-copilot/issues/83
+[#113]: https://github.com/jrmitch120/dcss-copilot/issues/113
+[#114]: https://github.com/jrmitch120/dcss-copilot/issues/114
+[#116]: https://github.com/jrmitch120/dcss-copilot/issues/116
 [#85]: https://github.com/jrmitch120/dcss-copilot/issues/85
 [#86]: https://github.com/jrmitch120/dcss-copilot/issues/86
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92

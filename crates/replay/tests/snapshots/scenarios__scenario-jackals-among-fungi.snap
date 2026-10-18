@@ -55,7 +55,105 @@ expression: replay
               "shoots": []
             }
           ],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "fungus",
+              "position": {
+                "x": -2,
+                "y": -1
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "possible",
+                "mayShoot": false
+              },
+              "unplayed": []
+            },
+            {
+              "name": "toadstool",
+              "position": {
+                "x": -1,
+                "y": 1
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "possible",
+                "mayShoot": false
+              },
+              "unplayed": []
+            },
+            {
+              "name": "fungus",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "possible",
+                "mayShoot": false
+              },
+              "unplayed": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": 1,
+                "y": 1
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            },
+            {
+              "name": "plant",
+              "position": {
+                "x": -2,
+                "y": 2
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "possible",
+                "mayShoot": false
+              },
+              "unplayed": []
+            },
+            {
+              "name": "fungus",
+              "position": {
+                "x": -1,
+                "y": 2
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "possible",
+                "mayShoot": false
+              },
+              "unplayed": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": 2,
+                "y": 2
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
@@ -266,7 +364,105 @@ expression: replay
             "shoots": []
           }
         ],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "fungus",
+            "position": {
+              "x": -2,
+              "y": -1
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "toadstool",
+            "position": {
+              "x": -1,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "fungus",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          },
+          {
+            "name": "plant",
+            "position": {
+              "x": -2,
+              "y": 2
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "fungus",
+            "position": {
+              "x": -1,
+              "y": 2
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 2,
+              "y": 2
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "plain",
         "notModelled": [
           "monsterEquipment",

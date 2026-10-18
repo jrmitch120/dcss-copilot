@@ -9,10 +9,11 @@
  *   crawl's give_item many times, as made on D:5 outside the Orcish Mines and not in a band, with
  *   the game's item sets picked afresh each time. It tallies the launcher, or else the throwing
  *   missile, it got, and the wand it got and will zap (monster::likes_wand).
- * - missile: a monster with a launcher or throwing missile from its gear, made +0 and unbranded,
- *   fires it at the player many times, rolled as ranged_attack::attack rolls it: the to-hit,
- *   attack::test_hit against the player's evasion, attack_shield_blocked, then calc_damage, which
- *   applies armour. It skips the effects of a hit.
+ * - missile: a monster with a launcher or throwing missile from its gear, a launcher given a
+ *   random enchantment and brand and a missile none, fires it at the player many times, rolled as
+ *   ranged_attack::attack rolls it: the to-hit, attack::test_hit against the player's evasion,
+ *   attack_shield_blocked, then calc_damage, which applies armour, and apply_damage_brand, as
+ *   ranged_attack::handle_phase_hit adds the brand's damage. It skips the other effects of a hit.
  * - fire: such a monster a few squares from the player decides whether to shoot or throw, many
  *   times, through crawl's handle_throw, which fires for real. It tallies the energy each action
  *   took, 0 when it didn't fire. Nets are left out: one that hits catches the player.
@@ -45,10 +46,54 @@
 #include "mon-place.h"
 #include "ranged-attack.h"
 #include "spl-book.h"
+#include "state.h"
+#include "unwind.h"
 #include "viewgeom.h"
 
 // The item level gear is made at: D:5, deeper than every depth give_item asks about.
 static const int GEAR_LEVEL = 4;
+
+// The enchantments a missile case's launcher is given, from MIN_PLUS to MAX_PLUS.
+static const int MIN_PLUS = -3;
+static const int MAX_PLUS = 9;
+
+// The brands a missile case's launcher is given, each with its identifier as the engine names it:
+// none, every brand the engine ports, and venom, which adds no damage the engine counts.
+#define BRAND(id) { id, #id }
+static const vector<pair<brand_type, const char *>> LAUNCHER_BRANDS = {
+    BRAND(SPWPN_NORMAL),        BRAND(SPWPN_FLAMING),  BRAND(SPWPN_FREEZING),
+    BRAND(SPWPN_ELECTROCUTION), BRAND(SPWPN_HOLY_WRATH), BRAND(SPWPN_FOUL_FLAME),
+    BRAND(SPWPN_DRAINING),      BRAND(SPWPN_PAIN),     BRAND(SPWPN_HEAVY),
+    BRAND(SPWPN_SPEED),         BRAND(SPWPN_VENOM),
+};
+#undef BRAND
+
+// The identifier of a brand a launcher was given.
+static const char *_brand_id(int brand)
+{
+    for (const auto &entry : LAUNCHER_BRANDS)
+        if (entry.first == brand)
+            return entry.second;
+    fprintf(stderr, "a launcher was given brand %d, which isn't in LAUNCHER_BRANDS\n", brand);
+    exit(1);
+}
+
+// A brand for a launcher `mon` shoots, among those whose damage crawl gives as the engine takes
+// it: a holy monster's foul flame, and pain in the hands of a follower of Trog, do nothing in
+// crawl, and the engine doesn't tell those monsters apart.
+static brand_type _random_brand(const monster &mon)
+{
+    while (true)
+    {
+        const brand_type brand = LAUNCHER_BRANDS[random2(LAUNCHER_BRANDS.size())].first;
+        if (brand == SPWPN_FOUL_FLAME && mon.is_holy()
+            || brand == SPWPN_PAIN && mon.god == GOD_TROG)
+        {
+            continue;
+        }
+        return brand;
+    }
+}
 
 static set<spell_type> _read_ported(const char *path)
 {
@@ -151,8 +196,9 @@ static bool _any_kind(monster_type)
     return true;
 }
 
-// Gives `mon` its gear until it has a launcher or a throwing missile, +0, unbranded and wielded
-// if a launcher, and nothing else. Returns false if a few tries gave it none.
+// Gives `mon` its gear until it has a launcher or a throwing missile, and nothing else: a
+// launcher wielded, with a random enchantment and brand, and a missile unenchanted and unbranded.
+// Returns false if a few tries gave it none.
 static bool _arm(monster &mon, bool nets)
 {
     for (int attempt = 0; attempt < 40; ++attempt)
@@ -165,8 +211,9 @@ static bool _arm(monster &mon, bool nets)
             continue;
         }
         item_def kept = *weapon;
-        kept.plus = 0;
-        kept.brand = 0;
+        const bool launcher = is_range_weapon(kept);
+        kept.plus = launcher ? random_range(MIN_PLUS, MAX_PLUS) : 0;
+        kept.brand = launcher ? _random_brand(mon) : SPWPN_NORMAL;
         kept.flags &= ~ISFLAG_CHAOTIC;
         kept.quantity = max<short>(kept.quantity, 1);
         mon.destroy_inventory();
@@ -247,6 +294,10 @@ static void _missile_case(int index, int trials)
 
     map<int, int> to_hit, damage;
     int hits = 0, blocks = 0;
+    // A brand that drains takes the player's maximum hit points away for good.
+    unwind_var<FixedBitVector<NUM_DISABLEMENTS>> no_afflictions(crawl_state.disables);
+    crawl_state.disables.set(DIS_AFFLICTIONS);
+    const auto durations = you.duration;
     for (int t = 0; t < trials; ++t)
     {
         // Its to-hit is rolled as it is made (attack::init_attack).
@@ -260,17 +311,25 @@ static void _missile_case(int index, int trials)
         blocks += blocked;
         if (blocked || margin < 0)
             continue;
-        // ranged_attack::handle_phase_hit: a dart or net deals no damage itself.
-        ++damage[harmless ? 0 : atk.calc_damage()];
+        // ranged_attack::handle_phase_hit: a dart or net deals no damage itself, and the brand
+        // acts on what the hit dealt.
+        atk.damage_done = harmless ? 0 : atk.calc_damage();
+        atk.apply_damage_brand("the missile");
+        ++damage[atk.damage_done + atk.special_damage];
+        // The brand's damage is taken, and its element may leave a status.
+        you.hp = you.hp_max;
+        you.duration = durations;
     }
 
     printf("{\"case\":%d,\"kind\":\"missile\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
-           "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"nightvision\":%s,"
+           "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"plus\":%d,\"brand\":\"%s\","
+           "\"nightvision\":%s,"
            "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
            "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
-           _item_name(&weapon).c_str(), weapon.name(DESC_DBNAME, true).c_str(),
-           _json_bool(mon->nightvision()), def.ac, def.ev, def.sh, _lighting(), trials,
+           _item_name(&weapon).c_str(), weapon.name(DESC_DBNAME, true).c_str(), weapon.plus,
+           _brand_id(weapon.brand), _json_bool(mon->nightvision()), def.ac, def.ev, def.sh,
+           _lighting(), trials,
            _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str());
     mon->destroy_inventory();
     _remove(*mon);
@@ -283,6 +342,9 @@ static void _fire_case(int index, int trials)
     const item_def weapon = *_missile_weapon(*mon);
 
     map<int, int> energy;
+    // A brand that drains takes the player's maximum hit points away for good.
+    unwind_var<FixedBitVector<NUM_DISABLEMENTS>> no_afflictions(crawl_state.disables);
+    crawl_state.disables.set(DIS_AFFLICTIONS);
     for (int t = 0; t < trials; ++t)
     {
         _restore_player();
@@ -296,11 +358,11 @@ static void _fire_case(int index, int trials)
     _restore_player();
 
     printf("{\"case\":%d,\"kind\":\"fire\",\"monster\":%d,\"name\":\"%s\","
-           "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"distance\":%d,\"trials\":%d,"
-           "\"energy\":%s}\n",
+           "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"plus\":%d,\"brand\":\"%s\","
+           "\"distance\":%d,\"trials\":%d,\"energy\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), _item_name(&weapon).c_str(),
-           weapon.name(DESC_DBNAME, true).c_str(), distance, trials,
-           _histogram(energy).c_str());
+           weapon.name(DESC_DBNAME, true).c_str(), weapon.plus, _brand_id(weapon.brand),
+           distance, trials, _histogram(energy).c_str());
     mon->destroy_inventory();
     _remove(*mon);
 }

@@ -29,7 +29,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 25,
+          "worstHit": 27,
           "hostilesInView": 1,
           "acting": [
             {
@@ -42,19 +42,26 @@ expression: replay
               "casts": [],
               "spellsNotModelled": [],
               "shoots": [
-                "orcbow",
-                "shortbow"
+                "+0 orcbow"
               ]
             }
           ],
-          "mayShoot": [
+          "gear": [
             {
               "name": "centaur",
               "position": {
                 "x": 2,
                 "y": 2
               },
-              "distance": 5
+              "distance": 5,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "look",
+                "unlisted": "nothing"
+              },
+              "unplayed": []
             }
           ],
           "lighting": "plain",
@@ -63,8 +70,7 @@ expression: replay
             "attackFlavours",
             "statuses",
             "paths",
-            "awareness",
-            "carriedGear"
+            "awareness"
           ]
         },
         "waysOut": {
@@ -269,7 +275,7 @@ expression: replay
           "state": "rated",
           "level": "calm",
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 25 of 102 HP · Gear guessed from kind: centaur"
+          "detail": "Death under 0.1% · worst hit 27 of 102 HP"
         },
         "focus": {
           "card": "inView",
@@ -328,7 +334,7 @@ expression: replay
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 25,
+        "worstHit": 27,
         "hostilesInView": 1,
         "acting": [
           {
@@ -341,19 +347,26 @@ expression: replay
             "casts": [],
             "spellsNotModelled": [],
             "shoots": [
-              "orcbow",
-              "shortbow"
+              "+0 orcbow"
             ]
           }
         ],
-        "mayShoot": [
+        "gear": [
           {
             "name": "centaur",
             "position": {
               "x": 2,
               "y": 2
             },
-            "distance": 5
+            "distance": 5,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "look",
+              "unlisted": "nothing"
+            },
+            "unplayed": []
           }
         ],
         "lighting": "plain",
@@ -362,8 +375,7 @@ expression: replay
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness",
-          "carriedGear"
+          "awareness"
         ]
       },
       "waysOut": {
@@ -568,7 +580,7 @@ expression: replay
         "state": "rated",
         "level": "calm",
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 25 of 102 HP · Gear guessed from kind: centaur"
+        "detail": "Death under 0.1% · worst hit 27 of 102 HP"
       },
       "focus": {
         "card": "inView",

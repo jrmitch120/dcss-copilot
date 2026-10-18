@@ -339,6 +339,10 @@ struct MissileLine {
     hit_dice: i32,
     weapon: String,
     weapon_name: String,
+    /// A launcher's enchantment, 0 for a thrown missile.
+    plus: i32,
+    /// A launcher's brand, by `brand_type` identifier.
+    brand: String,
     nightvision: bool,
     player: ExactDefences,
     lighting: Lighting,
@@ -357,6 +361,10 @@ struct FireLine {
     name: String,
     weapon: String,
     weapon_name: String,
+    /// A launcher's enchantment, 0 for a thrown missile.
+    plus: i32,
+    /// A launcher's brand, by `brand_type` identifier.
+    brand: String,
     distance: i32,
     trials: u32,
     energy: BTreeMap<i32, u32>,
@@ -689,6 +697,8 @@ fn compare_missile(
     let input = MissileCase {
         monster: case.monster,
         weapon: item_id(bundle, case.index, &case.weapon)?,
+        plus: case.plus,
+        brand: EnumId(case.brand.clone()),
         hit_dice: case.hit_dice,
         defences: case.player,
         lighting: case.lighting,
@@ -698,7 +708,11 @@ fn compare_missile(
             case: case.index,
             source,
         })?;
-    let who = format!("{} firing a {}", case.name, case.weapon_name);
+    let who = format!(
+        "{} firing a {}",
+        case.name,
+        weapon_name(&case.weapon_name, case.plus, &case.brand)
+    );
     let measures = [
         (Measure::ToHit, case.to_hit.clone(), engine.to_hit),
         (
@@ -724,6 +738,8 @@ fn compare_fire(bundle: &Bundle, seed: u64, case: &FireLine) -> Result<Vec<Misma
     let input = FireCase {
         monster: case.monster,
         weapon: item_id(bundle, case.index, &case.weapon)?,
+        plus: case.plus,
+        brand: EnumId(case.brand.clone()),
         distance: case.distance,
     };
     let engine =
@@ -735,13 +751,21 @@ fn compare_fire(bundle: &Bundle, seed: u64, case: &FireLine) -> Result<Vec<Misma
         })?;
     let who = format!(
         "{} with a {} at {} squares",
-        case.name, case.weapon_name, case.distance
+        case.name,
+        weapon_name(&case.weapon_name, case.plus, &case.brand),
+        case.distance
     );
     Ok(differing(
         case.index,
         &who,
         [(Measure::Energy, case.energy.clone(), engine)],
     ))
+}
+
+/// A launcher or missile named with its enchantment and brand, such as `+3 shortbow
+/// (SPWPN_FLAMING)`, for a mismatch to name.
+fn weapon_name(name: &str, plus: i32, brand: &str) -> String {
+    format!("{plus:+} {name} ({brand})")
 }
 
 /// Every measure of a zap `case` on which crawl and the engine differ.

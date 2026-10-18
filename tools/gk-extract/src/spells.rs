@@ -15,6 +15,8 @@ pub struct SpellEntry {
     pub id: String,
     /// Its name.
     pub name: String,
+    /// Its schools, as `spschool` names them.
+    pub schools: Vec<String>,
     /// How far it reaches, when it has a range.
     pub range: Option<SpellRange>,
 }
@@ -34,13 +36,14 @@ pub fn spell_entries(
     };
     let mut spells = Vec::new();
     for fields in source.entries("spelldata")? {
-        let [id, name, _, _, _, power_cap, min, max, ..] = fields.as_slice() else {
+        let [id, name, schools, _, _, power_cap, min, max, ..] = fields.as_slice() else {
             return Err(unreadable("an entry of spelldata"));
         };
         let (Some(id), [Token::Str(name)]) = (identifier(id), name.as_slice()) else {
             return Err(unreadable("an entry of spelldata"));
         };
         let what = |field: &str| format!("the {field} of {id}");
+        let schools = spell_schools(schools).ok_or_else(|| unreadable(&what("schools")))?;
         let integer = |tokens: &[Token], field: &str| {
             integer(tokens, constants).ok_or_else(|| unreadable(&what(field)))
         };
@@ -57,10 +60,35 @@ pub fn spell_entries(
         spells.push(SpellEntry {
             id: id.to_owned(),
             name: name.clone(),
+            schools,
             range,
         });
     }
     Ok(spells)
+}
+
+/// The schools a `spelldata` entry's schools field names, as `spschool::fire | spschool::air`:
+/// none for `spschool::none`, and `None` for a field written otherwise.
+fn spell_schools(tokens: &[Token]) -> Option<Vec<String>> {
+    let mut schools = Vec::new();
+    for part in tokens.split(|token| *token == Token::Punct('|')) {
+        let [
+            Token::Ident(scope),
+            Token::Punct(':'),
+            Token::Punct(':'),
+            Token::Ident(school),
+        ] = part
+        else {
+            return None;
+        };
+        if scope != "spschool" {
+            return None;
+        }
+        if school != "none" {
+            schools.push(school.clone());
+        }
+    }
+    Some(schools)
 }
 
 /// The zap each spell fires, from `_spl_zaps`. A spell listed twice fires its first zap, as
