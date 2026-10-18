@@ -33,6 +33,14 @@ const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
 /// The genus crawl gives a breath outside its book, by colour: `drac_breath` in `mon-util.cc`.
 const DRACONIAN_GENUS: &str = "MONS_DRACONIAN";
 
+/// The flavours of a first attack that swoop at or flank the foe: `_handle_swoop_or_flank` in
+/// `mon-act.cc`, which looks at the first attack only.
+const SWOOP_OR_FLANK_FLAVOURS: [&str; 2] = ["AF_SWOOP", "AF_FLANK"];
+
+/// The flavours of an attack whose hit tramples the defender back or drags them along:
+/// `melee_attack::mons_attack_effects` in `melee-attack.cc`.
+const PLAYER_MOVING_FLAVOURS: [&str; 2] = ["AF_TRAMPLE", "AF_DRAG"];
+
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -149,6 +157,9 @@ pub struct ActingMonster {
     pub casts: Vec<String>,
     /// The other spells of its book, by name: the simulation assumes it doesn't cast them.
     pub spells_not_modelled: Vec<String>,
+    /// The ways crawl moves it, or acts for it, that the simulation doesn't play out, in the
+    /// order [`NotModelled`] lists them.
+    pub moves_not_modelled: Vec<NotModelled>,
     /// The launchers, throwing missiles and wands the simulation plays out for it, by name: those
     /// of its Carried Gear as the game named them, such as `+3 shortbow of flaming`, or those
     /// crawl may make its kind with, such as `shortbow` or `wand of flame`.
@@ -220,7 +231,7 @@ pub enum KnownOrStale {
 
 /// Something the engine doesn't model, in the Threat Level's simulation or in judging the Ways
 /// Out.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
     /// Monsters fight in melee as if they wield nothing, with no weapon damage or brands, and
@@ -284,6 +295,47 @@ pub enum NotModelled {
     /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
     /// free square to blink to, isn't checked.
     OwnConditions,
+    /// A monster that can attack is batty, such as the shard shrike: crawl has it flit away after
+    /// it attacks (`_handle_battiness`), and the simulation has it stay and attack again.
+    Batty,
+    /// A monster that can attack keeps its range, such as the orb spider: crawl holds it at a
+    /// firing position away from the player (`_decide_monster_firing_position`), and the
+    /// simulation walks it up to fight.
+    KeepsRange,
+    /// A monster that can attack won't step toward the player while they watch it, such as the
+    /// wandering mushroom (`_fungal_move_check`), and the simulation walks it up.
+    WontMoveWhileWatched,
+    /// A monster in view is a tentacle or vine, such as the snaplasher vine, which crawl moves
+    /// with its parent (`mons_is_tentacle_or_tentacle_segment`): the simulation walks it on its
+    /// own, so it may strike from where it is judged out of reach.
+    MovesWithParent,
+    /// A monster that can attack is one `handle_monster_move` acts or moves for with code of its
+    /// own, such as a prism, a hellfire mortar or an orb of destruction, and the simulation has
+    /// it walk, fight and cast.
+    OwnActions,
+    /// A monster in view swoops or flanks with its first attack (`_handle_swoop_or_flank`),
+    /// moving about the player as it strikes, so it may strike from farther than the simulation
+    /// judges it can.
+    SwoopOrFlank,
+    /// A monster that can attack has a special ability of its own, outside its spells
+    /// (`mon_special_ability`), such as a slime creature's splitting or a foxfire's burst, which
+    /// isn't played out.
+    SpecialAbilities,
+    /// A monster that can attack has a hit that tramples or drags the player, such as an
+    /// elephant's (`melee_attack::mons_attack_effects`): the simulation keeps the player where
+    /// they stand.
+    MovesThePlayer,
+    /// A monster that can attack can't leave the lava or water it lives in, such as a lava snake
+    /// (`monster_habitable_feat`), and the simulation walks it over the floor to the player.
+    BoundToTerrain,
+}
+
+impl NotModelled {
+    /// Whether it may let a monster strike that the simulation judges can't, so the Fact Sheet
+    /// names it for any hostile in view rather than only those that can attack.
+    fn strikes_from_out_of_reach(self) -> bool {
+        matches!(self, Self::MovesWithParent | Self::SwoopOrFlank)
+    }
 }
 
 /// What the simulation leaves out, whatever is in view.
@@ -455,8 +507,11 @@ fn threat(
     // Each monster with the gear it is played with, and the monsters that can attack, each with
     // the spells of its book not played out.
     let mut gear: Vec<GearPlayed> = Vec::new();
-    let mut acting: Vec<(&VisibleMonster, Vec<String>)> = Vec::new();
+    let mut acting: Vec<(&VisibleMonster, Vec<String>, Vec<NotModelled>)> = Vec::new();
     let mut attackers: Vec<Attacker<'_>> = Vec::new();
+    // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
+    // them.
+    let mut moves: BTreeSet<NotModelled> = BTreeSet::new();
     for (seen, monster) in hostile {
         let distance = distance(player, seen.position);
         let attacker = Attacker::new(bundle, monster, distance);
@@ -492,15 +547,24 @@ fn threat(
             basis,
             unplayed,
         });
+        let its_moves = moves_not_modelled(monster);
         if threat::can_attack(formulas, &attacker) {
-            acting.push((seen, spells_not_modelled(bundle, &attacker)));
+            moves.extend(its_moves.iter().copied());
+            acting.push((seen, spells_not_modelled(bundle, &attacker), its_moves));
             attackers.push(attacker);
+        } else {
+            moves.extend(
+                its_moves
+                    .into_iter()
+                    .filter(|variant| variant.strikes_from_out_of_reach()),
+            );
         }
     }
+    not_modelled.extend(moves);
     if gear.iter().any(GearPlayed::guessed_shooter) {
         not_modelled.push(NotModelled::CarriedGear);
     }
-    if acting.iter().any(|(_, others)| !others.is_empty()) {
+    if acting.iter().any(|(_, others, _)| !others.is_empty()) {
         not_modelled.push(NotModelled::OtherSpells);
     }
     if attackers.iter().any(|attacker| attacker.unported_wand) {
@@ -550,7 +614,7 @@ fn threat(
         acting: acting
             .into_iter()
             .zip(&attackers)
-            .map(|((seen, others), attacker)| ActingMonster {
+            .map(|((seen, others, moves), attacker)| ActingMonster {
                 name: seen.name.clone(),
                 position: seen.position,
                 distance: attacker.distance,
@@ -560,6 +624,7 @@ fn threat(
                     .map(|cast| cast.spell.spell.name.clone())
                     .collect(),
                 spells_not_modelled: others,
+                moves_not_modelled: moves,
                 shoots: attacker.shoots.clone(),
             })
             .collect(),
@@ -661,6 +726,45 @@ fn spells_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> Vec<String> 
         .collect()
 }
 
+/// The ways crawl moves a monster of `monster`'s kind, or acts for it, that the simulation
+/// doesn't play out, in the order [`NotModelled`] lists them.
+fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
+    let first_flavour = monster
+        .attacks
+        .first()
+        .map(|attack| attack.flavour.0.as_str());
+    [
+        (NotModelled::Batty, monster.batty),
+        (NotModelled::KeepsRange, monster.keeps_range),
+        (
+            NotModelled::WontMoveWhileWatched,
+            monster.wont_move_while_watched,
+        ),
+        (NotModelled::MovesWithParent, monster.tentacle),
+        (NotModelled::OwnActions, monster.own_actions),
+        (
+            NotModelled::SwoopOrFlank,
+            first_flavour.is_some_and(|flavour| SWOOP_OR_FLANK_FLAVOURS.contains(&flavour)),
+        ),
+        (NotModelled::SpecialAbilities, monster.special_ability),
+        (
+            NotModelled::MovesThePlayer,
+            monster
+                .attacks
+                .iter()
+                .any(|attack| PLAYER_MOVING_FLAVOURS.contains(&attack.flavour.0.as_str())),
+        ),
+        // One that never moves never tries to leave.
+        (
+            NotModelled::BoundToTerrain,
+            !monster.stationary && !monster.stands_on_floor(),
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(variant, has)| has.then_some(variant))
+    .collect()
+}
+
 /// The Threat Level for a chance of death and a worst-case hit against `hp`.
 fn level(hp: i32, death: Chance, worst_hit: i32) -> ThreatLevel {
     if death.at_least_per_mille(LETHAL_DEATHS_PER_MILLE) || worst_hit >= hp {
@@ -681,7 +785,11 @@ fn distance(a: Position, b: Position) -> i32 {
 
 #[cfg(test)]
 mod tests {
+    use copilot_gk::Library;
+
     use super::*;
+    use crate::view_model::{Colour, Glyph};
+    use crate::visible_state::Stats;
 
     fn chance(times: u32) -> Chance {
         Chance {
@@ -713,6 +821,124 @@ mod tests {
         assert_eq!(level(50, chance(0), 49), ThreatLevel::Dangerous);
         assert_eq!(level(50, chance(0), 20), ThreatLevel::Dangerous);
         assert_eq!(level(50, chance(0), 19), ThreatLevel::Calm);
+    }
+
+    /// The Threat Level with one hostile `name` in view, `distance` squares east of a player on
+    /// 100 HP with no defences.
+    fn assessed_with(name: &str, distance: i32) -> ThreatAssessment {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
+        let player = Position { x: 10, y: 10 };
+        let visible = VisibleState {
+            stats: Stats {
+                hp: Some(100),
+                ac: Some(0),
+                ev: Some(0),
+                sh: Some(0),
+                ..Stats::default()
+            },
+            position: Some(player),
+            monsters: Some(vec![VisibleMonster {
+                name: name.to_owned(),
+                glyph: Glyph {
+                    text: monster.glyph.clone(),
+                    colour: Colour::White,
+                },
+                id: Some(monster.id.clone()),
+                position: Position {
+                    x: player.x + distance,
+                    y: player.y,
+                },
+                attitude: Some(Attitude::Hostile),
+                crawl_threat: None,
+                sighting: None,
+            }]),
+            ..VisibleState::default()
+        };
+        match FactSheet::compute(&visible, None, Some(bundle)).threat {
+            Threat::Rated(assessment) => *assessment,
+            Threat::Unrated { gaps } => panic!("{name} isn't rated: {gaps:?}"),
+        }
+    }
+
+    /// The ways crawl moves a monster that the simulation doesn't play out.
+    const MOVES_NOT_MODELLED: [NotModelled; 9] = [
+        NotModelled::Batty,
+        NotModelled::KeepsRange,
+        NotModelled::WontMoveWhileWatched,
+        NotModelled::MovesWithParent,
+        NotModelled::OwnActions,
+        NotModelled::SwoopOrFlank,
+        NotModelled::SpecialAbilities,
+        NotModelled::MovesThePlayer,
+        NotModelled::BoundToTerrain,
+    ];
+
+    /// What crawl does with a monster in view, beside the player, that the simulation doesn't
+    /// play out: on the Fact Sheet, and on its row.
+    fn moves_beside_the_player(name: &str) -> (Vec<NotModelled>, Vec<NotModelled>) {
+        let assessment = assessed_with(name, 1);
+        let [acting] = assessment.acting.as_slice() else {
+            panic!("{name} beside the player doesn't act");
+        };
+        let moves = MOVES_NOT_MODELLED
+            .into_iter()
+            .filter(|variant| assessment.not_modelled.contains(variant))
+            .collect();
+        (moves, acting.moves_not_modelled.clone())
+    }
+
+    #[test]
+    fn a_monster_that_moves_as_crawl_moves_it_in_a_way_not_modelled_is_named_with_its_row() {
+        for (name, variant) in [
+            ("shard shrike", NotModelled::Batty),
+            ("orb spider", NotModelled::KeepsRange),
+            ("wandering mushroom", NotModelled::WontMoveWhileWatched),
+            ("snaplasher vine", NotModelled::MovesWithParent),
+            ("jiangshi", NotModelled::OwnActions),
+            ("tengu warrior", NotModelled::SwoopOrFlank),
+            ("slime creature", NotModelled::SpecialAbilities),
+            ("elephant", NotModelled::MovesThePlayer),
+            ("lava snake", NotModelled::BoundToTerrain),
+        ] {
+            assert_eq!(
+                moves_beside_the_player(name),
+                (vec![variant], vec![variant]),
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_goblin_walks_up_as_crawl_walks_it() {
+        assert_eq!(moves_beside_the_player("goblin"), (vec![], vec![]));
+    }
+
+    #[test]
+    fn a_monster_that_may_strike_from_out_of_reach_is_named_while_it_cant_attack() {
+        for (name, variant) in [
+            ("snaplasher vine", NotModelled::MovesWithParent),
+            ("sun moth", NotModelled::SwoopOrFlank),
+        ] {
+            let assessment = assessed_with(name, 7);
+            assert!(assessment.acting.is_empty(), "{name} acts from 7 squares");
+            assert!(assessment.not_modelled.contains(&variant), "{name}");
+        }
+    }
+
+    #[test]
+    fn a_monster_that_cant_attack_and_cant_strike_from_out_of_reach_isnt_named() {
+        let assessment = assessed_with("elephant", 7);
+        assert!(
+            assessment.acting.is_empty(),
+            "the elephant acts from 7 squares"
+        );
+        assert!(
+            !assessment
+                .not_modelled
+                .contains(&NotModelled::MovesThePlayer)
+        );
     }
 
     /// The Not Modelled ledger: one entry for each thing the engine leaves out.
@@ -755,6 +981,15 @@ mod tests {
             UnexploredSquares,
             HitsOnTheWay,
             OwnConditions,
+            Batty,
+            KeepsRange,
+            WontMoveWhileWatched,
+            MovesWithParent,
+            OwnActions,
+            SwoopOrFlank,
+            SpecialAbilities,
+            MovesThePlayer,
+            BoundToTerrain,
         ]
         .into_iter()
         .map(|variant| {

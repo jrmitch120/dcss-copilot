@@ -62,6 +62,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -73,6 +74,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -84,6 +86,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],
@@ -191,6 +194,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -202,6 +206,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -213,6 +218,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],
@@ -319,6 +325,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -330,6 +337,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -341,6 +349,7 @@ expression: by_turn
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],

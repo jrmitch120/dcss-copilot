@@ -46,6 +46,7 @@ expression: replay
                 "Injury Bond",
                 "Cleansing Flame"
               ],
+              "movesNotModelled": [],
               "shoots": []
             }
           ],
@@ -249,6 +250,7 @@ expression: replay
               "Injury Bond",
               "Cleansing Flame"
             ],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],

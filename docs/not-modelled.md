@@ -56,7 +56,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Spells not played out
 
-- **What crawl does:** a monster picks from all the spells in its book (`_choose_spell_to_cast`): summons, hexes, self-buffs and spells that aren't a single bolt or explosion among them.
+- **What crawl does:** a monster picks from all the spells in its book (`_choose_spell_to_cast`): summons, hexes, self-buffs and spells that aren't a single bolt or explosion among them. A blink frog blinks away from the player by a spell of its book (`SPELL_BLINK`), not an ability of its own.
 - **What the engine assumes:** a monster never casts a spell it doesn't port, and fights instead.
 - **Surfaced as:** `otherSpells`, when a monster that can attack has such a spell; its row names the spells.
 - **Harness:** the spell and turn harnesses cut each monster's book down to the spells the engine ports.
@@ -172,102 +172,78 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Special abilities
 
-- **What crawl does:** many monsters use special abilities of their own, outside their spells (`mon_special_ability`).
+- **What crawl does:** some monsters use special abilities of their own, outside their spells (`mon_special_ability`): a slime creature splits, a ball lightning explodes, and the seekers, the foxfire and shooting star, burst on what they reach.
 - **What the engine assumes:** no special abilities.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness switches them off.
-- **Impact and cost:** varies by kind. Each is its own port; listing them as Not Modelled first needs Game Knowledge to say which kinds have one.
-- **Issue:** [#86]
+- **Surfaced as:** `specialAbilities`, when a monster that can attack has one; its row names it.
+- **Harness:** the turn harness switches them off, and leaves out the seekers, which burst by theirs.
+- **Impact and cost:** varies by kind. Each is its own port.
 
 ### Swooping and flanking
 
 - **What crawl does:** a monster whose first attack swoops or flanks moves about the player as it attacks (`_handle_swoop_or_flank`).
 - **What the engine assumes:** it walks straight up and attacks.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `swoopOrFlank`, when such a monster is in view, whether or not it can attack, as a swoop can let it strike from farther than the simulation judges it can; its row names it.
 - **Harness:** the turn harness leaves out kinds whose first attack swoops or flanks.
-- **Impact and cost:** a swoop can let a monster attack from farther than the simulation judges it can. Game Knowledge has the attack flavours already.
-- **Issue:** [#86]
+- **Impact and cost:** either way: a swoop can let a monster attack from farther than the simulation judges, a flank spends an action moving round the player. A port needs the free squares round the player, which the simulation, with no paths, doesn't know.
 
 ### Batty monsters
 
 - **What crawl does:** a batty monster, such as the shard shrike, flits away after it attacks (`_handle_battiness`).
 - **What the engine assumes:** it stays beside the player and attacks with every action.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `batty`, when a monster that can attack is batty; its row names it.
 - **Harness:** the turn harness leaves out batty kinds.
-- **Impact and cost:** errs high, badly for fast batty monsters. Needs the batty flag in Game Knowledge.
-- **Issue:** [#86], [#103]
+- **Impact and cost:** errs high, badly for fast batty monsters.
+- **Issue:** [#103]
 
 ### Keeping range
 
-- **What crawl does:** a monster that keeps its range, such as the orb spider, holds a firing position away from the player rather than close in (`_set_firing_pos`).
+- **What crawl does:** a monster that keeps its range, such as the orb spider, holds a firing position away from the player rather than close in (`_decide_monster_firing_position`).
 - **What the engine assumes:** it walks up and fights in melee.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `keepsRange`, when a monster that can attack keeps its range; its row names it.
 - **Harness:** the turn harness leaves out kinds that keep their range.
-- **Impact and cost:** errs high when its melee is worse than what it fires. Needs the flag in Game Knowledge.
-- **Issue:** [#86], [#102]
+- **Impact and cost:** errs high when its melee is worse than what it fires.
+- **Issue:** [#102]
 
 ### Won't move while watched
 
 - **What crawl does:** the wandering mushroom, deathcap and lurking horror won't step toward the player while the player watches them (`_fungal_move_check`).
 - **What the engine assumes:** they walk up like anything else.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `wontMoveWhileWatched`, when a monster that can attack is one of them; its row names it.
 - **Harness:** the turn harness leaves them out.
-- **Impact and cost:** errs high. Crawl hard-codes the kinds, so Game Knowledge would mirror its list.
-- **Issue:** [#86], [#101]
+- **Impact and cost:** errs high. Crawl hard-codes the kinds, and Game Knowledge mirrors its list.
+- **Issue:** [#101]
 
 ### Moving with a parent
 
-- **What crawl does:** tentacles and vines, such as the snaplasher vine, move with their parent (`move_solo_tentacle`).
+- **What crawl does:** tentacles and vines, such as the snaplasher vine, move with their parent (`mons_is_tentacle_or_tentacle_segment`, which `move_solo_tentacle` and `move_child_tentacles` act on).
 - **What the engine assumes:** they walk on their own.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `movesWithParent`, when a tentacle or segment is in view, whether or not it can attack, as one may strike from where the simulation judges it out of reach; its row names it.
 - **Harness:** the turn harness leaves out tentacles and their segments.
-- **Impact and cost:** either way, as a segment may strike from where the simulation judges it out of reach. Needs the parent's position and the segment's length.
-- **Issue:** [#86]
+- **Impact and cost:** either way. Needs the parent's position and the segment's length.
 
 ### Acting by code of their own
 
-- **What crawl does:** `handle_monster_move` acts or moves for some kinds with code of their own: prisms, the hellfire mortar, the lightning spire, the diamond sawblade, the boulder, the solar ember and others.
+- **What crawl does:** `handle_monster_move` acts or moves for some kinds with code of its own: prisms, the hellfire mortar, the lightning spire, the diamond sawblade, the boulder, the solar ember and others, and the blazeheart golem, which `_pre_monster_move` keeps by its summoner. Projectiles, such as an orb of destruction, fly at their target and burst on it by code of their own too (`mons_is_projectile`, `iood_act`).
 - **What the engine assumes:** they walk and fight like anything else.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `ownActions`, when a monster that can attack is one of them; its row names it.
 - **Harness:** the turn harness leaves them out.
-- **Impact and cost:** large for the few that explode or roll over the player. Each is its own port; crawl hard-codes the list.
-- **Issue:** [#86]
-
-### Projectiles and seekers
-
-- **What crawl does:** some monsters are projectiles, such as an orb of destruction, or seekers, the foxfire and shooting star, that fly at their target and burst on it (`mons_is_projectile`, `mons_is_seeker`).
-- **What the engine assumes:** they walk up and fight like anything else.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves them out.
-- **Impact and cost:** small: most are summoned by others or by the player. Each is its own port.
-- **Issue:** [#86]
+- **Impact and cost:** large for the few that explode or roll over the player, small for projectiles, mostly summoned by others or by the player. Each is its own port; crawl hard-codes the list, and Game Knowledge mirrors it.
 
 ### Bound to lava or water
 
 - **What crawl does:** a monster that lives in lava or water, such as the lava snake, can't leave it (`monster_habitable_feat`).
 - **What the engine assumes:** it walks over the floor to the player.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `boundToTerrain`, when a monster that can attack, and that moves, can't stand on the floor; its row names it.
 - **Harness:** the turn harness leaves out kinds that can't stand on floor.
-- **Impact and cost:** errs high. Needs each kind's habitat in Game Knowledge and the terrain between it and the player.
-- **Issue:** [#86]
+- **Impact and cost:** errs high. Needs the terrain between it and the player in the simulation.
 
 ### Moving the player
 
-- **What crawl does:** some hits trample, knock back or pull the player, as the Serpent of Hell's, an elephant's or a golden dragon's do (`melee_attack::mons_attack_effects`, `melee_attack::do_knockback`).
+- **What crawl does:** some hits trample or drag the player, as the Serpent of Hell's, an elephant's or a golden dragon's do (`melee_attack::mons_attack_effects`, by the attack flavours `AF_TRAMPLE` and `AF_DRAG`).
 - **What the engine assumes:** the player stays where they stand.
-- **Surfaced as:** harness only.
+- **Surfaced as:** `movesThePlayer`, when a monster that can attack has such a hit; its row names it.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
-- **Impact and cost:** either way: a trampled player is farther from the next attacker, a pulled one closer. Needs which attack flavours move the player.
-- **Issue:** [#86]
-
-### Blinking away
-
-- **What crawl does:** a monster may blink away from the player, as a blink frog does (`monster_blink`).
-- **What the engine assumes:** it stays and fights.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves out of a case a monster that ends farther from the player, and says so on standard error.
-- **Impact and cost:** errs high, slightly. It may turn out to be a special ability, and be folded into that entry.
-- **Issue:** [#86]
+- **Impact and cost:** either way: a trampled player is farther from the next attacker, a dragged one closer.
 
 ### Breathing again through its own clouds
 
@@ -285,7 +261,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves out shapeshifters.
 - **Impact and cost:** small: it fights as the shape it has until it changes. Listing it needs the game's sign that a monster is a shapeshifter.
-- **Issue:** [#86]
 
 ### A mutant beast's facets
 
@@ -303,7 +278,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.
-- **Issue:** [#86]
 
 ## Ways Out
 
@@ -353,7 +327,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#113]: https://github.com/jrmitch120/dcss-copilot/issues/113
 [#114]: https://github.com/jrmitch120/dcss-copilot/issues/114
 [#116]: https://github.com/jrmitch120/dcss-copilot/issues/116
-[#86]: https://github.com/jrmitch120/dcss-copilot/issues/86
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95

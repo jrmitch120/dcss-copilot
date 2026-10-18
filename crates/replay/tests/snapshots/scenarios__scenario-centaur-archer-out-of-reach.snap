@@ -41,6 +41,7 @@ expression: replay
               "distance": 5,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": [
                 "+0 shortbow"
               ]
@@ -242,6 +243,7 @@ expression: replay
               "distance": 5,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": [
                 "+0 shortbow"
               ]
@@ -445,6 +447,7 @@ expression: replay
             "distance": 5,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": [
               "+0 shortbow"
             ]

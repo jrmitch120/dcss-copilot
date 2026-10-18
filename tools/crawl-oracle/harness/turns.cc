@@ -22,11 +22,14 @@
  *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
  *   cloud, and casting a blinkbolt. A rule no kind exercises is left out.
  *
- * It switches off monster special abilities (mon_special_ability), which the engine doesn't
- * port, and leaves out monsters that crawl moves otherwise than the engine does (#86),
+ * It switches off monster special abilities (mon_special_ability; NotModelled::SpecialAbilities),
+ * which the engine doesn't port, and leaves out monsters that crawl moves otherwise than the
+ * engine does, each named by the NotModelled variant the Fact Sheet gives it
+ * (_walks_as_engine_does), a monster faster than the player that casts a cloud (#104),
  * draconians, whose breath their book doesn't hold, books crawl fills when a monster is made
  * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind
- * that dies in its own turns, moves the player or moves away from them is left out of the case
+ * that dies in its own turns, moves the player (NotModelled::MovesThePlayer) or moves away from
+ * them is left out of the case
  * it is found in, and said so on standard error. A caster of an explosion or a cloud starts three
  * squares or more away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which
  * the engine doesn't port. A caster of a blinkbolt has the square behind the player walled, so
@@ -355,25 +358,41 @@ static const vector<pair<const char *, bool (*)(const turn_kind &)>> TURN_RULES 
 };
 
 // Kinds handle_monster_move acts or moves for with code of their own, rather than by walking,
-// fighting and casting.
+// fighting and casting (NotModelled::OwnActions), as Game Knowledge's series rules list them.
 static const set<monster_type> OWN_ACTIONS = {
     MONS_FULMINANT_PRISM, MONS_SHADOW_PRISM, MONS_SPLINTERFROST_BARRICADE, MONS_BLAZEHEART_CORE,
     MONS_BLAZEHEART_GOLEM, MONS_RENDING_BLADE, MONS_BURSTSHROOM, MONS_SIXFIRHY, MONS_JIANGSHI,
     MONS_BOULDER, MONS_HELLFIRE_MORTAR, MONS_DIAMOND_SAWBLADE, MONS_LIGHTNING_SPIRE,
     MONS_SOLAR_EMBER, MONS_BOUNDLESS_TESSERACT,
-    // They won't move while the player watches them (_fungal_move_check).
-    MONS_WANDERING_MUSHROOM, MONS_DEATHCAP, MONS_LURKING_HORROR,
 };
 
-// Whether crawl moves a kind the way the engine does (#86): straight at the player across the
-// floor, unless it never moves. A tentacle or vine moves with its parent, a batty monster flits
-// away after it attacks, one that keeps its range won't close in to fight, and a monster of lava
-// or water can't leave it.
+// Kinds that won't move while the player watches them (_fungal_move_check;
+// NotModelled::WontMoveWhileWatched).
+static const set<monster_type> WONT_MOVE_WHILE_WATCHED = {
+    MONS_WANDERING_MUSHROOM,
+    MONS_DEATHCAP,
+    MONS_LURKING_HORROR,
+};
+
+// Whether crawl moves a kind the way the engine does: straight at the player across the floor,
+// unless it never moves. Each kind it doesn't is one the Fact Sheet names by a NotModelled
+// variant.
 static bool _walks_as_engine_does(monster_type type)
 {
-    return !OWN_ACTIONS.count(type) && !mons_is_projectile(type) && !mons_is_seeker(type)
-           && !mons_is_tentacle_or_tentacle_segment(type) && !mons_class_flag(type, M_BATTY)
-           && !mons_class_flag(type, M_MAINTAIN_RANGE) && monster_habitable_feat(type, DNGN_FLOOR);
+    // OwnActions, with projectiles, which iood_act flies.
+    return !OWN_ACTIONS.count(type) && !mons_is_projectile(type)
+           // WontMoveWhileWatched.
+           && !WONT_MOVE_WHILE_WATCHED.count(type)
+           // SpecialAbilities: a seeker bursts by its own, switched off here.
+           && !mons_is_seeker(type)
+           // MovesWithParent.
+           && !mons_is_tentacle_or_tentacle_segment(type)
+           // Batty: it flits away after it attacks.
+           && !mons_class_flag(type, M_BATTY)
+           // KeepsRange: it won't close in to fight.
+           && !mons_class_flag(type, M_MAINTAIN_RANGE)
+           // BoundToTerrain: a monster of lava or water can't leave it.
+           && monster_habitable_feat(type, DNGN_FLOOR);
 }
 
 // Every kind a turn case may draw: one that attacks in melee or casts a spell the engine ports.
@@ -391,13 +410,14 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
         const monster_spells book = _ported_book(*mon, ported);
         const attack_flavour first = mons_attack_spec(*mon, 0, true).flavour;
         // Crawl seldom casts a cloud again through the clouds its last cast left, which the
-        // engine doesn't model (#86): only a monster faster than the player casts twice before
+        // engine doesn't model (#104): only a monster faster than the player casts twice before
         // the player's next action.
         const bool recasts_clouds = mon->speed > 10
                                     && _any_slot(book, [](const mon_spell_slot &slot) {
                                            return bool(get_spell_flags(slot.spell)
                                                        & spflag::cloud);
                                        });
+        // A first attack that swoops or flanks is NotModelled::SwoopOrFlank.
         if ((_has_melee(*mon) || !book.empty()) && first != AF_SWOOP && first != AF_FLANK
             && !recasts_clouds)
         {
@@ -465,7 +485,8 @@ struct turn_tally
 // Plays out the player's next standard-speed action `trials` times against `mon`, `distance`
 // squares away, each time as it starts, the player under a corona if `corona` and walled behind
 // if `walled`. Returns why the engine can't follow it, or nullptr if it can: a monster may burst
-// or crumble in its own turns, move the player, as a trampling or pulling hit does, move away
+// or crumble in its own turns, move the player, as a trampling or dragging hit does
+// (NotModelled::MovesThePlayer), move away
 // from them, as a blinking one does, or cast a blinkbolt and land anywhere but beside them.
 static const char *_play_turns(monster &mon, int distance, bool corona, bool walled, int trials,
                                turn_tally &tally)

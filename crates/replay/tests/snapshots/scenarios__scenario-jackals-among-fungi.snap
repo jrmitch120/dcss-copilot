@@ -41,6 +41,7 @@ expression: replay
               "distance": 1,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": []
             },
             {
@@ -52,6 +53,7 @@ expression: replay
               "distance": 2,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": []
             }
           ],
@@ -350,6 +352,7 @@ expression: replay
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -361,6 +364,7 @@ expression: replay
             "distance": 2,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],
