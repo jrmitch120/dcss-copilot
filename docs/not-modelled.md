@@ -40,10 +40,10 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Paths
 
-- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`).
-- **What the engine assumes:** monsters walk straight at the player, through walls and each other.
+- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall.
+- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing.
 - **Surfaced as:** `paths`, on every rated Threat Level.
-- **Harness:** the turn harness lays open floor around the player for each trial.
+- **Harness:** the turn harness lays open floor around the player for each trial, and walls the square behind them for a caster of a blinkbolt, so crawl lands it beside them too.
 - **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
 
 ### Awareness
@@ -169,14 +169,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** harness only.
 - **Harness:** the missile harness wields each monster's launcher first.
 - **Impact and cost:** errs high, slightly, on the first shot. Cheap to port: Carried Gear says which hand holds it, as a launcher in the off hand is listed as carried.
-
-### A blinkbolt carries its caster
-
-- **What crawl does:** a blinkbolt carries its caster to the farthest square on its path it can stand on, beside the player when something stops the bolt behind them, or past them on open floor, as the bolt pierces (`bolt::affect_endpoint`).
-- **What the engine assumes:** the caster lands beside the player, wherever it cast from.
-- **Surfaced as:** accepted simplification: it is the most dangerous landing, so the Threat Level errs high, and where the bolt really ends needs the map the simulation lacks, as paths do.
-- **Harness:** the turn harness walls the square behind the player for a caster of a blinkbolt, the raiju and the spark wasp, so crawl lands it beside them too.
-- **Impact and cost:** errs high, slightly: a caster landed past the player walks back before it can fight. Needs the map inside the simulation, as paths do.
 
 ### Special abilities
 
