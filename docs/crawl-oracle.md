@@ -47,7 +47,7 @@ It leaves out what the engine doesn't model: draconians, whose breath their book
 - **wand**: a random monster zaps a wand of a spell the engine ports at a randomly dressed and randomly lit player many times, set up by `setup_mons_cast` as a wand zap and rolled as a spell's beam is.
 - **zap**: a monster given such a wand, which it likes, decides many times whether to zap it through crawl's `_handle_wand`, which zaps for real. It tallies the energy each action took. A wand of an explosion is zapped from three squares or more, as in the spell harness.
 
-It leaves out what the engine doesn't model: a thrown missile's brand, a monster swapping its launcher in from its off hand, which costs it a fifth of an attack's energy (`monster::swap_weapons`), the flight of a missile or beam past the player, and a monster weighing the harm a blast does itself. [The ledger](not-modelled.md) says why each matters and what modelling it would take.
+It leaves out what the engine doesn't model: a thrown missile's brand, a monster with both a launcher and missiles to throw, which takes its launcher two times in three, a monster swapping its launcher in from its off hand, which costs it a fifth of an attack's energy (`monster::swap_weapons`), the flight of a missile or beam past the player, and a monster weighing the harm a blast does itself. [The ledger](not-modelled.md) says why each matters and what modelling it would take.
 
 ### Turns
 

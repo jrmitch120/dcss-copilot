@@ -12,7 +12,7 @@ use crate::accumulated_state::Shield;
 
 use super::brands::Brand;
 use super::melee::{self, Aim, Attack, Defences, Flavour, Swing, Target};
-use super::missiles::{self, Missile, Shooter};
+use super::missiles::{self, Missile, Missiles, Shooter};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
@@ -493,17 +493,16 @@ pub fn fire(
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = BTreeMap::new();
     for _ in 0..trials {
-        let energy = if missiles::fires(
+        let energy = missiles::fires(
             variant,
             &mut rng,
-            missile,
+            Missiles::of(missile),
             monster.prefers_ranged,
             case.distance,
-        ) {
+        )
+        .map_or(0, |missile| {
             missiles::fire_energy(bundle.formulas, &mut rng, missile, cost)
-        } else {
-            0
-        };
+        });
         *tally.entry(energy).or_default() += 1;
     }
     Ok(tally)

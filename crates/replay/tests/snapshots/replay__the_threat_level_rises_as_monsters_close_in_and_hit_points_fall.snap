@@ -49,7 +49,47 @@ expression: fact_sheets_by_turn(JACKALS)
         "worstHit": 0,
         "hostilesInView": 3,
         "acting": [],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 4,
+              "y": -1
+            },
+            "distance": 4,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 4,
+              "y": 0
+            },
+            "distance": 4,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 4,
+              "y": 1
+            },
+            "distance": 4,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
@@ -129,7 +169,47 @@ expression: fact_sheets_by_turn(JACKALS)
             "shoots": []
           }
         ],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "plain",
         "notModelled": [
           "monsterEquipment",
@@ -209,7 +289,47 @@ expression: fact_sheets_by_turn(JACKALS)
             "shoots": []
           }
         ],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": -1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 0
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": 1,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": false
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "plain",
         "notModelled": [
           "monsterEquipment",

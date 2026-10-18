@@ -71,35 +71,79 @@ impl<'a> Missile<'a> {
     }
 }
 
-/// Whether a monster `distance` squares from the player shoots or throws `missile` at them this
-/// action: `handle_throw` (`mon-act.cc:1487`) for a monster that sees the player with nothing
-/// between them. It doesn't shoot from beside the player unless it `prefers_ranged`
-/// (`M_PREFER_RANGED`); then it fires nine times in ten, a launcher four in five, and a thrown
-/// missile one in three.
-pub(crate) fn fires(
+/// What a monster may shoot or throw: a launcher, missiles to throw, or both.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Missiles<'a> {
+    /// Its launcher.
+    pub(crate) launcher: Option<Missile<'a>>,
+    /// Its missiles to throw.
+    pub(crate) thrown: Option<Missile<'a>>,
+}
+
+impl<'a> Missiles<'a> {
+    /// `missile` alone.
+    pub(crate) fn of(missile: Missile<'a>) -> Self {
+        if missile.weapon.kind == MissileKind::Launcher {
+            Self {
+                launcher: Some(missile),
+                thrown: None,
+            }
+        } else {
+            Self {
+                launcher: None,
+                thrown: Some(missile),
+            }
+        }
+    }
+
+    /// Each of them.
+    pub(crate) fn each(self) -> impl Iterator<Item = Missile<'a>> {
+        self.launcher.into_iter().chain(self.thrown)
+    }
+}
+
+/// What a monster `distance` squares from the player shoots or throws at them this action, of
+/// `missiles`, if anything: `handle_throw` (`mon-act.cc:1487`) for a monster that sees the player
+/// with nothing between them. It doesn't shoot from beside the player unless it `prefers_ranged`
+/// (`M_PREFER_RANGED`). With both a launcher and missiles to throw, it takes the launcher two
+/// times in three (`mon-act.cc:1535`). Then it fires nine times in ten if it prefers ranged, a
+/// launcher four in five, and a thrown missile one in three.
+pub(crate) fn fires<'a>(
     variant: MonsterFire,
     rng: &mut Rng,
-    missile: Missile<'_>,
+    missiles: Missiles<'a>,
     prefers_ranged: bool,
     distance: i32,
-) -> bool {
+) -> Option<Missile<'a>> {
     match variant {
         MonsterFire::Crawl034 => {
             // Its tracer stops at the missile's range.
             if distance > MISSILE_RANGE {
-                return false;
+                return None;
             }
             let adjacent = distance <= 1;
             if adjacent && !prefers_ranged {
-                return false;
+                return None;
             }
-            if prefers_ranged {
+            let missile = match (missiles.launcher, missiles.thrown) {
+                (Some(launcher), Some(thrown)) => {
+                    if rng.one_chance_in(3) {
+                        thrown
+                    } else {
+                        launcher
+                    }
+                }
+                (Some(one), None) | (None, Some(one)) => one,
+                (None, None) => return None,
+            };
+            let fires = if prefers_ranged {
                 !(rng.one_chance_in(10) && !adjacent)
             } else if missile.weapon.kind == MissileKind::Launcher {
                 !rng.one_chance_in(5)
             } else {
                 rng.one_chance_in(3)
-            }
+            };
+            fires.then_some(missile)
         }
     }
 }

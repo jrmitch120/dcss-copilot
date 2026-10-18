@@ -7,7 +7,8 @@ use copilot_gk::{Bundle, LightingSigns, MonsterSpells};
 use serde::Serialize;
 use specta::Type;
 
-use crate::accumulated_state::AccumulatedState;
+use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
+use crate::carried_gear::Unlisted;
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::spells::{DamagingSpell, Reach};
@@ -78,10 +79,9 @@ pub struct ThreatAssessment {
     /// The monsters that can attack before the player's next standard-speed action, in map
     /// order.
     pub acting: Vec<ActingMonster>,
-    /// The hostiles in view, acting or not, whose kind crawl may make with a launcher, throwing
-    /// missiles or a wand. The simulation plays out what crawl may make their kind with, by its
-    /// odds, rather than what each carries, which the Advisor can't see (#83).
-    pub may_shoot: Vec<MayShoot>,
+    /// The gear the simulation played out for each hostile in view, acting or not, in map
+    /// order: its Carried Gear, or its kind's Possible Gear when that isn't read.
+    pub gear: Vec<GearPlayed>,
     /// How the light falls on the player, which changes how well monsters aim at them. `None`
     /// when where they stand isn't known.
     pub lighting: Option<Lighting>,
@@ -149,21 +149,98 @@ pub struct ActingMonster {
     pub casts: Vec<String>,
     /// The other spells of its book, by name: the simulation assumes it doesn't cast them.
     pub spells_not_modelled: Vec<String>,
-    /// The launchers, throwing missiles and wands crawl may make its kind with that the
-    /// simulation plays out, by name, such as `shortbow` or `wand of flame`.
+    /// The launchers, throwing missiles and wands the simulation plays out for it, by name: those
+    /// of its Carried Gear as the game named them, such as `+3 shortbow of flaming`, or those
+    /// crawl may make its kind with, such as `shortbow` or `wand of flame`.
     pub shoots: Vec<String>,
 }
 
-/// A hostile in view whose kind crawl may make with something to shoot, throw or zap.
+/// The gear the simulation played out for one hostile in view.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MayShoot {
+pub struct GearPlayed {
     /// Its name, as the game names it.
     pub name: String,
     /// The square it is on.
     pub position: Position,
     /// Squares between it and the player.
     pub distance: i32,
+    /// Whose gear was played: what it was seen with, or what its kind is made with.
+    pub basis: GearBasis,
+    /// What of its Carried Gear isn't played out as the game named it.
+    pub unplayed: Vec<Unplayed>,
+}
+
+/// Whose gear the simulation played out for a monster.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(
+    tag = "basis",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum GearBasis {
+    /// Its Carried Gear, as the game last listed it.
+    Carried {
+        /// Whether the game has shown anything since that may have changed it.
+        state: Freshness,
+        /// The turn it was read on.
+        turn: Option<u32>,
+        /// What it was read off.
+        source: GearSource,
+        /// What that listing leaves out, which is played from its kind's Possible Gear, given
+        /// that it is nothing the listing would have named.
+        unlisted: Unlisted,
+    },
+    /// Its kind's Possible Gear, by the odds crawl makes its kind with, as its Carried Gear
+    /// hasn't been read.
+    Possible {
+        /// Whether its kind may be made with a launcher, throwing missiles or a wand.
+        may_shoot: bool,
+    },
+}
+
+/// Whether a remembered fact is Known or Stale.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Freshness {
+    /// Nothing the game has shown since may have changed it.
+    Known,
+    /// Something the game has shown since may have changed it.
+    Stale,
+}
+
+/// Something about a monster's Carried Gear the simulation doesn't play out as the game named it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(
+    tag = "unplayed",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum Unplayed {
+    /// A launcher whose name doesn't show its enchantment: played as +0.
+    UnknownPlus {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
+    /// A launcher whose name doesn't show its brand: played as unbranded.
+    UnknownBrand {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
+    /// A launcher or missile whose brand isn't ported, such as venom or poison: played as
+    /// unbranded, its effect left with the attack flavours.
+    BrandNotPorted {
+        /// Its name, as the game wrote it.
+        item: String,
+        /// The brand, as its name gives it.
+        brand: String,
+    },
+    /// A wand the Advisor can't name, carried by a monster whose kind crawl never makes with a
+    /// wand, so its odds can't say which: not played.
+    UnnamedWand {
+        /// Its name, as the game wrote it, such as `bone wand`.
+        item: String,
+    },
 }
 
 /// Something the engine doesn't model, in the Threat Level's simulation or in judging the Ways
@@ -193,15 +270,17 @@ pub enum NotModelled {
     SpellsPerMonster,
     /// A draconian in view breathes by its colour, which isn't played out.
     DraconianBreath,
-    /// Spells land as if the player resists nothing, because the Advisor doesn't read the
-    /// player's resistances yet.
+    /// Spells, and what a launcher's brand adds, land as if the player resists nothing and is a
+    /// living mortal who worships no good god, because the engine doesn't apply the player's
+    /// resistances yet.
     PlayerResistances,
     /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
     /// crawl's casters weigh that, and often hold off up close.
     CasterSafety,
-    /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by the odds
-    /// crawl makes its kind with, its launcher or missiles +0 and unbranded, as the Advisor can't
-    /// see what it carries (#83).
+    /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by its
+    /// kind's Possible Gear, the odds crawl makes its kind with, +0 and unbranded, as the Advisor
+    /// hasn't read its Carried Gear: it came back into view, or came with others whose message
+    /// didn't list it. Its look text (`x`) tells it.
     CarriedGear,
     /// A monster in reach may carry a wand the simulation doesn't play out, such as paralysis or
     /// polymorph: it is assumed never to zap it, and to shoot or fight instead.
@@ -362,7 +441,7 @@ fn threat(
             worst_hit: 0,
             hostiles_in_view: 0,
             acting: Vec::new(),
-            may_shoot: Vec::new(),
+            gear: Vec::new(),
             lighting: knowledge
                 .and_then(|bundle| lighting(visible, remembered, &bundle.lighting))
                 .map(|(lighting, _)| lighting),
@@ -388,12 +467,6 @@ fn threat(
     {
         not_modelled.push(NotModelled::DraconianBreath);
     }
-    if hostile
-        .iter()
-        .any(|(_, monster)| monster.gear.may_shoot_or_zap())
-    {
-        not_modelled.push(NotModelled::CarriedGear);
-    }
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
     not_modelled.extend(own_halo);
@@ -404,38 +477,67 @@ fn threat(
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
-    let may_shoot: Vec<MayShoot> = hostile
-        .iter()
-        .filter(|(_, monster)| monster.gear.may_shoot_or_zap())
-        .map(|(seen, _)| MayShoot {
-            name: seen.name.clone(),
-            position: seen.position,
-            distance: distance(player, seen.position),
-        })
-        .collect();
-    // The monsters that can attack, each with the spells of its book not played out.
+    // Each monster with the gear it is played with, and the monsters that can attack, each with
+    // the spells of its book not played out.
+    let mut gear: Vec<GearPlayed> = Vec::new();
     let mut acting: Vec<(&VisibleMonster, Vec<String>)> = Vec::new();
     let mut attackers: Vec<Attacker<'_>> = Vec::new();
     for (seen, monster) in hostile {
-        let attacker = Attacker::new(bundle, monster, distance(player, seen.position));
+        let distance = distance(player, seen.position);
+        let attacker = Attacker::new(bundle, monster, distance);
+        let carried = remembered
+            .and_then(|state| state.gear_of(seen, bundle))
+            .and_then(|read| Some((read, read.read_as_of()?)));
+        let (attacker, basis, unplayed) = match carried {
+            Some((read, as_of)) => {
+                let (attacker, unplayed) = attacker.carrying(bundle, &as_of.value);
+                let basis = GearBasis::Carried {
+                    state: match read {
+                        Remembered::Stale(_) => Freshness::Stale,
+                        Remembered::Known(_) | Remembered::Missing => Freshness::Known,
+                    },
+                    turn: as_of.turn,
+                    source: as_of.source,
+                    unlisted: as_of.value.unlisted,
+                };
+                (attacker, basis, unplayed)
+            }
+            None => {
+                let basis = GearBasis::Possible {
+                    may_shoot: monster.gear.may_shoot_or_zap(),
+                };
+                (attacker, basis, Vec::new())
+            }
+        };
+        gear.push(GearPlayed {
+            name: seen.name.clone(),
+            position: seen.position,
+            distance,
+            basis,
+            unplayed,
+        });
         if threat::can_attack(formulas, &attacker) {
             acting.push((seen, spells_not_modelled(bundle, &attacker)));
             attackers.push(attacker);
         }
     }
+    if gear
+        .iter()
+        .any(|played| played.basis == GearBasis::Possible { may_shoot: true })
+    {
+        not_modelled.push(NotModelled::CarriedGear);
+    }
     if acting.iter().any(|(_, others)| !others.is_empty()) {
         not_modelled.push(NotModelled::OtherSpells);
     }
-    if attackers
-        .iter()
-        .any(|attacker| wands_not_modelled(bundle, attacker))
-    {
+    if attackers.iter().any(|attacker| attacker.unported_wand) {
         not_modelled.push(NotModelled::OtherWands);
     }
-    if attackers
-        .iter()
-        .any(|attacker| !attacker.spells.is_empty() || !attacker.wands.is_empty())
-    {
+    if attackers.iter().any(|attacker| {
+        !attacker.spells.is_empty()
+            || !attacker.wands.is_empty()
+            || attacker.shoots_resisted_brand()
+    }) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
     if attackers.iter().any(|attacker| {
@@ -485,10 +587,10 @@ fn threat(
                     .map(|cast| cast.spell.spell.name.clone())
                     .collect(),
                 spells_not_modelled: others,
-                shoots: shoots(attacker),
+                shoots: attacker.shoots.clone(),
             })
             .collect(),
-        may_shoot,
+        gear,
         lighting: Some(lighting),
         not_modelled,
     }))
@@ -584,33 +686,6 @@ fn spells_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> Vec<String> 
                 .map_or_else(|| slot.spell.0.clone(), |spell| spell.name.clone())
         })
         .collect()
-}
-
-/// The launchers, missiles and wands of `attacker`'s kind that the simulation plays out, by
-/// name.
-fn shoots(attacker: &Attacker<'_>) -> Vec<String> {
-    attacker
-        .missiles
-        .items()
-        .map(|missile| missile.weapon.name.clone())
-        .chain(
-            attacker
-                .wands
-                .items()
-                .map(|zap| format!("wand of {}", zap.wand.name)),
-        )
-        .collect()
-}
-
-/// Whether `attacker`'s kind may carry a wand whose spell the simulation doesn't play out.
-fn wands_not_modelled(bundle: &Bundle, attacker: &Attacker<'_>) -> bool {
-    attacker.monster.gear.wand.items.iter().any(|weighted| {
-        weighted.weight > 0
-            && bundle
-                .wands
-                .get(&weighted.item)
-                .is_none_or(|wand| !attacker.wands.items().any(|zap| zap.wand == wand))
-    })
 }
 
 /// The Threat Level for a chance of death and a worst-case hit against `hp`.

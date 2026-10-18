@@ -33,7 +33,7 @@ expression: replay
         "worstHit": 0,
         "hostilesInView": 0,
         "acting": [],
-        "mayShoot": [],
+        "gear": [],
         "lighting": "backlit",
         "notModelled": []
       },

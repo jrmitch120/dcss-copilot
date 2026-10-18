@@ -49,7 +49,24 @@ expression: replay
               "shoots": []
             }
           ],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "seraph",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "backlit",
           "notModelled": [
             "monsterEquipment",
@@ -235,7 +252,24 @@ expression: replay
             "shoots": []
           }
         ],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "seraph",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "backlit",
         "notModelled": [
           "monsterEquipment",

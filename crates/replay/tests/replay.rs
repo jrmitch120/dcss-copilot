@@ -561,12 +561,12 @@ fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it
     // flame, its message sent before the map that shows it. 102: a lone goblin with nothing
     // listed: Known to have nothing but what crawl doesn't list. 103: two orcs and Sigmund come
     // into view at once: "An orc is carrying a bone wand" fits either orc, so neither is read;
-    // Sigmund's +1 heavy sling is. 104: the look cursor on one of those orcs reads its gear in
+    // Sigmund's +1 heavy sling and bone wand are. 104: the look cursor on one of those orcs reads its gear in
     // full. 105: look text with the cursor on an empty square and three orcs in view is read for
     // none. 106: "The orc picks up" something: every orc's gear goes Stale. 107: the first orc and
     // Sigmund leave view. 108: they come back: the orc as a new Sighting with nothing read,
-    // Sigmund with his gear, Stale. 109: a centaur carrying a launcher in its off hand. 110: a
-    // merfolk quivering a net.
+    // Sigmund with his gear, Stale. 109: a centaur carrying an unidentified launcher in its off
+    // hand. 110: a merfolk quivering a net. 111: a kobold quivering poisoned darts.
     let library = Library::shipped().unwrap();
     let bundle = library.for_version("0.34.1").unwrap();
     let mut replayer = replayer(CARRIED_GEAR);
@@ -596,6 +596,22 @@ fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it
     }
 
     insta::assert_json_snapshot!(by_turn);
+}
+
+#[test]
+fn the_threat_level_plays_each_monsters_carried_gear_where_it_is_read_and_its_possible_gear_elsewhere()
+ {
+    // As above: the orc's +3 shortbow of flaming and its wand of flame are played, the goblin's
+    // nothing, and Sigmund's heavy sling, with his bone wand as one of the wands crawl makes him
+    // with; the orc's bone wand, which crawl never makes an orc with, isn't played, nor the
+    // centaur's runed longbow's unknown plus and brand, nor the kobold's poison. An orc whose
+    // gear isn't read is played with its kind's Possible Gear.
+    let threats: Vec<_> = fact_sheets_by_turn(CARRIED_GEAR)
+        .into_iter()
+        .map(|turn| serde_json::json!({ "turn": turn["turn"], "threat": turn["factSheet"]["threat"] }))
+        .collect();
+
+    insta::assert_json_snapshot!(threats);
 }
 
 #[test]

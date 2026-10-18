@@ -26,7 +26,21 @@ expression: replayer.advisor().fact_sheet()
         "shoots": []
       }
     ],
-    "mayShoot": [],
+    "gear": [
+      {
+        "name": "hobgoblin",
+        "position": {
+          "x": 1,
+          "y": -1
+        },
+        "distance": 1,
+        "basis": {
+          "basis": "possible",
+          "mayShoot": false
+        },
+        "unplayed": []
+      }
+    ],
     "lighting": "plain",
     "notModelled": [
       "monsterEquipment",

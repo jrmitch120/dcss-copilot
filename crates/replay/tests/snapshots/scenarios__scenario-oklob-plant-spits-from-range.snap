@@ -46,7 +46,24 @@ expression: replay
               "shoots": []
             }
           ],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
@@ -203,7 +220,24 @@ expression: replay
               "shoots": []
             }
           ],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 3,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
@@ -360,7 +394,24 @@ expression: replay
               "shoots": []
             }
           ],
-          "mayShoot": [],
+          "gear": [
+            {
+              "name": "oklob plant",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 3,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
           "lighting": "plain",
           "notModelled": [
             "monsterEquipment",
@@ -519,7 +570,24 @@ expression: replay
             "shoots": []
           }
         ],
-        "mayShoot": [],
+        "gear": [
+          {
+            "name": "oklob plant",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 3,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
         "lighting": "plain",
         "notModelled": [
           "monsterEquipment",

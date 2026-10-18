@@ -44,6 +44,21 @@ pub(crate) enum Brand {
 }
 
 impl Brand {
+    /// Whether the damage it adds is the kind the player's resistances cut: an element's,
+    /// negative energy's or a holy or foul flame's (`resist_adjust_damage`, `fight.cc:853`).
+    pub(crate) fn resisted(self) -> bool {
+        matches!(
+            self,
+            Self::Flaming
+                | Self::Freezing
+                | Self::Electrocution
+                | Self::HolyWrath
+                | Self::FoulFlame
+                | Self::Draining
+                | Self::Pain
+        )
+    }
+
     /// The brand whose `brand_type` identifier is `id`, as `variant` tells brands apart.
     pub(crate) fn of(variant: DamageBrand, id: &EnumId) -> Self {
         match variant {
