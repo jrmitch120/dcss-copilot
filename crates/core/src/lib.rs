@@ -22,7 +22,7 @@ pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, S
 pub use screen::{KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead};
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
-    Listing, NowPill, RunPlanRail, TileName, ViewModel,
+    Listing, NowPill, RunPlanRail, TileName, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

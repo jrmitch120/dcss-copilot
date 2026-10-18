@@ -176,6 +176,20 @@ expression: replay
             }
           ]
         },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Seraph is beside it"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
         "runPlan": {
           "state": "notPlanned"
         },
@@ -346,6 +360,20 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Seraph is beside it"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
         ]
       },
       "runPlan": {

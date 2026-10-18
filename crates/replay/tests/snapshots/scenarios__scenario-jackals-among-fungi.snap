@@ -201,6 +201,20 @@ expression: replay
             }
           ]
         },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Jackal is faster, and 1 more"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
         "runPlan": {
           "state": "notPlanned"
         },
@@ -396,6 +410,20 @@ expression: replay
             "detail": null,
             "count": 2
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Jackal is faster, and 1 more"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
         ]
       },
       "runPlan": {

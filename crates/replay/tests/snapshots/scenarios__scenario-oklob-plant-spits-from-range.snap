@@ -148,6 +148,21 @@ expression: replay
             }
           ]
         },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "1 step",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 5 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
+          ]
+        },
         "runPlan": {
           "state": "notPlanned"
         },
@@ -288,6 +303,21 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "underfoot",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
           ]
         },
         "runPlan": {
@@ -432,6 +462,21 @@ expression: replay
             }
           ]
         },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": true,
+              "name": "Escape hatch in the floor",
+              "detail": "underfoot",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
+          ]
+        },
         "runPlan": {
           "state": "notPlanned"
         },
@@ -574,6 +619,21 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": true,
+            "name": "Escape hatch in the floor",
+            "detail": "underfoot",
+            "whyNot": null
+          }
+        ],
+        "ground": "On open ground: 5 sides open · a corridor 4 steps away",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the spell list (I) to judge your spells."
         ]
       },
       "runPlan": {

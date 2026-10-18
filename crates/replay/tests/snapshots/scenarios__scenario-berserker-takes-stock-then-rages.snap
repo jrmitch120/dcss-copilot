@@ -5,10 +5,10 @@ expression: replay
 {
   "identity": {
     "server": "http://localhost:8080",
-    "account": "wiz290628684",
-    "character": "wiz290628684",
+    "account": "wiz291465373",
+    "character": "wiz291465373",
     "species": "Minotaur",
-    "firstSeenMs": 1792290629931,
+    "firstSeenMs": 1792291466617,
     "crawlVersion": "0.34.1",
     "wizard": true,
     "role": "playing"
@@ -27,14 +27,32 @@ expression: replay
           "hp": 19,
           "death": {
             "times": 0,
-            "trials": 0
+            "trials": 10000
           },
-          "worstHit": 0,
-          "hostilesInView": 0,
-          "acting": [],
+          "worstHit": 3,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -2,
+                "y": -1
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "shoots": []
+            }
+          ],
           "mayShoot": [],
           "lighting": "plain",
-          "notModelled": []
+          "notModelled": [
+            "monsterEquipment",
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness"
+          ]
         },
         "waysOut": {
           "options": [
@@ -50,7 +68,24 @@ expression: replay
                 "steps": 1
               },
               "usable": {
-                "state": "yes"
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
               }
             },
             {
@@ -65,7 +100,24 @@ expression: replay
                 "steps": 2
               },
               "usable": {
-                "state": "yes"
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
               }
             },
             {
@@ -154,7 +206,7 @@ expression: replay
       },
       "game": {
         "character": {
-          "name": "wiz290628684",
+          "name": "wiz291465373",
           "species": "Minotaur",
           "hp": 19,
           "hpMax": 19,
@@ -163,12 +215,61 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
-          "line": "No hostiles in view.",
-          "detail": null
+          "line": "Jackal can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 3 of 19 HP"
         },
         "focus": {
           "card": "inView",
-          "monsters": []
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Jackal is beside it"
+            },
+            {
+              "usable": true,
+              "name": "Teleportation",
+              "detail": "escapes after a delay",
+              "whyNot": null
+            },
+            {
+              "usable": false,
+              "name": "Heal wounds",
+              "detail": "heals",
+              "whyNot": "the game greys it out"
+            },
+            {
+              "usable": true,
+              "name": "Berserk",
+              "detail": "ability · 10% fail",
+              "whyNot": null
+            },
+            {
+              "usable": false,
+              "name": "Blink",
+              "detail": "spell · 65% fail",
+              "whyNot": "needs 2 MP, you have 0"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": []
         },
         "runPlan": {
           "state": "notPlanned"
@@ -193,14 +294,32 @@ expression: replay
         "hp": 28,
         "death": {
           "times": 0,
-          "trials": 0
+          "trials": 10000
         },
-        "worstHit": 0,
-        "hostilesInView": 0,
-        "acting": [],
+        "worstHit": 3,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -2,
+              "y": -1
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "shoots": []
+          }
+        ],
         "mayShoot": [],
         "lighting": "plain",
-        "notModelled": []
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness"
+        ]
       },
       "waysOut": {
         "options": [
@@ -216,7 +335,24 @@ expression: replay
               "steps": 1
             },
             "usable": {
-              "state": "yes"
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -2,
+                        "y": -1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
             }
           },
           {
@@ -231,7 +367,24 @@ expression: replay
               "steps": 2
             },
             "usable": {
-              "state": "yes"
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -2,
+                        "y": -1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
             }
           },
           {
@@ -280,7 +433,7 @@ expression: replay
               "failurePercent": 10,
               "read": {
                 "turn": 2,
-                "stale": true
+                "stale": false
               }
             },
             "usable": {
@@ -301,7 +454,7 @@ expression: replay
               "failurePercent": 65,
               "read": {
                 "turn": 2,
-                "stale": true
+                "stale": false
               }
             },
             "usable": {
@@ -337,7 +490,7 @@ expression: replay
     },
     "game": {
       "character": {
-        "name": "wiz290628684",
+        "name": "wiz291465373",
         "species": "Minotaur",
         "hp": 28,
         "hpMax": 28,
@@ -346,12 +499,61 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
-        "line": "No hostiles in view.",
-        "detail": null
+        "line": "Jackal can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 3 of 28 HP"
       },
       "focus": {
         "card": "inView",
-        "monsters": []
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Jackal is beside it"
+          },
+          {
+            "usable": false,
+            "name": "Teleportation",
+            "detail": "escapes after a delay",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Heal wounds",
+            "detail": "heals",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Berserk",
+            "detail": "ability · 10% fail",
+            "whyNot": "you're berserking"
+          },
+          {
+            "usable": false,
+            "name": "Blink",
+            "detail": "spell · 65% fail",
+            "whyNot": "you're berserking; needs 2 MP, you have 0"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": []
       },
       "runPlan": {
         "state": "notPlanned"

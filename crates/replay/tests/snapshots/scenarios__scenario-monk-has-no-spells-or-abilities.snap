@@ -102,6 +102,7 @@ expression: replay
         "card": "inView",
         "monsters": []
       },
+      "waysOut": null,
       "runPlan": {
         "state": "notPlanned"
       },

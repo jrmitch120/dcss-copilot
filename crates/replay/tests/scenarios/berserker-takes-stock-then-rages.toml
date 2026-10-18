@@ -1,4 +1,4 @@
-description = "A Minotaur Berserker of Trog enters wizard mode on turn 0 of a seeded game, makes and picks up a scroll of teleportation and a potion of heal wounds, which crawl greys out at full health, memorises Blink without the magic to cast it, identifies what they carry and opens the spell list and the ability menu; then on turn 2 goes berserk, which stops them reading, drinking, casting or going berserk again"
+description = "A Minotaur Berserker of Trog enters wizard mode on turn 0 of a seeded game, makes and picks up a scroll of teleportation and a potion of heal wounds, which crawl greys out at full health, memorises Blink without the magic to cast it, identifies what they carry, opens the spell list and the ability menu and creates a jackal beside them; then on turn 2 goes berserk, which stops them reading, drinking, casting or going berserk again"
 recording = "berserker-takes-stock-then-rages.dcssrec"
 crawl_version = "0.34.1"
 snapshot_turns = [2]
@@ -21,6 +21,8 @@ keys = [
   "&", "y", "\u001b",
   # Open the spell list, then the ability menu, closing each.
   "I", "\u001b", "a", "\u001b",
+  # Create a monster by name beside them, for the panel to list the Ways Out: a jackal.
+  "&", "m", "jackal\r", "\u001b",
   # Go berserk: the ability menu's first ability.
   "a", "a", "\u001b",
 ]

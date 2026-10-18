@@ -8,6 +8,7 @@ import Footer from "$lib/panel/Footer.svelte";
 import Header from "$lib/panel/Header.svelte";
 import NowPill from "$lib/panel/NowPill.svelte";
 import RunPlanRail from "$lib/panel/RunPlanRail.svelte";
+import WaysOut from "$lib/panel/WaysOut.svelte";
 
 let view = $state<ViewModel | null>(null);
 
@@ -46,6 +47,9 @@ $effect(() => {
       {#if view.game}
         <NowPill now={view.game.now} />
         <FocusCard focus={view.game.focus} appearance={view.appearance} />
+        {#if view.game.waysOut}
+          <WaysOut waysOut={view.game.waysOut} />
+        {/if}
       {/if}
     </div>
     {#if view.game}

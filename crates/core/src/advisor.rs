@@ -5,10 +5,11 @@ use std::collections::HashMap;
 use copilot_gk::{Bundle, Library, Monster};
 
 use crate::accumulated_state::AccumulatedState;
-use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment};
+use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, attacks_player};
 use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
     AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail, TileName,
+    capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -155,8 +156,27 @@ impl Advisor {
                     .as_ref()
                     .map(|monsters| in_view(monsters, self.game_knowledge())),
             },
+            ways_out: self
+                .hostile_in_view()
+                .then(|| self.fact_sheet.ways_out.list()),
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
+        })
+    }
+}
+
+impl Advisor {
+    /// Whether a monster in view would attack the player, other than Firewood, or one whose
+    /// side or kind the Advisor can't tell, which might.
+    fn hostile_in_view(&self) -> bool {
+        let knowledge = self.game_knowledge();
+        self.visible.monsters.iter().flatten().any(|monster| {
+            let firewood = monster
+                .id
+                .as_ref()
+                .and_then(|id| knowledge?.monster_by_id(id))
+                .is_some_and(|kind| kind.firewood);
+            monster.attitude.is_none_or(attacks_player) && !firewood
         })
     }
 }
@@ -228,13 +248,6 @@ fn may_shoot_note(assessment: &ThreatAssessment) -> Option<String> {
         return None;
     }
     Some(format!("Gear guessed from kind: {}", names.join(", ")))
-}
-
-fn capitalised(name: &str) -> String {
-    let mut chars = name.chars();
-    chars.next().map_or_else(String::new, |first| {
-        first.to_uppercase().chain(chars).collect()
-    })
 }
 
 /// The rows listing `monsters` in view: Firewood left out, since the player sees it as scenery,

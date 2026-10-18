@@ -5,7 +5,7 @@ use copilot_gk::{EnumId, ItemKind, WayOutSigns};
 use serde::Serialize;
 
 use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
-use crate::visible_state::{GameMessage, VisibleState};
+use crate::visible_state::{GameMessage, InventoryItem, VisibleState};
 
 /// What the Advisor remembers of one game.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -33,6 +33,9 @@ pub struct AccumulatedState {
     /// The abilities the character has, with their costs and failure rates, as the ability
     /// menu (`a`) last showed them. It goes Stale when the experience level, god, piety,
     /// maximum magic points or inventory changes, as abilities come and go with them.
+    ///
+    /// For each of these, the inventory changes when what is carried does: crawl greying an
+    /// item out or not, which follows the character's statuses, isn't a change.
     pub abilities: Remembered<Vec<KnownAbility>>,
 }
 
@@ -162,19 +165,20 @@ impl AccumulatedState {
             self.worn_shield.go_stale();
         }
         let (was, is) = (&before.stats, &now.stats);
-        if before.inventory != now.inventory
+        let carried_changed = !carries_the_same(before, now);
+        if carried_changed
             || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
             || before.light_at_player() != now.light_at_player()
         {
             self.equipped.go_stale();
         }
-        if before.inventory != now.inventory
+        if carried_changed
             || (was.xl, was.intelligence) != (is.xl, is.intelligence)
             || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
         {
             self.spells.go_stale();
         }
-        if before.inventory != now.inventory
+        if carried_changed
             || (was.xl, was.mp_max) != (is.xl, is.mp_max)
             || before.religion != now.religion
         {
@@ -202,6 +206,24 @@ impl<T> Remembered<Vec<T>> {
             turn,
             screen,
         })
+    }
+}
+
+/// Whether the player carries the same in `before` and `now`, by letters, names, quantities and
+/// kinds: not whether crawl greys an item out, which changes with their statuses rather than
+/// what they carry.
+fn carries_the_same(before: &VisibleState, now: &VisibleState) -> bool {
+    let key = |item: &InventoryItem| {
+        (
+            item.letter,
+            item.name.clone(),
+            item.quantity,
+            item.kind.clone(),
+        )
+    };
+    match (&before.inventory, &now.inventory) {
+        (Some(was), Some(is)) => was.iter().map(key).eq(is.iter().map(key)),
+        (was, is) => was.is_none() && is.is_none(),
     }
 }
 

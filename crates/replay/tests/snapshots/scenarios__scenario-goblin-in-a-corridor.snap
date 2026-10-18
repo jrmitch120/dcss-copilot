@@ -105,6 +105,7 @@ expression: replay
           "card": "inView",
           "monsters": []
         },
+        "waysOut": null,
         "runPlan": {
           "state": "notPlanned"
         },
@@ -280,6 +281,20 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Escape hatch in the floor",
+            "detail": "4 steps",
+            "whyNot": "Goblin can get there first"
+          }
+        ],
+        "ground": "In a corridor: 2 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
         ]
       },
       "runPlan": {
