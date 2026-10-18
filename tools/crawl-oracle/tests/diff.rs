@@ -190,7 +190,7 @@ fn a_spell_chosen_as_often_as_another_is_caught() {
     assert_eq!(caught(&dump), [(9, Measure::SpellChosen)]);
 }
 
-/// What the missile harness printed from the same crawl build: 25 cases, taking turns at a kind
+/// What the missile harness printed from the same crawl build: 60 cases, taking turns at a kind
 /// of monster made with its gear, a monster shooting or throwing at a randomised player, deciding
 /// whether to fire, zapping a wand at the player and deciding whether to zap, 20,000 times each
 /// (seed 34).
@@ -199,8 +199,29 @@ const MISSILES: &str = include_str!("fixtures/missiles-0.34.1.jsonl");
 #[test]
 fn the_engine_agrees_with_crawl_on_every_missile_gear_and_wand_case() {
     let report = diff(MISSILES).unwrap();
-    assert_eq!(report.cases, 25);
+    assert_eq!(report.cases, 60);
     assert!(report.mismatches.is_empty(), "{report}");
+}
+
+#[test]
+fn a_launchers_enchantment_left_out_is_caught() {
+    // Case 36, a nekomata's +9 arbalest of freezing: played as +0.
+    let dump = with_changed(MISSILES, 36, |case| case["plus"] = 0.into());
+    assert_eq!(caught(&dump), [(36, Measure::ToHit), (36, Measure::Damage)]);
+}
+
+#[test]
+fn a_launchers_brand_left_out_is_caught() {
+    // Case 41, a centaur warrior's -1 orcbow of flaming: played unbranded.
+    let dump = with_changed(MISSILES, 41, |case| case["brand"] = "SPWPN_NORMAL".into());
+    assert_eq!(caught(&dump), [(41, Measure::Damage)]);
+}
+
+#[test]
+fn a_heavy_launcher_fired_as_quickly_as_any_is_caught() {
+    // Case 47, a faun's -2 heavy sling, which takes half as long again to fire: played unbranded.
+    let dump = with_changed(MISSILES, 47, |case| case["brand"] = "SPWPN_NORMAL".into());
+    assert_eq!(caught(&dump), [(47, Measure::Energy)]);
 }
 
 /// What `diff` caught in `dump`, by case and measure.

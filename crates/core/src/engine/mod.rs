@@ -1,5 +1,6 @@
 //! The engine: crawl's formulas, ported, and what the Advisor computes with them.
 
+pub(crate) mod brands;
 pub(crate) mod lighting;
 pub(crate) mod melee;
 pub(crate) mod missiles;

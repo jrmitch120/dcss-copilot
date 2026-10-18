@@ -72,6 +72,8 @@ pub(crate) struct Attacker<'a> {
     /// The wands it may carry whose spells the engine ports, by the odds crawl makes its kind
     /// with. A wand whose spell isn't ported counts as none: it is assumed never to zap it.
     pub(crate) wands: Draw<WandZap<'a>>,
+    /// It firing what it shoots or throws.
+    shooter: Shooter,
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -180,7 +182,7 @@ impl<'a> Attacker<'a> {
             })
             .collect();
         let missiles = Draw::new(&monster.gear.missile, |id| {
-            Some(Missile::of(
+            Some(Missile::plain(
                 formulas.missile_attack,
                 id,
                 bundle.missile_weapons.get(id)?,
@@ -210,6 +212,7 @@ impl<'a> Attacker<'a> {
             spells,
             missiles,
             wands,
+            shooter: Shooter::of(bundle, monster, hit_dice),
         }
     }
 
@@ -352,7 +355,7 @@ pub(crate) fn turn(
         + energy_gained(formulas.monster_energy, rng, speed(monster));
     let missile = attacker.missiles.draw(rng);
     let wand = attacker.wands.draw(rng);
-    let shooter = Shooter::of(monster, hit_dice);
+    let shooter = attacker.shooter;
     let mut turn = Turn::default();
     // The actions left before it can breathe again.
     let mut breath_timeout: u32 = 0;
@@ -418,8 +421,7 @@ pub(crate) fn turn(
                 *blocks_left -= 1;
             }
             turn.damage += shot.damage;
-            energy -=
-                missiles::fire_energy(formulas.monster_fire, rng, cost(monster.energy.missile));
+            energy -= missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
             continue;
         }
         if reach == 0 || distance > reach {

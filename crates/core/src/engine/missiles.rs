@@ -5,13 +5,16 @@
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). Only the paths a monster
 //! in plain view takes are ported: it has no statuses, isn't fleeing, sees the player and has a
-//! clear line to them, and its launcher or missile is +0 and unbranded. The Fact Sheet lists what
-//! that leaves out.
+//! clear line to them, and its launcher is in its hand. A launcher's enchantment and brand are
+//! played (`brands.rs`); a thrown missile's brand isn't. The Fact Sheet lists what that leaves
+//! out.
 
 use copilot_gk::{
-    EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster, MonsterFire,
+    Bundle, DamageBrand, EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster,
+    MonsterFire,
 };
 
+use super::brands::{self, Brand, Necromancy};
 use super::melee::{self, Aim, RolledDamage, Swing, Target};
 use super::rng::Rng;
 
@@ -30,18 +33,41 @@ pub(crate) struct Missile<'a> {
     /// It passes through the player's shield, as a javelin does (`is_penetrating_attack`,
     /// `throw.cc:60`, and `ranged_attack::ignores_shield`).
     pierces: bool,
+    /// Its enchantment, which adds to its accuracy and its damage: a launcher's plus. Thrown
+    /// missiles have none.
+    pub(crate) plus: i32,
+    /// Its brand: a launcher's. A thrown missile's own brands do nothing the engine ports.
+    pub(crate) brand: Brand,
 }
 
 impl<'a> Missile<'a> {
-    /// The missile weapon `weapon`, the sub-type `id`, as `variant` tells missiles apart.
-    pub(crate) fn of(variant: MissileAttack, id: &EnumId, weapon: &'a MissileWeapon) -> Self {
+    /// The missile weapon `weapon`, the sub-type `id`, with enchantment `plus` and `brand`, as
+    /// `variant` tells missiles apart. A thrown missile takes neither.
+    pub(crate) fn of(
+        variant: MissileAttack,
+        id: &EnumId,
+        weapon: &'a MissileWeapon,
+        plus: i32,
+        brand: Brand,
+    ) -> Self {
         match variant {
-            MissileAttack::Crawl034 => Self {
-                weapon,
-                harmless: matches!(id.0.as_str(), "MI_DART" | "MI_THROWING_NET"),
-                pierces: id.0 == "MI_JAVELIN",
-            },
+            MissileAttack::Crawl034 => {
+                let launcher = weapon.kind == MissileKind::Launcher;
+                Self {
+                    weapon,
+                    harmless: matches!(id.0.as_str(), "MI_DART" | "MI_THROWING_NET"),
+                    pierces: id.0 == "MI_JAVELIN",
+                    plus: if launcher { plus } else { 0 },
+                    brand: if launcher { brand } else { Brand::Plain },
+                }
+            }
         }
+    }
+
+    /// The missile weapon `weapon`, the sub-type `id`, +0 and unbranded: as a monster's Possible
+    /// Gear is played.
+    pub(crate) fn plain(variant: MissileAttack, id: &EnumId, weapon: &'a MissileWeapon) -> Self {
+        Self::of(variant, id, weapon, 0, Brand::Plain)
     }
 }
 
@@ -78,13 +104,19 @@ pub(crate) fn fires(
     }
 }
 
-/// The energy firing takes a monster whose missile action costs `missile_energy`: `mons_throw`
-/// (`throw.cc:820`), its cost times its attack delay over 10, where an unbranded launcher or a
-/// thrown missile has a delay of 10 (`monster::attack_delay`, `monster.cc:439`).
-pub(crate) fn fire_energy(variant: MonsterFire, rng: &mut Rng, missile_energy: i32) -> i32 {
-    match variant {
+/// The energy firing `missile` takes a monster whose missile action costs `missile_energy`:
+/// `mons_throw` (`throw.cc:820`), its cost times its attack delay over 10. A thrown missile has a
+/// delay of 10, and a launcher in hand 10 as its brand changes it (`monster::attack_delay`,
+/// `monster.cc:439`).
+pub(crate) fn fire_energy(
+    formulas: Formulas,
+    rng: &mut Rng,
+    missile: Missile<'_>,
+    missile_energy: i32,
+) -> i32 {
+    match formulas.monster_fire {
         MonsterFire::Crawl034 => {
-            let delay = 10;
+            let delay = brands::delay(formulas.damage_brand, rng, missile.brand, 10);
             rng.div_rand_round(missile_energy * delay, 10)
         }
     }
@@ -102,12 +134,15 @@ pub(crate) struct Shooter {
     pub(crate) first_attack: i32,
     /// It sees through an umbra.
     pub(crate) nightvision: bool,
+    /// Its necromancy skill, which a launcher of pain rolls against.
+    pub(crate) necromancy: Necromancy,
 }
 
 impl Shooter {
-    /// `monster` firing with `hit_dice`.
-    pub(crate) fn of(monster: &Monster, hit_dice: i32) -> Self {
+    /// `monster` firing with `hit_dice`, its skills judged by the spells of its book in `bundle`.
+    pub(crate) fn of(bundle: &Bundle, monster: &Monster, hit_dice: i32) -> Self {
         Self {
+            necromancy: Necromancy::of(bundle, monster, hit_dice),
             hit_dice,
             archer: monster.archer,
             first_attack: monster
@@ -120,7 +155,8 @@ impl Shooter {
 }
 
 /// One missile fired at the player, rolled as `ranged_attack::attack` (`ranged-attack.cc:90`)
-/// rolls it: accuracy, evasion, the shield, then damage and armour for a missile that lands.
+/// rolls it: accuracy, evasion, the shield, then damage and armour for a missile that lands, and
+/// what its brand adds to that (`ranged_attack::handle_phase_hit`, `ranged-attack.cc:255`).
 /// `can_block` is whether the shield has a block left before the player's next action.
 pub(crate) fn shoot(
     formulas: Formulas,
@@ -134,11 +170,12 @@ pub(crate) fn shoot(
     match formulas.missile_attack {
         MissileAttack::Crawl034 => {
             // `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`) counts an archer as
-            // skilled, and a thrown missile adds no accuracy (`property`, `item-prop.cc:2818`).
+            // skilled, a launcher adds its enchantment to its accuracy (`attack.cc:231`), and a
+            // thrown missile adds no accuracy (`property`, `item-prop.cc:2818`).
             let aim = Aim {
                 hit_dice: shooter.hit_dice,
                 skilled: shooter.archer,
-                accuracy: missile.weapon.accuracy,
+                accuracy: missile.weapon.accuracy + missile.plus,
                 nightvision: shooter.nightvision,
             };
             let to_hit = melee::monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
@@ -158,9 +195,21 @@ pub(crate) fn shoot(
                 blocked,
                 damage: 0,
             };
-            if swing.landed() && !missile.harmless {
-                let rolled = missile_damage(rng, shooter, missile);
-                swing.damage = melee::apply_ac(formulas.armour, rng, rolled, defences);
+            if swing.landed() {
+                let dealt = if missile.harmless {
+                    0
+                } else {
+                    let rolled = missile_damage(formulas.damage_brand, rng, shooter, missile);
+                    melee::apply_ac(formulas.armour, rng, rolled, defences)
+                };
+                let brand = brands::damage(
+                    formulas.damage_brand,
+                    rng,
+                    missile.brand,
+                    shooter.necromancy,
+                    dealt,
+                );
+                swing.damage = dealt + brand;
             }
             swing
         }
@@ -168,14 +217,25 @@ pub(crate) fn shoot(
 }
 
 /// A missile's damage before armour: the monster branch of `attack::calc_damage`
-/// (`attack.cc:918`) with a +0 unbranded weapon, `random2` of its damage plus the monster's own
+/// (`attack.cc:918`), `random2` of its damage as its brand adjusts it, its enchantment as
+/// `_core_apply_slaying` (`attack.cc:829`) adds it, the monster's own
 /// `1 + random2(first_attack)`, and an archer's bonus `random2avg(hd * 4 / 3, 2)`
 /// (`ranged_attack::apply_damage_modifiers`, `ranged-attack.cc:369`, and
 /// `archer_bonus_damage`, `fight.cc:1671`).
-fn missile_damage(rng: &mut Rng, shooter: Shooter, missile: Missile<'_>) -> RolledDamage {
-    let weapon = missile.weapon.damage;
-    // A +0 weapon and no slaying add `random2(1)`, nothing (`_core_apply_slaying`).
+fn missile_damage(
+    variant: DamageBrand,
+    rng: &mut Rng,
+    shooter: Shooter,
+    missile: Missile<'_>,
+) -> RolledDamage {
+    let weapon = brands::weapon_damage(variant, rng, missile.brand, missile.weapon.damage);
     let mut damage = rng.random2(weapon);
+    // No slaying: a +0 weapon adds `random2(1)`, nothing.
+    damage = if missile.plus >= 0 {
+        damage + rng.random2(1 + missile.plus)
+    } else {
+        damage - rng.random2(1 - missile.plus)
+    };
     damage += 1 + rng.random2(shooter.first_attack);
     if shooter.archer {
         damage += rng.random2avg(shooter.hit_dice * 4 / 3, 2);

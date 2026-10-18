@@ -10,6 +10,7 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
 
 use crate::accumulated_state::Shield;
 
+use super::brands::Brand;
 use super::melee::{self, Aim, Attack, Defences, Flavour, Swing, Target};
 use super::missiles::{self, Missile, Shooter};
 use super::rng::Rng;
@@ -416,8 +417,12 @@ pub fn gear(
 pub struct MissileCase {
     /// The monster's `monster_type` value.
     pub monster: u16,
-    /// The launcher or missile, by sub-type identifier, +0 and unbranded.
+    /// The launcher or missile, by sub-type identifier.
     pub weapon: EnumId,
+    /// A launcher's enchantment: 0 for a thrown missile.
+    pub plus: i32,
+    /// A launcher's brand, by `brand_type` identifier: `SPWPN_NORMAL` for a thrown missile.
+    pub brand: EnumId,
     /// The monster's hit dice.
     pub hit_dice: i32,
     /// The player's defences.
@@ -437,8 +442,8 @@ pub fn missile(
     seed: (u64, u64),
     trials: u32,
 ) -> Result<AttackTally, CaseError> {
-    let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
-    let shooter = Shooter::of(monster, case.hit_dice);
+    let (monster, missile) = shooter(bundle, case.monster, &case.weapon, case.plus, &case.brand)?;
+    let shooter = Shooter::of(bundle, monster, case.hit_dice);
     let target = target(case.defences, case.lighting);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = AttackTally::default();
@@ -463,6 +468,10 @@ pub struct FireCase {
     pub monster: u16,
     /// The launcher or missile, by sub-type identifier.
     pub weapon: EnumId,
+    /// A launcher's enchantment: 0 for a thrown missile.
+    pub plus: i32,
+    /// A launcher's brand, by `brand_type` identifier: `SPWPN_NORMAL` for a thrown missile.
+    pub brand: EnumId,
     /// Squares between it and the player.
     pub distance: i32,
 }
@@ -478,7 +487,7 @@ pub fn fire(
     seed: (u64, u64),
     trials: u32,
 ) -> Result<BTreeMap<i32, u32>, CaseError> {
-    let (monster, missile) = shooter(bundle, case.monster, &case.weapon)?;
+    let (monster, missile) = shooter(bundle, case.monster, &case.weapon, case.plus, &case.brand)?;
     let variant = bundle.formulas.monster_fire;
     let cost = i32::try_from(monster.energy.missile).unwrap_or(i32::MAX);
     let mut rng = Rng::new(seed.0, seed.1);
@@ -491,7 +500,7 @@ pub fn fire(
             monster.prefers_ranged,
             case.distance,
         ) {
-            missiles::fire_energy(variant, &mut rng, cost)
+            missiles::fire_energy(bundle.formulas, &mut rng, missile, cost)
         } else {
             0
         };
@@ -605,6 +614,8 @@ fn shooter<'b>(
     bundle: &'b Bundle,
     monster: u16,
     weapon: &EnumId,
+    plus: i32,
+    brand: &EnumId,
 ) -> Result<(&'b Monster, Missile<'b>), CaseError> {
     let known = bundle
         .monster(monster)
@@ -615,7 +626,13 @@ fn shooter<'b>(
         .ok_or_else(|| CaseError::NoMissileWeapon(weapon.0.clone()))?;
     Ok((
         known,
-        Missile::of(bundle.formulas.missile_attack, weapon, missile),
+        Missile::of(
+            bundle.formulas.missile_attack,
+            weapon,
+            missile,
+            plus,
+            Brand::of(bundle.formulas.damage_brand, brand),
+        ),
     ))
 }
 

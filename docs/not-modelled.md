@@ -80,12 +80,20 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### The player's resistances
 
-- **What crawl does:** a beam's damage is cut by the player's resistances (`check_your_resists`).
-- **What the engine assumes:** the player resists nothing.
+- **What crawl does:** a beam's damage, and what a launcher's elemental, draining or pain brand adds, is cut by the player's resistances (`check_your_resists`, `resist_adjust_damage`). Holy wrath hurts only an undead or demonic player, and foul flame hurts them less and a holy one more (`player::res_foul_flame`).
+- **What the engine assumes:** the player resists nothing, and is a living mortal who worships no good god.
 - **Surfaced as:** `playerResistances`, when a monster that can attack casts or zaps.
-- **Harness:** the spell harness casts at a human without resistances.
-- **Impact and cost:** errs high, often by half or more of an elemental caster's damage. The Advisor already remembers the resistances from the character overview; the engine needs to apply them.
+- **Harness:** the spell harness casts at a human without resistances, and the missile harness shoots at one who worships no god or Yredelemnul.
+- **Impact and cost:** errs high, often by half or more of an elemental caster's damage, and low for an undead or demonic player shot with holy wrath. The Advisor already remembers the resistances from the character overview, and the player's species and god are in view; the engine needs to apply them.
 - **Issue:** [#99]
+
+### Shooters a brand spares
+
+- **What crawl does:** a holy monster's foul flame launcher, and an undead or demonic one's holy wrath launcher, add nothing, nor does pain in the hands of a follower of Trog (`attack::apply_damage_brand`).
+- **What the engine assumes:** a brand adds the same whoever shoots it.
+- **Surfaced as:** accepted simplification: crawl makes almost none of these monsters with such a launcher, and holy wrath does nothing to the living mortal the engine takes the player for.
+- **Harness:** the missile harness gives neither a holy monster foul flame nor a follower of Trog pain.
+- **Impact and cost:** errs high, and rarely. Game Knowledge would carry each kind's holiness and god.
 
 ### Caster safety
 
