@@ -17,8 +17,8 @@ pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted};
 pub use engine::oracle;
 pub use fact_sheet::{
-    ActingMonster, Chance, FactSheet, Freshness, Gap, GearBasis, GearPlayed, NotModelled, Threat,
-    ThreatAssessment, ThreatLevel, Unplayed,
+    ActingMonster, Chance, FactSheet, Gap, GearBasis, GearPlayed, KnownOrStale, NotModelled,
+    Threat, ThreatAssessment, ThreatLevel, Unplayed,
 };
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead};

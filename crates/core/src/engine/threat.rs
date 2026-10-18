@@ -5,7 +5,7 @@
 use copilot_gk::{Bundle, EnumId, Formulas, MissileKind, Monster, MonsterSpells, Odds, Wand};
 
 use crate::accumulated_state::Shield;
-use crate::carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted};
+use crate::carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, WAND_OF};
 use crate::fact_sheet::Unplayed;
 
 use super::brands::Brand;
@@ -340,11 +340,16 @@ impl<'a> Attacker<'a> {
                         shoots.push(item.name.clone());
                         (Draw::always(zap), false)
                     }
-                    None => (Draw::none(), true),
+                    None => {
+                        unplayed.push(Unplayed::WandNotPorted {
+                            item: item.name.clone(),
+                        });
+                        (Draw::none(), true)
+                    }
                 },
-                // A wand it can't be told apart from its kind's others: one of those, by their
-                // odds.
-                None if monster.gear.wand.is_possible() => {
+                // An unidentified wand, which can't be told apart from its kind's others: one of
+                // those, by their odds. A named wand the Game Knowledge lacks isn't one of them.
+                None if !item.name.starts_with(WAND_OF) && monster.gear.wand.is_possible() => {
                     let wands =
                         Draw::one_of(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
                     shoots.extend(

@@ -566,7 +566,7 @@ fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it
     // none. 106: "The orc picks up" something: every orc's gear goes Stale. 107: the first orc and
     // Sigmund leave view. 108: they come back: the orc as a new Sighting with nothing read,
     // Sigmund with his gear, Stale. 109: a centaur carrying an unidentified launcher in its off
-    // hand. 110: a merfolk quivering a net. 111: a kobold quivering poisoned darts.
+    // hand. 110: a merfolk quivering a net. 111: a kobold quivering poisoned darts and carrying a wand of paralysis.
     let library = Library::shipped().unwrap();
     let bundle = library.for_version("0.34.1").unwrap();
     let mut replayer = replayer(CARRIED_GEAR);
@@ -604,7 +604,7 @@ fn the_threat_level_plays_each_monsters_carried_gear_where_it_is_read_and_its_po
     // As above: the orc's +3 shortbow of flaming and its wand of flame are played, the goblin's
     // nothing, and Sigmund's heavy sling, with his bone wand as one of the wands crawl makes him
     // with; the orc's bone wand, which crawl never makes an orc with, isn't played, nor the
-    // centaur's runed longbow's unknown plus and brand, nor the kobold's poison. An orc whose
+    // centaur's runed longbow's unknown plus and brand, nor the kobold's poison or wand of paralysis. An orc whose
     // gear isn't read is played with its kind's Possible Gear.
     let threats: Vec<_> = fact_sheets_by_turn(CARRIED_GEAR)
         .into_iter()

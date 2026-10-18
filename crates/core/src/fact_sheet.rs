@@ -182,7 +182,7 @@ pub enum GearBasis {
     /// Its Carried Gear, as the game last listed it.
     Carried {
         /// Whether the game has shown anything since that may have changed it.
-        state: Freshness,
+        state: KnownOrStale,
         /// The turn it was read on.
         turn: Option<u32>,
         /// What it was read off.
@@ -199,10 +199,10 @@ pub enum GearBasis {
     },
 }
 
-/// Whether a remembered fact is Known or Stale.
+/// Whether a remembered fact that was read is Known or Stale.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub enum Freshness {
+pub enum KnownOrStale {
     /// Nothing the game has shown since may have changed it.
     Known,
     /// Something the game has shown since may have changed it.
@@ -235,10 +235,16 @@ pub enum Unplayed {
         /// The brand, as its name gives it.
         brand: String,
     },
+    /// A wand whose spell the engine doesn't port, such as paralysis: assumed never zapped.
+    WandNotPorted {
+        /// Its name, as the game wrote it.
+        item: String,
+    },
     /// A wand the Advisor can't name, carried by a monster whose kind crawl never makes with a
     /// wand, so its odds can't say which: not played.
     UnnamedWand {
-        /// Its name, as the game wrote it, such as `bone wand`.
+        /// Its name, as the game wrote it, such as `bone wand`, or a wand of a kind the Game
+        /// Knowledge lacks.
         item: String,
     },
 }
@@ -487,15 +493,16 @@ fn threat(
         let attacker = Attacker::new(bundle, monster, distance);
         let carried = remembered
             .and_then(|state| state.gear_of(seen, bundle))
-            .and_then(|read| Some((read, read.read_as_of()?)));
+            .and_then(|read| match read {
+                Remembered::Known(as_of) => Some((KnownOrStale::Known, as_of)),
+                Remembered::Stale(as_of) => Some((KnownOrStale::Stale, as_of)),
+                Remembered::Missing => None,
+            });
         let (attacker, basis, unplayed) = match carried {
-            Some((read, as_of)) => {
+            Some((state, as_of)) => {
                 let (attacker, unplayed) = attacker.carrying(bundle, &as_of.value);
                 let basis = GearBasis::Carried {
-                    state: match read {
-                        Remembered::Stale(_) => Freshness::Stale,
-                        Remembered::Known(_) | Remembered::Missing => Freshness::Known,
-                    },
+                    state,
                     turn: as_of.turn,
                     source: as_of.source,
                     unlisted: as_of.value.unlisted,

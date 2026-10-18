@@ -1608,6 +1608,10 @@ expression: threats
               "unplayed": "brandNotPorted",
               "item": "poisoned darts",
               "brand": "poisoned"
+            },
+            {
+              "unplayed": "wandNotPorted",
+              "item": "wand of paralysis"
             }
           ]
         },

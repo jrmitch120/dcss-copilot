@@ -88,7 +88,7 @@ pub enum ItemBrand {
 pub(crate) enum Said {
     /// Monsters came into view (`_handle_encounter_messages`, `player-notices.cc:390`, and
     /// `_monster_headsup`, `player-notices.cc:217`).
-    Sighting(Sighting),
+    Sighting(SightingMessage),
     /// The look text of the monster under the look cursor, by name
     /// (`direction_chooser::print_target_monster_description`, `directn.cc:1792`).
     Look { name: String, gear: CarriedGear },
@@ -99,7 +99,7 @@ pub(crate) enum Said {
 
 /// One sighting message.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Sighting {
+pub(crate) struct SightingMessage {
     /// The one monster it names, when only one came into view: its gear was listed in full, or
     /// it has none worth naming.
     pub(crate) lone: Option<LoneSighting>,
@@ -155,7 +155,7 @@ const ARTICLES: [&str; 3] = ["a ", "an ", "the "];
 
 /// What a wand's name starts with once identified, and ends with before (`item_def::name_aux`,
 /// `item-name.cc:1659`).
-const WAND_OF: &str = "wand of ";
+pub(crate) const WAND_OF: &str = "wand of ";
 const WAND: &str = " wand";
 
 /// What the game says of monsters' gear in the message `text`, with items named through `bundle`.
@@ -185,7 +185,7 @@ pub(crate) fn said(text: &str, bundle: &Bundle) -> Vec<Said> {
 /// The sighting message after `You encounter `: the monsters it names, then, when one came into
 /// view, a sentence listing its gear, and when several did, a sentence for each worth listing,
 /// on the lines after.
-fn sighting(text: &str, bundle: &Bundle) -> Option<Sighting> {
+fn sighting(text: &str, bundle: &Bundle) -> Option<SightingMessage> {
     let mut lines = text.lines();
     let mut said_first = sentences(lines.next()?);
     let named = said_first.next()?;
@@ -209,7 +209,7 @@ fn sighting(text: &str, bundle: &Bundle) -> Option<Sighting> {
         let gear = lone_listing.map_or_else(none, |listing| {
             gear(listing, Unlisted::PlainLargeRocks, bundle).unwrap_or_else(none)
         });
-        return Some(Sighting {
+        return Some(SightingMessage {
             lone: Some(LoneSighting {
                 name: without_article(named).to_owned(),
                 gear,
@@ -230,7 +230,7 @@ fn sighting(text: &str, bundle: &Bundle) -> Option<Sighting> {
             listed.push((without_article(name).to_owned(), gear));
         }
     }
-    Some(Sighting { lone: None, listed })
+    Some(SightingMessage { lone: None, listed })
 }
 
 /// The look text in `line`: `Here: an orc, wielding a +0 shortbow (asleep)`, the monster's name

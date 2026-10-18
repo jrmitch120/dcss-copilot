@@ -1405,6 +1405,18 @@ expression: by_turn
                   "brand": "unnamed",
                   "name": "poisoned"
                 }
+              },
+              {
+                "slot": "carrying",
+                "name": "wand of paralysis",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": "WAND_PARALYSIS"
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                }
               }
             ],
             "unlisted": "plainLargeRocks"

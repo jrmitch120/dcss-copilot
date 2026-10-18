@@ -148,15 +148,6 @@ impl<T, S> Remembered<T, S> {
         }
     }
 
-    /// The value, with when and where it was read, when it is Known or Stale.
-    #[must_use]
-    pub fn read_as_of(&self) -> Option<&AsOf<T, S>> {
-        match self {
-            Self::Known(fact) | Self::Stale(fact) => Some(fact),
-            Self::Missing => None,
-        }
-    }
-
     /// Something seen since may have changed it. A Stale fact stays Stale, and a Missing one
     /// Missing.
     fn go_stale(&mut self) {
