@@ -41,6 +41,14 @@ const SWOOP_OR_FLANK_FLAVOURS: [&str; 2] = ["AF_SWOOP", "AF_FLANK"];
 /// `melee_attack::mons_attack_effects` in `melee-attack.cc`.
 const PLAYER_MOVING_FLAVOURS: [&str; 2] = ["AF_TRAMPLE", "AF_DRAG"];
 
+/// The flavour of an attack whose hit may blink the attacker away:
+/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
+const BLINK_FLAVOUR: &str = "AF_BLINK";
+
+/// The flavour of an attack whose hit may blink the attacker away and the defender with it:
+/// `melee_attack::mons_apply_attack_flavour` in `melee-attack.cc`.
+const BLINK_WITH_FLAVOUR: &str = "AF_BLINK_WITH";
+
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -325,6 +333,14 @@ pub enum NotModelled {
     /// elephant's (`melee_attack::mons_attack_effects`): the simulation keeps the player where
     /// they stand.
     MovesThePlayer,
+    /// A monster that can attack has a hit that may blink it away from the player, such as a
+    /// blink frog's (`AF_BLINK`, `melee_attack::mons_apply_attack_flavour`), and the simulation
+    /// keeps it beside them.
+    BlinksAway,
+    /// A monster that can attack has a hit that may blink it away and take the player with it,
+    /// such as a phantom's (`AF_BLINK_WITH`, `melee_attack::mons_apply_attack_flavour`): the
+    /// simulation keeps both where they stand.
+    BlinksWithThePlayer,
     /// A monster that can attack can't leave the lava or water it lives in, such as a lava snake
     /// (`monster_habitable_feat`), and the simulation walks it over the floor to the player.
     BoundToTerrain,
@@ -505,9 +521,9 @@ fn threat(
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
     // Each monster with the gear it is played with, and the monsters that can attack, each with
-    // the spells of its book not played out.
+    // its row.
     let mut gear: Vec<GearPlayed> = Vec::new();
-    let mut acting: Vec<(&VisibleMonster, Vec<String>, Vec<NotModelled>)> = Vec::new();
+    let mut acting: Vec<ActingMonster> = Vec::new();
     let mut attackers: Vec<Attacker<'_>> = Vec::new();
     // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
     // them.
@@ -550,7 +566,19 @@ fn threat(
         let its_moves = moves_not_modelled(monster);
         if threat::can_attack(formulas, &attacker) {
             moves.extend(its_moves.iter().copied());
-            acting.push((seen, spells_not_modelled(bundle, &attacker), its_moves));
+            acting.push(ActingMonster {
+                name: seen.name.clone(),
+                position: seen.position,
+                distance: attacker.distance,
+                casts: attacker
+                    .spells
+                    .iter()
+                    .map(|cast| cast.spell.spell.name.clone())
+                    .collect(),
+                spells_not_modelled: spells_not_modelled(bundle, &attacker),
+                moves_not_modelled: its_moves,
+                shoots: attacker.shoots.clone(),
+            });
             attackers.push(attacker);
         } else {
             moves.extend(
@@ -564,7 +592,10 @@ fn threat(
     if gear.iter().any(GearPlayed::guessed_shooter) {
         not_modelled.push(NotModelled::CarriedGear);
     }
-    if acting.iter().any(|(_, others, _)| !others.is_empty()) {
+    if acting
+        .iter()
+        .any(|monster| !monster.spells_not_modelled.is_empty())
+    {
         not_modelled.push(NotModelled::OtherSpells);
     }
     if attackers.iter().any(|attacker| attacker.unported_wand) {
@@ -611,23 +642,7 @@ fn threat(
         death,
         worst_hit: outcome.worst_hit,
         hostiles_in_view,
-        acting: acting
-            .into_iter()
-            .zip(&attackers)
-            .map(|((seen, others, moves), attacker)| ActingMonster {
-                name: seen.name.clone(),
-                position: seen.position,
-                distance: attacker.distance,
-                casts: attacker
-                    .spells
-                    .iter()
-                    .map(|cast| cast.spell.spell.name.clone())
-                    .collect(),
-                spells_not_modelled: others,
-                moves_not_modelled: moves,
-                shoots: attacker.shoots.clone(),
-            })
-            .collect(),
+        acting,
         gear,
         lighting: Some(lighting),
         not_modelled,
@@ -733,6 +748,12 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
         .attacks
         .first()
         .map(|attack| attack.flavour.0.as_str());
+    let has_flavour = |flavours: &[&str]| {
+        monster
+            .attacks
+            .iter()
+            .any(|attack| flavours.contains(&attack.flavour.0.as_str()))
+    };
     [
         (NotModelled::Batty, monster.batty),
         (NotModelled::KeepsRange, monster.keeps_range),
@@ -749,10 +770,12 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
         (NotModelled::SpecialAbilities, monster.special_ability),
         (
             NotModelled::MovesThePlayer,
-            monster
-                .attacks
-                .iter()
-                .any(|attack| PLAYER_MOVING_FLAVOURS.contains(&attack.flavour.0.as_str())),
+            has_flavour(&PLAYER_MOVING_FLAVOURS),
+        ),
+        (NotModelled::BlinksAway, has_flavour(&[BLINK_FLAVOUR])),
+        (
+            NotModelled::BlinksWithThePlayer,
+            has_flavour(&[BLINK_WITH_FLAVOUR]),
         ),
         // One that never moves never tries to leave.
         (
@@ -863,7 +886,7 @@ mod tests {
     }
 
     /// The ways crawl moves a monster that the simulation doesn't play out.
-    const MOVES_NOT_MODELLED: [NotModelled; 9] = [
+    const MOVES_NOT_MODELLED: [NotModelled; 11] = [
         NotModelled::Batty,
         NotModelled::KeepsRange,
         NotModelled::WontMoveWhileWatched,
@@ -872,6 +895,8 @@ mod tests {
         NotModelled::SwoopOrFlank,
         NotModelled::SpecialAbilities,
         NotModelled::MovesThePlayer,
+        NotModelled::BlinksAway,
+        NotModelled::BlinksWithThePlayer,
         NotModelled::BoundToTerrain,
     ];
 
@@ -900,6 +925,8 @@ mod tests {
             ("tengu warrior", NotModelled::SwoopOrFlank),
             ("slime creature", NotModelled::SpecialAbilities),
             ("elephant", NotModelled::MovesThePlayer),
+            ("blink frog", NotModelled::BlinksAway),
+            ("phantom", NotModelled::BlinksWithThePlayer),
             ("lava snake", NotModelled::BoundToTerrain),
         ] {
             assert_eq!(
@@ -989,6 +1016,8 @@ mod tests {
             SwoopOrFlank,
             SpecialAbilities,
             MovesThePlayer,
+            BlinksAway,
+            BlinksWithThePlayer,
             BoundToTerrain,
         ]
         .into_iter()

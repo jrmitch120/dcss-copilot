@@ -56,7 +56,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Spells not played out
 
-- **What crawl does:** a monster picks from all the spells in its book (`_choose_spell_to_cast`): summons, hexes, self-buffs and spells that aren't a single bolt or explosion among them. A blink frog blinks away from the player by a spell of its book (`SPELL_BLINK`), not an ability of its own.
+- **What crawl does:** a monster picks from all the spells in its book (`_choose_spell_to_cast`): summons, hexes, self-buffs and spells that aren't a single bolt or explosion among them. A blink frog's book holds a blink (`SPELL_BLINK`), besides the hit that blinks it away.
 - **What the engine assumes:** a monster never casts a spell it doesn't port, and fights instead.
 - **Surfaced as:** `otherSpells`, when a monster that can attack has such a spell; its row names the spells.
 - **Harness:** the spell and turn harnesses cut each monster's book down to the spells the engine ports.
@@ -244,6 +244,22 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** `movesThePlayer`, when a monster that can attack has such a hit; its row names it.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
 - **Impact and cost:** either way: a trampled player is farther from the next attacker, a dragged one closer.
+
+### Blinking away
+
+- **What crawl does:** a monster whose hit blinks, such as a blink frog or Mnoleg, may blink away from the player one hit in three (`AF_BLINK`, `melee_attack::mons_apply_attack_flavour`).
+- **What the engine assumes:** it stays beside the player and attacks again.
+- **Surfaced as:** `blinksAway`, when a monster that can attack has such a hit; its row names it.
+- **Harness:** the turn harness leaves out of a case a monster that ends farther from the player, and says so on standard error.
+- **Impact and cost:** errs high, slightly: it spends actions coming back. Needs where it lands, which the simulation, with no map, doesn't know.
+
+### Blinking with the player
+
+- **What crawl does:** a monster whose hit blinks with its target, such as a phantom or a wyrmhole, may blink away and take the player along, half the time it hits (`AF_BLINK_WITH`, `melee_attack::mons_apply_attack_flavour`).
+- **What the engine assumes:** both stay where they stand.
+- **Surfaced as:** `blinksWithThePlayer`, when a monster that can attack has such a hit; its row names it.
+- **Harness:** the turn harness leaves such a kind out of the case it is found in, as it moves the player, and says so on standard error.
+- **Impact and cost:** small for the fight itself, as the monster lands beside the player; large for the Ways Out, as the player may land away from a staircase they meant to take.
 
 ### Breathing again through its own clouds
 

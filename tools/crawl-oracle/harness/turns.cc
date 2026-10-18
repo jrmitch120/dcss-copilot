@@ -27,12 +27,12 @@
  * engine does, each named by the NotModelled variant the Fact Sheet gives it
  * (_walks_as_engine_does), a monster faster than the player that casts a cloud (#104),
  * draconians, whose breath their book doesn't hold, books crawl fills when a monster is made
- * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind
- * that dies in its own turns, moves the player (NotModelled::MovesThePlayer) or moves away from
- * them is left out of the case
- * it is found in, and said so on standard error. A caster of an explosion or a cloud starts three
- * squares or more away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which
- * the engine doesn't port. A caster of a blinkbolt has the square behind the player walled, so
+ * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind that
+ * dies in its own turns, moves the player (NotModelled::MovesThePlayer, BlinksWithThePlayer) or
+ * moves away from them (NotModelled::BlinksAway) is left out of the case it is found in, and
+ * said so on standard error. A caster of an explosion or a cloud starts three squares or more
+ * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
+ * doesn't port. A caster of a blinkbolt has the square behind the player walled, so
  * crawl lands it beside them, as the engine does, and not past them; said so on standard error,
  * and a case that lands it anywhere else is left out.
  *
@@ -485,9 +485,9 @@ struct turn_tally
 // Plays out the player's next standard-speed action `trials` times against `mon`, `distance`
 // squares away, each time as it starts, the player under a corona if `corona` and walled behind
 // if `walled`. Returns why the engine can't follow it, or nullptr if it can: a monster may burst
-// or crumble in its own turns, move the player, as a trampling or dragging hit does
-// (NotModelled::MovesThePlayer), move away
-// from them, as a blinking one does, or cast a blinkbolt and land anywhere but beside them.
+// or crumble in its own turns, move the player, as a trampling, dragging or blinking hit does
+// (NotModelled::MovesThePlayer, BlinksWithThePlayer), move away from them, as a blinking hit
+// does (NotModelled::BlinksAway), or cast a blinkbolt and land anywhere but beside them.
 static const char *_play_turns(monster &mon, int distance, bool corona, bool walled, int trials,
                                turn_tally &tally)
 {
