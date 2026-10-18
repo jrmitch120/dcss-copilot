@@ -143,20 +143,31 @@ fn a_monster_drawn_with_crawls_error_tile_has_no_tile() {
     assert_eq!(draconian.tile, None);
 }
 
+/// A copy of the fixture with `edit` made to each file: given its path under the fixture and its
+/// bytes, it returns the bytes to write.
+fn fixture_with(edit: impl Fn(&str, Vec<u8>) -> Vec<u8>) -> tempfile::TempDir {
+    let crawl = tempfile::tempdir().unwrap();
+    for (name, bytes) in files_under(&fixture()) {
+        let path = crawl.path().join(&name);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, edit(&name, bytes)).unwrap();
+    }
+    crawl
+}
+
 #[test]
 fn a_status_light_crawl_no_longer_shows_fails_the_extraction() {
     // A copy of the fixture whose contamination light is renamed.
-    let crawl = tempfile::tempdir().unwrap();
-    for (name, bytes) in files_under(&fixture()) {
-        let path = crawl.path().join(name);
-        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(path, bytes).unwrap();
-    }
-    let status = crawl.path().join("crawl-ref/source/status.cc");
-    let renamed = std::fs::read_to_string(&status)
-        .unwrap()
-        .replace("\"Contam\"", "\"Glow\"");
-    std::fs::write(&status, renamed).unwrap();
+    let crawl = fixture_with(|name, bytes| {
+        if name == "crawl-ref/source/status.cc" {
+            String::from_utf8(bytes)
+                .unwrap()
+                .replace("\"Contam\"", "\"Glow\"")
+                .into_bytes()
+        } else {
+            bytes
+        }
+    });
 
     let refused = extract(crawl.path(), &release());
 
