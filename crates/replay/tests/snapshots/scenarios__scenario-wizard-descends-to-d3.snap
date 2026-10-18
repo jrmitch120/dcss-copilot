@@ -57,7 +57,8 @@ expression: replay
             "attackFlavours",
             "statuses",
             "paths",
-            "awareness"
+            "awareness",
+            "defenceFractions"
           ]
         },
         "waysOut": {

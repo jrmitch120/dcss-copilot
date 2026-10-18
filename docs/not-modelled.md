@@ -140,10 +140,10 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 - **What crawl does:** the player's AC, EV and SH carry fractions crawl rolls with, which the display drops (`player_shield_class` and the like).
 - **What the engine assumes:** the Displayed Defences, with a fraction guessed afresh for each trial.
-- **Surfaced as:** accepted simplification: the guess spreads over what the fraction could be, so the chance it gives is an average rather than a blind spot ([#77]).
+- **Surfaced as:** `defenceFractions`, when any of the displayed AC, EV and SH is above 0. The guess ([#77]) spreads over what the fraction could be, but [#92] measured that it moves ratings near Dangerous: across 560 melee situations whose chance of death is 0.25% to 1%, a fraction of 0 rather than the most it could be raises the chance of death by a median 0.27 percentage points (at most 1.29), twice the Monte Carlo's noise, and moves the worst-case hit by a median 2 (at most 6), which flips the rating in 1 situation in 5, nearly always across the worst-case hit's 40% of HP line. Low AC matters most.
 - **Harness:** melee leaves out players whose defences carry a fraction, and hands the engine their defences exactly.
-- **Impact and cost:** small, except perhaps near a threshold; [#92] measures whether it changes ratings near Dangerous.
-- **Issue:** [#92]
+- **Impact and cost:** near a threshold, enough to change the rating. Working out a character's own fraction from their skills, Dexterity and gear would close it.
+- **Issue:** [#121]
 
 ### Translucent Skin
 
@@ -354,3 +354,4 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104
 [#106]: https://github.com/jrmitch120/dcss-copilot/issues/106
 [#108]: https://github.com/jrmitch120/dcss-copilot/issues/108
+[#121]: https://github.com/jrmitch120/dcss-copilot/issues/121

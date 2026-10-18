@@ -72,6 +72,7 @@ expression: replay
             "statuses",
             "paths",
             "awareness",
+            "defenceFractions",
             "playerResistances"
           ]
         },
@@ -247,6 +248,7 @@ expression: replay
             "statuses",
             "paths",
             "awareness",
+            "defenceFractions",
             "playerResistances"
           ]
         },
@@ -422,6 +424,7 @@ expression: replay
             "statuses",
             "paths",
             "awareness",
+            "defenceFractions",
             "playerResistances"
           ]
         },
@@ -599,6 +602,7 @@ expression: replay
           "statuses",
           "paths",
           "awareness",
+          "defenceFractions",
           "playerResistances"
         ]
       },

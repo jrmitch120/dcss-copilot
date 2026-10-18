@@ -48,7 +48,8 @@ expression: replayer.advisor().fact_sheet()
       "attackFlavours",
       "statuses",
       "paths",
-      "awareness"
+      "awareness",
+      "defenceFractions"
     ]
   },
   "waysOut": {

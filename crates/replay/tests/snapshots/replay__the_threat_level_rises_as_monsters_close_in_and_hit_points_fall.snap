@@ -96,7 +96,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness"
+          "awareness",
+          "defenceFractions"
         ]
       },
       "waysOut": {
@@ -219,7 +220,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness"
+          "awareness",
+          "defenceFractions"
         ]
       },
       "waysOut": {
@@ -342,7 +344,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "attackFlavours",
           "statuses",
           "paths",
-          "awareness"
+          "awareness",
+          "defenceFractions"
         ]
       },
       "waysOut": {
