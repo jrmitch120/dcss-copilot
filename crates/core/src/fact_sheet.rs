@@ -885,20 +885,43 @@ mod tests {
         }
     }
 
-    /// The ways crawl moves a monster that the simulation doesn't play out.
-    const MOVES_NOT_MODELLED: [NotModelled; 11] = [
-        NotModelled::Batty,
-        NotModelled::KeepsRange,
-        NotModelled::WontMoveWhileWatched,
-        NotModelled::MovesWithParent,
-        NotModelled::OwnActions,
-        NotModelled::SwoopOrFlank,
-        NotModelled::SpecialAbilities,
-        NotModelled::MovesThePlayer,
-        NotModelled::BlinksAway,
-        NotModelled::BlinksWithThePlayer,
-        NotModelled::BoundToTerrain,
-    ];
+    /// Whether `variant` is a way crawl moves a monster, or acts for it, that the simulation
+    /// doesn't play out. Matched exhaustively, so a new variant doesn't compile until it is
+    /// sorted here.
+    fn is_move(variant: NotModelled) -> bool {
+        match variant {
+            NotModelled::Batty
+            | NotModelled::KeepsRange
+            | NotModelled::WontMoveWhileWatched
+            | NotModelled::MovesWithParent
+            | NotModelled::OwnActions
+            | NotModelled::SwoopOrFlank
+            | NotModelled::SpecialAbilities
+            | NotModelled::MovesThePlayer
+            | NotModelled::BlinksAway
+            | NotModelled::BlinksWithThePlayer
+            | NotModelled::BoundToTerrain => true,
+            NotModelled::MonsterEquipment
+            | NotModelled::AttackFlavours
+            | NotModelled::Statuses
+            | NotModelled::Paths
+            | NotModelled::Awareness
+            | NotModelled::OtherSpells
+            | NotModelled::SpellsPerMonster
+            | NotModelled::DraconianBreath
+            | NotModelled::PlayerResistances
+            | NotModelled::CasterSafety
+            | NotModelled::CarriedGear
+            | NotModelled::OtherWands
+            | NotModelled::WornShield
+            | NotModelled::OwnHalo
+            | NotModelled::PlayerSpeed
+            | NotModelled::SwimmingAndFlying
+            | NotModelled::UnexploredSquares
+            | NotModelled::HitsOnTheWay
+            | NotModelled::OwnConditions => false,
+        }
+    }
 
     /// What crawl does with a monster in view, beside the player, that the simulation doesn't
     /// play out: on the Fact Sheet, and on its row.
@@ -907,9 +930,11 @@ mod tests {
         let [acting] = assessment.acting.as_slice() else {
             panic!("{name} beside the player doesn't act");
         };
-        let moves = MOVES_NOT_MODELLED
-            .into_iter()
-            .filter(|variant| assessment.not_modelled.contains(variant))
+        let moves = assessment
+            .not_modelled
+            .iter()
+            .copied()
+            .filter(|&variant| is_move(variant))
             .collect();
         (moves, acting.moves_not_modelled.clone())
     }
