@@ -1,0 +1,16 @@
+description = "A Minotaur Monk, who worships no god yet and knows no spells, asks for the spell list and the ability menu on turn 0 of a seeded game, and crawl says there is nothing to list in each"
+recording = "monk-has-no-spells-or-abilities.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MiMo.handaxe
+game_seed = 1
+"""
+keys = [
+  # The spell list, which crawl answers with a message.
+  "I", "\u001b",
+  # The ability menu, likewise.
+  "a", "\u001b",
+]

@@ -139,7 +139,14 @@ expression: replay
             "openSides": 3,
             "nearestCorridor": null
           },
-          "gaps": [],
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
           "notModelled": [
             "playerSpeed",
             "swimmingAndFlying",
@@ -312,7 +319,14 @@ expression: replay
             "openSides": 3,
             "nearestCorridor": null
           },
-          "gaps": [],
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
           "notModelled": [
             "playerSpeed",
             "swimmingAndFlying",
@@ -487,7 +501,14 @@ expression: replay
           "openSides": 3,
           "nearestCorridor": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
         "notModelled": [
           "playerSpeed",
           "swimmingAndFlying",

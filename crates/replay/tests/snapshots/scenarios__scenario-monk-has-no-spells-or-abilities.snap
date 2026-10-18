@@ -1,0 +1,113 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz291152462",
+    "character": "wiz291152462",
+    "species": "Minotaur",
+    "firstSeenMs": 1792291153716,
+    "crawlVersion": "0.34.1",
+    "wizard": false,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "end": {
+    "turn": 0,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 0,
+        "acting": [],
+        "mayShoot": [],
+        "lighting": "backlit",
+        "notModelled": []
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz291152462",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 0
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "No hostiles in view.",
+        "detail": null
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

@@ -122,6 +122,10 @@ pub struct WayOutSigns {
     pub abilities: Vec<EscapeAbility>,
     /// The statuses that stop the player using things.
     pub stops: Vec<Stop>,
+    /// The message crawl gives instead of the spell list when the player knows no spells.
+    pub no_spells: String,
+    /// The message crawl gives instead of the ability menu when the player has no abilities.
+    pub no_abilities: String,
 }
 
 /// A kind of item that is a Way Out.

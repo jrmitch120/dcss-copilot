@@ -1,11 +1,11 @@
 //! Accumulated State: what the Advisor remembers of one game that the game no longer shows, each
 //! fact with where it came from and how recent it is.
 
-use copilot_gk::{EnumId, ItemKind};
+use copilot_gk::{EnumId, ItemKind, WayOutSigns};
 use serde::Serialize;
 
-use crate::screen::{Resistances, Screen, ScreenRead};
-use crate::visible_state::VisibleState;
+use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
+use crate::visible_state::{GameMessage, VisibleState};
 
 /// What the Advisor remembers of one game.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -24,6 +24,16 @@ pub struct AccumulatedState {
     /// with a halo does. A change the game shows no sign of, such as wielding one weapon for
     /// another inside someone else's halo, goes unnoticed.
     pub equipped: Remembered<Vec<char>>,
+    /// The spells the character knows, with their failure rates, as the spell list (`I`) last
+    /// showed them. It goes Stale when the experience level, Intelligence, inventory, AC, EV or
+    /// SH changes, as failure rates change with them. Skills trained between levels, which
+    /// lower failure rates bit by bit, go unnoticed, and so does a spell learned or forgotten
+    /// without any of those changing.
+    pub spells: Remembered<Vec<KnownSpell>>,
+    /// The abilities the character has, with their costs and failure rates, as the ability
+    /// menu (`a`) last showed them. It goes Stale when the experience level, god, piety,
+    /// maximum magic points or inventory changes, as abilities come and go with them.
+    pub abilities: Remembered<Vec<KnownAbility>>,
 }
 
 /// A fact the Advisor remembers, and how current it is: an engine input is Known, Stale or
@@ -131,11 +141,23 @@ impl AccumulatedState {
             }
             self.equipped = Remembered::read(letters, read, visible);
         }
+        if let Some(spells) = read.spells() {
+            self.spells = Remembered::read(spells, read, visible);
+        }
+        if let Some(abilities) = read.abilities() {
+            self.abilities = Remembered::read(abilities, read, visible);
+        }
     }
 
     /// Notes what changed between the Visible State the game reported before and what it
-    /// reports now.
-    pub(crate) fn update(&mut self, before: &VisibleState, now: &VisibleState) {
+    /// reports now, reading through `signs` the messages crawl gives instead of the spell list
+    /// or the ability menu when there is nothing to list.
+    pub(crate) fn update(
+        &mut self,
+        before: &VisibleState,
+        now: &VisibleState,
+        signs: Option<&WayOutSigns>,
+    ) {
         if before.stats.sh != now.stats.sh {
             self.worn_shield.go_stale();
         }
@@ -146,7 +168,52 @@ impl AccumulatedState {
         {
             self.equipped.go_stale();
         }
+        if before.inventory != now.inventory
+            || (was.xl, was.intelligence) != (is.xl, is.intelligence)
+            || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
+        {
+            self.spells.go_stale();
+        }
+        if before.inventory != now.inventory
+            || (was.xl, was.mp_max) != (is.xl, is.mp_max)
+            || before.religion != now.religion
+        {
+            self.abilities.go_stale();
+        }
+        let Some(signs) = signs else { return };
+        for message in new_messages(before, now) {
+            let turn = message.turn.or(now.turn);
+            if message.text == signs.no_spells {
+                self.spells = Remembered::nothing_on(Screen::Spells, turn);
+            }
+            if message.text == signs.no_abilities {
+                self.abilities = Remembered::nothing_on(Screen::Abilities, turn);
+            }
+        }
     }
+}
+
+impl<T> Remembered<Vec<T>> {
+    /// Known as of `turn` to list nothing, as crawl says in a message instead of opening
+    /// `screen`.
+    fn nothing_on(screen: Screen, turn: Option<u32>) -> Self {
+        Self::Known(AsOf {
+            value: Vec::new(),
+            turn,
+            screen,
+        })
+    }
+}
+
+/// The messages `now` shows that `before` didn't: those after the last one `before` showed, or
+/// all of them when it is gone.
+fn new_messages<'a>(before: &VisibleState, now: &'a VisibleState) -> &'a [GameMessage] {
+    let after = before
+        .messages
+        .last()
+        .and_then(|last| now.messages.iter().rposition(|message| message == last))
+        .map_or(0, |at| at + 1);
+    now.messages.get(after..).unwrap_or_default()
 }
 
 /// The shield among the items at the `equipped` inventory letters, or `None` for none, when the

@@ -252,6 +252,34 @@ fn what_a_screen_showed_is_remembered_after_it_closes_as_of_the_turn_it_was_read
 }
 
 #[test]
+fn the_spell_list_and_the_ability_menu_are_remembered_with_failure_rates_and_costs() {
+    let mut replayer = replayer(SCREENS);
+    while !replayer.at_end() {
+        replayer.step();
+    }
+    let remembered = replayer.advisor().accumulated().unwrap();
+
+    insta::assert_json_snapshot!(serde_json::json!({
+        "spells": remembered.spells,
+        "abilities": remembered.abilities,
+    }));
+}
+
+#[test]
+fn crawl_saying_there_is_nothing_to_list_is_remembered_as_no_spells_and_no_abilities() {
+    let mut replayer = replayer(include_bytes!(
+        "scenarios/monk-has-no-spells-or-abilities.dcssrec"
+    ));
+    while !replayer.at_end() {
+        replayer.step();
+    }
+    let remembered = replayer.advisor().accumulated().unwrap();
+
+    assert_eq!(remembered.spells.known(), Some(&Vec::new()));
+    assert_eq!(remembered.abilities.known(), Some(&Vec::new()));
+}
+
+#[test]
 fn a_spectator_sees_the_screens_already_open_and_a_redrawn_menu_closes_once() {
     let replay = replay(WATCHED_SCREENS).unwrap();
 

@@ -241,7 +241,14 @@ expression: replay
               "steps": 4
             }
           },
-          "gaps": [],
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
           "notModelled": [
             "playerSpeed",
             "swimmingAndFlying",
@@ -518,7 +525,14 @@ expression: replay
             "steps": 4
           }
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
         "notModelled": [
           "playerSpeed",
           "swimmingAndFlying",

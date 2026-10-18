@@ -1,13 +1,13 @@
-//! Ways Out: the escapes and emergency options open to the player at a moment, each with
-//! whether it can be used right now and why not, and the ground they stand on.
+//! The Ways Out on the level: the staircases the player can walk to, who is in the way or can
+//! cut them off, and the ground the player stands on.
 
 use std::collections::{BTreeSet, HashMap};
 
-use copilot_gk::{Bundle, EnumId, Feature, ItemUse, StairDirection, Terrain};
-use serde::Serialize;
+use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
 
+use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
-use crate::fact_sheet::{Gap, NotModelled, attacks_player};
+use crate::fact_sheet::{Gap, attacks_player};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 
 /// A square is corridor when monsters can stand on at most this many of the squares around it,
@@ -15,181 +15,8 @@ use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 /// corpus.
 const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
 
-/// What the staircase Ways Out leave out, whenever there are any.
-const STAIRS_NOT_MODELLED: [NotModelled; 4] = [
-    NotModelled::PlayerSpeed,
-    NotModelled::SwimmingAndFlying,
-    NotModelled::UnexploredSquares,
-    NotModelled::HitsOnTheWay,
-];
-
-/// The player's Ways Out at a moment, and the ground they stand on.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WaysOut {
-    /// Each Way Out: the staircases on the level the player knows a path to, nearest first.
-    pub options: Vec<WayOut>,
-    /// Whether the player stands in a corridor or on open ground, once the Advisor can tell.
-    pub ground: Option<Ground>,
-    /// What kept the Advisor from listing more, or from judging what it lists.
-    pub gaps: Vec<Gap>,
-    /// What the judgement of the Ways Out leaves out, so it is read for what it is.
-    pub not_modelled: Vec<NotModelled>,
-}
-
-/// An escape or emergency option, and whether the player can use it right now.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WayOut {
-    /// What it is.
-    pub option: Escape,
-    /// Whether it can be used right now, and why not.
-    pub usable: Usable,
-}
-
-/// What a Way Out is.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(
-    tag = "kind",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum Escape {
-    /// A staircase on this level the player knows a path to.
-    Stairs {
-        /// Crawl's name for it, such as `stone staircase leading down`.
-        name: String,
-        /// Which way it leads.
-        direction: StairDirection,
-        /// The square it is on.
-        position: Position,
-        /// The player's moves to it over the explored map, counting the move that opens each
-        /// door: none when they stand on it.
-        steps: u32,
-    },
-}
-
-/// Whether a Way Out can be used right now, as far as the Advisor can tell.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(
-    tag = "state",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum Usable {
-    /// Nothing the Advisor can see stops it.
-    Yes,
-    /// It can't be used now, or won't work.
-    No {
-        /// Why.
-        because: Vec<Blocker>,
-    },
-}
-
-/// Why a Way Out can't be used right now.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(
-    tag = "blocker",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum Blocker {
-    /// Monsters stand on the player's path to the staircase, or on it, and aren't allies the
-    /// player could swap places with.
-    InTheWay {
-        /// Those monsters, nearest the player first.
-        by: Vec<InTheWay>,
-    },
-    /// Hostiles in view can stand beside the staircase by the time the player gets there and
-    /// takes it, to attack them or follow them off the level.
-    CutOff {
-        /// Those that can, the first there first.
-        by: Vec<Interceptor>,
-    },
-}
-
-/// A monster on the player's path to a staircase.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InTheWay {
-    /// Its name, as the game names it.
-    pub name: String,
-    /// The square it is on.
-    pub position: Position,
-}
-
-/// A hostile in view that can reach a staircase before the player takes it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Interceptor {
-    /// Its name, as the game names it.
-    pub name: String,
-    /// The square it is on.
-    pub position: Position,
-    /// Its moves to beside the staircase.
-    pub moves: u32,
-    /// The fewest of the player's standard-speed actions it needs to make them, at the most
-    /// energy it could have.
-    pub arrives_after: u32,
-    /// It moves faster than the player walks.
-    pub faster: bool,
-}
-
-/// The ground the player stands on, which decides how many monsters can attack them at once.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(
-    tag = "ground",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum Ground {
-    /// A corridor: monsters can attack them from few sides.
-    Corridor {
-        /// The squares around them a monster could stand on to attack.
-        open_sides: u32,
-    },
-    /// Open ground: monsters can attack them from more sides.
-    OpenGround {
-        /// The squares around them a monster could stand on to attack.
-        open_sides: u32,
-        /// The nearest square of corridor they can walk to over the explored map, if any.
-        nearest_corridor: Option<CorridorSquare>,
-    },
-}
-
-/// A square of corridor the player can walk to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CorridorSquare {
-    /// The square.
-    pub position: Position,
-    /// The player's moves to it.
-    pub steps: u32,
-}
-
-impl WaysOut {
-    /// The Ways Out the engine finds in `visible`, with `knowledge` for the game's Crawl
-    /// Version if the Advisor has it.
-    pub(crate) fn compute(visible: &VisibleState, knowledge: Option<&Bundle>) -> Self {
-        let mut gaps = BTreeSet::new();
-        let mut ways_out = Self::default();
-        match on_the_level(visible, knowledge) {
-            Ok(here) => {
-                ways_out.ground = Some(here.ground());
-                ways_out.options.extend(here.stairs(&mut gaps));
-                if !ways_out.options.is_empty() {
-                    ways_out.not_modelled.extend(STAIRS_NOT_MODELLED);
-                }
-            }
-            Err(missing) => gaps.extend(missing),
-        }
-        ways_out.gaps = gaps.into_iter().collect();
-        ways_out
-    }
-}
-
 /// Where the player stands on the level, and what they know of it.
-struct OnTheLevel<'a> {
+pub(super) struct OnTheLevel<'a> {
     level: Level,
     player: Position,
     /// The player's moves to each square they can walk to.
@@ -203,7 +30,7 @@ struct OnTheLevel<'a> {
 }
 
 /// The level as the player knows it, or the Gaps that keep the Advisor from knowing it.
-fn on_the_level<'a>(
+pub(super) fn on_the_level<'a>(
     visible: &'a VisibleState,
     knowledge: Option<&'a Bundle>,
 ) -> Result<OnTheLevel<'a>, Vec<Gap>> {
@@ -277,7 +104,7 @@ impl OnTheLevel<'_> {
     }
 
     /// The ground the player stands on, and on open ground the nearest corridor.
-    fn ground(&self) -> Ground {
+    pub(super) fn ground(&self) -> Ground {
         let open_sides = self.open_sides(self.player);
         if open_sides <= CORRIDOR_MOST_OPEN_SIDES {
             return Ground::Corridor { open_sides };
@@ -301,7 +128,7 @@ impl OnTheLevel<'_> {
     /// The staircases the player can walk to, nearest first, each blocked by the monsters in
     /// the way and cut off by the hostiles in view that can stand beside it by the time the
     /// player takes it. A hostile the bundle doesn't know is a Gap in `gaps`.
-    fn stairs(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
+    pub(super) fn stairs(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         let chasers = self.chasers(gaps);
         let mut stairs: Vec<(u32, WayOut)> = self
             .features

@@ -52171,7 +52171,9 @@
           "translocating"
         ]
       }
-    ]
+    ],
+    "noSpells": "You don't know any spells.",
+    "noAbilities": "Sorry, you're not good enough to have a special ability."
   },
   "formulas": {
     "monsterToHit": "crawl-0.34",

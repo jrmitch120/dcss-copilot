@@ -1,4 +1,5 @@
-// Trimmed from crawl 0.34.1 for the extractor test: the abilities that are Ways Out.
+// Trimmed from crawl 0.34.1 for the extractor test: the abilities that are Ways Out, and the
+// message for having none.
 
 static vector<ability_def> &_get_ability_list()
 {
@@ -50,4 +51,11 @@ static vector<ability_def> &_get_ability_list()
         // (trimmed for the extractor test)
     };
     return Ability_List;
+}
+
+// (trimmed for the extractor test)
+
+void no_ability_msg()
+{
+    mpr("Sorry, you're not good enough to have a special ability.");
 }

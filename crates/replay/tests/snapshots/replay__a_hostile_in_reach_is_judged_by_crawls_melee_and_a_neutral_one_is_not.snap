@@ -76,7 +76,14 @@ expression: replayer.advisor().fact_sheet()
       "openSides": 8,
       "nearestCorridor": null
     },
-    "gaps": [],
+    "gaps": [
+      {
+        "gap": "abilityMenu"
+      },
+      {
+        "gap": "spellList"
+      }
+    ],
     "notModelled": [
       "playerSpeed",
       "swimmingAndFlying",

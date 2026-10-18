@@ -19,7 +19,7 @@ pub use fact_sheet::{
     ThreatLevel,
 };
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
-pub use screen::{Resistance, Resistances, Screen, ScreenRead};
+pub use screen::{KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead};
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
     Listing, NowPill, RunPlanRail, TileName, ViewModel,
@@ -29,5 +29,5 @@ pub use visible_state::{
     RECENT_MESSAGES, Religion, SquareLight, Stats, Status, VisibleMonster, VisibleState,
 };
 pub use ways_out::{
-    Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut, WaysOut,
+    Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, ReadOn, Usable, WayOut, WaysOut,
 };

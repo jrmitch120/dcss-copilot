@@ -1,0 +1,26 @@
+description = "A Minotaur Berserker of Trog enters wizard mode on turn 0 of a seeded game, makes and picks up a scroll of teleportation and a potion of heal wounds, which crawl greys out at full health, memorises Blink without the magic to cast it, identifies what they carry and opens the spell list and the ability menu; then on turn 2 goes berserk, which stops them reading, drinking, casting or going berserk again"
+recording = "berserker-takes-stock-then-rages.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [2]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Make an item by name where they stand, then pick it up: a scroll of teleportation.
+  "%", "scroll of teleportation\r", "\u001b", ",",
+  # And a potion of heal wounds.
+  "&", "%", "potion of heal wounds\r", "\u001b", ",",
+  # Memorise a spell by name, Blink, though it takes more spell levels than they have.
+  "&", "!", "blink\r", "Y", "\u001b",
+  # Identify everything carried.
+  "&", "y", "\u001b",
+  # Open the spell list, then the ability menu, closing each.
+  "I", "\u001b", "a", "\u001b",
+  # Go berserk: the ability menu's first ability.
+  "a", "a", "\u001b",
+]

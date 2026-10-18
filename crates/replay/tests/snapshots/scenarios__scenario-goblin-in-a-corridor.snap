@@ -74,7 +74,11 @@ expression: replay
             "openSides": 5,
             "nearestCorridor": null
           },
-          "gaps": [],
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
           "notModelled": [
             "playerSpeed",
             "swimmingAndFlying",
@@ -234,7 +238,11 @@ expression: replay
           "ground": "corridor",
           "openSides": 2
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
         "notModelled": [
           "playerSpeed",
           "swimmingAndFlying",

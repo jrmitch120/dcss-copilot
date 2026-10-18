@@ -68,11 +68,18 @@ impl Advisor {
                 self.identity = Some(identity);
             }
             SourceEvent::Visible(visible) => {
+                let signs = self
+                    .identity
+                    .as_ref()
+                    .and_then(|identity| identity.knowledge(&self.knowledge))
+                    .map(|bundle| &bundle.ways_out);
                 if let Some(remembered) = self
-                    .followed_key()
+                    .identity
+                    .as_ref()
+                    .map(GameKey::of)
                     .and_then(|key| self.remembered.get_mut(&key))
                 {
-                    remembered.update(&self.visible, &visible);
+                    remembered.update(&self.visible, &visible, signs);
                 }
                 self.visible = *visible;
             }

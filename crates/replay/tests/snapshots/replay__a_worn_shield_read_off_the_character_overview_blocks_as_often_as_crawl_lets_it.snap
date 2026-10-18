@@ -105,7 +105,11 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "spellList"
+          }
+        ],
         "notModelled": []
       }
     }
@@ -183,7 +187,11 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "spellList"
+          }
+        ],
         "notModelled": []
       }
     }
@@ -262,7 +270,11 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "spellList"
+          }
+        ],
         "notModelled": []
       }
     }

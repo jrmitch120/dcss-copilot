@@ -226,6 +226,10 @@ pub enum NotModelled {
     /// A staircase is cut off only by monsters that can stand beside it as the player takes it:
     /// the blows, shots and spells they could land on the way there aren't counted.
     HitsOnTheWay,
+    /// Abilities and spells are judged only by their cost in magic and the statuses that stop
+    /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
+    /// free square to blink to, isn't checked.
+    OwnConditions,
 }
 
 /// What the simulation leaves out, whatever is in view.
@@ -258,6 +262,12 @@ pub enum Gap {
         /// The monster, as the game names it.
         monster: String,
     },
+    /// The player hasn't opened the ability menu (`a`), so which of their abilities are Ways Out
+    /// isn't known.
+    AbilityMenu,
+    /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
+    /// how often they fail, isn't known.
+    SpellList,
 }
 
 impl FactSheet {
@@ -271,7 +281,7 @@ impl FactSheet {
     ) -> Self {
         Self {
             threat: threat(visible, remembered, knowledge),
-            ways_out: WaysOut::compute(visible, knowledge),
+            ways_out: WaysOut::compute(visible, remembered, knowledge),
         }
     }
 }

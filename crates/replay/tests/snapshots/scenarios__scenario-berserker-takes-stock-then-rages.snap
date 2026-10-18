@@ -1,0 +1,364 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz290628684",
+    "character": "wiz290628684",
+    "species": "Minotaur",
+    "firstSeenMs": 1792290629931,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 2,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 0,
+          "acting": [],
+          "mayShoot": [],
+          "lighting": "plain",
+          "notModelled": []
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "c",
+                "name": "scroll labelled YMAYFF GACUBBO",
+                "kindName": "teleportation",
+                "quantity": 1,
+                "effect": "escapesLater"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "d",
+                "name": "clear potion",
+                "kindName": "heal wounds",
+                "quantity": 1,
+                "effect": "heals"
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "useless"
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "ability",
+                "name": "Berserk",
+                "effect": "strengthens",
+                "failurePercent": 10,
+                "read": {
+                  "turn": 2,
+                  "stale": false
+                }
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "spell",
+                "name": "Blink",
+                "effect": "escapes",
+                "failurePercent": 65,
+                "read": {
+                  "turn": 2,
+                  "stale": false
+                }
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "magic",
+                    "needs": 2,
+                    "has": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay",
+            "ownConditions"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz290628684",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 2
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "No hostiles in view.",
+          "detail": null
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": []
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 3,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 28,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 0,
+        "acting": [],
+        "mayShoot": [],
+        "lighting": "plain",
+        "notModelled": []
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "c",
+              "name": "scroll labelled YMAYFF GACUBBO",
+              "kindName": "teleportation",
+              "quantity": 1,
+              "effect": "escapesLater"
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "d",
+              "name": "clear potion",
+              "kindName": "heal wounds",
+              "quantity": 1,
+              "effect": "heals"
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "ability",
+              "name": "Berserk",
+              "effect": "strengthens",
+              "failurePercent": 10,
+              "read": {
+                "turn": 2,
+                "stale": true
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "spell",
+              "name": "Blink",
+              "effect": "escapes",
+              "failurePercent": 65,
+              "read": {
+                "turn": 2,
+                "stale": true
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "berserking"
+                },
+                {
+                  "blocker": "magic",
+                  "needs": 2,
+                  "has": 0
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay",
+          "ownConditions"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz290628684",
+        "species": "Minotaur",
+        "hp": 28,
+        "hpMax": 28,
+        "turn": 3
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "No hostiles in view.",
+        "detail": null
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

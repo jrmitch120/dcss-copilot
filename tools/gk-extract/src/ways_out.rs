@@ -23,6 +23,10 @@ pub struct WayOutRules {
     /// Each status that stops something, by its light or the words the status pane shows for
     /// it.
     pub stops: &'static [(Shown, &'static [Use])],
+    /// The message crawl gives for the spell list when the player knows no spells.
+    pub no_spells: Shown,
+    /// The message crawl gives for the ability menu when the player has no abilities.
+    pub no_abilities: Shown,
 }
 
 /// An ability that is a Way Out, by the name `ability.cc` gives it.
@@ -128,6 +132,13 @@ pub const WAY_OUT_RULES_0_34: WayOutRules = WayOutRules {
             &[Use::Translocating],
         ),
     ],
+    // MSG_NO_SPELLS, as `canned_msg` gives it.
+    no_spells: Shown::quoted("You don't know any spells.", "message.cc"),
+    // `no_ability_msg`.
+    no_abilities: Shown::quoted(
+        "Sorry, you're not good enough to have a special ability.",
+        "ability.cc",
+    ),
 };
 
 /// The file every ability's name must be in.
@@ -207,6 +218,8 @@ impl Crawl {
             spells,
             abilities,
             stops,
+            no_spells: self.shown(&rules.no_spells)?,
+            no_abilities: self.shown(&rules.no_abilities)?,
         })
     }
 }
