@@ -66,6 +66,14 @@ _Avoid_: History, memory, cache
 How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
 _Avoid_: Fresh, expired, cached
 
+**Carried Gear**:
+What one particular monster has been seen to wield, quiver or carry, as the game describes it. It belongs to that monster only while it stays in view, except a unique's, which is its own across sightings.
+_Avoid_: Equipment, inventory, loadout
+
+**Possible Gear**:
+What a monster of its kind may be made with, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read.
+_Avoid_: Kind gear, starting equipment
+
 **Game Knowledge**:
 Static facts about DCSS itself for one Crawl Version: monster, spell, item, god and species data. When the Advisor has none for the exact Crawl Version being played, it uses the nearest it has and tells the player its advice is approximate.
 _Avoid_: Wiki data, database
@@ -125,7 +133,7 @@ A monster's sight through an Umbra, so an Umbra around the player doesn't spoil 
 _Avoid_: Darkvision, see in the dark
 
 **Not Modelled**:
-What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, what each monster really carries rather than what its kind may be made with, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
+What the Threat Level's simulation leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
 _Avoid_: Unsupported, ignored, edge cases
 
 **Formula Variant**:
