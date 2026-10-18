@@ -104,6 +104,31 @@ enum monster_type                      // env.mons[].type
     // (trimmed for the extractor test)
     MONS_DEATH_KNIGHT,
     // (trimmed for the extractor test)
+    MONS_FULMINANT_PRISM,
+    MONS_SHADOW_PRISM,
+    MONS_SPLINTERFROST_BARRICADE,
+    MONS_BLAZEHEART_CORE,
+    MONS_BLAZEHEART_GOLEM,
+    MONS_RENDING_BLADE,
+    MONS_BURSTSHROOM,
+    MONS_SIXFIRHY,
+    MONS_JIANGSHI,
+    MONS_BOULDER,
+    MONS_HELLFIRE_MORTAR,
+    MONS_DIAMOND_SAWBLADE,
+    MONS_LIGHTNING_SPIRE,
+    MONS_SOLAR_EMBER,
+    MONS_BOUNDLESS_TESSERACT,
+    MONS_WANDERING_MUSHROOM,
+    MONS_DEATHCAP,
+    MONS_LURKING_HORROR,
+    MONS_UGLY_THING,
+    MONS_VERY_UGLY_THING,
+    MONS_SLIME_CREATURE,
+    MONS_CLOCKWORK_BEE_INACTIVE,
+    MONS_ORB_SPIDER,
+    MONS_LAVA_SNAKE,
+    // (trimmed for the extractor test)
 
     NUM_MONSTERS,               // used for polymorph
 

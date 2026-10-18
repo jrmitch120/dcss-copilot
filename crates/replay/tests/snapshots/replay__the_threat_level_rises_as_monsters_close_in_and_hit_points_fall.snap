@@ -144,6 +144,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -155,6 +156,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -166,6 +168,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],
@@ -264,6 +267,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -275,6 +279,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           },
           {
@@ -286,6 +291,7 @@ expression: fact_sheets_by_turn(JACKALS)
             "distance": 1,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],

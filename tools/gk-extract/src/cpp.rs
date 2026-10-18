@@ -155,14 +155,7 @@ impl Source {
     /// function `<name>(...)`. Cases that fall through to the same return all get its name, and
     /// an identifier's first case wins.
     pub fn switch_names(&self, name: &str) -> Result<Vec<(String, String)>, ExtractError> {
-        let start = (0..self.tokens.len())
-            .find(|&i| self.is_definition_of(i, name))
-            .ok_or_else(|| self.missing(&format!("the function {name}")))?;
-        let open = (start..self.tokens.len())
-            .find(|&i| self.tokens[i] == Token::Punct('{'))
-            .ok_or_else(|| self.missing(&format!("the body of {name}")))?;
-        let body = &self.tokens[open + 1..self.matching_brace(open)?];
-
+        let body = self.function_body(name)?;
         let mut names: Vec<(String, String)> = Vec::new();
         let mut pending: Vec<String> = Vec::new();
         let mut i = 0;
@@ -196,6 +189,36 @@ impl Source {
             return Err(self.unreadable(&format!("the cases of {name}")));
         }
         Ok(names)
+    }
+
+    /// The identifier of every `case IDENT:` in the body of the function `<name>(...)`, in
+    /// order, whichever `switch` it belongs to.
+    pub fn switch_cases(&self, name: &str) -> Result<Vec<String>, ExtractError> {
+        let cases: Vec<String> = self
+            .function_body(name)?
+            .windows(3)
+            .filter_map(|window| match window {
+                [Token::Ident(case), Token::Ident(ident), Token::Punct(':')] if case == "case" => {
+                    Some(ident.clone())
+                }
+                _ => None,
+            })
+            .collect();
+        if cases.is_empty() {
+            return Err(self.unreadable(&format!("the cases of {name}")));
+        }
+        Ok(cases)
+    }
+
+    /// The tokens inside the braces of the definition of the function `<name>(...)`.
+    pub fn function_body(&self, name: &str) -> Result<&[Token], ExtractError> {
+        let start = (0..self.tokens.len())
+            .find(|&i| self.is_definition_of(i, name))
+            .ok_or_else(|| self.missing(&format!("the function {name}")))?;
+        let open = (start..self.tokens.len())
+            .find(|&i| self.tokens[i] == Token::Punct('{'))
+            .ok_or_else(|| self.missing(&format!("the body of {name}")))?;
+        Ok(&self.tokens[open + 1..self.matching_brace(open)?])
     }
 
     /// `name ( ... ) {` starts at `i`, with no `;` between: a definition, not a call.

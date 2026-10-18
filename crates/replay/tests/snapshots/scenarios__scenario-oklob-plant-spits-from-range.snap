@@ -43,6 +43,7 @@ expression: replay
                 "Spit Acid"
               ],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": []
             }
           ],
@@ -217,6 +218,7 @@ expression: replay
                 "Spit Acid"
               ],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": []
             }
           ],
@@ -391,6 +393,7 @@ expression: replay
                 "Spit Acid"
               ],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": []
             }
           ],
@@ -567,6 +570,7 @@ expression: replay
               "Spit Acid"
             ],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": []
           }
         ],

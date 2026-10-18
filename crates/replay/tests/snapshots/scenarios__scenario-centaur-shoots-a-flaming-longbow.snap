@@ -41,6 +41,7 @@ expression: replay
               "distance": 5,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": [
                 "+4 longbow of flaming"
               ]
@@ -243,6 +244,7 @@ expression: replay
               "distance": 5,
               "casts": [],
               "spellsNotModelled": [],
+              "movesNotModelled": [],
               "shoots": [
                 "+4 longbow of flaming"
               ]
@@ -447,6 +449,7 @@ expression: replay
             "distance": 4,
             "casts": [],
             "spellsNotModelled": [],
+            "movesNotModelled": [],
             "shoots": [
               "+4 longbow of flaming"
             ]

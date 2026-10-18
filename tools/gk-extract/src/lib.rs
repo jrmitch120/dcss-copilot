@@ -41,6 +41,36 @@ const SERIES: &[Series] = &[Series {
     gear: &gear::GEAR_RULES_0_34,
     test_monsters: &["MONS_TEST_SPAWNER", "MONS_TEST_STATUE", "MONS_TEST_BLOB"],
     innate_umbras: &["MONS_DEATH_KNIGHT"],
+    own_actions: NamedKinds {
+        file: "mon-act.cc",
+        functions: &["handle_monster_move", "_pre_monster_move"],
+        kinds: &[
+            "MONS_FULMINANT_PRISM",
+            "MONS_SHADOW_PRISM",
+            "MONS_SPLINTERFROST_BARRICADE",
+            "MONS_BLAZEHEART_CORE",
+            "MONS_BLAZEHEART_GOLEM",
+            "MONS_RENDING_BLADE",
+            "MONS_BURSTSHROOM",
+            "MONS_SIXFIRHY",
+            "MONS_JIANGSHI",
+            "MONS_BOULDER",
+            "MONS_HELLFIRE_MORTAR",
+            "MONS_DIAMOND_SAWBLADE",
+            "MONS_LIGHTNING_SPIRE",
+            "MONS_SOLAR_EMBER",
+            "MONS_BOUNDLESS_TESSERACT",
+        ],
+    },
+    wont_move_while_watched: NamedKinds {
+        file: "mon-act.cc",
+        functions: &["_fungal_move_check"],
+        kinds: &[
+            "MONS_WANDERING_MUSHROOM",
+            "MONS_DEATHCAP",
+            "MONS_LURKING_HORROR",
+        ],
+    },
     lighting: &LIGHTING_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
@@ -143,6 +173,11 @@ struct Series {
     /// The monsters with an umbra of their own that aren't undead, which `monster::umbra_radius`
     /// gives them by kind in code rather than data.
     innate_umbras: &'static [&'static str],
+    /// The kinds `handle_monster_move`, or `_pre_monster_move` before it, acts or moves for with
+    /// code of its own: crawl tests for each by kind.
+    own_actions: NamedKinds,
+    /// The kinds `_fungal_move_check` keeps from stepping while their foe watches them.
+    wont_move_while_watched: NamedKinds,
     /// What it shows that tells the player's Lighting.
     lighting: &'static LightingRules,
     /// What it decides about dungeon features in code rather than in `feat_defs`.
@@ -152,6 +187,31 @@ struct Series {
     /// The item classes whose items hide their sub-type until identified: crawl's
     /// `item_type_has_ids` (`item-name.cc`), which is code rather than data.
     kinds_hidden: &'static [&'static str],
+}
+
+/// Kinds of monster crawl's code singles out by name, ported by hand, with where it does so.
+struct NamedKinds {
+    /// The source file of that code.
+    file: &'static str,
+    /// The functions, one of which names each kind.
+    functions: &'static [&'static str],
+    /// The kinds, by `monster_type` identifier.
+    kinds: &'static [&'static str],
+}
+
+/// The monsters crawl never counts as firewood whatever their flags
+/// (`mons_class_is_firewood`): the series' test monsters, and every one of `tentacles`. Each
+/// must be in `monster_type`, so a renamed one fails rather than turns into firewood.
+fn never_firewood(
+    series: &Series,
+    tentacles: &BTreeSet<String>,
+    monster_type: &[(String, i64)],
+) -> Result<BTreeSet<String>, ExtractError> {
+    let never = tentacles
+        .iter()
+        .map(String::as_str)
+        .chain(series.test_monsters.iter().copied());
+    known_monsters(never, monster_type)
 }
 
 /// `ids` as a set, each of which must be in `monster_type`, so a monster crawl renames fails the
@@ -412,9 +472,15 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     )?;
     let mut tiles = ShippedTiles::new(&crawl.source.join(RLTILES_DIR))?;
     let monster_type = crawl.enumeration("monster-type.h", "monster_type")?;
+    let tentacles = crawl.tentacles(&monster_type)?;
     let exceptions = yaml::KindExceptions {
-        never_firewood: crawl.never_firewood(series, &monster_type)?,
+        never_firewood: never_firewood(series, &tentacles, &monster_type)?,
         innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
+        own_actions: crawl.named_kinds(&series.own_actions, &monster_type)?,
+        wont_move_while_watched: crawl
+            .named_kinds(&series.wont_move_while_watched, &monster_type)?,
+        special_abilities: crawl.special_abilities(&monster_type)?,
+        tentacles,
     };
     let item_classes = crawl.item_classes(&item_names, series.kinds_hidden)?;
     let spells = crawl.spells()?;
@@ -673,18 +739,12 @@ impl Crawl {
         Ok(spells)
     }
 
-    /// The monsters crawl never counts as firewood whatever their flags
-    /// (`mons_class_is_firewood`): the series' test monsters, and every tentacle and tentacle
-    /// segment (`mons_is_tentacle_or_tentacle_segment`). Each must be in `monster_type`, so a
-    /// renamed one fails rather than turns into firewood.
-    fn never_firewood(
-        &self,
-        series: &Series,
-        monster_type: &[(String, i64)],
-    ) -> Result<BTreeSet<String>, ExtractError> {
+    /// Every tentacle and tentacle segment (`mons_is_tentacle_or_tentacle_segment`), from the
+    /// tables in `mon-tentacle.cc`. Each must be in `monster_type`.
+    fn tentacles(&self, monster_type: &[(String, i64)]) -> Result<BTreeSet<String>, ExtractError> {
         let file = "mon-tentacle.cc";
         let source = self.parse(file)?;
-        let mut never = BTreeSet::new();
+        let mut tentacles = BTreeSet::new();
         for &(table, skipped) in TENTACLE_TABLES {
             for row in source.entries(table)? {
                 for field in row.iter().skip(skipped) {
@@ -694,12 +754,49 @@ impl Crawl {
                             what: format!("a row of {table}"),
                         });
                     };
-                    never.insert(id.clone());
+                    tentacles.insert(id.clone());
                 }
             }
         }
-        never.extend(series.test_monsters.iter().map(|&id| id.to_owned()));
-        known_monsters(never.iter().map(String::as_str), monster_type)
+        known_monsters(tentacles.iter().map(String::as_str), monster_type)
+    }
+
+    /// The kinds of `named`, each checked against `monster_type` and against crawl's code, which
+    /// must name it in one of the functions `named` gives, so a kind crawl stops singling out
+    /// fails the extraction rather than keeping a rule it no longer has.
+    fn named_kinds(
+        &self,
+        named: &NamedKinds,
+        monster_type: &[(String, i64)],
+    ) -> Result<BTreeSet<String>, ExtractError> {
+        let source = self.parse(named.file)?;
+        let bodies = named
+            .functions
+            .iter()
+            .map(|function| source.function_body(function))
+            .collect::<Result<Vec<_>, _>>()?;
+        for kind in named.kinds {
+            let ident = Token::Ident((*kind).to_owned());
+            if !bodies.iter().any(|body| body.contains(&ident)) {
+                return Err(ExtractError::Missing {
+                    file: named.file.to_owned(),
+                    what: format!("{kind}, in {}", named.functions.join(" or ")),
+                });
+            }
+        }
+        known_monsters(named.kinds.iter().copied(), monster_type)
+    }
+
+    /// The kinds with a special ability of their own: those `mon_special_ability`
+    /// (`mon-abil.cc`) has a case for. Each must be in `monster_type`.
+    fn special_abilities(
+        &self,
+        monster_type: &[(String, i64)],
+    ) -> Result<BTreeSet<String>, ExtractError> {
+        let cases = self
+            .parse("mon-abil.cc")?
+            .switch_cases("mon_special_ability")?;
+        known_monsters(cases.iter().map(String::as_str), monster_type)
     }
 
     /// The text of `shown`, once found in crawl's source as it says.

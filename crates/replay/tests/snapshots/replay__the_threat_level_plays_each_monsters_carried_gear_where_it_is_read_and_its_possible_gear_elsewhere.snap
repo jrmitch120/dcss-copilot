@@ -57,6 +57,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -115,6 +116,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -189,6 +191,7 @@ expression: threats
           "distance": 6,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -202,6 +205,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -215,6 +219,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -236,6 +241,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -354,6 +360,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -367,6 +374,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -388,6 +396,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -514,6 +523,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -527,6 +537,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -548,6 +559,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -674,6 +686,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -687,6 +700,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
@@ -708,6 +722,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -834,6 +849,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -924,6 +940,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -937,6 +954,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -956,6 +974,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -1079,6 +1098,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1092,6 +1112,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1111,6 +1132,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -1259,6 +1281,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1272,6 +1295,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1291,6 +1315,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
@@ -1455,6 +1480,7 @@ expression: threats
           "distance": 7,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1468,6 +1494,7 @@ expression: threats
           "distance": 3,
           "casts": [],
           "spellsNotModelled": [],
+          "movesNotModelled": [],
           "shoots": [
             "boomerang"
           ]
@@ -1487,6 +1514,7 @@ expression: threats
             "Confuse",
             "Invisibility"
           ],
+          "movesNotModelled": [],
           "shoots": [
             "+1 heavy sling",
             "wand of flame"
