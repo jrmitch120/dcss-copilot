@@ -666,4 +666,116 @@ mod tests {
         assert_eq!(level(50, chance(0), 20), ThreatLevel::Dangerous);
         assert_eq!(level(50, chance(0), 19), ThreatLevel::Calm);
     }
+
+    /// The Not Modelled ledger: one entry for each thing the engine leaves out.
+    const LEDGER: &str = include_str!("../../../docs/not-modelled.md");
+
+    /// The field of a ledger entry that says how the Fact Sheet surfaces it.
+    const SURFACED_AS: &str = "- **Surfaced as:** ";
+
+    /// The variants named, checked by an exhaustive match so that a new variant doesn't compile
+    /// until it is listed here too.
+    macro_rules! every_not_modelled {
+        ($($variant:ident),+ $(,)?) => {{
+            fn _exhaustive(not_modelled: NotModelled) {
+                match not_modelled {
+                    $(NotModelled::$variant)|+ => {}
+                }
+            }
+            [$(NotModelled::$variant),+]
+        }};
+    }
+
+    fn every_variant_name() -> BTreeSet<String> {
+        every_not_modelled![
+            MonsterEquipment,
+            AttackFlavours,
+            Statuses,
+            Paths,
+            Awareness,
+            OtherSpells,
+            SpellsPerMonster,
+            DraconianBreath,
+            PlayerResistances,
+            CasterSafety,
+            CarriedGear,
+            OtherWands,
+            WornShield,
+            OwnHalo,
+            PlayerSpeed,
+            SwimmingAndFlying,
+            UnexploredSquares,
+            HitsOnTheWay,
+            OwnConditions,
+        ]
+        .into_iter()
+        .map(|variant| {
+            serde_json::to_value(variant)
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_owned()
+        })
+        .collect()
+    }
+
+    /// The variant each ledger entry names, by its serialized name, from the start of its
+    /// "Surfaced as" field. Fails unless every entry has that field, and an entry without a
+    /// variant says it is an accepted simplification or harness only.
+    fn ledger_variant_names() -> Vec<&'static str> {
+        let fields: Vec<&str> = LEDGER
+            .lines()
+            .filter_map(|line| line.strip_prefix(SURFACED_AS))
+            .collect();
+        let entries = LEDGER
+            .lines()
+            .filter(|line| line.starts_with("### "))
+            .count();
+        assert_eq!(
+            fields.len(),
+            entries,
+            "each entry has one Surfaced as field"
+        );
+        fields
+            .into_iter()
+            .filter_map(|field| match field.strip_prefix('`') {
+                Some(named) => named.split('`').next(),
+                None => {
+                    assert!(
+                        field.starts_with("accepted simplification")
+                            || field.starts_with("harness only"),
+                        "an entry without a variant says why: {field}"
+                    );
+                    None
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn every_not_modelled_variant_has_a_ledger_entry() {
+        let in_ledger: BTreeSet<&str> = ledger_variant_names().into_iter().collect();
+        for name in every_variant_name() {
+            assert!(
+                in_ledger.contains(name.as_str()),
+                "docs/not-modelled.md has no entry for `{name}`"
+            );
+        }
+    }
+
+    #[test]
+    fn every_variant_the_ledger_names_exists_once() {
+        let variants = every_variant_name();
+        let mut seen = BTreeSet::new();
+        for name in ledger_variant_names() {
+            assert!(
+                variants.contains(name),
+                "docs/not-modelled.md names `{name}`, which isn't a NotModelled variant"
+            );
+            assert!(
+                seen.insert(name),
+                "docs/not-modelled.md names `{name}` twice"
+            );
+        }
+    }
 }

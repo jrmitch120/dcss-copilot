@@ -133,7 +133,7 @@ A monster's sight through an Umbra, so an Umbra around the player doesn't spoil 
 _Avoid_: Darkvision, see in the dark
 
 **Not Modelled**:
-What the Threat Level's simulation or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed.
+What the Threat Level's simulation or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed. The Not Modelled ledger (`docs/not-modelled.md`) lists everything the engine leaves out, whether or not the Fact Sheet names it, as the backlog of what to model next.
 _Avoid_: Unsupported, ignored, edge cases
 
 **Formula Variant**:
