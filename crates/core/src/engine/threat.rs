@@ -17,7 +17,7 @@ use super::melee::{
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::rng::Rng;
-use super::spells::{self, DamagingSpell, Firing, Prospect, Reach, Slot};
+use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
 use super::wands;
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
@@ -529,7 +529,9 @@ pub(crate) struct Outcome {
 
 /// Whether `attacker` can attack before the player's next standard-speed action at all: with the
 /// most energy it could have, it closes the distance, unless it never moves, and still has an
-/// action left to strike the player in melee, with a spell or wand, or with a missile.
+/// action left to strike the player in melee, with a spell or wand, or with a missile. Where a
+/// spell lands its caster ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the
+/// player from wherever it is cast at them.
 pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
@@ -653,6 +655,7 @@ pub(crate) fn turn(
                     nightvision: monster.nightvision,
                 };
                 turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                land(&cast.spell, &mut distance, &mut turn);
             }
             if cast.slot.breath {
                 breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
@@ -676,6 +679,7 @@ pub(crate) fn turn(
                     nightvision: monster.nightvision,
                 };
                 turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                land(&zap.spell, &mut distance, &mut turn);
             }
             energy -= wands::energy(formulas.monster_wand);
             continue;
@@ -728,6 +732,19 @@ pub(crate) fn turn(
         energy -= cost(monster.energy.attack);
     }
     turn
+}
+
+/// Moves a monster `distance` squares from the player to where casting `spell` at them leaves
+/// it ([`spells::Landing`]), counting the squares it closed in `turn`. Only a beam that reaches
+/// the player lands its caster by them; one that falls short would carry it to its end.
+fn land(spell: &DamagingSpell<'_>, distance: &mut i32, turn: &mut Turn) {
+    match spell.landing {
+        Landing::Stays => {}
+        Landing::BesideThePlayer => {
+            turn.closed += *distance - 1;
+            *distance = 1;
+        }
+    }
 }
 
 /// The damage the beam `firing` deals `target`, using up a block of their shield when it blocks
@@ -873,5 +890,44 @@ mod tests {
             fewest < displayed && displayed < most,
             "{fewest} < {displayed} < {most} deaths in {TRIALS}"
         );
+    }
+
+    /// The turns `name`, `distance` squares from an undefended player, plays out over 1,000
+    /// trials, casting a spell of its book on every action it can.
+    fn turns_always_casting(name: &str, distance: i32) -> Vec<Turn> {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
+        let mut attacker = Attacker::new(bundle, monster, distance).without_gear();
+        assert!(!attacker.spells.is_empty(), "{name} casts no ported spell");
+        for cast in &mut attacker.spells {
+            cast.slot.frequency = 200;
+        }
+        let target = Target {
+            defences: Defences::exact(0, 0, 0),
+            lighting: Lighting::Plain,
+        };
+        let mut rng = Rng::new(SEED.0, SEED.1);
+        (0..1_000)
+            .map(|_| turn(bundle.formulas, &mut rng, &attacker, target, &mut 0))
+            .collect()
+    }
+
+    #[test]
+    fn a_blinkbolt_lands_its_caster_beside_the_player_to_fight_on_its_next_action() {
+        // A spark wasp, at speed 15, has a second action in some trials; its blinkbolt is only
+        // cast from afar, so beside the player it stings.
+        let turns = turns_always_casting("spark wasp", 7);
+        assert!(turns.iter().all(|turn| turn.casts == 1 && turn.closed == 6));
+        assert!(turns.iter().any(|turn| turn.melee == 1));
+        assert!(turns.iter().all(|turn| turn.melee <= 1));
+    }
+
+    #[test]
+    fn a_caster_of_any_other_bolt_keeps_its_distance() {
+        // A shock serpent, at speed 15, casts its electrical bolt again from where it stood.
+        let turns = turns_always_casting("shock serpent", 4);
+        assert!(turns.iter().all(|turn| turn.closed == 0 && turn.melee == 0));
+        assert!(turns.iter().any(|turn| turn.casts == 2));
     }
 }

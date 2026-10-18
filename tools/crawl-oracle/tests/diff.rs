@@ -1,6 +1,6 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers and player defenders, 20,000 attacks each, 24 spell cases, 25
-//! missile, gear and wand cases, and the turn harness's block and reach cases with 24 turn cases
+//! missile, gear and wand cases, and the turn harness's block and reach cases with 27 turn cases
 //! (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
@@ -270,14 +270,14 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
 
 /// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
 /// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
-/// and 24 monsters playing out the player's next action 20,000 times each, taking turns at the
+/// and 27 monsters playing out the player's next action 20,000 times each, taking turns at the
 /// rules they exercise (seed 34).
 const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 
 #[test]
 fn the_engine_agrees_with_crawl_on_every_block_reach_and_turn_case() {
     let report = diff(TURNS).unwrap();
-    assert_eq!(report.cases, 552);
+    assert_eq!(report.cases, 555);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -317,6 +317,18 @@ fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
     // five.
     let dump = with_changed(TURNS, 533, |case| case["closed"] = shifted(&case["closed"]));
     assert_eq!(caught(&dump), [(533, Measure::Closed)]);
+}
+
+#[test]
+fn a_blinkbolt_landing_past_the_player_is_caught() {
+    // Case 545, a spark wasp five squares away, which its blinkbolt lands beside the player:
+    // landed two squares past them, as on open floor, it closes three.
+    let dump = with_changed(TURNS, 545, |case| {
+        let closed = case["closed"].as_object_mut().unwrap();
+        let landed = closed.remove("4").unwrap();
+        closed.insert("3".to_owned(), landed);
+    });
+    assert_eq!(caught(&dump), [(545, Measure::Closed)]);
 }
 
 #[test]
