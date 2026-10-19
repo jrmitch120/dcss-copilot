@@ -8,6 +8,8 @@ Webtiles sends monster, item and dungeon feature types, and a monster's attitude
 
 The extractor reads the source as a webtiles server's build compiles it: `TAG_MAJOR_VERSION` from `tag-version.h`, with `USE_TILE` and `USE_TILE_WEB` defined.
 
+It reads only files crawl checks in, since CI checks crawl out at the tag without building it. A header crawl's build writes, such as `mon-mst.h`, isn't there, so an identifier only such a header defines is checked against the script that writes it (`util/gen-mst.pl` for `MST_GHOST`).
+
 | Bundle part | From |
 |---|---|
 | monsters | `dat/mons/*.yaml`, numbered by `monster_type` in `monster-type.h`, described by `dat/descript/monsters.txt`; attacks, the `fighter`, `stationary`, `archer`, `prefer_ranged`, `unique`, `batty`, `maintain_range` and `flies` flags, habitat, intelligence, energy costs, spellbook and tile read as `util/mon-gen.py` reads them |
