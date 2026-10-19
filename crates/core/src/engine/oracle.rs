@@ -334,16 +334,9 @@ fn beams(
         ..SpellTally::default()
     };
     for _ in 0..trials {
-        let bolt = spells::bolt(formulas.beam_damage, &mut rng, firing);
+        let bolt = spells::bolt(formulas, &mut rng, firing);
         tally.to_hit = bolt.to_hit;
-        let shot = spells::shoot(
-            formulas.beam_hit,
-            formulas.beam_damage,
-            &mut rng,
-            bolt,
-            target,
-            true,
-        );
+        let shot = spells::shoot(formulas, &mut rng, bolt, target, true);
         tally.blocks += u32::from(shot.blocked);
         if shot.hits {
             tally.hits += 1;

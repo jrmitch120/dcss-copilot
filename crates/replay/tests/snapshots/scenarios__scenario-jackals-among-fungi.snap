@@ -157,6 +157,7 @@ expression: replay
             }
           ],
           "lighting": "plain",
+          "resistances": null,
           "notModelled": [
             "attackFlavours",
             "statuses",
@@ -468,6 +469,7 @@ expression: replay
           }
         ],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": [
           "attackFlavours",
           "statuses",

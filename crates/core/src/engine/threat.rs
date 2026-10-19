@@ -19,7 +19,7 @@ use super::melee::{
     attack_reach, energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
-use super::resists::Resists;
+use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
 use super::wands;
@@ -46,6 +46,8 @@ pub(crate) struct Defender {
     pub(crate) lighting: Lighting,
     /// The most attacks the shield blocks before the player's next action.
     pub(crate) shield_blocks: u32,
+    /// Their resistances, holiness and god.
+    pub(crate) resists: Resists,
 }
 
 impl Defender {
@@ -55,7 +57,7 @@ impl Defender {
         Target {
             defences: Defences::drawn_behind(self.defences, rng),
             lighting: self.lighting,
-            resists: Resists::NONE,
+            resists: self.resists,
         }
     }
 }
@@ -321,9 +323,18 @@ impl<'a> Attacker<'a> {
             .collect()
     }
 
-    /// Whether it may shoot a launcher, or fight with a melee weapon, whose brand's damage the
-    /// player's resistances would cut.
-    pub(crate) fn has_resisted_brand(&self) -> bool {
+    /// What adjusting the damage it may deal for the player's resistances depends on: that of
+    /// the beams of its spells and wands, and of the brands of its launcher and melee weapons. A
+    /// beam whose flavour the resist port doesn't know, which no ported spell fires, needs
+    /// nothing, as it is played unresisted.
+    pub(crate) fn resist_needs(&self, formulas: Formulas) -> Needs {
+        let beams = self
+            .spells
+            .iter()
+            .map(|cast| cast.spell)
+            .chain(self.wands.items().map(|zap| zap.spell))
+            .filter_map(|spell| resists::beam(formulas.resist_damage, &spell.zap.flavour))
+            .map(BeamResist::needs);
         let launchers = self
             .missiles
             .items()
@@ -334,7 +345,9 @@ impl<'a> Attacker<'a> {
             .into_iter()
             .flatten()
             .map(|wielded| wielded.weapon.brand);
-        launchers.chain(held).any(Brand::resisted)
+        beams
+            .chain(launchers.chain(held).map(Brand::needs))
+            .fold(Needs::NOTHING, Needs::and)
     }
 
     /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand
@@ -886,15 +899,8 @@ fn fire_beam(
     target: Target,
     blocks_left: &mut u32,
 ) -> i32 {
-    let bolt = spells::bolt(formulas.beam_damage, rng, firing);
-    let shot = spells::shoot(
-        formulas.beam_hit,
-        formulas.beam_damage,
-        rng,
-        bolt,
-        target,
-        *blocks_left > 0,
-    );
+    let bolt = spells::bolt(formulas, rng, firing);
+    let shot = spells::shoot(formulas, rng, bolt, target, *blocks_left > 0);
     if shot.blocked {
         *blocks_left -= 1;
     }
@@ -1038,6 +1044,7 @@ mod tests {
             },
             lighting: Lighting::Plain,
             shield_blocks: 1,
+            resists: Resists::NONE,
         };
         let displayed = usize::try_from(simulate(formulas, defender, &attackers).deaths).unwrap();
         let (most, fewest) = (exact_deaths(6, 8, 4), exact_deaths(7, 9, 5));

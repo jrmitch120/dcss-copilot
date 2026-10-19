@@ -613,8 +613,15 @@ pub(crate) fn swing(
         let dealt = apply_ac(formulas.armour, rng, rolled, defences);
         // Without a weapon, the brand is `SPWPN_NORMAL` (`monster::damage_brand`).
         let brand = weapon.map_or(Brand::Plain, |weapon| weapon.brand);
-        swing.damage =
-            dealt + brands::damage(formulas.damage_brand, rng, brand, fighter.necromancy, dealt);
+        swing.damage = dealt
+            + brands::damage(
+                formulas,
+                rng,
+                brand,
+                fighter.necromancy,
+                dealt,
+                target.resists,
+            );
     }
     swing
 }

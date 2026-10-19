@@ -1,6 +1,5 @@
 ---
 source: crates/replay/tests/replay.rs
-assertion_line: 614
 expression: threats
 ---
 [
@@ -33,6 +32,7 @@ expression: threats
       "acting": [],
       "gear": [],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": []
     }
   },
@@ -85,6 +85,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "attackFlavours",
         "statuses",
@@ -160,6 +161,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "attackFlavours",
         "statuses",
@@ -326,6 +328,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -490,6 +493,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -654,6 +658,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -818,6 +823,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -913,6 +919,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -1069,6 +1076,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -1253,6 +1261,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -1453,6 +1462,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",
@@ -1679,6 +1689,7 @@ expression: threats
         }
       ],
       "lighting": "plain",
+      "resistances": null,
       "notModelled": [
         "monsterEquipment",
         "attackFlavours",

@@ -262,11 +262,12 @@ pub(crate) fn shoot(
                     melee::apply_ac(formulas.armour, rng, rolled, defences)
                 };
                 let brand = brands::damage(
-                    formulas.damage_brand,
+                    formulas,
                     rng,
                     missile.brand,
                     shooter.necromancy,
                     dealt,
+                    target.resists,
                 );
                 swing.damage = dealt + brand;
             }

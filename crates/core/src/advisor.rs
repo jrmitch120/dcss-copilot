@@ -53,7 +53,7 @@ impl Advisor {
     pub fn new(knowledge: Library) -> Self {
         let visible = VisibleState::default();
         Self {
-            fact_sheet: FactSheet::compute(&visible, None, None),
+            fact_sheet: FactSheet::compute(&visible, None, None, None),
             knowledge,
             identity: None,
             visible,
@@ -95,8 +95,16 @@ impl Advisor {
             // same game, and a new game has its own game key.
             SourceEvent::Session(_) => return,
         }
-        self.fact_sheet =
-            FactSheet::compute(&self.visible, self.accumulated(), self.game_knowledge());
+        let species = self
+            .identity
+            .as_ref()
+            .map(|identity| identity.species.as_str());
+        self.fact_sheet = FactSheet::compute(
+            &self.visible,
+            self.accumulated(),
+            species,
+            self.game_knowledge(),
+        );
     }
 
     /// What is remembered of the followed game, once a Game Source has identified it.

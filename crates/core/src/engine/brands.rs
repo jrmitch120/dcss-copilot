@@ -3,13 +3,13 @@
 //! the time an attack with it takes. A monster's launcher and its melee weapons are played with
 //! them.
 //!
-//! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). The player is taken as
-//! one who resists nothing, as spells take them, and as a living mortal who worships no good god,
-//! whom holy wrath doesn't hurt and foul flame hurts as anyone. Brands' side effects, such as
-//! draining the player's maximum hit points, are left out with the other attack flavours.
+//! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). The player's resistances,
+//! holiness and god change what a brand adds as `resists.rs` ports them. Brands' side effects,
+//! such as draining the player's maximum hit points, are left out with the other attack flavours.
 
-use copilot_gk::{Bundle, DamageBrand, EnumId, Intelligence, Monster, MonsterSpells};
+use copilot_gk::{Bundle, DamageBrand, EnumId, Formulas, Intelligence, Monster, MonsterSpells};
 
+use super::resists::{self, Element, Needs, Resists};
 use super::rng::Rng;
 use crate::crawl_ids::brand_types;
 
@@ -45,19 +45,20 @@ pub(crate) enum Brand {
 }
 
 impl Brand {
-    /// Whether the damage it adds is the kind the player's resistances cut: an element's,
-    /// negative energy's or a holy or foul flame's (`resist_adjust_damage`, `fight.cc:853`).
-    pub(crate) fn resisted(self) -> bool {
-        matches!(
-            self,
-            Self::Flaming
-                | Self::Freezing
-                | Self::Electrocution
-                | Self::HolyWrath
-                | Self::FoulFlame
-                | Self::Draining
-                | Self::Pain
-        )
+    /// What adjusting the damage it adds for the player's resistances depends on, as
+    /// [`damage`] adjusts it.
+    pub(crate) fn needs(self) -> Needs {
+        let (reading, holiness) = match self {
+            Self::Flaming | Self::Freezing | Self::Electrocution | Self::Pain => (true, false),
+            Self::Draining => (true, true),
+            Self::HolyWrath | Self::FoulFlame => (false, true),
+            Self::Plain | Self::Heavy | Self::Speed | Self::Other => (false, false),
+        };
+        Needs {
+            reading,
+            holiness,
+            ..Needs::NOTHING
+        }
     }
 
     /// The brand whose `brand_type` identifier is `id`, as `variant` tells brands apart.
@@ -140,25 +141,30 @@ pub(crate) fn delay(variant: DamageBrand, rng: &mut Rng, brand: Brand, base: i32
     }
 }
 
-/// The damage `brand` adds to a hit on the player that dealt them `dealt` after armour, from a
-/// monster with `necromancy`: `attack::apply_damage_brand` (`attack.cc:1103`) for a player who
-/// resists nothing (`resist_adjust_damage`, `fight.cc:853`, leaves the damage as it is).
+/// The damage `brand` adds to a hit on a player who `resists` that dealt them `dealt` after armour, from a
+/// monster with `necromancy`: `attack::apply_damage_brand` (`attack.cc:1103`).
 ///
 /// Flaming and freezing add `random2(dealt) / 2 + 1` (`attack::calc_elemental_brand_damage`,
-/// `attack.cc:1402`), and foul flame `1 + random2(dealt)`, but only to a hit that dealt some;
-/// electrocution adds `8 + random2(13)` one time in four, whatever the hit dealt; draining adds
-/// `(1 + random2(dealt)) / 2` (`attack::drain_defender`, `attack.cc:639`); and pain, unless the
-/// monster's skill fails it, `random2(1 + skill)` (`attack::pain_affects_defender`,
-/// `attack.cc:521`). Holy wrath doesn't hurt a living mortal. The brand lands even on a player the
+/// `attack.cc:1402`), cut by `rFire` or `rCold`; foul flame `1 + random2(dealt)`, divided by one
+/// more than the player's resistance to it, or half again for the holy; and holy wrath
+/// `1 + random2(dealt * 15) / 10` to the undead or demonic, and nothing to anyone else. Those four
+/// add nothing to a hit that dealt none. Electrocution adds `8 + random2(13)` one time in four,
+/// whatever the hit dealt, unless the player has `rElec`; draining adds `(1 + random2(dealt)) /
+/// 2`, cut by `rNeg`, to a player who is natural or a plant (`attack::drain_defender`,
+/// `attack.cc:639`); and pain, unless the monster's skill fails it, `random2(1 + skill)`, cut by
+/// `rNeg` (`attack::pain_affects_defender`, `attack.cc:521`). The brand lands even on a player the
 /// hit killed, which only adds to the worst-case hit.
 pub(crate) fn damage(
-    variant: DamageBrand,
+    formulas: Formulas,
     rng: &mut Rng,
     brand: Brand,
     necromancy: Necromancy,
     dealt: i32,
+    resists: Resists,
 ) -> i32 {
-    match variant {
+    let adjust =
+        |element, damage| resists::adjust(formulas.resist_damage, element, resists, damage);
+    match formulas.damage_brand {
         DamageBrand::Crawl034 => {
             let needs_damage = matches!(
                 brand,
@@ -168,28 +174,46 @@ pub(crate) fn damage(
                 return 0;
             }
             match brand {
-                Brand::Flaming | Brand::Freezing => rng.random2(dealt) / 2 + 1,
-                // The player's `res_foul_flame` (`player.cc:7019`) is 0 for a mortal of no good
-                // god, which divides by one.
-                Brand::FoulFlame => 1 + rng.random2(dealt),
+                Brand::Flaming => adjust(Element::Fire, rng.random2(dealt) / 2 + 1),
+                Brand::Freezing => adjust(Element::Cold, rng.random2(dealt) / 2 + 1),
+                Brand::FoulFlame => {
+                    let res = resists.foul_flame();
+                    if res < 0 {
+                        // `1 + random2(dealt) * 1.5`, truncated.
+                        1 + rng.random2(dealt) * 3 / 2
+                    } else if res < 3 {
+                        1 + rng.random2(dealt) / (res + 1)
+                    } else {
+                        0
+                    }
+                }
+                // `actor::holy_wrath_susceptible` (`actor.cc:238`).
+                Brand::HolyWrath if resists.holy_energy() < 0 => 1 + rng.random2(dealt * 15) / 10,
                 Brand::Electrocution => {
-                    if rng.one_chance_in(4) {
+                    if resists.electricity <= 0 && rng.one_chance_in(4) {
                         8 + rng.random2(13)
                     } else {
                         0
                     }
                 }
-                Brand::Draining => (1 + rng.random2(dealt)) / 2,
+                Brand::Draining if resists.holiness.drainable => {
+                    adjust(Element::Negative, (1 + rng.random2(dealt)) / 2)
+                }
                 Brand::Pain => {
                     let skill = necromancy.roll(rng);
                     if rng.one_chance_in(skill + 1) {
                         0
                     } else {
                         let skill = necromancy.roll(rng);
-                        rng.random2(1 + skill)
+                        adjust(Element::Negative, rng.random2(1 + skill))
                     }
                 }
-                Brand::Plain | Brand::HolyWrath | Brand::Heavy | Brand::Speed | Brand::Other => 0,
+                Brand::Plain
+                | Brand::HolyWrath
+                | Brand::Draining
+                | Brand::Heavy
+                | Brand::Speed
+                | Brand::Other => 0,
             }
         }
     }

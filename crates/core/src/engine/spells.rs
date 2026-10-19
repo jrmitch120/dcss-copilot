@@ -4,15 +4,16 @@
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). Only spells a monster
 //! fires as one plain zap are ported, with the paths a cast at a player in plain view takes: the
-//! caster has no statuses, is at full health and sees the player, and the player has no
-//! resistances. The Fact Sheet lists what that leaves out.
+//! caster has no statuses, is at full health and sees the player. The player's resistances cut
+//! the damage as `resists.rs` ports it. The Fact Sheet lists what that leaves out.
 
 use copilot_gk::{
-    BeamDamage, BeamHit, EnumId, MonsterSpell, MonsterSpellBeam, MonsterSpellChoice,
+    BeamDamage, BeamHit, EnumId, Formulas, MonsterSpell, MonsterSpellBeam, MonsterSpellChoice,
     MonsterSpellPower, Spell, SpellRange, Zap, ZapDamage, ZapToHit,
 };
 
 use super::melee::{self, AUTOMATIC_HIT, Target};
+use super::resists::{self, BeamResist};
 use super::rng::Rng;
 use crate::crawl_ids::{beam_types, spell_slot_flags, spell_types};
 
@@ -378,6 +379,8 @@ pub(crate) struct Bolt {
     explodes: bool,
     blockable: bool,
     armour: ArmourRule,
+    /// What the player's resistances do to its damage.
+    pub(crate) resist: BeamResist,
     /// Its caster sees through an umbra (`bolt::nightvision`, from `monster::nightvision`).
     nightvision: bool,
 }
@@ -396,10 +399,11 @@ pub(crate) struct Firing<'s, 'a> {
 
 /// The beam `firing` sets up: its dice and accuracy from the zap's monster calculators
 /// (`zap_damage` and `zap_to_hit`, `beam.cc:385`), rolling `calc_dice`'s rounding for a zap
-/// whose dice share a total (`random.cc:289`).
-pub(crate) fn bolt(variant: BeamDamage, rng: &mut Rng, firing: Firing<'_, '_>) -> Bolt {
+/// whose dice share a total (`random.cc:289`), and what the player's resistances do to its
+/// flavour. A flavour the resist port doesn't know, which no ported spell fires, is unresisted.
+pub(crate) fn bolt(formulas: Formulas, rng: &mut Rng, firing: Firing<'_, '_>) -> Bolt {
     let (spell, power) = (firing.spell, firing.power);
-    match variant {
+    match formulas.beam_damage {
         BeamDamage::Crawl034 => {
             let damage = spell.damage;
             let total = damage.adder + power * damage.per_power / damage.per.max(1);
@@ -445,6 +449,8 @@ pub(crate) fn bolt(variant: BeamDamage, rng: &mut Rng, firing: Firing<'_, '_>) -
                 explodes: zap.explodes,
                 blockable,
                 armour,
+                resist: resists::beam(formulas.resist_damage, &zap.flavour)
+                    .unwrap_or(BeamResist::Unresisted),
                 nightvision: firing.nightvision,
             }
         }
@@ -463,11 +469,11 @@ pub(crate) struct Shot {
 }
 
 /// A beam fired at the player, rolled as `bolt::affect_player` (`beam.cc:4233`) rolls it: the
-/// shield and evasion in `bolt::misses_player` (`beam.cc:3506`), then its dice and armour.
-/// `can_block` is whether the shield has a block left before the player's next action.
+/// shield and evasion in `bolt::misses_player` (`beam.cc:3506`), then its dice, armour and the
+/// player's resistances (`check_your_resists`). `can_block` is whether the shield has a block
+/// left before the player's next action.
 pub(crate) fn shoot(
-    hit: BeamHit,
-    damage: BeamDamage,
+    formulas: Formulas,
     rng: &mut Rng,
     bolt: Bolt,
     target: Target,
@@ -478,7 +484,7 @@ pub(crate) fn shoot(
         hits: false,
         damage: 0,
     };
-    match hit {
+    match formulas.beam_hit {
         BeamHit::Crawl034 => {
             // An explosion engulfs the player: nothing blocks or dodges it.
             if !bolt.explodes {
@@ -510,7 +516,7 @@ pub(crate) fn shoot(
         }
     }
     shot.hits = true;
-    match damage {
+    match formulas.beam_damage {
         BeamDamage::Crawl034 => {
             let rolled = rng.roll_dice(bolt.dice, bolt.sides);
             // `actor::apply_ac` (`actor.cc:343`) without guaranteed damage reduction, which beams
@@ -524,7 +530,9 @@ pub(crate) fn shoot(
                     rng.random2(1 + ac) + rng.random2(1 + ac) + rng.random2(1 + ac)
                 }
             };
-            shot.damage = (rolled - saved).max(0);
+            let taken = (rolled - saved).max(0);
+            shot.damage =
+                resists::beam_damage(formulas.resist_damage, bolt.resist, target.resists, taken);
         }
     }
     shot
