@@ -19,6 +19,7 @@ use super::melee::{
     attack_reach, energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
+use super::resists::Resists;
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
 use super::wands;
@@ -54,6 +55,7 @@ impl Defender {
         Target {
             defences: Defences::drawn_behind(self.defences, rng),
             lighting: self.lighting,
+            resists: Resists::NONE,
         }
     }
 }
@@ -1021,6 +1023,7 @@ mod tests {
                     let target = Target {
                         defences: Defences::exact(ac, ev, sh),
                         lighting: Lighting::Plain,
+                        resists: Resists::NONE,
                     };
                     one_action(formulas, &mut rng, target, 1, &attackers) >= hp
                 })
@@ -1058,6 +1061,7 @@ mod tests {
         let target = Target {
             defences: Defences::exact(0, 0, 0),
             lighting: Lighting::Plain,
+            resists: Resists::NONE,
         };
         let mut rng = Rng::new(SEED.0, SEED.1);
         (0..1_000)

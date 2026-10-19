@@ -6,6 +6,7 @@ pub(crate) mod melee;
 pub(crate) mod missiles;
 pub mod oracle;
 pub(crate) mod paths;
+pub(crate) mod resists;
 mod rng;
 pub(crate) mod spells;
 pub(crate) mod threat;

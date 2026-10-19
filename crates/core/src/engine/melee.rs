@@ -15,6 +15,7 @@ use copilot_gk::{
 
 use super::brands::{self, Brand, Necromancy};
 use super::lighting::Lighting;
+use super::resists::Resists;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
 use crate::crawl_ids::{attack_flavours, attack_types};
@@ -99,13 +100,16 @@ pub(crate) const ENERGY_THRESHOLD: i32 = 80;
 /// `BASELINE_DELAY` (`defines.h:149`): the time a standard-speed player action takes.
 const BASELINE_DELAY: i32 = 10;
 
-/// The player as a monster's attack meets them: their defences, and how the light falls on them.
+/// The player as a monster's attack meets them: their defences, how the light falls on them, and
+/// what they resist.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Target {
     /// Their AC, EV and SH.
     pub(crate) defences: Defences,
     /// How the light falls on them.
     pub(crate) lighting: Lighting,
+    /// Their resistances, holiness and god.
+    pub(crate) resists: Resists,
 }
 
 /// A monster aiming an attack at the player, as crawl's to-hit takes it.
@@ -585,7 +589,9 @@ pub(crate) fn swing(
     target: Target,
     can_block: bool,
 ) -> Swing {
-    let Target { defences, lighting } = target;
+    let Target {
+        defences, lighting, ..
+    } = target;
     let aim = Aim {
         hit_dice: fighter.hit_dice,
         skilled: fighter.skilled,

@@ -223,7 +223,9 @@ pub(crate) fn shoot(
     target: Target,
     can_block: bool,
 ) -> Swing {
-    let Target { defences, lighting } = target;
+    let Target {
+        defences, lighting, ..
+    } = target;
     match formulas.missile_attack {
         MissileAttack::Crawl034 => {
             // `ranged_attack::calc_mon_to_hit_base` (`ranged-attack.cc:363`) counts an archer as

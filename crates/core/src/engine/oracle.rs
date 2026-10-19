@@ -15,6 +15,7 @@ use crate::crawl_ids::monster_types;
 use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
+use super::resists::Resists;
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
@@ -46,6 +47,7 @@ fn target(defences: ExactDefences, lighting: Lighting) -> Target {
     Target {
         defences: defences.into(),
         lighting,
+        resists: Resists::NONE,
     }
 }
 
@@ -824,6 +826,7 @@ pub fn turn(
     let target = Target {
         defences: Defences::exact(0, 0, 0),
         lighting: case.lighting,
+        resists: Resists::NONE,
     };
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {
