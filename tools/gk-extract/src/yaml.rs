@@ -6,7 +6,7 @@ use std::path::Path;
 
 use copilot_gk::{
     Energy, EnumId, Form, FormHoliness, Habitat, Intelligence, ItemUse, Monster, MonsterAttack,
-    MonsterSpell, MonsterSpells, Species, Undeadness, Will,
+    MonsterSpell, MonsterSpells, Species, Undeadness, WatchedStep, Will,
 };
 use serde::Deserialize;
 
@@ -196,8 +196,10 @@ pub struct KindExceptions {
     pub tentacles: BTreeSet<String>,
     /// Kinds `handle_monster_move` acts or moves for with code of its own.
     pub own_actions: BTreeSet<String>,
-    /// Kinds that won't step while their foe watches them.
-    pub wont_move_while_watched: BTreeSet<String>,
+    /// Kinds that step toward a foe that watches them only from beside them.
+    pub steps_from_beside: BTreeSet<String>,
+    /// Kinds that step toward a foe that watches them only by chance.
+    pub steps_by_chance: BTreeSet<String>,
     /// Kinds with a special ability of their own.
     pub special_abilities: BTreeSet<String>,
 }
@@ -298,7 +300,13 @@ pub fn monsters(
             || exceptions.innate_umbras.contains(&id);
         let tentacle = exceptions.tentacles.contains(&id);
         let own_actions = flag(PROJECTILE_FLAG) || exceptions.own_actions.contains(&id);
-        let wont_move_while_watched = exceptions.wont_move_while_watched.contains(&id);
+        let watched_step = if exceptions.steps_from_beside.contains(&id) {
+            WatchedStep::FromBeside
+        } else if exceptions.steps_by_chance.contains(&id) {
+            WatchedStep::ByChance
+        } else {
+            WatchedStep::Always
+        };
         let special_ability = exceptions.special_abilities.contains(&id);
         let habitat =
             habitat(monster.habitat.as_deref()).ok_or_else(|| ExtractError::Unreadable {
@@ -346,7 +354,7 @@ pub fn monsters(
                 habitat,
                 tentacle,
                 own_actions,
-                wont_move_while_watched,
+                watched_step,
                 special_ability,
                 intelligence,
                 genus: EnumId(genus),

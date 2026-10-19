@@ -62,14 +62,15 @@ const SERIES: &[Series] = &[Series {
             "MONS_BOUNDLESS_TESSERACT",
         ],
     },
-    wont_move_while_watched: NamedKinds {
+    steps_from_beside: NamedKinds {
         file: "mon-act.cc",
         functions: &["_fungal_move_check"],
-        kinds: &[
-            "MONS_WANDERING_MUSHROOM",
-            "MONS_DEATHCAP",
-            "MONS_LURKING_HORROR",
-        ],
+        kinds: &["MONS_WANDERING_MUSHROOM", "MONS_DEATHCAP"],
+    },
+    steps_by_chance: NamedKinds {
+        file: "mon-act.cc",
+        functions: &["_fungal_move_check"],
+        kinds: &["MONS_LURKING_HORROR"],
     },
     lighting: &LIGHTING_0_34,
     holiness: &HOLINESS_0_34,
@@ -216,8 +217,12 @@ struct Series {
     /// The kinds `handle_monster_move`, or `_pre_monster_move` before it, acts or moves for with
     /// code of its own: crawl tests for each by kind.
     own_actions: NamedKinds,
-    /// The kinds `_fungal_move_check` keeps from stepping while their foe watches them.
-    wont_move_while_watched: NamedKinds,
+    /// The kinds `_fungal_move_check` lets step toward a foe that watches them only from beside
+    /// them (`WatchedStep::FromBeside`).
+    steps_from_beside: NamedKinds,
+    /// The kinds `_fungal_move_check` lets step toward a foe that watches them only by chance
+    /// (`WatchedStep::ByChance`).
+    steps_by_chance: NamedKinds,
     /// What it shows that tells the player's Lighting.
     lighting: &'static LightingRules,
     /// What it decides in code about the player's holiness.
@@ -564,8 +569,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         never_firewood: never_firewood(series, &tentacles, &monster_type)?,
         innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
         own_actions: crawl.named_kinds(&series.own_actions, &monster_type)?,
-        wont_move_while_watched: crawl
-            .named_kinds(&series.wont_move_while_watched, &monster_type)?,
+        steps_from_beside: crawl.named_kinds(&series.steps_from_beside, &monster_type)?,
+        steps_by_chance: crawl.named_kinds(&series.steps_by_chance, &monster_type)?,
         special_abilities: crawl.special_abilities(&monster_type)?,
         tentacles,
     };

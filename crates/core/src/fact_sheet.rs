@@ -863,7 +863,7 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
         (NotModelled::KeepsRange, monster.keeps_range),
         (
             NotModelled::WontMoveWhileWatched,
-            monster.wont_move_while_watched,
+            monster.watched_step != copilot_gk::WatchedStep::Always,
         ),
         (NotModelled::MovesWithParent, monster.tentacle),
         (NotModelled::OwnActions, monster.own_actions),
