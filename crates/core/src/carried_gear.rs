@@ -54,6 +54,10 @@ pub struct CarriedItem {
     pub plus: Option<i32>,
     /// Its brand, as its name shows it.
     pub brand: ItemBrand,
+    /// It is a pair alike, one in each hand of a monster that wields two weapons, which crawl
+    /// names once and counts in words, as `two +0 clubs` (`_describe_monster_weapon`,
+    /// `directn.cc`).
+    pub pair: bool,
 }
 
 /// How a monster has an item, by the word crawl's listing gives it.
@@ -191,6 +195,9 @@ const CHANGES: [&str; 6] = [
     " puts on ",
     " takes off ",
 ];
+
+/// How crawl starts the name of a pair of weapons alike that a monster wields.
+const PAIR: &str = "two ";
 
 /// The articles crawl names a monster or an item with.
 const ARTICLES: [&str; 3] = ["a ", "an ", "the "];
@@ -381,6 +388,8 @@ fn item(slot: GearSlot, name: &str, bundle: &Bundle) -> CarriedItem {
         None => name,
     };
     let base = base.strip_prefix("cursed ").unwrap_or(base);
+    let pair = slot == GearSlot::Wielding && base.starts_with(PAIR);
+    let base = if pair { &base[PAIR.len()..] } else { base };
     let (plus, body) = match base.split_once(' ') {
         Some((plus, body)) if plus.starts_with(['+', '-']) => (plus.parse::<i32>().ok(), body),
         _ => (None, base),
@@ -409,6 +418,7 @@ fn item(slot: GearSlot, name: &str, bundle: &Bundle) -> CarriedItem {
         kind,
         plus,
         brand,
+        pair,
     }
 }
 

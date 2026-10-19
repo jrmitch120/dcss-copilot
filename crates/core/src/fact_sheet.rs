@@ -596,6 +596,7 @@ fn threat(
     }
     not_modelled.extend(moves);
     if weapons_unread {
+        // First, where it stood when it was listed whatever was in view.
         not_modelled.insert(0, NotModelled::MonsterEquipment);
     }
     if gear.iter().any(GearPlayed::guessed_shooter) {

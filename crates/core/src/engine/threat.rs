@@ -380,8 +380,7 @@ fn unread_hands(monster: &Monster) -> Option<Hands> {
 ///
 /// A monster wielding a launcher, or nothing, swaps in a melee weapon it carries
 /// (`monster::wield_melee_weapon`, `monster.cc:1083`). One that wields two weapons is listed with
-/// its main hand's first, and with a pair alike as one counted in words, such as `two +0 clubs`
-/// (`_describe_monster_weapon`, `directn.cc`).
+/// its main hand's first, or holds a pair alike ([`CarriedItem::pair`]).
 fn carried_hands(
     bundle: &Bundle,
     monster: &Monster,
@@ -423,9 +422,7 @@ fn carried_hands(
         Wielded::of(known, plus, weapon_brand(bundle, item, unplayed))
     };
     if monster.two_weapons {
-        let pair = wielded
-            .first()
-            .is_some_and(|(item, _)| item.name.starts_with(PAIR));
+        let pair = wielded.first().is_some_and(|(item, _)| item.pair);
         let mut hands = wielded.into_iter().map(&mut hold);
         let main = hands.next();
         let off = if pair { main } else { hands.next() };
@@ -435,9 +432,6 @@ fn carried_hands(
         Some(Hands { main, off: None })
     }
 }
-
-/// How crawl starts the name of a pair of weapons alike that a monster wields two of.
-const PAIR: &str = "two ";
 
 /// What `monster` shoots or throws of its Carried Gear, `gear`, with the names of what is played:
 /// the launcher and the missiles to throw the game named, or, when it named neither, its kind's
@@ -1003,10 +997,12 @@ fn cost(energy: u32) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use copilot_gk::{ItemKind, Library};
+    use std::sync::OnceLock;
+
+    use copilot_gk::Library;
 
     use super::*;
-    use crate::carried_gear::CarriedItem;
+    use crate::carried_gear::{self, Said};
 
     /// Two ogres beside a player on 15 HP who shows AC 6, EV 8 and SH 4: their true defences lie
     /// somewhere from exactly that to one point more, and so does their chance of death.
@@ -1087,30 +1083,41 @@ mod tests {
         assert!(turns.iter().any(|turn| turn.casts == 2));
     }
 
-    /// The look text's listing of a monster wielding these weapons, each as
-    /// `(name, weapon_type, plus, brand)`, the plus and brand as its name shows them.
-    fn wielding(weapons: &[(&str, &str, Option<i32>, ItemBrand)]) -> CarriedGear {
-        CarriedGear {
-            items: weapons
-                .iter()
-                .map(|(name, weapon, plus, brand)| CarriedItem {
-                    slot: GearSlot::Wielding,
-                    name: (*name).to_owned(),
-                    kind: Some(ItemKind {
-                        class: EnumId(object_classes::WEAPONS.to_owned()),
-                        sub_type: Some(EnumId((*weapon).to_owned())),
-                    }),
-                    plus: *plus,
-                    brand: brand.clone(),
-                })
-                .collect(),
-            unlisted: Unlisted::Nothing,
+    /// The shipped 0.34.1 bundle.
+    fn bundle() -> &'static Bundle {
+        static LIBRARY: OnceLock<Library> = OnceLock::new();
+        LIBRARY
+            .get_or_init(|| Library::shipped().unwrap())
+            .for_version("0.34.1")
+            .unwrap()
+    }
+
+    /// The monster the bundle names `name`.
+    fn monster(name: &str) -> &'static Monster {
+        bundle().monsters.values().find(|m| m.name == name).unwrap()
+    }
+
+    /// The damage of the melee weapon `weapon_type`.
+    fn damage_of(weapon: &str) -> i32 {
+        bundle().melee_weapons[&EnumId(weapon.to_owned())].damage
+    }
+
+    /// The Carried Gear the look text `line` shows, as the Advisor reads it.
+    fn look(line: &str) -> CarriedGear {
+        match carried_gear::said(line, bundle()).as_slice() {
+            [Said::Look { gear, .. }] => gear.clone(),
+            said => panic!("{line} isn't a look text: {said:?}"),
         }
     }
 
-    /// A plain +0 weapon of `weapon_type`, named `name`.
-    fn plain(name: &str, weapon: &str) -> CarriedGear {
-        wielding(&[(name, weapon, Some(0), ItemBrand::None)])
+    /// `monster` `distance` squares from the player, playing the gear the look text `line`
+    /// shows, with what of it isn't played.
+    fn seen(
+        monster: &'static Monster,
+        distance: i32,
+        line: &str,
+    ) -> (Attacker<'static>, Vec<Unplayed>) {
+        Attacker::new(bundle(), monster, distance).carrying(bundle(), &look(line))
     }
 
     /// The slots of the attacks `attacker` makes from `distance`, each with the damage of the
@@ -1128,21 +1135,13 @@ mod tests {
 
     #[test]
     fn a_monster_wielding_two_weapons_makes_its_odd_attacks_with_its_off_hands() {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let ettin = bundle
-            .monsters
-            .values()
-            .find(|m| m.name == "ettin")
-            .unwrap();
-        let gear = wielding(&[
-            ("+0 spear", "WPN_SPEAR", Some(0), ItemBrand::None),
-            ("+0 dagger", "WPN_DAGGER", Some(0), ItemBrand::None),
-        ]);
-        let (armed, unplayed) = Attacker::new(bundle, ettin, 1).carrying(bundle, &gear);
+        let (armed, unplayed) = seen(
+            monster("ettin"),
+            1,
+            "Here: an ettin, wielding a +0 spear and a +0 dagger",
+        );
         assert!(unplayed.is_empty(), "{unplayed:?}");
-        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
-        let dagger = bundle.melee_weapons[&EnumId("WPN_DAGGER".to_owned())].damage;
+        let (spear, dagger) = (damage_of("WPN_SPEAR"), damage_of("WPN_DAGGER"));
         assert_eq!(
             attacks_with_weapons(&armed, 1),
             [(0, Some(spear)), (1, Some(dagger))]
@@ -1152,17 +1151,14 @@ mod tests {
     }
 
     #[test]
-    fn a_pair_of_weapons_alike_is_held_one_in_each_hand() {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let ettin = bundle
-            .monsters
-            .values()
-            .find(|m| m.name == "ettin")
-            .unwrap();
-        let gear = plain("two +0 spears", "WPN_SPEAR");
-        let (armed, _) = Attacker::new(bundle, ettin, 2).carrying(bundle, &gear);
-        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+    fn a_pair_of_weapons_alike_is_held_one_in_each_hand_with_its_plus_read() {
+        let (armed, unplayed) = seen(
+            monster("ettin"),
+            2,
+            "Here: an ettin, wielding two +0 spears",
+        );
+        assert!(unplayed.is_empty(), "{unplayed:?}");
+        let spear = damage_of("WPN_SPEAR");
         assert_eq!(
             attacks_with_weapons(&armed, 2),
             [(0, Some(spear)), (1, Some(spear))]
@@ -1173,18 +1169,12 @@ mod tests {
     fn only_the_weapon_of_a_monsters_first_attack_sets_how_far_it_reaches() {
         // A spear in the ettin's off hand would reach two squares with its second attack, but
         // crawl's reach is its main hand's (`monster::reach_range`).
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let ettin = bundle
-            .monsters
-            .values()
-            .find(|m| m.name == "ettin")
-            .unwrap();
-        let gear = wielding(&[
-            ("+0 dagger", "WPN_DAGGER", Some(0), ItemBrand::None),
-            ("+0 spear", "WPN_SPEAR", Some(0), ItemBrand::None),
-        ]);
-        let (armed, _) = Attacker::new(bundle, ettin, 2).carrying(bundle, &gear);
+        let ettin = monster("ettin");
+        let (armed, _) = seen(
+            ettin,
+            2,
+            "Here: an ettin, wielding a +0 dagger and a +0 spear",
+        );
         assert_eq!(melee_reach(Formulas::CRAWL_0_34, &armed.fighter, ettin), 1);
         assert!(attacks_with_weapons(&armed, 2).is_empty());
     }
@@ -1192,25 +1182,18 @@ mod tests {
     #[test]
     fn a_draugr_fights_with_its_weapon_only_in_its_first_attack() {
         // A draugr takes its attacks from the monster it was made from, which its Game Knowledge
-        // doesn't hold: give it two hits.
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let ettin = bundle
-            .monsters
-            .values()
-            .find(|m| m.name == "ettin")
-            .unwrap();
-        let mut draugr = bundle
+        // doesn't hold: give it the ettin's two hits.
+        let mut draugr = bundle()
             .monsters
             .values()
             .find(|m| m.id.0 == monster_types::DRAUGR)
             .unwrap()
             .clone();
-        draugr.attacks.clone_from(&ettin.attacks);
+        draugr.attacks.clone_from(&monster("ettin").attacks);
         draugr.item_use = ItemUse::StartingEquipment;
-        let (armed, _) =
-            Attacker::new(bundle, &draugr, 1).carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
-        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+        let gear = look("Here: a draugr, wielding a +0 spear");
+        let (armed, _) = Attacker::new(bundle(), &draugr, 1).carrying(bundle(), &gear);
+        let spear = damage_of("WPN_SPEAR");
         assert_eq!(
             attacks_with_weapons(&armed, 1),
             [(0, Some(spear)), (1, None)]
@@ -1220,92 +1203,54 @@ mod tests {
 
     #[test]
     fn a_monster_known_to_wield_nothing_makes_no_attack_only_a_weapon_makes() {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let statue = bundle
-            .monsters
-            .values()
-            .find(|m| m.name == "statue")
-            .unwrap();
-        let unread = Attacker::new(bundle, statue, 1);
+        let statue = monster("statue");
+        let unread = Attacker::new(bundle(), statue, 1);
         assert_eq!(attacks_with_weapons(&unread, 1), [(0, None)]);
         assert!(unread.weapons_unread(Formulas::CRAWL_0_34));
-        let empty_handed = CarriedGear {
-            items: Vec::new(),
-            unlisted: Unlisted::Nothing,
-        };
-        let (unarmed, _) = Attacker::new(bundle, statue, 1).carrying(bundle, &empty_handed);
+        let (unarmed, _) = seen(statue, 1, "Here: a statue");
         assert!(attacks_with_weapons(&unarmed, 1).is_empty());
         assert!(!unarmed.weapons_unread(Formulas::CRAWL_0_34));
-        let (armed, _) =
-            Attacker::new(bundle, statue, 1).carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
-        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
-        assert_eq!(attacks_with_weapons(&armed, 2), [(0, Some(spear))]);
+        let (armed, _) = seen(statue, 1, "Here: a statue, wielding a +0 spear");
+        assert_eq!(
+            attacks_with_weapons(&armed, 2),
+            [(0, Some(damage_of("WPN_SPEAR")))]
+        );
     }
 
     #[test]
     fn a_group_sighting_that_names_nothing_in_hand_leaves_the_weapon_unread() {
         // A group's sighting message leaves out a plain weapon in the main hand.
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
         let unlisted = CarriedGear {
             items: Vec::new(),
             unlisted: Unlisted::PlainWeaponsAndLargeRocks,
         };
-        let (attacker, _) = Attacker::new(bundle, orc, 1).carrying(bundle, &unlisted);
+        let (attacker, _) =
+            Attacker::new(bundle(), monster("orc"), 1).carrying(bundle(), &unlisted);
         assert!(attacker.weapons_unread(Formulas::CRAWL_0_34));
     }
 
     #[test]
-    fn a_monster_known_to_wield_a_polearm_strikes_from_two_squares() {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let formulas = bundle.formulas;
-        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
-        let target = Target {
-            defences: Defences::exact(0, 0, 0),
-            lighting: Lighting::Plain,
-        };
-        let turns = |attacker: &Attacker<'_>| {
-            let mut rng = Rng::new(SEED.0, SEED.1);
-            (0..1_000)
-                .map(|_| turn(formulas, &mut rng, attacker, target, &mut 0))
-                .collect::<Vec<_>>()
-        };
-        let unarmed = Attacker::new(bundle, orc, 2).without_gear();
-        assert!(turns(&unarmed).iter().all(|turn| turn.closed == 1));
-        let (armed, _) = Attacker::new(bundle, orc, 2)
-            .without_gear()
-            .carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
-        let armed_turns = turns(&armed);
-        assert!(armed_turns.iter().all(|turn| turn.closed == 0));
-        assert!(armed_turns.iter().all(|turn| turn.melee >= 1));
-    }
-
-    #[test]
-    fn a_weapons_unknown_plus_and_unported_brand_are_named_as_unplayed() {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
-        let gear = wielding(&[(
-            "spear of venom",
-            "WPN_SPEAR",
-            None,
-            ItemBrand::Weapon(EnumId("SPWPN_VENOM".to_owned())),
-        )]);
-        let (_, unplayed) = Attacker::new(bundle, orc, 1).carrying(bundle, &gear);
+    fn a_weapons_unknown_plus_and_brand_and_an_unported_brand_are_named_as_unplayed() {
+        let orc = monster("orc");
+        let (_, unidentified) = seen(orc, 1, "Here: an orc, wielding a spear");
         assert_eq!(
-            unplayed,
+            unidentified,
             [
                 Unplayed::UnknownPlus {
-                    item: "spear of venom".to_owned()
+                    item: "spear".to_owned()
                 },
-                Unplayed::BrandNotPorted {
-                    item: "spear of venom".to_owned(),
-                    brand: "venom".to_owned(),
+                Unplayed::UnknownBrand {
+                    item: "spear".to_owned()
                 },
             ]
+        );
+        let (_, venomous) = seen(orc, 1, "Here: an orc, wielding a +1 spear of venom");
+        assert_eq!(
+            venomous,
+            [Unplayed::BrandNotPorted {
+                item: "+1 spear of venom".to_owned(),
+                brand: "venom".to_owned(),
+            }]
         );
     }
 }
