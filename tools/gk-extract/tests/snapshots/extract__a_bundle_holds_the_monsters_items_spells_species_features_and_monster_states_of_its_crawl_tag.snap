@@ -34,6 +34,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": true,
       "keepsRange": false,
@@ -95,6 +96,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -156,6 +158,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -217,6 +220,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -278,6 +282,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -339,6 +344,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -400,6 +406,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -461,6 +468,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -551,6 +559,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -612,6 +621,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -687,6 +697,7 @@ expression: bundle
       "nightvision": false,
       "archer": true,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -762,6 +773,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": true,
       "batty": false,
       "keepsRange": false,
@@ -860,6 +872,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -913,6 +926,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -968,6 +982,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1029,6 +1044,7 @@ expression: bundle
       "nightvision": true,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1090,6 +1106,7 @@ expression: bundle
       "nightvision": true,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1151,6 +1168,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1212,6 +1230,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1273,6 +1292,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": true,
@@ -1334,6 +1354,7 @@ expression: bundle
       "nightvision": false,
       "archer": false,
       "prefersRanged": false,
+      "twoWeapons": false,
       "unique": false,
       "batty": false,
       "keepsRange": false,
@@ -1386,6 +1407,10 @@ expression: bundle
         "6": {
           "id": "WPN_SPIKED_FLAIL",
           "name": "old spiked flail"
+        },
+        "23": {
+          "id": "WPN_SPEAR",
+          "name": "spear"
         },
         "30": {
           "id": "WPN_SHORTBOW",
@@ -1795,6 +1820,32 @@ expression: bundle
       "kind": "launcher",
       "damage": 8,
       "accuracy": 2
+    }
+  },
+  "meleeWeapons": {
+    "WPN_CLUB": {
+      "name": "club",
+      "damage": 5,
+      "accuracy": 3,
+      "reach": 1
+    },
+    "WPN_MACE": {
+      "name": "mace",
+      "damage": 8,
+      "accuracy": 3,
+      "reach": 1
+    },
+    "WPN_SPEAR": {
+      "name": "spear",
+      "damage": 6,
+      "accuracy": 4,
+      "reach": 2
+    },
+    "WPN_SPIKED_FLAIL": {
+      "name": "old spiked flail",
+      "damage": 5,
+      "accuracy": 3,
+      "reach": 1
     }
   },
   "wands": {
@@ -2289,6 +2340,7 @@ expression: bundle
     "monsterFire": "crawl-0.34",
     "missileAttack": "crawl-0.34",
     "monsterWand": "crawl-0.34",
-    "damageBrand": "crawl-0.34"
+    "damageBrand": "crawl-0.34",
+    "monsterWeapon": "crawl-0.34"
   }
 }

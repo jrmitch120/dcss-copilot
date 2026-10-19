@@ -487,7 +487,11 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             .chain([gear::NO_WEAPON]),
     )?;
     crawl.require("item-prop-enum.h", &["wand_type"], series.gear.wands())?;
-    crawl.require("skill-type.h", &["skill_type"], [gear::LAUNCHER_SKILL])?;
+    crawl.require(
+        "skill-type.h",
+        &["skill_type"],
+        [gear::LAUNCHER_SKILL, gear::POLEARM_SKILL],
+    )?;
     crawl.require("object-class-type.h", &["object_class_type"], [gear::WANDS])?;
     crawl.require("feature.h", &["feature_flag_type"], [features::SOLID_FLAG])?;
     crawl.require("map-feature.h", &["map_feature"], features::MAP_FEATURES)?;
@@ -529,6 +533,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         item_classes,
         spells,
         missile_weapons,
+        melee_weapons: gear::melee_weapons(&item_prop, "item-prop.cc")?,
         wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
         weapon_brands: crawl.weapon_brands()?,
         species: yaml::species(&crawl.source, crawl.tag_major)?,

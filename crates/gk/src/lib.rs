@@ -93,6 +93,9 @@ pub struct Bundle {
     /// The launchers and throwing missiles monsters shoot or throw, by their sub-type
     /// identifier, such as `WPN_SHORTBOW` or `MI_JAVELIN`.
     pub missile_weapons: BTreeMap<EnumId, MissileWeapon>,
+    /// The melee weapons monsters fight with, by their `weapon_type` identifier, such as
+    /// `WPN_SPEAR`.
+    pub melee_weapons: BTreeMap<EnumId, MeleeWeapon>,
     /// Every wand, by its `wand_type` identifier, such as `WAND_FLAME`.
     pub wands: BTreeMap<EnumId, Wand>,
     /// The brands a weapon may have, by their `brand_type` identifier, such as `SPWPN_FLAMING`,
@@ -310,7 +313,8 @@ pub struct Formulas {
     pub armour: Armour,
     /// Whether the player's shield blocks a monster's attack: `attack::attack_shield_blocked`.
     pub shield_block: ShieldBlock,
-    /// How far a monster's melee attack reaches: `melee_attack::can_reach`.
+    /// How far a monster's melee attack reaches: `monster::reach_range` and
+    /// `melee_attack::can_reach`.
     pub monster_reach: MonsterReach,
     /// How often a monster acts in one player turn: `_monster_add_energy` and the energy
     /// threshold in `monster::has_action_energy`.
@@ -339,6 +343,10 @@ pub struct Formulas {
     /// What a weapon's brand adds to a hit, and how it changes the weapon's damage and delay:
     /// `attack::apply_damage_brand`, `brand_adjust_weapon_damage` and `weapon_adjust_delay`.
     pub damage_brand: DamageBrand,
+    /// Which of a monster's melee attacks it makes with which of its weapons, whether it makes
+    /// one only a weapon makes, and the weapon that sets how long a melee action takes:
+    /// `monster::weapon`, `attack::init_attack` and `monster::attack_delay`.
+    pub monster_weapon: MonsterWeapon,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -385,8 +393,9 @@ pub enum ShieldBlock {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MonsterReach {
     /// As in crawl 0.34: a monster reaches two squares when one of its attacks' flavours does,
-    /// such as `AF_REACH`, and three with `AF_RIFT`; from there it makes every attack whose
-    /// flavour reaches.
+    /// such as `AF_REACH`, and three with `AF_RIFT`, or as far as the weapon of its first attack
+    /// reaches; from there it makes every attack whose flavour reaches, and every hit made with
+    /// a weapon that reaches that far.
     #[serde(rename = "crawl-0.34")]
     Crawl034,
 }
@@ -471,6 +480,14 @@ pub enum DamageBrand {
     Crawl034,
 }
 
+/// The variants of which weapon a monster attacks with.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterWeapon {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -490,6 +507,7 @@ impl Formulas {
         missile_attack: MissileAttack::Crawl034,
         monster_wand: MonsterWand::Crawl034,
         damage_brand: DamageBrand::Crawl034,
+        monster_weapon: MonsterWeapon::Crawl034,
     };
 }
 
@@ -579,6 +597,8 @@ pub struct Monster {
     pub archer: bool,
     /// It has crawl's `prefer_ranged` flag: it shoots more often, even from beside its target.
     pub prefers_ranged: bool,
+    /// It has crawl's `two_weapons` flag: it wields a second melee weapon in its off hand.
+    pub two_weapons: bool,
     /// It has crawl's `unique` flag: there is only one of it, such as Sigmund.
     pub unique: bool,
     /// It has crawl's `batty` flag: it flits away after it attacks (`_handle_battiness`).
@@ -769,6 +789,21 @@ pub struct MissileWeapon {
     pub damage: i32,
     /// The accuracy it adds: a launcher's `PWPN_HIT`, and none for a thrown missile.
     pub accuracy: i32,
+}
+
+/// A melee weapon, as `Weapon_prop` (`item-prop.cc`) defines it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MeleeWeapon {
+    /// Crawl's name for it, such as `spear`.
+    pub name: String,
+    /// The damage it adds to a monster's own: its `PWPN_DAMAGE`.
+    pub damage: i32,
+    /// The accuracy it adds: its `PWPN_HIT`.
+    pub accuracy: i32,
+    /// How many squares away it strikes from: crawl's `weapon_reach` for one that isn't an
+    /// artefact, two for a polearm and one for any other.
+    pub reach: i32,
 }
 
 /// How a [`MissileWeapon`] is used.
