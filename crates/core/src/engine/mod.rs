@@ -11,3 +11,9 @@ mod rng;
 pub(crate) mod spells;
 pub(crate) mod threat;
 pub(crate) mod wands;
+
+/// How far the player sees, crawl's `you.current_vision`, taken as everyone's normal sight,
+/// `LOS_DEFAULT_RANGE` (`defines.h:115`). The Daystalker mutation widens it by one, and the
+/// Nightstalker mutation, a scarf of shadows and a meteoran's bezotting narrow it
+/// (`update_vision_range`, `player.cc:891`), which the engine doesn't follow.
+pub(crate) const PLAYER_VISION: i32 = 7;
