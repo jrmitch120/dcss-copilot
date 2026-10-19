@@ -12,8 +12,10 @@ use crate::carried_gear::{Unlisted, Unplayed};
 use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
+use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
+use crate::screen::{Resistances, Screen};
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
@@ -83,8 +85,28 @@ pub struct ThreatAssessment {
     /// How the light falls on the player, which changes how well monsters aim at them. `None`
     /// when where they stand isn't known.
     pub lighting: Option<Lighting>,
+    /// The player's resistances the simulation applied, as the character overview or dump last
+    /// showed them. `None` when it hasn't been read, and the player is taken to resist nothing
+    /// and to be a living mortal who worships no good god.
+    pub resistances: Option<ResistancesApplied>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
+}
+
+/// The player's resistances as the simulation applied them: the last reading of the character
+/// overview or dump.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResistancesApplied {
+    /// Whether the game has shown anything since that may have changed them. A Stale reading is
+    /// applied all the same.
+    pub state: KnownOrStale,
+    /// The turn they were read on.
+    pub turn: Option<u32>,
+    /// What they were read off.
+    pub source: Screen,
+    /// Each resistance's pips, or immunity.
+    pub resistances: Resistances,
 }
 
 /// How dangerous a moment is: the Threat Level.
@@ -254,9 +276,12 @@ pub enum NotModelled {
     /// A mutant beast in view is judged by its kind alone: the tier and facets it was made with
     /// aren't played out, so its reach, attacks, damage, speed and spells may all be wrong.
     MutantBeastFacets,
-    /// Spells, and what a weapon's brand adds, land as if the player resists nothing and is a
-    /// living mortal who worships no good god, because the engine doesn't apply the player's
-    /// resistances yet.
+    /// A monster that can attack may deal damage whose adjustment for the player's resistances
+    /// the engine can't settle: the character overview (`%`) hasn't been read, so the player is
+    /// taken to resist nothing and to be a living mortal who worships no good god; the damage
+    /// needs a resistance the overview doesn't show, such as `rSteam` or resistance to miasma; or
+    /// it needs the player's holiness or god, which the Advisor can't tell, as their species,
+    /// statuses or god haven't been reported.
     PlayerResistances,
     /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
     /// crawl's casters weigh that, and often hold off up close.
@@ -386,16 +411,18 @@ pub enum Gap {
 }
 
 impl FactSheet {
-    /// What the engine makes of `visible` and what the Advisor remembers of the game, with
-    /// `knowledge` for the game's Crawl Version if the Advisor has it.
+    /// What the engine makes of `visible`, what the Advisor remembers of the game and the
+    /// character's `species`, as the game names it, with `knowledge` for the game's Crawl Version
+    /// if the Advisor has it.
     #[must_use]
     pub fn compute(
         visible: &VisibleState,
         remembered: Option<&AccumulatedState>,
+        species: Option<&str>,
         knowledge: Option<&Bundle>,
     ) -> Self {
         Self {
-            threat: threat(visible, remembered, knowledge),
+            threat: threat(visible, remembered, species, knowledge),
             ways_out: WaysOut::compute(visible, remembered, knowledge),
         }
     }
@@ -410,6 +437,7 @@ pub(crate) fn attacks_player(attitude: Attitude) -> bool {
 fn threat(
     visible: &VisibleState,
     remembered: Option<&AccumulatedState>,
+    species: Option<&str>,
     knowledge: Option<&Bundle>,
 ) -> Threat {
     let mut gaps = BTreeSet::new();
@@ -481,6 +509,7 @@ fn threat(
             lighting: knowledge
                 .and_then(|bundle| lighting(visible, remembered, &bundle.lighting))
                 .map(|(lighting, _)| lighting),
+            resistances: None,
             not_modelled: Vec::new(),
         }));
     };
@@ -516,11 +545,13 @@ fn threat(
     if defences.any_hides_a_fraction() {
         not_modelled.push(NotModelled::DefenceFractions);
     }
+    let resists = ResistsPlayed::of(visible, remembered, species, bundle);
     let defender = Defender {
         hp,
         defences,
         lighting,
         shield_blocks: threat::shield_blocks_per_action(formulas, worn_shield.flatten()),
+        resists: resists.resists,
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
     // Each monster with the gear it is played with, and the monsters that can attack, each with
@@ -611,9 +642,11 @@ fn threat(
     if attackers.iter().any(|attacker| attacker.unported_wand) {
         not_modelled.push(NotModelled::OtherWands);
     }
-    if attackers.iter().any(|attacker| {
-        !attacker.spells.is_empty() || !attacker.wands.is_empty() || attacker.has_resisted_brand()
-    }) {
+    let needs = attackers
+        .iter()
+        .map(|attacker| attacker.resist_needs(formulas))
+        .fold(Needs::NOTHING, Needs::and);
+    if resists.unsettled(needs) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
     if attackers.iter().any(|attacker| {
@@ -653,8 +686,71 @@ fn threat(
         acting,
         gear,
         lighting: Some(lighting),
+        resistances: resists.applied,
         not_modelled,
     }))
+}
+
+/// The player's resistances, holiness and god as the simulation plays them, and what of them the
+/// Advisor knows.
+struct ResistsPlayed {
+    /// As the simulation plays them.
+    resists: Resists,
+    /// The reading of the resistances applied, if they have been read.
+    applied: Option<ResistancesApplied>,
+    /// Whether the player's holiness and god are known, and applied.
+    holiness_known: bool,
+}
+
+impl ResistsPlayed {
+    /// The player as `visible` shows them and the Advisor remembers them, of `species`, judged
+    /// through `bundle`. With no reading of their resistances, they resist nothing and are a
+    /// living mortal of no good god. With one, their holiness is applied when their species is in
+    /// the bundle and the game has reported their statuses and god; otherwise they are taken to
+    /// be a living mortal of no good god.
+    fn of(
+        visible: &VisibleState,
+        remembered: Option<&AccumulatedState>,
+        species: Option<&str>,
+        bundle: &Bundle,
+    ) -> Self {
+        let none = Self {
+            resists: Resists::NONE,
+            applied: None,
+            holiness_known: false,
+        };
+        let (state, as_of) = match remembered.map(|state| &state.resistances) {
+            Some(Remembered::Known(as_of)) => (KnownOrStale::Known, as_of),
+            Some(Remembered::Stale(as_of)) => (KnownOrStale::Stale, as_of),
+            Some(Remembered::Missing) | None => return none,
+        };
+        let seen = Seen {
+            resistances: &as_of.value,
+            species,
+            statuses: visible.statuses.as_deref(),
+            religion: visible.religion.as_ref(),
+        };
+        let Some(read) = resists::read(bundle, &seen) else {
+            return none;
+        };
+        Self {
+            resists: read.resists,
+            applied: Some(ResistancesApplied {
+                state,
+                turn: as_of.turn,
+                source: as_of.source.clone(),
+                resistances: as_of.value.clone(),
+            }),
+            holiness_known: read.holiness_known,
+        }
+    }
+
+    /// Whether adjusting damage that `needs` this is beyond what the Advisor knows.
+    fn unsettled(&self, needs: Needs) -> bool {
+        needs.unshown
+            || self.applied.is_none() && needs.any()
+            || needs.holiness && !self.holiness_known
+    }
 }
 
 /// How the light falls on the player, as crawl's `player::backlit(false)` and `player::umbra()`
@@ -824,6 +920,8 @@ mod tests {
     use copilot_gk::Library;
 
     use super::*;
+    use crate::accumulated_state::AsOf;
+    use crate::screen::Resistance;
     use crate::view_model::{Colour, Glyph};
     use crate::visible_state::Stats;
 
@@ -888,8 +986,35 @@ mod tests {
         monsters: &[(&str, i32, Attitude)],
         defences: DisplayedDefences,
     ) -> ThreatAssessment {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
+        rated(&in_view(monsters, defences), None, None)
+    }
+
+    /// The shipped 0.34.1 bundle.
+    fn bundle() -> &'static Bundle {
+        static LIBRARY: std::sync::OnceLock<Library> = std::sync::OnceLock::new();
+        LIBRARY
+            .get_or_init(|| Library::shipped().unwrap())
+            .for_version("0.34.1")
+            .unwrap()
+    }
+
+    /// The Threat Level of `visible`, with what the Advisor remembers and the character's
+    /// species.
+    fn rated(
+        visible: &VisibleState,
+        remembered: Option<&AccumulatedState>,
+        species: Option<&str>,
+    ) -> ThreatAssessment {
+        match FactSheet::compute(visible, remembered, species, Some(bundle())).threat {
+            Threat::Rated(assessment) => *assessment,
+            Threat::Unrated { gaps } => panic!("not rated: {gaps:?}"),
+        }
+    }
+
+    /// Each `(name, distance, attitude)` in view, `distance` squares east of a player on 100 HP
+    /// who shows `defences`.
+    fn in_view(monsters: &[(&str, i32, Attitude)], defences: DisplayedDefences) -> VisibleState {
+        let bundle = bundle();
         let player = Position { x: 10, y: 10 };
         let in_view = monsters
             .iter()
@@ -912,7 +1037,7 @@ mod tests {
                 }
             })
             .collect();
-        let visible = VisibleState {
+        VisibleState {
             stats: Stats {
                 hp: Some(100),
                 ac: Some(defences.ac),
@@ -923,11 +1048,143 @@ mod tests {
             position: Some(player),
             monsters: Some(in_view),
             ..VisibleState::default()
-        };
-        match FactSheet::compute(&visible, None, Some(bundle)).threat {
-            Threat::Rated(assessment) => *assessment,
-            Threat::Unrated { gaps } => panic!("{monsters:?} isn't rated: {gaps:?}"),
         }
+    }
+
+    /// `name`, hostile, `distance` squares from a player with no defences who worships no god and
+    /// has no statuses.
+    fn facing(name: &str, distance: i32) -> VisibleState {
+        VisibleState {
+            religion: Some(Religion::NoGod),
+            statuses: Some(Vec::new()),
+            ..in_view(&[(name, distance, Attitude::Hostile)], NO_DEFENCES)
+        }
+    }
+
+    /// Remembering resistances read off the character overview on turn 40, with `rFire` at
+    /// `fire` pips and the rest at none, Known or, when `stale`, Stale.
+    fn read_with_fire(fire: i8, stale: bool) -> AccumulatedState {
+        let none = Some(Resistance::Pips(0));
+        let as_of = AsOf {
+            value: Resistances {
+                fire: Some(Resistance::Pips(fire)),
+                cold: none,
+                negative: none,
+                poison: none,
+                electricity: none,
+                corrosion: none,
+                see_invisible: none,
+                willpower: none,
+            },
+            turn: Some(40),
+            source: Screen::CharacterOverview,
+        };
+        let mut remembered = AccumulatedState::default();
+        remembered.resistances = if stale {
+            Remembered::Stale(as_of)
+        } else {
+            Remembered::Known(as_of)
+        };
+        remembered
+    }
+
+    /// Whether the Fact Sheet names the player's resistances.
+    fn names_resistances(assessment: &ThreatAssessment) -> bool {
+        assessment
+            .not_modelled
+            .contains(&NotModelled::PlayerResistances)
+    }
+
+    #[test]
+    fn unread_resistances_are_named_for_damage_they_would_cut_and_play_as_resisting_nothing() {
+        let assessment = rated(&facing("fire giant", 2), None, Some("Human"));
+        assert!(names_resistances(&assessment));
+        assert_eq!(assessment.resistances, None);
+    }
+
+    #[test]
+    fn unread_resistances_arent_named_for_damage_no_resistance_changes() {
+        let assessment = rated(&facing("ogre", 1), None, Some("Human"));
+        assert!(!names_resistances(&assessment), "{assessment:?}");
+    }
+
+    #[test]
+    fn read_resistances_and_a_known_holiness_settle_an_elemental_casters_damage() {
+        let remembered = read_with_fire(0, false);
+        let assessment = rated(&facing("fire giant", 2), Some(&remembered), Some("Human"));
+        assert!(!names_resistances(&assessment), "{assessment:?}");
+        let applied = assessment.resistances.unwrap();
+        assert_eq!(
+            (applied.state, applied.turn),
+            (KnownOrStale::Known, Some(40))
+        );
+    }
+
+    #[test]
+    fn steam_is_named_as_it_needs_a_resistance_the_overview_doesnt_show() {
+        let remembered = read_with_fire(0, false);
+        let assessment = rated(&facing("steam dragon", 2), Some(&remembered), Some("Human"));
+        assert!(names_resistances(&assessment));
+    }
+
+    #[test]
+    fn miasma_is_named_as_it_needs_a_resistance_the_overview_doesnt_show() {
+        let remembered = read_with_fire(0, false);
+        let assessment = rated(&facing("death drake", 2), Some(&remembered), Some("Human"));
+        assert!(names_resistances(&assessment));
+    }
+
+    #[test]
+    fn holy_fire_is_named_until_the_players_species_statuses_and_god_are_known() {
+        let remembered = read_with_fire(0, false);
+        let known = facing("pearl dragon", 2);
+        assert!(!names_resistances(&rated(
+            &known,
+            Some(&remembered),
+            Some("Human")
+        )));
+        let unknown = [
+            (known.clone(), None),
+            (known.clone(), Some("Not A Species")),
+            (
+                VisibleState {
+                    statuses: None,
+                    ..known.clone()
+                },
+                Some("Human"),
+            ),
+            (
+                VisibleState {
+                    religion: None,
+                    ..known
+                },
+                Some("Human"),
+            ),
+        ];
+        for (visible, species) in unknown {
+            let assessment = rated(&visible, Some(&remembered), species);
+            assert!(names_resistances(&assessment), "{species:?}");
+        }
+    }
+
+    #[test]
+    fn a_stale_reading_is_applied_and_shown_as_stale_with_its_turn() {
+        let visible = facing("fire giant", 2);
+        let unread = rated(&visible, None, Some("Human"));
+        let stale = read_with_fire(3, true);
+        let resisted = rated(&visible, Some(&stale), Some("Human"));
+        let applied = resisted.resistances.as_ref().unwrap();
+        assert_eq!(
+            (applied.state, applied.turn),
+            (KnownOrStale::Stale, Some(40))
+        );
+        assert_eq!(applied.resistances.fire, Some(Resistance::Pips(3)));
+        assert!(
+            resisted.worst_hit < unread.worst_hit,
+            "{} against {}",
+            resisted.worst_hit,
+            unread.worst_hit
+        );
     }
 
     #[test]

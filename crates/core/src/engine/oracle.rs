@@ -15,10 +15,13 @@ use crate::crawl_ids::monster_types;
 use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
+use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
 use super::wands;
+use crate::screen::{Resistance, Resistances};
+use crate::visible_state::Religion;
 
 pub use super::lighting::Lighting;
 pub use super::melee::AUTOMATIC_HIT;
@@ -41,12 +44,92 @@ impl From<ExactDefences> for Defences {
     }
 }
 
-/// The player a case's monster attacks: exactly these defences, in this light.
-fn target(defences: ExactDefences, lighting: Lighting) -> Target {
-    Target {
+/// The player's resistances as a harness's character overview shows them, with their species
+/// and god as the game names them.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct PlayerResists {
+    /// `rFire`.
+    pub fire: i32,
+    /// `rCold`.
+    pub cold: i32,
+    /// `rNeg`.
+    pub negative: i32,
+    /// `rPois`, 3 for immunity.
+    pub poison: i32,
+    /// `rElec`.
+    pub electricity: i32,
+    /// `rCorr`.
+    pub corrosion: i32,
+    /// The species, such as `Mummy`.
+    pub species: String,
+    /// The god, such as `the Shining One`, or `No God`.
+    pub god: String,
+}
+
+/// What crawl's `god_name` calls no god.
+const NO_GOD: &str = "No God";
+
+impl PlayerResists {
+    /// The resistances as the character overview draws them (`_resist_composer`): immunity to
+    /// poison as `∞`, every other level as pips.
+    fn overview(&self) -> Resistances {
+        let pips = |level: i32| Some(Resistance::Pips(i8::try_from(level).unwrap_or(i8::MAX)));
+        Resistances {
+            fire: pips(self.fire),
+            cold: pips(self.cold),
+            negative: pips(self.negative),
+            poison: if self.poison == 3 {
+                Some(Resistance::Immune)
+            } else {
+                pips(self.poison)
+            },
+            electricity: pips(self.electricity),
+            corrosion: pips(self.corrosion),
+            see_invisible: None,
+            willpower: None,
+        }
+    }
+
+    /// The god as the status pane reports it.
+    fn religion(&self) -> Religion {
+        if self.god == NO_GOD {
+            Religion::NoGod
+        } else {
+            Religion::God {
+                name: self.god.clone(),
+                piety_rank: None,
+                penance: false,
+            }
+        }
+    }
+}
+
+/// The player a case's monster attacks: exactly these defences, in this light, resisting as
+/// `resists` says, with the holiness their species and god give them, read through `bundle` as
+/// the Advisor reads the character overview, with no statuses lit.
+fn target(
+    bundle: &Bundle,
+    defences: ExactDefences,
+    lighting: Lighting,
+    resists: &PlayerResists,
+) -> Result<Target, CaseError> {
+    let no_species = || CaseError::NoSpecies(resists.species.clone());
+    let overview = resists.overview();
+    let religion = resists.religion();
+    let seen = Seen {
+        resistances: &overview,
+        species: Some(&resists.species),
+        statuses: Some(&[]),
+        religion: Some(&religion),
+    };
+    let read = resists::read(bundle, &seen)
+        .filter(|read| read.holiness_known)
+        .ok_or_else(no_species)?;
+    Ok(Target {
         defences: defences.into(),
         lighting,
-    }
+        resists: read.resists,
+    })
 }
 
 /// One monster attack on the player, in the terms the ported formulas take.
@@ -67,6 +150,8 @@ pub struct MeleeCase {
     pub hands: HandsCase,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// What the player resists, and their species and god.
+    pub resists: PlayerResists,
     /// How the light falls on the player.
     pub lighting: Lighting,
 }
@@ -120,7 +205,7 @@ pub struct MeleeTally {
 ///
 /// # Errors
 /// If the bundle has no monster numbered as the attacker, it has no attack in the case's slot,
-/// or the bundle lacks one of its weapons.
+/// or the bundle lacks one of its weapons or the player's species.
 pub fn melee(
     bundle: &Bundle,
     case: &MeleeCase,
@@ -156,7 +241,7 @@ pub fn melee(
         .map(|wielded| wielded.weapon);
     let first = monster.attacks.first().and_then(Attack::of);
     let mut rng = Rng::new(seed.0, seed.1);
-    let target = target(case.defences, case.lighting);
+    let target = target(bundle, case.defences, case.lighting, &case.resists)?;
     let mut tally = MeleeTally::default();
     for _ in 0..trials {
         tally.attack.add(melee::swing(
@@ -217,6 +302,9 @@ pub enum CaseError {
         /// The attack's slot, numbered from 0.
         slot: usize,
     },
+    /// The bundle has no species of this name.
+    #[error("the Game Knowledge has no species {0}")]
+    NoSpecies(String),
     /// The bundle has no melee weapon with this sub-type identifier.
     #[error("the Game Knowledge has no melee weapon {0}")]
     NoMeleeWeapon(String),
@@ -252,7 +340,7 @@ pub fn ported_spells(bundle: &Bundle) -> Vec<u16> {
 }
 
 /// One monster casting one of its spells at the player, in the terms the ported formulas take.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SpellCase {
     /// The caster's `monster_type` value.
     pub monster: u16,
@@ -262,6 +350,8 @@ pub struct SpellCase {
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// What the player resists, and their species and god.
+    pub resists: PlayerResists,
     /// How the light falls on the player.
     pub lighting: Lighting,
 }
@@ -287,8 +377,8 @@ pub struct SpellTally {
 /// `seed`, with a fresh shield block for every beam, as the harness resets crawl's.
 ///
 /// # Errors
-/// If the bundle lacks the monster or spell, or the engine doesn't port the spell as the monster
-/// casts it.
+/// If the bundle lacks the monster, the spell or the player's species, or the engine doesn't port
+/// the spell as the monster casts it.
 pub fn spell(
     bundle: &Bundle,
     case: &SpellCase,
@@ -306,7 +396,7 @@ pub fn spell(
     Ok(beams(
         formulas,
         firing,
-        target(case.defences, case.lighting),
+        target(bundle, case.defences, case.lighting, &case.resists)?,
         seed,
         trials,
     ))
@@ -332,16 +422,9 @@ fn beams(
         ..SpellTally::default()
     };
     for _ in 0..trials {
-        let bolt = spells::bolt(formulas.beam_damage, &mut rng, firing);
+        let bolt = spells::bolt(formulas, &mut rng, firing);
         tally.to_hit = bolt.to_hit;
-        let shot = spells::shoot(
-            formulas.beam_hit,
-            formulas.beam_damage,
-            &mut rng,
-            bolt,
-            target,
-            true,
-        );
+        let shot = spells::shoot(formulas, &mut rng, bolt, target, true);
         tally.blocks += u32::from(shot.blocked);
         if shot.hits {
             tally.hits += 1;
@@ -498,6 +581,8 @@ pub struct MissileCase {
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// What the player resists, and their species and god.
+    pub resists: PlayerResists,
     /// How the light falls on the player.
     pub lighting: Lighting,
 }
@@ -506,7 +591,7 @@ pub struct MissileCase {
 /// with `seed`, with a fresh shield block for every missile, as the harness resets crawl's.
 ///
 /// # Errors
-/// If the bundle lacks the monster or the missile weapon.
+/// If the bundle lacks the monster, the missile weapon or the player's species.
 pub fn missile(
     bundle: &Bundle,
     case: &MissileCase,
@@ -515,7 +600,7 @@ pub fn missile(
 ) -> Result<AttackTally, CaseError> {
     let (monster, missile) = shooter(bundle, case.monster, &case.weapon, case.plus, &case.brand)?;
     let shooter = Shooter::of(bundle, monster, case.hit_dice);
-    let target = target(case.defences, case.lighting);
+    let target = target(bundle, case.defences, case.lighting, &case.resists)?;
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = AttackTally::default();
     for _ in 0..trials {
@@ -580,7 +665,7 @@ pub fn fire(
 }
 
 /// A monster zapping a wand of a spell at the player, in the terms the ported formulas take.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WandCase {
     /// The monster's `monster_type` value, whose Game Knowledge says whether it sees through an
     /// umbra.
@@ -591,6 +676,8 @@ pub struct WandCase {
     pub hit_dice: i32,
     /// The player's defences.
     pub defences: ExactDefences,
+    /// What the player resists, and their species and god.
+    pub resists: PlayerResists,
     /// How the light falls on the player.
     pub lighting: Lighting,
 }
@@ -599,7 +686,8 @@ pub struct WandCase {
 /// `seed`, with a fresh shield block for every beam, as the harness resets crawl's.
 ///
 /// # Errors
-/// If the bundle lacks the monster or the spell, or the engine doesn't port the spell.
+/// If the bundle lacks the monster, the spell or the player's species, or the engine doesn't port
+/// the spell.
 pub fn wand(
     bundle: &Bundle,
     case: &WandCase,
@@ -625,7 +713,7 @@ pub fn wand(
     Ok(beams(
         formulas,
         firing,
-        target(case.defences, case.lighting),
+        target(bundle, case.defences, case.lighting, &case.resists)?,
         seed,
         trials,
     ))
@@ -824,6 +912,7 @@ pub fn turn(
     let target = Target {
         defences: Defences::exact(0, 0, 0),
         lighting: case.lighting,
+        resists: Resists::NONE,
     };
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {

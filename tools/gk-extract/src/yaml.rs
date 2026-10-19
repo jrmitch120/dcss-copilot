@@ -1,11 +1,12 @@
-//! Monsters and species from crawl's `dat/` YAML, and monster descriptions from its text database.
+//! Monsters, species and forms from crawl's `dat/` YAML, and monster descriptions from its text
+//! database.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
-    Energy, EnumId, Habitat, Intelligence, ItemUse, Monster, MonsterAttack, MonsterSpell,
-    MonsterSpells, Species, Will,
+    Energy, EnumId, Form, FormHoliness, Habitat, Intelligence, ItemUse, Monster, MonsterAttack,
+    MonsterSpell, MonsterSpells, Species, Undeadness, Will,
 };
 use serde::Deserialize;
 
@@ -112,6 +113,21 @@ struct SpeciesFile {
     #[serde(rename = "enum")]
     id: String,
     name: String,
+    /// `undead` or `semi_undead`, as `undead_state_type` names it without `US_`: alive unless
+    /// set.
+    undead_type: Option<String>,
+    #[serde(rename = "TAG_MAJOR_VERSION")]
+    tag_major: Option<i64>,
+}
+
+/// A `dat/forms/*.yaml` file: the fields the bundle keeps. `util/form-gen.py` defines the format.
+#[derive(Deserialize)]
+struct FormFile {
+    #[serde(rename = "enum")]
+    id: String,
+    short_name: Option<String>,
+    /// As `mon_holy_type` names it without `MH_`: none unless set.
+    holiness: Option<String>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
 }
@@ -405,14 +421,74 @@ fn tile_enum(id: &str, tile: Option<&str>) -> String {
 
 /// Every species defined in `dat/species` for this build, in file name order.
 pub fn species(source: &Path, tag_major: i64) -> Result<Vec<Species>, ExtractError> {
-    Ok(yaml_files::<SpeciesFile>(&source.join("dat/species"))?
+    yaml_files::<SpeciesFile>(&source.join("dat/species"))?
         .into_iter()
         .filter(|(_, species)| species.tag_major.is_none_or(|tag| tag == tag_major))
-        .map(|(_, species)| Species {
-            id: EnumId(species.id),
-            name: species.name,
+        .map(|(file, species)| {
+            let undead = match species.undead_type.as_deref() {
+                None => Undeadness::Alive,
+                Some("undead") => Undeadness::Undead,
+                Some("semi_undead") => Undeadness::SemiUndead,
+                Some(other) => {
+                    return Err(ExtractError::Unreadable {
+                        file,
+                        what: format!("undead_type {other}"),
+                    });
+                }
+            };
+            Ok(Species {
+                id: EnumId(species.id),
+                name: species.name,
+                undead,
+            })
         })
-        .collect())
+        .collect()
+}
+
+/// Every form defined in `dat/forms` for this build, in file name order, as `util/form-gen.py`
+/// reads them, but `none`, which shows no light: a form's status light is its `short_name`, or
+/// its `enum` capitalised, and it gives no holiness of its own unless it sets one. None of them
+/// is undead here: the series' holiness rules mark those `player::undead_state` names.
+pub fn forms(source: &Path, tag_major: i64) -> Result<Vec<Form>, ExtractError> {
+    yaml_files::<FormFile>(&source.join("dat/forms"))?
+        .into_iter()
+        .filter(|(_, form)| form.tag_major.is_none_or(|tag| tag == tag_major))
+        .filter(|(_, form)| form.short_name.as_deref() != Some(""))
+        .map(|(file, form)| {
+            let holiness = match form.holiness.as_deref() {
+                None => FormHoliness::Species,
+                Some("natural") => FormHoliness::Natural,
+                Some("undead") => FormHoliness::Undead,
+                Some("demonic") => FormHoliness::Demonic,
+                Some("nonliving") => FormHoliness::Nonliving,
+                Some("plant") => FormHoliness::Plant,
+                Some("holy") => FormHoliness::Holy,
+                Some(other) => {
+                    return Err(ExtractError::Unreadable {
+                        file,
+                        what: format!("holiness {other}"),
+                    });
+                }
+            };
+            Ok(Form {
+                light: form.short_name.unwrap_or_else(|| capitalised(&form.id)),
+                id: form.id,
+                holiness,
+                undead: Undeadness::Alive,
+            })
+        })
+        .collect()
+}
+
+/// `word` as Python's `str.capitalize` gives it: its first letter upper case, the rest lower.
+fn capitalised(word: &str) -> String {
+    let mut chars = word.chars();
+    chars.next().map_or_else(String::new, |first| {
+        first
+            .to_uppercase()
+            .chain(chars.flat_map(char::to_lowercase))
+            .collect()
+    })
 }
 
 /// Every `*.yaml` file in `dir`, parsed, in file name order, with its file name.

@@ -113,6 +113,8 @@ pub struct Bundle {
     pub monster_threats: BTreeMap<u8, EnumId>,
     /// What the game shows that tells the player's Lighting.
     pub lighting: LightingSigns,
+    /// What the game shows that tells the player's holiness and whether they worship a good god.
+    pub holiness: HolinessSigns,
     /// Which of the player's items, spells and abilities are Ways Out, and the statuses that stop
     /// them.
     pub ways_out: WayOutSigns,
@@ -244,6 +246,79 @@ pub struct LightingSigns {
     pub halo_gear: Vec<String>,
 }
 
+/// What the game shows that tells the player's holiness, as crawl's `player::holiness`,
+/// `player::undead_state` and `player::undead_or_demonic` decide it, and whether they worship a
+/// good god (`is_good_god`), as this Crawl Version has them. A species' own undeadness is on its
+/// [`Species`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HolinessSigns {
+    /// The species crawl makes nonliving, by `species_type` identifier, such as `SP_GARGOYLE`
+    /// (`species::is_nonliving`).
+    pub nonliving_species: Vec<EnumId>,
+    /// The species crawl counts as demonic, which holy wrath hurts and foul flame spares, by
+    /// `species_type` identifier, such as `SP_DEMONSPAWN` (`player::undead_or_demonic`).
+    pub demonic_species: Vec<EnumId>,
+    /// The good gods, as the game names them, such as `the Shining One`.
+    pub good_gods: Vec<String>,
+    /// Every form the player can take, by the status light the status pane shows it with.
+    pub forms: Vec<Form>,
+    /// The status lights of being petrified, which makes the player nonliving, such as `Stone`.
+    pub petrified_lights: Vec<String>,
+}
+
+/// A form the player can take, from `dat/forms/*.yaml`, with what it makes of their holiness.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Form {
+    /// Its `transformation` identifier, such as `death`.
+    pub id: String,
+    /// The status light the status pane shows while the player is in it, its `short_name`, such
+    /// as `Death`.
+    pub light: String,
+    /// The holiness it gives the player.
+    pub holiness: FormHoliness,
+    /// How undead it makes the player, whatever their species: crawl's `player::undead_state`,
+    /// which names its forms in code.
+    pub undead: Undeadness,
+}
+
+/// The holiness a form gives the player: its `holiness` in `dat/forms`, or, for a form
+/// `player::holiness` names in code, what that gives.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FormHoliness {
+    /// None of its own (`MH_NONE`): the species' holiness stands.
+    Species,
+    /// `MH_NATURAL`.
+    Natural,
+    /// `MH_UNDEAD`.
+    Undead,
+    /// `MH_DEMONIC`.
+    Demonic,
+    /// `MH_NONLIVING`.
+    Nonliving,
+    /// `MH_PLANT`.
+    Plant,
+    /// `MH_HOLY`.
+    Holy,
+    /// The species' holiness with undead added, as crawl gives a vampire or a bat swarm.
+    AddsUndead,
+}
+
+/// How undead a species or form makes the player: crawl's `undead_state_type`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Undeadness {
+    /// `US_ALIVE`.
+    #[default]
+    Alive,
+    /// `US_SEMI_UNDEAD`: undead only in part, as a vampire is.
+    SemiUndead,
+    /// `US_UNDEAD`: lifeless, as a mummy is.
+    Undead,
+}
+
 impl Bundle {
     /// The monster whose `monster_type` enum value is `value`, if this version defines one.
     #[must_use]
@@ -263,6 +338,12 @@ impl Bundle {
     #[must_use]
     pub fn spell_by_id(&self, id: &EnumId) -> Option<&Spell> {
         self.spells.values().find(|spell| spell.id == *id)
+    }
+
+    /// The species webtiles names `name`, such as `Mummy`, if this version defines one.
+    #[must_use]
+    pub fn species_named(&self, name: &str) -> Option<&Species> {
+        self.species.iter().find(|species| species.name == name)
     }
 
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
@@ -347,6 +428,10 @@ pub struct Formulas {
     /// one only a weapon makes, and the weapon that sets how long a melee action takes:
     /// `monster::weapon`, `attack::init_attack` and `monster::attack_delay`.
     pub monster_weapon: MonsterWeapon,
+    /// How the player's resistances, holiness and god change the damage a beam deals them, and
+    /// what an elemental or draining brand adds: `check_your_resists`, `resist_adjust_damage`
+    /// and the player's `res_` functions.
+    pub resist_damage: ResistDamage,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -480,6 +565,14 @@ pub enum DamageBrand {
     Crawl034,
 }
 
+/// The variants of how the player's resistances change the damage they take.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ResistDamage {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of which weapon a monster attacks with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MonsterWeapon {
@@ -508,6 +601,7 @@ impl Formulas {
         monster_wand: MonsterWand::Crawl034,
         damage_brand: DamageBrand::Crawl034,
         monster_weapon: MonsterWeapon::Crawl034,
+        resist_damage: ResistDamage::Crawl034,
     };
 }
 
@@ -1085,4 +1179,6 @@ pub struct Species {
     pub id: EnumId,
     /// Its name, as webtiles reports a character's species.
     pub name: String,
+    /// How undead it is: its `undead_type`.
+    pub undead: Undeadness,
 }

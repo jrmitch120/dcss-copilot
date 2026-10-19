@@ -52,6 +52,7 @@ expression: replay
             }
           ],
           "lighting": "plain",
+          "resistances": null,
           "notModelled": [
             "attackFlavours",
             "statuses",
@@ -207,6 +208,7 @@ expression: replay
           "acting": [],
           "gear": [],
           "lighting": "plain",
+          "resistances": null,
           "notModelled": []
         },
         "waysOut": {
@@ -292,6 +294,7 @@ expression: replay
         "acting": [],
         "gear": [],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": []
       },
       "waysOut": {

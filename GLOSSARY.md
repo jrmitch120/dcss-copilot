@@ -116,6 +116,14 @@ _Avoid_: Max damage, max hit
 The player's AC, EV and SH as the game shows them: whole points. Crawl keeps each in hundredths and rolls with the fraction the display drops, so the Threat Level guesses that fraction, any as likely as another, in each of its trials.
 _Avoid_: True AC, real defences
 
+**Resistances**:
+The player's resistances to fire, cold, negative energy, poison, electricity and corrosion, as the character overview (`%`) or dump last showed them, temporary ones included. The Threat Level cuts or raises the damage it plays by them, Known or Stale, and takes the player to resist nothing until they are read.
+_Avoid_: Resists, rFire etc. as a name for all of them
+
+**Holiness**:
+What the player is, as crawl's damage tells it: living, undead, demonic, nonliving or a plant, from their species, a form the status pane lights, or petrification, together with whether they worship a good god. Holy fire, holy wrath, foul flame, draining and miasma depend on it.
+_Avoid_: Alignment, nature
+
 **Lighting**:
 How the light falls on the player, which changes how well monsters aim at them: Backlit, in an Umbra, or plain.
 _Avoid_: Visibility, light level

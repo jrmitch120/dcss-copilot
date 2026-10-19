@@ -7,8 +7,9 @@
  *
  * - beam: a monster casts one spell at the player many times. Each cast is set up by crawl's
  *   setup_mons_cast, then rolled as bolt::affect_player rolls it: bolt::misses_player for the
- *   shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists. The beam's
- *   flight (bolt::fire) is skipped, so what flight changes, such as a bounce or a chaos beam's
+ *   shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists for a player
+ *   given a species, a god and resistances at random (common.h). The beam's flight (bolt::fire)
+ *   is skipped, so what flight changes, such as a bounce or a chaos beam's
  *   flavour, isn't diffed.
  * - choice: a monster a few squares from the player picks a spell many times, through crawl's
  *   _choose_spell_to_cast, from its book cut down to the spells the engine ports, as the engine
@@ -110,10 +111,12 @@ static monster *_random_caster(const set<spell_type> &ported, int distance)
 
 static void _beam_case(int index, int trials, const set<spell_type> &ported)
 {
+    _random_species();
     const defences def = _random_player();
     _random_light();
     monster *mon = _random_caster(ported, 1);
     const spell_type spell = mon->spells[random2(mon->spells.size())].spell;
+    const string resists = _random_resists(def);
     const int power = mons_spellpower(*mon, spell);
     const int range = spell_range(spell, mon, power);
 
@@ -121,11 +124,12 @@ static void _beam_case(int index, int trials, const set<spell_type> &ported)
 
     printf("{\"case\":%d,\"kind\":\"beam\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
            "\"spell\":%d,\"spell_name\":\"%s\",\"nightvision\":%s,"
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
-           "\"power\":%d,\"range\":%d,%s}\n",
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"resists\":%s,"
+           "\"lighting\":\"%s\",\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
            spell, spell_title(spell), _json_bool(mon->nightvision()), def.ac, def.ev,
-           def.sh, _lighting(), power, range, _beam_json(tally, trials).c_str());
+           def.sh, resists.c_str(), _lighting(), power, range,
+           _beam_json(tally, trials).c_str());
 
     _remove(*mon);
 }

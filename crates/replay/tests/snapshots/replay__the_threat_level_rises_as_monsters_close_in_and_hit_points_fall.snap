@@ -1,6 +1,5 @@
 ---
 source: crates/replay/tests/replay.rs
-assertion_line: 497
 expression: fact_sheets_by_turn(JACKALS)
 ---
 [
@@ -92,6 +91,7 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": [
           "attackFlavours",
           "statuses",
@@ -215,6 +215,7 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": [
           "attackFlavours",
           "statuses",
@@ -338,6 +339,7 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": [
           "attackFlavours",
           "statuses",

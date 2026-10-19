@@ -102,6 +102,23 @@ crawl_identifiers! {
         THUNDER = "BEAM_THUNDER";
         STUN_BOLT = "BEAM_STUN_BOLT";
         FRAG = "BEAM_FRAG";
+        MISSILE = "BEAM_MISSILE";
+        MMISSILE = "BEAM_MMISSILE";
+        FIRE = "BEAM_FIRE";
+        LAVA = "BEAM_LAVA";
+        COLD = "BEAM_COLD";
+        ICE = "BEAM_ICE";
+        NEG = "BEAM_NEG";
+        POISON = "BEAM_POISON";
+        POISON_ARROW = "BEAM_POISON_ARROW";
+        ACID = "BEAM_ACID";
+        HOLY = "BEAM_HOLY";
+        STEAM = "BEAM_STEAM";
+        MIASMA = "BEAM_MIASMA";
+        DEVASTATION = "BEAM_DEVASTATION";
+        BOLAS = "BEAM_BOLAS";
+        CRYSTALLISING = "BEAM_CRYSTALLISING";
+        LIGHT = "BEAM_LIGHT";
     }
 }
 

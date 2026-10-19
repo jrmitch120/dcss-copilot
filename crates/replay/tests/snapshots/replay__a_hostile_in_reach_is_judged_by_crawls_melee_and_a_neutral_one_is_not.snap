@@ -43,6 +43,7 @@ expression: replayer.advisor().fact_sheet()
       }
     ],
     "lighting": "plain",
+    "resistances": null,
     "notModelled": [
       "monsterEquipment",
       "attackFlavours",

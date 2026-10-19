@@ -59758,191 +59758,238 @@
   "species": [
     {
       "id": "SP_ARMATAUR",
-      "name": "Armataur"
+      "name": "Armataur",
+      "undead": "alive"
     },
     {
       "id": "SP_BARACHI",
-      "name": "Barachi"
+      "name": "Barachi",
+      "undead": "alive"
     },
     {
       "id": "SP_COGLIN",
-      "name": "Coglin"
+      "name": "Coglin",
+      "undead": "alive"
     },
     {
       "id": "SP_DEEP_ELF",
-      "name": "Deep Elf"
+      "name": "Deep Elf",
+      "undead": "alive"
     },
     {
       "id": "SP_DEMIGOD",
-      "name": "Demigod"
+      "name": "Demigod",
+      "undead": "alive"
     },
     {
       "id": "SP_DEMONSPAWN",
-      "name": "Demonspawn"
+      "name": "Demonspawn",
+      "undead": "alive"
     },
     {
       "id": "SP_CENTAUR",
-      "name": "Centaur"
+      "name": "Centaur",
+      "undead": "alive"
     },
     {
       "id": "SP_DEEP_DWARF",
-      "name": "Deep Dwarf"
+      "name": "Deep Dwarf",
+      "undead": "alive"
     },
     {
       "id": "SP_MOTTLED_DRACONIAN",
-      "name": "Mottled Draconian"
+      "name": "Mottled Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_GHOUL",
-      "name": "Ghoul"
+      "name": "Ghoul",
+      "undead": "undead"
     },
     {
       "id": "SP_HALFLING",
-      "name": "Halfling"
+      "name": "Halfling",
+      "undead": "alive"
     },
     {
       "id": "SP_HIGH_ELF",
-      "name": "High Elf"
+      "name": "High Elf",
+      "undead": "alive"
     },
     {
       "id": "SP_HILL_ORC",
-      "name": "Hill Orc"
+      "name": "Hill Orc",
+      "undead": "alive"
     },
     {
       "id": "SP_LAVA_ORC",
-      "name": "Lava Orc"
+      "name": "Lava Orc",
+      "undead": "alive"
     },
     {
       "id": "SP_MAYFLYTAUR",
-      "name": "Mayflytaur"
+      "name": "Mayflytaur",
+      "undead": "alive"
     },
     {
       "id": "SP_METEORAN",
-      "name": "Meteoran"
+      "name": "Meteoran",
+      "undead": "alive"
     },
     {
       "id": "SP_SLUDGE_ELF",
-      "name": "Sludge Elf"
+      "name": "Sludge Elf",
+      "undead": "alive"
     },
     {
       "id": "SP_VAMPIRE",
-      "name": "Vampire"
+      "name": "Vampire",
+      "undead": "semiUndead"
     },
     {
       "id": "SP_DJINNI",
-      "name": "Djinni"
+      "name": "Djinni",
+      "undead": "alive"
     },
     {
       "id": "SP_BASE_DRACONIAN",
-      "name": "Draconian"
+      "name": "Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_BLACK_DRACONIAN",
-      "name": "Black Draconian"
+      "name": "Black Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_GREEN_DRACONIAN",
-      "name": "Green Draconian"
+      "name": "Green Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_GREY_DRACONIAN",
-      "name": "Grey Draconian"
+      "name": "Grey Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_PALE_DRACONIAN",
-      "name": "Pale Draconian"
+      "name": "Pale Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_PURPLE_DRACONIAN",
-      "name": "Purple Draconian"
+      "name": "Purple Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_RED_DRACONIAN",
-      "name": "Red Draconian"
+      "name": "Red Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_WHITE_DRACONIAN",
-      "name": "White Draconian"
+      "name": "White Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_YELLOW_DRACONIAN",
-      "name": "Yellow Draconian"
+      "name": "Yellow Draconian",
+      "undead": "alive"
     },
     {
       "id": "SP_FELID",
-      "name": "Felid"
+      "name": "Felid",
+      "undead": "alive"
     },
     {
       "id": "SP_FORMICID",
-      "name": "Formicid"
+      "name": "Formicid",
+      "undead": "alive"
     },
     {
       "id": "SP_GARGOYLE",
-      "name": "Gargoyle"
+      "name": "Gargoyle",
+      "undead": "alive"
     },
     {
       "id": "SP_GNOLL",
-      "name": "Gnoll"
+      "name": "Gnoll",
+      "undead": "alive"
     },
     {
       "id": "SP_HUMAN",
-      "name": "Human"
+      "name": "Human",
+      "undead": "alive"
     },
     {
       "id": "SP_KOBOLD",
-      "name": "Kobold"
+      "name": "Kobold",
+      "undead": "alive"
     },
     {
       "id": "SP_MERFOLK",
-      "name": "Merfolk"
+      "name": "Merfolk",
+      "undead": "alive"
     },
     {
       "id": "SP_MINOTAUR",
-      "name": "Minotaur"
+      "name": "Minotaur",
+      "undead": "alive"
     },
     {
       "id": "SP_MOUNTAIN_DWARF",
-      "name": "Mountain Dwarf"
+      "name": "Mountain Dwarf",
+      "undead": "alive"
     },
     {
       "id": "SP_MUMMY",
-      "name": "Mummy"
+      "name": "Mummy",
+      "undead": "undead"
     },
     {
       "id": "SP_NAGA",
-      "name": "Naga"
+      "name": "Naga",
+      "undead": "alive"
     },
     {
       "id": "SP_OCTOPODE",
-      "name": "Octopode"
+      "name": "Octopode",
+      "undead": "alive"
     },
     {
       "id": "SP_ONI",
-      "name": "Oni"
+      "name": "Oni",
+      "undead": "alive"
     },
     {
       "id": "SP_POLTERGEIST",
-      "name": "Poltergeist"
+      "name": "Poltergeist",
+      "undead": "undead"
     },
     {
       "id": "SP_REVENANT",
-      "name": "Revenant"
+      "name": "Revenant",
+      "undead": "undead"
     },
     {
       "id": "SP_SPRIGGAN",
-      "name": "Spriggan"
+      "name": "Spriggan",
+      "undead": "alive"
     },
     {
       "id": "SP_TENGU",
-      "name": "Tengu"
+      "name": "Tengu",
+      "undead": "alive"
     },
     {
       "id": "SP_TROLL",
-      "name": "Troll"
+      "name": "Troll",
+      "undead": "alive"
     },
     {
       "id": "SP_VINE_STALKER",
-      "name": "Vine Stalker"
+      "name": "Vine Stalker",
+      "undead": "alive"
     }
   ],
   "features": {
@@ -61248,6 +61295,229 @@
       "of light"
     ]
   },
+  "holiness": {
+    "nonlivingSpecies": [
+      "SP_GARGOYLE",
+      "SP_DJINNI"
+    ],
+    "demonicSpecies": [
+      "SP_DEMONSPAWN"
+    ],
+    "goodGods": [
+      "Zin",
+      "the Shining One",
+      "Elyvilon"
+    ],
+    "forms": [
+      {
+        "id": "aqua",
+        "light": "Aqua",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "bat_swarm",
+        "light": "Bat Swarm",
+        "holiness": "addsUndead",
+        "undead": "semiUndead"
+      },
+      {
+        "id": "bat",
+        "light": "Bat",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "blade",
+        "light": "Blade",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "death",
+        "light": "Death",
+        "holiness": "undead",
+        "undead": "undead"
+      },
+      {
+        "id": "appendage",
+        "light": "App",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "hydra",
+        "light": "Hydra",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "porcupine",
+        "light": "Porc",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "shadow",
+        "light": "Shadow",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "dragon",
+        "light": "Dragon",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "eel_hands",
+        "light": "Eel",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "flux",
+        "light": "Flux",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "fortress_crab",
+        "light": "Crab",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "fungus",
+        "light": "Fungus",
+        "holiness": "plant",
+        "undead": "alive"
+      },
+      {
+        "id": "hive",
+        "light": "Hive",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "jelly",
+        "light": "Jelly",
+        "holiness": "natural",
+        "undead": "alive"
+      },
+      {
+        "id": "maw",
+        "light": "Maw",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "medusa",
+        "light": "Medusa",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "pig",
+        "light": "Pig",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "quill",
+        "light": "Quill",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "rime_yak",
+        "light": "Yak",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "serpent",
+        "light": "Serpent",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "slaughter",
+        "light": "Slaughter",
+        "holiness": "demonic",
+        "undead": "alive"
+      },
+      {
+        "id": "sphinx",
+        "light": "Sphinx",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "spider",
+        "light": "Spider",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "spore",
+        "light": "Spore",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "statue",
+        "light": "Statue",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "storm",
+        "light": "Storm",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "sun_scarab",
+        "light": "Scarab",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "tree",
+        "light": "Tree",
+        "holiness": "plant",
+        "undead": "alive"
+      },
+      {
+        "id": "vampire",
+        "light": "Vampire",
+        "holiness": "addsUndead",
+        "undead": "semiUndead"
+      },
+      {
+        "id": "walking_scroll",
+        "light": "Scroll",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "werewolf",
+        "light": "Werewolf",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "wisp",
+        "light": "Wisp",
+        "holiness": "nonliving",
+        "undead": "alive"
+      }
+    ],
+    "petrifiedLights": [
+      "Stone"
+    ]
+  },
   "waysOut": {
     "items": [
       {
@@ -61484,6 +61754,7 @@
     "missileAttack": "crawl-0.34",
     "monsterWand": "crawl-0.34",
     "damageBrand": "crawl-0.34",
-    "monsterWeapon": "crawl-0.34"
+    "monsterWeapon": "crawl-0.34",
+    "resistDamage": "crawl-0.34"
   }
 }

@@ -35,6 +35,7 @@ expression: replay
         "acting": [],
         "gear": [],
         "lighting": "backlit",
+        "resistances": null,
         "notModelled": []
       },
       "waysOut": {

@@ -1,6 +1,5 @@
 ---
 source: crates/replay/tests/replay.rs
-assertion_line: 554
 expression: by_turn
 ---
 [
@@ -133,6 +132,7 @@ expression: by_turn
           }
         ],
         "lighting": "plain",
+        "resistances": null,
         "notModelled": [
           "attackFlavours",
           "statuses",
@@ -265,6 +265,39 @@ expression: by_turn
           }
         ],
         "lighting": "plain",
+        "resistances": {
+          "state": "known",
+          "turn": 101,
+          "source": {
+            "kind": "characterOverview"
+          },
+          "resistances": {
+            "fire": {
+              "pips": 0
+            },
+            "cold": {
+              "pips": 0
+            },
+            "negative": {
+              "pips": 0
+            },
+            "poison": {
+              "pips": 0
+            },
+            "electricity": {
+              "pips": 0
+            },
+            "corrosion": {
+              "pips": 0
+            },
+            "seeInvisible": {
+              "pips": 0
+            },
+            "willpower": {
+              "pips": 0
+            }
+          }
+        },
         "notModelled": [
           "attackFlavours",
           "statuses",
@@ -396,6 +429,39 @@ expression: by_turn
           }
         ],
         "lighting": "plain",
+        "resistances": {
+          "state": "stale",
+          "turn": 101,
+          "source": {
+            "kind": "characterOverview"
+          },
+          "resistances": {
+            "fire": {
+              "pips": 0
+            },
+            "cold": {
+              "pips": 0
+            },
+            "negative": {
+              "pips": 0
+            },
+            "poison": {
+              "pips": 0
+            },
+            "electricity": {
+              "pips": 0
+            },
+            "corrosion": {
+              "pips": 0
+            },
+            "seeInvisible": {
+              "pips": 0
+            },
+            "willpower": {
+              "pips": 0
+            }
+          }
+        },
         "notModelled": [
           "attackFlavours",
           "statuses",

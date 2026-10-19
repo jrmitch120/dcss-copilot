@@ -1978,16 +1978,39 @@ expression: bundle
   },
   "species": [
     {
+      "id": "SP_DEMONSPAWN",
+      "name": "Demonspawn",
+      "undead": "alive"
+    },
+    {
       "id": "SP_CENTAUR",
-      "name": "Centaur"
+      "name": "Centaur",
+      "undead": "alive"
+    },
+    {
+      "id": "SP_DJINNI",
+      "name": "Djinni",
+      "undead": "alive"
+    },
+    {
+      "id": "SP_GARGOYLE",
+      "name": "Gargoyle",
+      "undead": "alive"
     },
     {
       "id": "SP_HUMAN",
-      "name": "Human"
+      "name": "Human",
+      "undead": "alive"
     },
     {
       "id": "SP_MINOTAUR",
-      "name": "Minotaur"
+      "name": "Minotaur",
+      "undead": "alive"
+    },
+    {
+      "id": "SP_MUMMY",
+      "name": "Mummy",
+      "undead": "undead"
     }
   ],
   "features": {
@@ -2103,6 +2126,61 @@ expression: bundle
       "\"eos\"",
       "vainglory",
       "of light"
+    ]
+  },
+  "holiness": {
+    "nonlivingSpecies": [
+      "SP_GARGOYLE",
+      "SP_DJINNI"
+    ],
+    "demonicSpecies": [
+      "SP_DEMONSPAWN"
+    ],
+    "goodGods": [
+      "Zin",
+      "the Shining One",
+      "Elyvilon"
+    ],
+    "forms": [
+      {
+        "id": "bat_swarm",
+        "light": "Bat Swarm",
+        "holiness": "addsUndead",
+        "undead": "semiUndead"
+      },
+      {
+        "id": "death",
+        "light": "Death",
+        "holiness": "undead",
+        "undead": "undead"
+      },
+      {
+        "id": "shadow",
+        "light": "Shadow",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "spider",
+        "light": "Spider",
+        "holiness": "species",
+        "undead": "alive"
+      },
+      {
+        "id": "statue",
+        "light": "Statue",
+        "holiness": "nonliving",
+        "undead": "alive"
+      },
+      {
+        "id": "vampire",
+        "light": "Vampire",
+        "holiness": "addsUndead",
+        "undead": "semiUndead"
+      }
+    ],
+    "petrifiedLights": [
+      "Stone"
     ]
   },
   "waysOut": {
@@ -2341,6 +2419,7 @@ expression: bundle
     "missileAttack": "crawl-0.34",
     "monsterWand": "crawl-0.34",
     "damageBrand": "crawl-0.34",
-    "monsterWeapon": "crawl-0.34"
+    "monsterWeapon": "crawl-0.34",
+    "resistDamage": "crawl-0.34"
   }
 }

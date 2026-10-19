@@ -19,8 +19,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::{
-    Bundle, CrawlSource, EnumId, Formulas, ItemClass, ItemSubType, LightingSigns, MonsterSpell,
-    Spell, WeaponBrand,
+    Bundle, CrawlSource, EnumId, Form, FormHoliness, Formulas, HolinessSigns, ItemClass,
+    ItemSubType, LightingSigns, MonsterSpell, Species, Spell, Undeadness, WeaponBrand,
 };
 
 use crate::cpp::{Source, Token};
@@ -72,6 +72,7 @@ const SERIES: &[Series] = &[Series {
         ],
     },
     lighting: &LIGHTING_0_34,
+    holiness: &HOLINESS_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     kinds_hidden: &[
@@ -121,6 +122,45 @@ const LIGHTING_0_34: LightingRules = LightingRules {
         },
     ],
 };
+
+/// What crawl 0.34 decides in code about the player's holiness: `species::is_nonliving`
+/// (`species.cc:313`), `player::undead_or_demonic` (`player.cc:6893`), `is_good_god`
+/// (`religion.cc:517`), `player::undead_state` (`player.cc:7268`) and `player::holiness`
+/// (`player.cc:6859`).
+const HOLINESS_0_34: HolinessRules = HolinessRules {
+    nonliving_species: &["SP_GARGOYLE", "SP_DJINNI"],
+    demonic_species: &["SP_DEMONSPAWN"],
+    good_gods: &[
+        Shown::quoted("Zin", "religion.cc"),
+        Shown::quoted("the Shining One", "religion.cc"),
+        Shown::quoted("Elyvilon", "religion.cc"),
+    ],
+    undead_forms: &[
+        ("death", Undeadness::Undead),
+        ("vampire", Undeadness::SemiUndead),
+        ("bat_swarm", Undeadness::SemiUndead),
+    ],
+    undead_adding_forms: &["vampire", "bat_swarm"],
+    petrified_lights: &[Shown::quoted("Stone", "duration-data.h")],
+};
+
+/// What a crawl release series decides in code about the player's holiness, each species, god,
+/// form and status light checked against what the extractor read or crawl's source.
+struct HolinessRules {
+    /// The species it makes nonliving, by `species_type` identifier.
+    nonliving_species: &'static [&'static str],
+    /// The species it counts as demonic, by `species_type` identifier.
+    demonic_species: &'static [&'static str],
+    /// The good gods, as the game names them.
+    good_gods: &'static [Shown],
+    /// The forms that make the player undead whatever their species, by `transformation`
+    /// identifier, with how undead.
+    undead_forms: &'static [(&'static str, Undeadness)],
+    /// The forms that add undead to the species' holiness rather than setting their own.
+    undead_adding_forms: &'static [&'static str],
+    /// The status lights of being petrified.
+    petrified_lights: &'static [Shown],
+}
 
 /// What a crawl release series shows that tells the player's Lighting, each text checked
 /// against crawl's source.
@@ -180,6 +220,8 @@ struct Series {
     wont_move_while_watched: NamedKinds,
     /// What it shows that tells the player's Lighting.
     lighting: &'static LightingRules,
+    /// What it decides in code about the player's holiness.
+    holiness: &'static HolinessRules,
     /// What it decides about dungeon features in code rather than in `feat_defs`.
     features: &'static features::FeatureRules,
     /// What it counts as a Way Out, and what stops each.
@@ -232,6 +274,17 @@ fn known_monsters<'a>(
             }
         })
         .collect()
+}
+
+/// Marks `form` as undead, or as adding undead to the species' holiness, where `rules` says
+/// crawl's code does.
+fn mark_undead(form: &mut Form, rules: &HolinessRules) {
+    if let Some(&(_, undead)) = rules.undead_forms.iter().find(|(id, _)| *id == form.id) {
+        form.undead = undead;
+    }
+    if rules.undead_adding_forms.contains(&form.id.as_str()) {
+        form.holiness = FormHoliness::AddsUndead;
+    }
 }
 
 /// Where crawl's game source lives inside a crawl checkout.
@@ -519,6 +572,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     let item_classes = crawl.item_classes(&item_names, series.kinds_hidden)?;
     let spells = crawl.spells()?;
     let ways_out = crawl.ways_out(series.ways_out, &item_classes, &spells)?;
+    let species = yaml::species(&crawl.source, crawl.tag_major)?;
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -540,7 +594,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         melee_weapons: gear::melee_weapons(&item_prop, "item-prop.cc")?,
         wands: gear::wands(&crawl.parse("spl-book.cc")?, "spl-book.cc", &item_names)?,
         weapon_brands: crawl.weapon_brands()?,
-        species: yaml::species(&crawl.source, crawl.tag_major)?,
+        holiness: crawl.holiness(series.holiness, &species)?,
+        species,
         features: features::features(
             &crawl.parse("feature-data.h")?,
             "feature-data.h",
@@ -911,6 +966,62 @@ impl Crawl {
             halo_gods: texts(rules.halo_gods)?,
             halo_statuses: texts(rules.halo_statuses)?,
             halo_gear: texts(rules.halo_gear)?,
+        })
+    }
+
+    /// The player's holiness signs: the forms in `dat/forms` marked as `rules` says crawl's code
+    /// treats them, and its species, gods and status lights, each found among `species` or in
+    /// crawl's source.
+    fn holiness(
+        &self,
+        rules: &HolinessRules,
+        species: &[Species],
+    ) -> Result<HolinessSigns, ExtractError> {
+        let known_species = |ids: &[&str]| -> Result<Vec<EnumId>, ExtractError> {
+            ids.iter()
+                .map(|&id| {
+                    if species.iter().any(|known| known.id.0 == id) {
+                        Ok(EnumId(id.to_owned()))
+                    } else {
+                        Err(ExtractError::Missing {
+                            file: "dat/species".to_owned(),
+                            what: id.to_owned(),
+                        })
+                    }
+                })
+                .collect()
+        };
+        let mut forms = yaml::forms(&self.source, self.tag_major)?;
+        let named = rules
+            .undead_forms
+            .iter()
+            .map(|(id, _)| id)
+            .chain(rules.undead_adding_forms);
+        for id in named {
+            if !forms.iter().any(|form| form.id == *id) {
+                return Err(ExtractError::Missing {
+                    file: "dat/forms".to_owned(),
+                    what: (*id).to_owned(),
+                });
+            }
+        }
+        for form in &mut forms {
+            mark_undead(form, rules);
+        }
+        Ok(HolinessSigns {
+            nonliving_species: known_species(rules.nonliving_species)?,
+            demonic_species: known_species(rules.demonic_species)?,
+            good_gods: rules
+                .good_gods
+                .iter()
+                .map(|shown| self.shown(shown))
+                .collect::<Result<_, _>>()?,
+            forms,
+            petrified_lights: rules
+                .petrified_lights
+                .iter()
+                .map(|shown| self.shown(shown))
+                .collect::<Result<_, _>>()?,
         })
     }
 

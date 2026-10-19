@@ -8,9 +8,10 @@
  * melee_attack::attack (test_hit, attack_shield_blocked, calc_damage, apply_damage_brand) one at
  * a time, without the other effects that follow a hit. Every other case's monster holds melee
  * weapons: a random one in its main hand, with a random enchantment and brand, and when it
- * wields two weapons, half the time another in its off hand. Each case also tallies the delay of
- * a melee action by its monster (monster::attack_delay), which a weapon's brand changes. Built
- * by oracle.mk and run by tools/crawl-oracle/oracle.sh.
+ * wields two weapons, half the time another in its off hand. The player is given a species, a
+ * god and resistances at random (common.h), which change what a brand adds. Each case also
+ * tallies the delay of a melee action by its monster (monster::attack_delay), which a weapon's
+ * brand changes. Built by oracle.mk and run by tools/crawl-oracle/oracle.sh.
  *
  * Usage: melee <seed> <cases> <trials> [<shard>/<count>]
  *   Each case is seeded from <seed> and its index; with a shard, only its cases are drawn
@@ -119,10 +120,12 @@ static monster *_random_monster(int &attack_number, bool armed)
 
 static void _run_case(int index, int trials)
 {
+    _random_species();
     const defences def = _random_player();
     _random_light();
     int attack_number = 0;
     monster *mon = _random_monster(attack_number, index % KINDS == 1);
+    const string resists = _random_resists(def);
 
     melee_attack attk(mon, &you, attack_number, attack_number);
 
@@ -160,15 +163,15 @@ static void _run_case(int index, int trials)
 
     printf("{\"case\":%d,\"type\":%d,\"monster\":\"%s\",\"hd\":%d,\"fighter\":%s,"
            "\"nightvision\":%s,\"slot\":%d,\"attack\":{\"damage\":%d},\"main\":%s,"
-           "\"off\":%s,\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
-           "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s,"
-           "\"delay\":%s}\n",
+           "\"off\":%s,\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"resists\":%s,"
+           "\"lighting\":\"%s\",\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,"
+           "\"damage\":%s,\"delay\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
            _json_bool(mon->is_fighter()), _json_bool(mon->nightvision()), attack_number,
            attk.attk_damage, _weapon_json(_held(*mon, true)).c_str(),
-           _weapon_json(_held(*mon, false)).c_str(), def.ac, def.ev, def.sh, _lighting(),
-           trials, _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str(),
-           _histogram(delay).c_str());
+           _weapon_json(_held(*mon, false)).c_str(), def.ac, def.ev, def.sh, resists.c_str(),
+           _lighting(), trials, _histogram(to_hit).c_str(), hits, blocks,
+           _histogram(damage).c_str(), _histogram(delay).c_str());
 
     mon->destroy_inventory();
     _remove(*mon);

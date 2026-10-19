@@ -1,7 +1,8 @@
 /*
  * What the crawl oracle's harnesses share: their arguments and seeding, crawl set up without a
- * dungeon, a human player dressed at random until their AC, EV and SH are exact on the display,
- * weapons given to monsters, and a monster's removal.
+ * dungeon, a player of a random species dressed at random until their AC, EV and SH are exact on
+ * the display and given a god and resistances at random, weapons given to monsters, and a
+ * monster's removal.
  *
  * Included by each harness, which is compiled against a crawl build's objects in place of
  * main.o (oracle.mk).
@@ -37,7 +38,9 @@
 #include "ouch.h"
 #include "player.h"
 #include "player-equip.h"
+#include "religion.h"
 #include "skills.h"
+#include "species.h"
 #include "version.h"
 
 // What a harness is asked to run, from its arguments:
@@ -255,6 +258,67 @@ static defences _random_player()
     exit(1);
 }
 
+// The species a player is drawn as, each a holiness the engine tells apart: living, undead,
+// demonic and nonliving.
+static const vector<species_type> SPECIES = { SP_HUMAN, SP_MUMMY, SP_DEMONSPAWN, SP_GARGOYLE };
+
+// Makes the player one of SPECIES at random, before they are dressed: a species may change their
+// evasion.
+static void _random_species()
+{
+    you.species = SPECIES[random2(SPECIES.size())];
+}
+
+// The gods a player is drawn to worship who doesn't follow Yredelemnul for an umbra: none, and
+// each good god.
+static const vector<god_type> GODS = { GOD_NO_GOD, GOD_ZIN, GOD_SHINING_ONE, GOD_ELYVILON };
+
+// Gives the player, defended as `def`, a god at random, keeping Yredelemnul for their umbra, and
+// mutations or a status that give each of rFire, rCold, rNeg, rPois, rElec and rCorr a random
+// level, from vulnerable to as resistant as each goes. Returns those as the character overview
+// shows them, which is all the engine reads, as the JSON object the oracle reads, with the
+// species (_random_species) and god as the game names them.
+static string _random_resists(const defences &def)
+{
+    if (you.religion != GOD_YREDELEMNUL)
+        you.religion = GODS[random2(GODS.size())];
+
+    const int fire = random_range(-3, 3);
+    you.mutation[MUT_HEAT_RESISTANCE] = max(fire, 0);
+    you.mutation[MUT_HEAT_VULNERABILITY] = max(-fire, 0);
+    const int cold = random_range(-3, 3);
+    you.mutation[MUT_COLD_RESISTANCE] = max(cold, 0);
+    you.mutation[MUT_COLD_VULNERABILITY] = max(-cold, 0);
+    you.mutation[MUT_NEGATIVE_ENERGY_RESISTANCE] = random_range(0, 3);
+    const int poison = random_range(-1, 1);
+    you.mutation[MUT_POISON_RESISTANCE] = max(poison, 0);
+    you.duration[DUR_POISON_VULN] = poison < 0 ? 1000 : 0;
+    const int elec = random_range(-1, 1);
+    you.mutation[MUT_SHOCK_RESISTANCE] = max(elec, 0);
+    you.mutation[MUT_SHOCK_VULNERABILITY] = max(-elec, 0);
+    you.mutation[MUT_ACID_RESISTANCE] = random2(2);
+    // A good god's halo may light the player.
+    invalidate_agrid(true);
+
+    if (you.armour_class_scaled(1) != def.ac || you.evasion_scaled(1) != def.ev
+        || player_displayed_shield_class() != def.sh)
+    {
+        fprintf(stderr, "the player's god or resistances changed their defences: "
+                "%s, %s, AC %d to %d, EV %d to %d, SH %d to %d\n",
+                species::name(you.species).c_str(), god_name(you.religion).c_str(), def.ac,
+                you.armour_class_scaled(1), def.ev, you.evasion_scaled(1), def.sh,
+                player_displayed_shield_class());
+        exit(1);
+    }
+    return make_stringf("{\"fire\":%d,\"cold\":%d,\"negative\":%d,\"poison\":%d,"
+                        "\"electricity\":%d,\"corrosion\":%d,\"species\":\"%s\","
+                        "\"god\":\"%s\"}",
+                        player_res_fire(false), player_res_cold(false), player_prot_life(false),
+                        player_res_poison(false), player_res_electricity(false),
+                        player_res_corrosion(false), species::name(you.species).c_str(),
+                        god_name(you.religion).c_str());
+}
+
 // `value` as a JSON boolean.
 static const char *_json_bool(bool value)
 {
@@ -315,14 +379,16 @@ static const char *_brand_id(int brand)
 }
 
 // A brand for a weapon `mon` fights or shoots with, among those whose damage crawl gives as the
-// engine takes it: a holy monster's foul flame, and pain in the hands of a follower of Trog, do
-// nothing in crawl, and the engine doesn't tell those monsters apart.
+// engine takes it: a holy monster's foul flame, an undead or demonic one's holy wrath, and pain
+// in the hands of a follower of Trog, do nothing in crawl, and the engine doesn't tell those
+// monsters apart.
 static brand_type _random_brand(const monster &mon)
 {
     while (true)
     {
         const brand_type brand = WEAPON_BRANDS[random2(WEAPON_BRANDS.size())].first;
         if (brand == SPWPN_FOUL_FLAME && mon.is_holy()
+            || brand == SPWPN_HOLY_WRATH && mon.undead_or_demonic()
             || brand == SPWPN_PAIN && mon.god == GOD_TROG)
         {
             continue;
@@ -418,8 +484,9 @@ struct beam_tally
 
 // Casts `spell` at the player `trials` times, or zaps it from a wand when `evoke`, each set up by
 // crawl's setup_mons_cast and rolled as bolt::affect_player rolls it: bolt::misses_player for the
-// shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists. The beam's
-// flight (bolt::fire) is skipped, but not what it reads from the caster first.
+// shield and evasion, then the damage dice, bolt::apply_AC and check_your_resists for the
+// player's resistances, holiness and god. The beam's flight (bolt::fire) is skipped, but not what
+// it reads from the caster first.
 static beam_tally _cast_at_player(monster &mon, spell_type spell, bool evoke, int trials)
 {
     beam_tally tally;
