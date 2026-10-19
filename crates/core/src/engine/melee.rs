@@ -13,6 +13,7 @@ use copilot_gk::{
     MonsterToHit, ShieldBlock,
 };
 
+use super::brands::{self, Brand};
 use super::lighting::Lighting;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
@@ -216,28 +217,77 @@ pub(crate) struct RolledDamage {
     pub(crate) max: i32,
 }
 
-/// The damage of one monster attack that hit, before armour: the monster branch of
-/// `attack::calc_damage` (`attack.cc:918`) with no weapon, `1 + random2(attk_damage)`.
-///
-/// `melee_attack::apply_damage_modifiers` (`melee-attack.cc:5098`) changes nothing for a monster
-/// without statuses attacking an awake player. A crushing attack only grabs, and deals nothing
-/// itself (`melee_attack::calc_damage`, `melee-attack.cc:5156`).
+/// A weapon as crawl's `attack` rolls with it: a melee weapon in a monster's hand, or a launcher
+/// or throwing missile it fires.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Weapon {
+    /// Its damage: `PWPN_DAMAGE`, or a throwing missile's own.
+    pub(crate) damage: i32,
+    /// The accuracy it adds: `PWPN_HIT`, and none for a throwing missile.
+    pub(crate) accuracy: i32,
+    /// Its enchantment, which adds to its accuracy and its damage.
+    pub(crate) plus: i32,
+    /// Its brand.
+    pub(crate) brand: Brand,
+}
+
+impl Weapon {
+    /// What it adds to its wielder's to-hit: its accuracy and its enchantment, as the monster
+    /// branch of `attack::calc_pre_roll_to_hit` (`attack.cc:231`) adds them.
+    pub(crate) fn to_hit(self) -> i32 {
+        self.accuracy + self.plus
+    }
+}
+
+/// The damage of a monster attack with `attack_damage` of its own, made with `weapon` if any,
+/// before armour: the monster branch of `attack::calc_damage` (`attack.cc:918`) before its
+/// modifiers. A weapon adds `random2` of its damage as its brand adjusts it
+/// (`attack::adjusted_weapon_damage`), and its enchantment as `_core_apply_slaying`
+/// (`attack.cc:829`) adds it, with no slaying; the attack adds `1 + random2(attk_damage)`.
 pub(crate) fn monster_damage(
-    variant: MonsterDamage,
+    formulas: Formulas,
     rng: &mut Rng,
-    attack: Attack,
+    weapon: Option<Weapon>,
+    attack_damage: i32,
 ) -> RolledDamage {
-    match variant {
+    match formulas.monster_damage {
         MonsterDamage::Crawl034 => {
-            if attack.flavour == Flavour::Crush {
-                return RolledDamage { damage: 0, max: 0 };
+            let (mut damage, mut max) = (0, 0);
+            if let Some(weapon) = weapon {
+                max =
+                    brands::weapon_damage(formulas.damage_brand, rng, weapon.brand, weapon.damage);
+                damage = rng.random2(max);
+                // A +0 weapon adds `random2(1)`, nothing.
+                damage = if weapon.plus >= 0 {
+                    damage + rng.random2(1 + weapon.plus)
+                } else {
+                    damage - rng.random2(1 - weapon.plus)
+                };
             }
             RolledDamage {
-                damage: 1 + rng.random2(attack.damage),
-                max: attack.damage,
+                damage: damage + 1 + rng.random2(attack_damage),
+                max: max + attack_damage,
             }
         }
     }
+}
+
+/// The damage of one monster melee attack that hit, before armour: `melee_attack::calc_damage`
+/// (`melee-attack.cc:5156`), where a crushing attack only grabs, and deals nothing itself, and
+/// any other deals [`monster_damage`].
+///
+/// `melee_attack::apply_damage_modifiers` (`melee-attack.cc:5098`) changes nothing for a monster
+/// without statuses attacking an awake player.
+pub(crate) fn melee_damage(
+    formulas: Formulas,
+    rng: &mut Rng,
+    attack: Attack,
+    weapon: Option<Weapon>,
+) -> RolledDamage {
+    if attack.flavour == Flavour::Crush {
+        return RolledDamage { damage: 0, max: 0 };
+    }
+    monster_damage(formulas, rng, weapon, attack.damage)
 }
 
 /// What the player takes from `damage` after armour: `actor::apply_ac` (`actor.cc:343`) under the
@@ -399,7 +449,7 @@ pub(crate) fn swing(
         damage: 0,
     };
     if swing.landed() {
-        let rolled = monster_damage(formulas.monster_damage, rng, attack);
+        let rolled = melee_damage(formulas, rng, attack, None);
         swing.damage = apply_ac(formulas.armour, rng, rolled, defences);
     }
     swing
@@ -643,7 +693,7 @@ mod tests {
     fn a_monster_attack_deals_one_to_its_damage_before_armour() {
         let mut rng = rng();
         let rolls: Vec<_> = (0..10_000)
-            .map(|_| monster_damage(MonsterDamage::Crawl034, &mut rng, attack("AF_PLAIN", 5)))
+            .map(|_| melee_damage(Formulas::CRAWL_0_34, &mut rng, attack("AF_PLAIN", 5), None))
             .collect();
         assert!(rolls.iter().all(|roll| roll.max == 5));
         assert_eq!(rolls.iter().map(|roll| roll.damage).min(), Some(1));
@@ -652,7 +702,12 @@ mod tests {
 
     #[test]
     fn a_crushing_attack_deals_nothing_as_it_grabs() {
-        let roll = monster_damage(MonsterDamage::Crawl034, &mut rng(), attack("AF_CRUSH", 20));
+        let roll = melee_damage(
+            Formulas::CRAWL_0_34,
+            &mut rng(),
+            attack("AF_CRUSH", 20),
+            None,
+        );
         assert_eq!(roll, RolledDamage { damage: 0, max: 0 });
     }
 
