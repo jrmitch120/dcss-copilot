@@ -1,0 +1,22 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, maps D:1, steps south into the room below, creates a wandering mushroom, which crawl puts two squares away beside the down staircase west of the stairs out of the dungeon, and walks four squares east: watched, the mushroom steps only into the player from beside them, so it can't walk the one square it needs to cut off that staircase, nor attack"
+recording = "wandering-mushroom-stays-put-while-watched.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command: map the
+  # level, so its staircases are known.
+  "&", "wiz\r", "{",
+  # Step south, into the room below.
+  "j",
+  # Create a monster by name near them: a wandering mushroom.
+  "&", "m", "wandering mushroom\r",
+  # Walk four squares east.
+  "l", "l", "l", "l",
+  "\u001b",
+]

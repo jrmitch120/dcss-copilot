@@ -7,6 +7,7 @@ use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
 
 use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
+use crate::engine::step;
 use crate::fact_sheet::{Gap, attacks_player};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 
@@ -199,8 +200,8 @@ impl OnTheLevel<'_> {
             .collect()
     }
 
-    /// The hostiles in view that can move, each with its kind and its moves to every square it
-    /// can reach.
+    /// The hostiles in view that can walk while the player watches them, each with its kind and
+    /// its moves to every square it can reach.
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
@@ -223,7 +224,8 @@ impl OnTheLevel<'_> {
                 });
                 continue;
             };
-            if monster.stationary {
+            let step = self.bundle.formulas.monster_step;
+            if monster.stationary || !step::walks_while_watched(step, monster.watched_step) {
                 continue;
             }
             let walker = Walker::Monster {
@@ -274,7 +276,7 @@ impl OnTheLevel<'_> {
     }
 }
 
-/// A hostile in view that can move.
+/// A hostile in view that can walk while the player watches it.
 struct Chaser<'a> {
     seen: &'a VisibleMonster,
     /// Its speed, where 10 is the player's normal speed.

@@ -169,6 +169,14 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Impact and cost:** errs high, modestly. Reading mutations comes first ([#40]); then it is a term in two to-hit formulas.
 - **Issue:** [#94]
 
+### The player's sight
+
+- **What crawl does:** the player sees `you.current_vision` squares: 7, one more with the Daystalker mutation, and fewer with the Nightstalker mutation, a scarf of shadows or a meteoran's bezotting (`update_vision_range`). A monster's missile flies that far, and a lurking horror watched by the player steps toward them only when they are no farther than `random2(you.current_vision + 1)` (`_fungal_move_check`).
+- **What the engine assumes:** 7.
+- **Surfaced as:** accepted simplification: only a Daystalker sees farther, by one square, and narrower sight errs high.
+- **Harness:** every harness plays a player with crawl's default sight.
+- **Impact and cost:** small: for a Daystalker, a missile flies one square farther and a lurking horror steps a little more often. Reading mutations ([#40]) and the scarf would close it.
+
 ### A beam's or missile's flight
 
 - **What crawl does:** a beam or missile flies its path (`bolt::fire`): a bolt may bounce off a wall and strike the player twice (`bolt::bounce`), and a piercing one goes on past them.
@@ -218,15 +226,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the turn harness leaves out kinds that keep their range.
 - **Impact and cost:** errs high when its melee is worse than what it fires.
 - **Issue:** [#102]
-
-### Won't move while watched
-
-- **What crawl does:** the wandering mushroom, deathcap and lurking horror won't step toward the player while the player watches them (`_fungal_move_check`).
-- **What the engine assumes:** they walk up like anything else.
-- **Surfaced as:** `wontMoveWhileWatched`, when a monster that can attack is one of them; its row names it.
-- **Harness:** the turn harness leaves them out.
-- **Impact and cost:** errs high. Crawl hard-codes the kinds, and Game Knowledge mirrors its list.
-- **Issue:** [#101]
 
 ### Moving with a parent
 
@@ -352,7 +351,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#101]: https://github.com/jrmitch120/dcss-copilot/issues/101
 [#102]: https://github.com/jrmitch120/dcss-copilot/issues/102
 [#103]: https://github.com/jrmitch120/dcss-copilot/issues/103
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104

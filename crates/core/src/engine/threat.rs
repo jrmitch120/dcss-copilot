@@ -22,7 +22,7 @@ use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::wands;
+use super::{step, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -664,10 +664,11 @@ pub(crate) struct Outcome {
 }
 
 /// Whether `attacker` can attack before the player's next standard-speed action at all: with the
-/// most energy it could have, it closes the distance, unless it never moves, and still has an
-/// action left to strike the player in melee, with a spell or wand, or with a missile. Where a
-/// spell lands its caster ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the
-/// player from wherever it is cast at them.
+/// most energy it could have, it closes the distance, unless it never moves or never steps toward
+/// a player watching it from there ([`step::may_step`]), and still has an action left to strike
+/// the player in melee, with a spell or wand, or with a missile. Where a spell lands its caster
+/// ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the player from wherever it
+/// is cast at them.
 pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
@@ -676,7 +677,10 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
         if attacker.strikes_from(formulas, distance) {
             return true;
         }
-        if monster.stationary || distance <= 1 {
+        if monster.stationary
+            || distance <= 1
+            || !step::may_step(formulas.monster_step, monster.watched_step, distance)
+        {
             return false;
         }
         distance -= 1;
@@ -779,7 +783,10 @@ pub(crate) fn turn(
             breath_timeout = breath_timeout.saturating_sub(1);
         }
         first_action = false;
-        // A monster tries its spells before anything else, then its wand, then its missiles
+        // Whether it would step toward the player this action, which crawl decides before it
+        // tries anything (`_find_best_step`, `mon-act.cc:2280`).
+        let steps = step::steps(formulas.monster_step, rng, monster.watched_step, distance);
+        // A monster tries its spells first, then its wand, then its missiles
         // (`_mons_take_special_action`, `mon-act.cc:1840`).
         let can_breathe = breath_timeout == 0;
         if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, can_breathe) {
@@ -837,10 +844,12 @@ pub(crate) fn turn(
             energy -= missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
             continue;
         }
-        if reach == 0 || distance > reach {
-            // It walks straight at the player, unless it never moves: walls and other
-            // monsters aren't modelled.
-            if !monster.stationary && distance > 1 {
+        // Beside the player it attacks by stepping into them; from farther, a reaching attack
+        // needs no step.
+        if reach == 0 || distance > reach || (distance == 1 && !steps) {
+            // It walks straight at the player, unless it never moves or doesn't step: walls and
+            // other monsters aren't modelled.
+            if steps && !monster.stationary && distance > 1 {
                 distance -= 1;
                 turn.closed += 1;
             }
@@ -1142,6 +1151,65 @@ mod tests {
         )
         .map(|(slot, _, weapon)| (slot, weapon.map(|wielded| wielded.weapon.damage)))
         .collect()
+    }
+
+    /// The turns `monster`, `distance` squares from an undefended player, plays out over
+    /// `trials` trials.
+    fn turns_of(monster: &Monster, distance: i32, trials: u32) -> Vec<Turn> {
+        let attacker = Attacker::new(bundle(), monster, distance).without_gear();
+        let target = Target {
+            defences: Defences::exact(0, 0, 0),
+            lighting: Lighting::Plain,
+            resists: Resists::NONE,
+        };
+        let mut rng = Rng::new(SEED.0, SEED.1);
+        (0..trials)
+            .map(|_| turn(bundle().formulas, &mut rng, &attacker, target, &mut 0))
+            .collect()
+    }
+
+    #[test]
+    fn a_wandering_mushroom_in_view_attacks_only_from_beside_the_player() {
+        let mushroom = monster("wandering mushroom");
+        let formulas = bundle().formulas;
+        let afar = Attacker::new(bundle(), mushroom, 3).without_gear();
+        assert!(!can_attack(formulas, &afar));
+        assert!(
+            turns_of(mushroom, 3, 1_000)
+                .iter()
+                .all(|turn| turn.closed == 0 && turn.melee == 0)
+        );
+        let beside = Attacker::new(bundle(), mushroom, 1).without_gear();
+        assert!(can_attack(formulas, &beside));
+        assert!(
+            turns_of(mushroom, 1, 1_000)
+                .iter()
+                .all(|turn| turn.melee == 1)
+        );
+    }
+
+    #[test]
+    fn a_lurking_horror_in_view_steps_as_often_as_a_roll_on_the_players_sight_allows() {
+        // At the player's speed it has one action, in which it steps from `distance` squares
+        // when `distance <= random2(8)`: into the player from beside them, to attack.
+        let mut horror = monster("lurking horror").clone();
+        horror.speed = 10;
+        let trials = 20_000;
+        for distance in 1..=7 {
+            let turns = turns_of(&horror, distance, trials);
+            let stepped = turns
+                .iter()
+                .filter(|turn| turn.closed + turn.melee == 1)
+                .count();
+            let rate = f64::from(u32::try_from(stepped).unwrap()) / f64::from(trials);
+            let expected = f64::from(8 - distance) / 8.0;
+            assert!(
+                (rate - expected).abs() < 0.015,
+                "{distance} squares: {rate}, not {expected}"
+            );
+        }
+        let afar = Attacker::new(bundle(), monster("lurking horror"), 2).without_gear();
+        assert!(can_attack(bundle().formulas, &afar));
     }
 
     #[test]

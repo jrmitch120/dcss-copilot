@@ -9,6 +9,7 @@ pub(crate) mod paths;
 pub(crate) mod resists;
 mod rng;
 pub(crate) mod spells;
+pub(crate) mod step;
 pub(crate) mod threat;
 pub(crate) mod wands;
 
