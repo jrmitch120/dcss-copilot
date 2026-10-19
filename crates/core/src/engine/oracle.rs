@@ -10,8 +10,10 @@ use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
 
 use crate::accumulated_state::Shield;
 
-use super::brands::Brand;
-use super::melee::{self, Aim, Attack, Defences, Flavour, Swing, Target};
+use crate::crawl_ids::monster_types;
+
+use super::brands::{Brand, Necromancy};
+use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
@@ -48,23 +50,45 @@ fn target(defences: ExactDefences, lighting: Lighting) -> Target {
 }
 
 /// One monster attack on the player, in the terms the ported formulas take.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeleeCase {
-    /// The attacker's `monster_type` value, whose Game Knowledge says whether it sees through an
-    /// umbra.
+    /// The attacker's `monster_type` value, whose Game Knowledge gives its attacks and says
+    /// whether it sees through an umbra.
     pub monster: u16,
     /// The attacker's hit dice.
     pub hit_dice: i32,
     /// Whether the attacker is a fighter (`M_FIGHTER`), which raises its accuracy.
     pub fighter: bool,
+    /// The attack's slot among the attacker's, numbered from 0.
+    pub slot: usize,
     /// The attack's damage before armour.
     pub damage: i32,
-    /// Whether the attack crushes (`AF_CRUSH`), grabbing and dealing no damage itself.
-    pub crushes: bool,
+    /// The melee weapons the attacker holds.
+    pub hands: HandsCase,
     /// The player's defences.
     pub defences: ExactDefences,
     /// How the light falls on the player.
     pub lighting: Lighting,
+}
+
+/// The melee weapons a harness's monster holds.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct HandsCase {
+    /// In its main hand.
+    pub main: Option<WeaponCase>,
+    /// In its off hand: for a monster that wields two weapons.
+    pub off: Option<WeaponCase>,
+}
+
+/// A melee weapon a harness's monster holds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WeaponCase {
+    /// The weapon, by `weapon_type` identifier.
+    pub weapon: EnumId,
+    /// Its enchantment.
+    pub plus: i32,
+    /// Its brand, by `brand_type` identifier.
+    pub brand: EnumId,
 }
 
 /// What many runs of one melee attack or missile came to.
@@ -76,54 +100,90 @@ pub struct AttackTally {
     pub hits: u32,
     /// Attacks the player's shield blocked, whether or not they would have hit.
     pub blocks: u32,
-    /// How often each amount of damage, after armour, was taken from an attack that hit and
-    /// wasn't blocked.
+    /// How often each amount of damage, after armour and with what a brand adds, was taken from
+    /// an attack that hit and wasn't blocked.
     pub damage: BTreeMap<i32, u32>,
 }
 
+/// What many runs of one melee attack came to, with the delay of a melee action by its attacker.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct MeleeTally {
+    /// The attack's rolls.
+    pub attack: AttackTally,
+    /// How often each delay came up for a melee action, as `monster::attack_delay` rolls it.
+    pub delay: BTreeMap<i32, u32>,
+}
+
 /// Runs `case` `trials` times through the ported formulas, from a generator seeded with
-/// `seed`, with a fresh shield block for every attack, as the harness resets crawl's.
+/// `seed`, with a fresh shield block for every attack, as the harness resets crawl's, and rolls
+/// its attacker's melee delay as often.
 ///
 /// # Errors
-/// If the bundle has no monster numbered as the attacker.
+/// If the bundle has no monster numbered as the attacker, it has no attack in the case's slot,
+/// or the bundle lacks one of its weapons.
 pub fn melee(
     bundle: &Bundle,
     case: &MeleeCase,
     seed: (u64, u64),
     trials: u32,
-) -> Result<AttackTally, CaseError> {
+) -> Result<MeleeTally, CaseError> {
+    let formulas = bundle.formulas;
     let monster = bundle
         .monster(case.monster)
         .ok_or(CaseError::NoMonster(case.monster))?;
-    let aim = Aim {
+    let no_attack = CaseError::NoAttack {
+        monster: case.monster,
+        slot: case.slot,
+    };
+    let attack = Attack {
+        damage: case.damage,
+        ..monster
+            .attacks
+            .get(case.slot)
+            .and_then(Attack::of)
+            .ok_or(no_attack)?
+    };
+    let fighter = Fighter {
         hit_dice: case.hit_dice,
         skilled: case.fighter,
-        accuracy: 0,
         nightvision: monster.nightvision,
+        necromancy: Necromancy::of(bundle, monster, case.hit_dice),
+        draugr: monster.id.0 == monster_types::DRAUGR,
+        hands: Some(hands(bundle, &case.hands)?),
     };
+    let weapon = fighter
+        .weapon(formulas.monster_weapon, case.slot, attack)
+        .map(|wielded| wielded.weapon);
+    let first = monster.attacks.first().and_then(Attack::of);
     let mut rng = Rng::new(seed.0, seed.1);
-    let attack = Attack {
-        flavour: if case.crushes {
-            Flavour::Crush
-        } else {
-            Flavour::Other
-        },
-        damage: case.damage,
-    };
     let target = target(case.defences, case.lighting);
-    let mut tally = AttackTally::default();
+    let mut tally = MeleeTally::default();
     for _ in 0..trials {
-        tally.add(melee::swing(
-            bundle.formulas,
-            &mut rng,
-            aim,
-            attack,
-            target,
+        tally.attack.add(melee::swing(
+            formulas, &mut rng, &fighter, attack, weapon, target,
             // The harness resets crawl's shield blocks before every attack.
             true,
         ));
+        let delay = fighter.attack_delay(formulas, &mut rng, first);
+        *tally.delay.entry(delay).or_default() += 1;
     }
     Ok(tally)
+}
+
+/// The melee weapons a harness's monster holds, as the formulas take them.
+fn hands(bundle: &Bundle, hands: &HandsCase) -> Result<Hands, CaseError> {
+    let hold = |weapon: &WeaponCase| {
+        let known = bundle
+            .melee_weapons
+            .get(&weapon.weapon)
+            .ok_or_else(|| CaseError::NoMeleeWeapon(weapon.weapon.0.clone()))?;
+        let brand = Brand::of(bundle.formulas.damage_brand, &weapon.brand);
+        Ok(Wielded::of(known, weapon.plus, brand))
+    };
+    Ok(Hands {
+        main: hands.main.as_ref().map(hold).transpose()?,
+        off: hands.off.as_ref().map(hold).transpose()?,
+    })
 }
 
 impl AttackTally {
@@ -149,6 +209,17 @@ pub enum CaseError {
     /// A spell in the monster's book isn't in the Game Knowledge.
     #[error("the Game Knowledge has no spell {0}, which a monster's book names")]
     UnknownSpell(String),
+    /// The monster has no attack in this slot.
+    #[error("monster {monster} has no attack in slot {slot}")]
+    NoAttack {
+        /// The monster's `monster_type` value.
+        monster: u16,
+        /// The attack's slot, numbered from 0.
+        slot: usize,
+    },
+    /// The bundle has no melee weapon with this sub-type identifier.
+    #[error("the Game Knowledge has no melee weapon {0}")]
+    NoMeleeWeapon(String),
     /// The bundle has no launcher or missile with this sub-type identifier.
     #[error("the Game Knowledge has no launcher or missile {0}")]
     NoMissileWeapon(String),
@@ -665,20 +736,29 @@ pub struct MeleeReach {
     pub attacks_from: BTreeMap<i32, Vec<usize>>,
 }
 
-/// How far the monster numbered `monster` reaches in melee, and with which attacks.
+/// How far the monster numbered `monster` reaches in melee holding `hands`, and with which
+/// attacks.
 ///
 /// # Errors
-/// If the bundle has no monster numbered `monster`.
-pub fn melee_reach(bundle: &Bundle, monster: u16) -> Result<MeleeReach, CaseError> {
+/// If the bundle has no monster numbered `monster`, or lacks one of its weapons.
+pub fn melee_reach(
+    bundle: &Bundle,
+    monster: u16,
+    hands: &HandsCase,
+) -> Result<MeleeReach, CaseError> {
     let formulas = bundle.formulas;
     let known = bundle
         .monster(monster)
         .ok_or(CaseError::NoMonster(monster))?;
-    let reach = threat::melee_reach(formulas, known);
+    let fighter = Fighter {
+        hands: Some(self::hands(bundle, hands)?),
+        ..Attacker::new(bundle, known, 1).fighter
+    };
+    let reach = threat::melee_reach(formulas, &fighter, known);
     let attacks_from = (1..=reach)
         .map(|distance| {
-            let slots = threat::attacks_from(formulas, known, distance)
-                .map(|(slot, _)| slot)
+            let slots = threat::attacks_from(formulas, &fighter, known, distance)
+                .map(|(slot, ..)| slot)
                 .collect();
             (distance, slots)
         })

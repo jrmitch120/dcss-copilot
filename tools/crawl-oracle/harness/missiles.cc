@@ -53,48 +53,6 @@
 // The item level gear is made at: D:5, deeper than every depth give_item asks about.
 static const int GEAR_LEVEL = 4;
 
-// The enchantments a missile case's launcher is given, from MIN_PLUS to MAX_PLUS.
-static const int MIN_PLUS = -3;
-static const int MAX_PLUS = 9;
-
-// The brands a missile case's launcher is given, each with its identifier as the engine names it:
-// none, every brand the engine ports, and venom, which adds no damage the engine counts.
-#define BRAND(id) { id, #id }
-static const vector<pair<brand_type, const char *>> LAUNCHER_BRANDS = {
-    BRAND(SPWPN_NORMAL),        BRAND(SPWPN_FLAMING),  BRAND(SPWPN_FREEZING),
-    BRAND(SPWPN_ELECTROCUTION), BRAND(SPWPN_HOLY_WRATH), BRAND(SPWPN_FOUL_FLAME),
-    BRAND(SPWPN_DRAINING),      BRAND(SPWPN_PAIN),     BRAND(SPWPN_HEAVY),
-    BRAND(SPWPN_SPEED),         BRAND(SPWPN_VENOM),
-};
-#undef BRAND
-
-// The identifier of a brand a launcher was given.
-static const char *_brand_id(int brand)
-{
-    for (const auto &entry : LAUNCHER_BRANDS)
-        if (entry.first == brand)
-            return entry.second;
-    fprintf(stderr, "a launcher was given brand %d, which isn't in LAUNCHER_BRANDS\n", brand);
-    exit(1);
-}
-
-// A brand for a launcher `mon` shoots, among those whose damage crawl gives as the engine takes
-// it: a holy monster's foul flame, and pain in the hands of a follower of Trog, do nothing in
-// crawl, and the engine doesn't tell those monsters apart.
-static brand_type _random_brand(const monster &mon)
-{
-    while (true)
-    {
-        const brand_type brand = LAUNCHER_BRANDS[random2(LAUNCHER_BRANDS.size())].first;
-        if (brand == SPWPN_FOUL_FLAME && mon.is_holy()
-            || brand == SPWPN_PAIN && mon.god == GOD_TROG)
-        {
-            continue;
-        }
-        return brand;
-    }
-}
-
 static set<spell_type> _read_ported(const char *path)
 {
     set<spell_type> ported;

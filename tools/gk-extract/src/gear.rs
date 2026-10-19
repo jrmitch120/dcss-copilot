@@ -20,6 +20,11 @@ use crate::cpp::{Source, Token, number, split_top_level};
 /// The skill `Weapon_prop` gives launchers: crawl's `is_range_weapon`.
 pub const LAUNCHER_SKILL: &str = "SK_RANGED_WEAPONS";
 
+/// The skill `Weapon_prop` gives the retired blowgun, which shoots needles rather than striking in
+/// melee, and whose enchantment adds nothing to its damage (`attack::get_weapon_plus`,
+/// `attack.cc:815`): crawl's `SK_THROWING`.
+pub const THROWING_SKILL: &str = "SK_THROWING";
+
 /// The skill `Weapon_prop` gives polearms, which reach two squares (`weapon_reach`,
 /// `item-prop.cc:2323`): crawl's `SK_POLEARMS`.
 pub const POLEARM_SKILL: &str = "SK_POLEARMS";
@@ -493,9 +498,9 @@ pub fn missile_weapons(
     Ok(weapons)
 }
 
-/// Every melee weapon in `Weapon_prop` (`item-prop.cc`): those not trained by
-/// [`LAUNCHER_SKILL`], with their damage, accuracy and reach. The entry's fields are read as
-/// [`missile_weapons`] reads them.
+/// Every melee weapon in `Weapon_prop` (`item-prop.cc`): those trained by neither
+/// [`LAUNCHER_SKILL`] nor [`THROWING_SKILL`], with their damage, accuracy and reach. The entry's
+/// fields are read as [`missile_weapons`] reads them.
 pub fn melee_weapons(
     item_prop: &Source,
     file: &str,
@@ -506,7 +511,7 @@ pub fn melee_weapons(
             return Err(unreadable(file, "an entry of Weapon_prop"));
         };
         let skill = identifier(skill).ok_or_else(|| unreadable(file, "a weapon's skill"))?;
-        if skill == LAUNCHER_SKILL {
+        if skill == LAUNCHER_SKILL || skill == THROWING_SKILL {
             continue;
         }
         let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a weapon"))?;

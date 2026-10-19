@@ -490,7 +490,11 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     crawl.require(
         "skill-type.h",
         &["skill_type"],
-        [gear::LAUNCHER_SKILL, gear::POLEARM_SKILL],
+        [
+            gear::LAUNCHER_SKILL,
+            gear::THROWING_SKILL,
+            gear::POLEARM_SKILL,
+        ],
     )?;
     crawl.require("object-class-type.h", &["object_class_type"], [gear::WANDS])?;
     crawl.require("feature.h", &["feature_flag_type"], [features::SOLID_FLAG])?;

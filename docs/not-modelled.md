@@ -15,12 +15,11 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Monster equipment
 
-- **What crawl does:** a monster that wields a weapon fights with its damage, plus and brand (`attack::calc_damage`, `attack::adjusted_weapon_damage`), and its armour and shield count toward its defences. An animated object, such as a dancing weapon, fights as the weapon it is.
-- **What the engine assumes:** monsters fight with their kind's attacks alone, as if they wield nothing and wear nothing.
-- **Surfaced as:** `monsterEquipment`, on every rated Threat Level.
-- **Harness:** melee leaves out monsters that wield items and animated objects; the missile and turn harnesses make their monsters with no items but what they shoot.
-- **Impact and cost:** large for armed monsters, such as orcs with a good weapon; little for beasts. The Advisor reads a monster's weapon and armour with its Carried Gear, and the brands are ported (`brands.rs`); the weapon formulas remain to be ported for monster melee.
-- **Issue:** [#98]
+- **What crawl does:** a monster that wields a weapon fights with its damage, accuracy, plus, brand and reach (`attack::calc_damage`, `attack::calc_pre_roll_to_hit`, `monster::reach_range`), and its armour and shield count toward its defences. An animated object, such as a dancing weapon, fights as the weapon it is.
+- **What the engine assumes:** a monster whose Carried Gear shows what it holds fights with it: the weapon `monster::weapon` gives each attack, its accuracy, damage, enchantment and the brands `brands.rs` ports, its reach, and its brand's delay, and it makes no attack only a weapon makes when it holds no melee weapon. A kind that uses no items holds none. Any other monster fights with its kind's attacks alone, as if it wields nothing, but still makes the attacks only a weapon makes: its Carried Gear isn't read, its listing (a group's sighting message) may leave out a plain weapon in its main hand, it holds something the Advisor can't name as a weapon, such as a magical staff or an artefact whose name doesn't show its kind, or it is an animated object. No monster's armour or shield is counted, which matters only to the player's attacks, and the engine doesn't play those.
+- **Surfaced as:** `monsterEquipment`, while a monster in view that can fight in melee may wield a weapon the Advisor hasn't read. A weapon's enchantment or brand its name doesn't show, and a brand that isn't ported, are listed with the monster's gear as unplayed.
+- **Harness:** melee leaves out animated objects; the turn harness makes its monsters with no items, and the missile harness with nothing but what they shoot.
+- **Impact and cost:** large for an armed monster seen only in a group's sighting message, or out of view since, such as an orc with a good weapon; little for beasts. Reading its look text (`x`) closes it; animated objects need their item read from their name.
 
 ### Attack flavours
 
@@ -346,7 +345,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#98]: https://github.com/jrmitch120/dcss-copilot/issues/98
 [#99]: https://github.com/jrmitch120/dcss-copilot/issues/99
 [#101]: https://github.com/jrmitch120/dcss-copilot/issues/101
 [#102]: https://github.com/jrmitch120/dcss-copilot/issues/102

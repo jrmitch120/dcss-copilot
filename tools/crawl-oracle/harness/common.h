@@ -1,7 +1,7 @@
 /*
  * What the crawl oracle's harnesses share: their arguments and seeding, crawl set up without a
  * dungeon, a human player dressed at random until their AC, EV and SH are exact on the display,
- * and a monster's removal.
+ * weapons given to monsters, and a monster's removal.
  *
  * Included by each harness, which is compiled against a crawl build's objects in place of
  * main.o (oracle.mk).
@@ -31,6 +31,7 @@
 #include "mapdef.h"
 #include "message.h"
 #include "mon-cast.h"
+#include "mon-gear.h"
 #include "mon-util.h"
 #include "monster.h"
 #include "ouch.h"
@@ -285,6 +286,85 @@ static void _random_light()
     else if (roll == 1)
         you.religion = GOD_YREDELEMNUL;
     invalidate_agrid(true);
+}
+
+// The enchantments a weapon a harness gives a monster is given, from MIN_PLUS to MAX_PLUS.
+static const int MIN_PLUS = -3;
+static const int MAX_PLUS = 9;
+
+// The brands a weapon a harness gives a monster is given, each with its identifier as the engine
+// names it: none, every brand the engine ports, and venom, which adds no damage the engine
+// counts.
+#define BRAND(id) { id, #id }
+static const vector<pair<brand_type, const char *>> WEAPON_BRANDS = {
+    BRAND(SPWPN_NORMAL),        BRAND(SPWPN_FLAMING),  BRAND(SPWPN_FREEZING),
+    BRAND(SPWPN_ELECTROCUTION), BRAND(SPWPN_HOLY_WRATH), BRAND(SPWPN_FOUL_FLAME),
+    BRAND(SPWPN_DRAINING),      BRAND(SPWPN_PAIN),     BRAND(SPWPN_HEAVY),
+    BRAND(SPWPN_SPEED),         BRAND(SPWPN_VENOM),
+};
+#undef BRAND
+
+// The identifier of a brand a weapon was given.
+static const char *_brand_id(int brand)
+{
+    for (const auto &entry : WEAPON_BRANDS)
+        if (entry.first == brand)
+            return entry.second;
+    fprintf(stderr, "a weapon was given brand %d, which isn't in WEAPON_BRANDS\n", brand);
+    exit(1);
+}
+
+// A brand for a weapon `mon` fights or shoots with, among those whose damage crawl gives as the
+// engine takes it: a holy monster's foul flame, and pain in the hands of a follower of Trog, do
+// nothing in crawl, and the engine doesn't tell those monsters apart.
+static brand_type _random_brand(const monster &mon)
+{
+    while (true)
+    {
+        const brand_type brand = WEAPON_BRANDS[random2(WEAPON_BRANDS.size())].first;
+        if (brand == SPWPN_FOUL_FLAME && mon.is_holy()
+            || brand == SPWPN_PAIN && mon.god == GOD_TROG)
+        {
+            continue;
+        }
+        return brand;
+    }
+}
+
+// Gives `mon` a melee weapon of `type` with enchantment `plus` and `brand`, by crawl's own
+// give_specific_item, which puts it in the main hand, or in the off hand of a monster that
+// wields two weapons and holds one already. Crawl may change what it gives an undead or demonic
+// monster (convert2bad), or refuse it.
+static void _give_weapon(monster &mon, weapon_type type, int plus, brand_type brand)
+{
+    item_def item;
+    item.base_type = OBJ_WEAPONS;
+    item.sub_type = type;
+    item.quantity = 1;
+    item.plus = plus;
+    item.brand = brand;
+    give_specific_item(&mon, item);
+}
+
+// The melee weapon `mon` holds in its main hand, or in its off hand when it wields two weapons
+// (`main` false), if any.
+static const item_def *_held(const monster &mon, bool main)
+{
+    if (!main && !mons_wields_two_weapons(mon))
+        return nullptr;
+    const item_def *item = mon.mslot_item(main ? MSLOT_WEAPON : MSLOT_ALT_WEAPON);
+    return item && is_melee_weapon(*item) ? item : nullptr;
+}
+
+// A melee weapon as the harnesses print it, `{"weapon":"<object_class_type>:<sub_type>",
+// "plus":<plus>,"brand":"<brand_type>"}`, or `null` for none.
+static string _weapon_json(const item_def *weapon)
+{
+    if (!weapon)
+        return "null";
+    return make_stringf("{\"weapon\":\"%d:%d\",\"plus\":%d,\"brand\":\"%s\"}",
+                        weapon->base_type, weapon->sub_type, weapon->plus,
+                        _brand_id(get_weapon_brand(*weapon)));
 }
 
 // Takes a monster off the map without its death and what dying sets off, as util/monster does.

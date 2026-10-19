@@ -2,19 +2,21 @@
 //! standard-speed action, casting its spells, zapping its wand, shooting and fighting in melee
 //! through crawl's own dice, many times over.
 
-use copilot_gk::{Bundle, EnumId, Formulas, MissileKind, Monster, MonsterSpells, Odds, Wand};
+use copilot_gk::{
+    Bundle, EnumId, Formulas, ItemUse, MissileKind, Monster, MonsterSpells, Odds, Wand,
+};
 
 use crate::accumulated_state::Shield;
 use crate::carried_gear::{
     CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed, WAND_OF,
 };
-use crate::crawl_ids::{missile_types, object_classes};
+use crate::crawl_ids::{missile_types, monster_types, object_classes};
 
-use super::brands::Brand;
+use super::brands::{Brand, Necromancy};
 use super::lighting::Lighting;
 use super::melee::{
-    self, Aim, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Target, attack_reach,
-    energy_gained, starting_energy,
+    self, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Fighter, Hands, Target, Wielded,
+    attack_reach, energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::rng::Rng;
@@ -62,8 +64,8 @@ pub(crate) fn shield_blocks_per_action(formulas: Formulas, shield: Option<Shield
     melee::shield_block_limit(formulas.shield_block, shield)
 }
 
-/// A monster that may attack the player, how far away it is, and the spells, wands and missiles
-/// it may use that the engine ports.
+/// A monster that may attack the player, how far away it is, the melee weapons it fights with,
+/// and the spells, wands and missiles it may use that the engine ports.
 #[derive(Debug, Clone)]
 pub(crate) struct Attacker<'a> {
     /// Its Game Knowledge.
@@ -85,6 +87,8 @@ pub(crate) struct Attacker<'a> {
     pub(crate) shoots: Vec<String>,
     /// It firing what it shoots or throws.
     shooter: Shooter,
+    /// It fighting in melee, with the melee weapons its Carried Gear shows, if read.
+    pub(crate) fighter: Fighter,
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -248,17 +252,26 @@ impl<'a> Attacker<'a> {
             unported_wand: unported(bundle, monster, &monster.gear.wand),
             shoots: Vec::new(),
             shooter: Shooter::of(bundle, monster, hit_dice),
+            fighter: Fighter {
+                hit_dice,
+                skilled: monster.fighter,
+                nightvision: monster.nightvision,
+                necromancy: Necromancy::of(bundle, monster, hit_dice),
+                draugr: monster.id.0 == monster_types::DRAUGR,
+                hands: unread_hands(monster),
+            },
         };
         attacker.shoots = attacker.possible_names();
         attacker
     }
 
     /// The same monster, playing its Carried Gear, `gear`, in place of its kind's Possible Gear:
-    /// what the game named, and, where the listing would leave out what it carries, its kind's
-    /// Possible Gear given that it is nothing the listing would have named. With what of the gear
-    /// isn't played as it is.
+    /// the melee weapons and what it shoots, throws or zaps that the game named, and, where the
+    /// listing would leave out what it carries, its kind's Possible Gear given that it is nothing
+    /// the listing would have named. With what of the gear isn't played as it is.
     pub(crate) fn carrying(self, bundle: &'a Bundle, gear: &CarriedGear) -> (Self, Vec<Unplayed>) {
         let mut unplayed = Vec::new();
+        let hands = carried_hands(bundle, self.monster, gear, &mut unplayed);
         let (missiles, mut shoots) = carried_missiles(bundle, self.monster, gear, &mut unplayed);
         let (wands, unported_wand, zaps) = carried_wand(bundle, self.monster, gear, &mut unplayed);
         shoots.extend(zaps);
@@ -267,20 +280,36 @@ impl<'a> Attacker<'a> {
             wands,
             unported_wand,
             shoots,
+            fighter: Fighter {
+                hands,
+                ..self.fighter
+            },
             ..self
         };
         (attacker, unplayed)
     }
 
-    /// The same monster, carrying nothing to shoot, throw or zap.
+    /// The same monster, carrying nothing at all: an animated object still fights as the item it
+    /// is, which stays unknown.
     pub(crate) fn without_gear(self) -> Self {
+        let hands = (!animated_object(self.monster)).then(Hands::default);
         Self {
             missiles: Draw::none(),
             wands: Draw::none(),
             unported_wand: false,
             shoots: Vec::new(),
+            fighter: Fighter {
+                hands,
+                ..self.fighter
+            },
             ..self
         }
+    }
+
+    /// Whether it may fight in melee with a weapon the Advisor doesn't know: its Carried Gear
+    /// isn't read, or doesn't show what it holds.
+    pub(crate) fn weapons_unread(&self, formulas: Formulas) -> bool {
+        self.fighter.hands.is_none() && melee_reach(formulas, &self.fighter, self.monster) > 0
     }
 
     /// The names of the launchers, missiles and wands of its Possible Gear that are played out.
@@ -306,7 +335,7 @@ impl<'a> Attacker<'a> {
             && distance <= MISSILE_RANGE
             && (distance > 1 || monster.prefers_ranged);
         distance >= 1
-            && (distance <= melee_reach(formulas, monster)
+            && (distance <= melee_reach(formulas, &self.fighter, monster)
                 || self
                     .spells
                     .iter()
@@ -315,6 +344,92 @@ impl<'a> Attacker<'a> {
                 || shoots)
     }
 }
+
+/// Whether `monster` is an animated object, such as a dancing weapon, which fights as the item it
+/// is (`mons_class_is_animated_object`): its Carried Gear never lists that item.
+fn animated_object(monster: &Monster) -> bool {
+    [
+        monster_types::DANCING_WEAPON,
+        monster_types::SPECTRAL_WEAPON,
+        monster_types::ARMOUR_ECHO,
+        monster_types::HAUNTED_ARMOUR,
+    ]
+    .contains(&monster.id.0.as_str())
+}
+
+/// The melee weapons `monster` holds before its Carried Gear is read: none for a kind that uses no
+/// items, which never holds one, and not known for any other, or for an animated object.
+fn unread_hands(monster: &Monster) -> Option<Hands> {
+    (monster.item_use < ItemUse::StartingEquipment && !animated_object(monster))
+        .then(Hands::default)
+}
+
+/// The melee weapons `monster` holds as its Carried Gear, `gear`, shows them, once it has wielded
+/// the one it fights with, noting in `unplayed` what of them isn't played as the game named it.
+/// Not known when the listing leaves out a plain weapon in its main hand and names nothing there,
+/// or when it names something in its hands the Game Knowledge doesn't know as a weapon, such as a
+/// magical staff or an artefact whose name doesn't show its kind.
+///
+/// A monster wielding a launcher, or nothing, swaps in a melee weapon it carries
+/// (`monster::wield_melee_weapon`, `monster.cc:1083`). One that wields two weapons is listed with
+/// its main hand's first, and with a pair alike as one counted in words, such as `two +0 clubs`
+/// (`_describe_monster_weapon`, `directn.cc`).
+fn carried_hands(
+    bundle: &Bundle,
+    monster: &Monster,
+    gear: &CarriedGear,
+    unplayed: &mut Vec<Unplayed>,
+) -> Option<Hands> {
+    if animated_object(monster) || monster.item_use < ItemUse::StartingEquipment {
+        return unread_hands(monster);
+    }
+    let mut wielded = Vec::new();
+    let mut carried = Vec::new();
+    for item in &gear.items {
+        if !matches!(item.slot, GearSlot::Wielding | GearSlot::Carrying) {
+            continue;
+        }
+        let kind = item.kind.as_ref();
+        if kind.is_some_and(|kind| kind.class.0 == object_classes::WANDS) {
+            continue;
+        }
+        let sub_type = kind.and_then(|kind| kind.sub_type.as_ref());
+        if let Some(known) = sub_type.and_then(|id| bundle.melee_weapons.get(id)) {
+            match item.slot {
+                GearSlot::Wielding => wielded.push((item, known)),
+                _ => carried.push((item, known)),
+            }
+        } else if !sub_type.is_some_and(|id| bundle.missile_weapons.contains_key(id)) {
+            return None;
+        }
+    }
+    let wields = gear
+        .items
+        .iter()
+        .any(|item| item.slot == GearSlot::Wielding);
+    if !wields && gear.unlisted == Unlisted::PlainWeaponsAndLargeRocks {
+        return None;
+    }
+    let mut hold = |(item, known): (&CarriedItem, &copilot_gk::MeleeWeapon)| {
+        let plus = weapon_plus(item, unplayed);
+        Wielded::of(known, plus, weapon_brand(bundle, item, unplayed))
+    };
+    if monster.two_weapons {
+        let pair = wielded
+            .first()
+            .is_some_and(|(item, _)| item.name.starts_with(PAIR));
+        let mut hands = wielded.into_iter().map(&mut hold);
+        let main = hands.next();
+        let off = if pair { main } else { hands.next() };
+        Some(Hands { main, off })
+    } else {
+        let main = wielded.into_iter().chain(carried).next().map(hold);
+        Some(Hands { main, off: None })
+    }
+}
+
+/// How crawl starts the name of a pair of weapons alike that a monster wields two of.
+const PAIR: &str = "two ";
 
 /// What `monster` shoots or throws of its Carried Gear, `gear`, with the names of what is played:
 /// the launcher and the missiles to throw the game named, or, when it named neither, its kind's
@@ -342,13 +457,8 @@ fn carried_missiles<'a>(
             (MissileKind::Launcher, GearSlot::Wielding | GearSlot::Carrying)
                 if launcher.is_none() =>
             {
-                let plus = item.plus.unwrap_or_else(|| {
-                    unplayed.push(Unplayed::UnknownPlus {
-                        item: item.name.clone(),
-                    });
-                    0
-                });
-                let brand = launcher_brand(bundle, item, unplayed);
+                let plus = weapon_plus(item, unplayed);
+                let brand = weapon_brand(bundle, item, unplayed);
                 launcher = Some(Missile::of(variant, id, weapon, plus, brand));
                 names.push(item.name.clone());
             }
@@ -487,9 +597,20 @@ fn unported(bundle: &Bundle, monster: &Monster, odds: &Odds) -> bool {
         .any(|weighted| weighted.weight > 0 && wand_zap(bundle, monster, &weighted.item).is_none())
 }
 
-/// The brand a launcher seen as `item` is played with, noting in `unplayed` one its name doesn't
-/// show or whose effect isn't ported.
-fn launcher_brand(bundle: &Bundle, item: &CarriedItem, unplayed: &mut Vec<Unplayed>) -> Brand {
+/// The enchantment a launcher or melee weapon seen as `item` is played with, noting in `unplayed`
+/// one its name doesn't show, which is played as +0.
+fn weapon_plus(item: &CarriedItem, unplayed: &mut Vec<Unplayed>) -> i32 {
+    item.plus.unwrap_or_else(|| {
+        unplayed.push(Unplayed::UnknownPlus {
+            item: item.name.clone(),
+        });
+        0
+    })
+}
+
+/// The brand a launcher or melee weapon seen as `item` is played with, noting in `unplayed` one
+/// its name doesn't show or whose effect isn't ported.
+fn weapon_brand(bundle: &Bundle, item: &CarriedItem, unplayed: &mut Vec<Unplayed>) -> Brand {
     match &item.brand {
         ItemBrand::None => Brand::Plain,
         ItemBrand::Weapon(id) => {
@@ -621,8 +742,8 @@ pub(crate) fn turn(
     blocks_left: &mut u32,
 ) -> Turn {
     let monster = attacker.monster;
-    let reach = melee_reach(formulas, monster);
-    let hit_dice = hit_dice(monster);
+    let fighter = &attacker.fighter;
+    let reach = melee_reach(formulas, fighter, monster);
     let mut distance = attacker.distance;
     let mut energy = starting_energy(formulas.monster_energy, rng)
         + energy_gained(formulas.monster_energy, rng, speed(monster));
@@ -710,24 +831,31 @@ pub(crate) fn turn(
             continue;
         }
         turn.melee += 1;
-        // Every attack it has, as one melee action makes them
-        // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`).
-        // An attack only made with a weapon (`AT_WEAP_ONLY`) is counted, as the Advisor can't
-        // see what monsters wield.
-        let aim = Aim {
-            hit_dice,
-            skilled: monster.fighter,
-            accuracy: 0,
-            nightvision: monster.nightvision,
-        };
-        for (_, attack) in attacks_from(formulas, monster, distance) {
-            let swing = melee::swing(formulas, rng, aim, attack, target, *blocks_left > 0);
+        // Every attack it makes, as one melee action makes them
+        // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
+        for (_, attack, weapon) in attacks_from(formulas, fighter, monster, distance) {
+            let weapon = weapon.map(|wielded| wielded.weapon);
+            let swing = melee::swing(
+                formulas,
+                rng,
+                fighter,
+                attack,
+                weapon,
+                target,
+                *blocks_left > 0,
+            );
             if swing.blocked {
                 *blocks_left -= 1;
             }
             turn.damage += swing.damage;
         }
-        energy -= cost(monster.energy.attack);
+        energy -= melee::melee_energy(
+            formulas,
+            rng,
+            fighter,
+            first_attack(monster),
+            cost(monster.energy.attack),
+        );
     }
     turn
 }
@@ -799,27 +927,48 @@ fn choose_cast<'c, 'a>(
         .and_then(|i| usable.get(i).copied())
 }
 
-/// How far the monster's melee reaches: its farthest-reaching attack that deals damage, as
+/// How far `monster`'s melee reaches, fighting as `fighter`: its farthest-reaching attack that
+/// deals damage, or the weapon of its first attack if that reaches farther, as
 /// `monster::reach_range` (`monster.cc:6224`). 0 when it has no melee attack.
-pub(crate) fn melee_reach(formulas: Formulas, monster: &Monster) -> i32 {
-    attacks(monster)
+pub(crate) fn melee_reach(formulas: Formulas, fighter: &Fighter, monster: &Monster) -> i32 {
+    let by_flavour = attacks(monster)
         .filter(|(_, attack)| attack.damage > 0)
         .map(|(_, attack)| attack_reach(formulas.monster_reach, attack))
-        .max()
-        .unwrap_or(0)
+        .max();
+    by_flavour.map_or(0, |reach| {
+        let primary = first_attack(monster)
+            .and_then(|attack| fighter.weapon(formulas.monster_weapon, 0, attack));
+        melee::reach_with(formulas.monster_reach, reach, primary)
+    })
 }
 
-/// The attacks the monster makes in one melee action from `distance` squares, in crawl's order,
-/// each with its slot among the monster's attacks: none from beyond its reach.
-pub(crate) fn attacks_from(
+/// The attacks `monster`, fighting as `fighter`, makes in one melee action from `distance`
+/// squares, in crawl's order, each with its slot among the monster's attacks and the weapon it
+/// makes it with: none from beyond its reach.
+pub(crate) fn attacks_from<'m>(
     formulas: Formulas,
-    monster: &Monster,
+    fighter: &'m Fighter,
+    monster: &'m Monster,
     distance: i32,
-) -> impl Iterator<Item = (usize, Attack)> + '_ {
-    let in_reach = distance <= melee_reach(formulas, monster);
-    attacks(monster).filter(move |&(_, attack)| {
-        in_reach && melee::reaches_from(formulas.monster_reach, attack, distance)
-    })
+) -> impl Iterator<Item = (usize, Attack, Option<Wielded>)> + 'm {
+    let in_reach = distance <= melee_reach(formulas, fighter, monster);
+    attacks(monster)
+        .filter(move |&(_, attack)| in_reach && fighter.makes(formulas.monster_weapon, attack))
+        .map(move |(slot, attack)| {
+            (
+                slot,
+                attack,
+                fighter.weapon(formulas.monster_weapon, slot, attack),
+            )
+        })
+        .filter(move |&(_, attack, weapon)| {
+            melee::reaches_from(formulas.monster_reach, attack, weapon, distance)
+        })
+}
+
+/// The monster's first attack, unless its first slot is empty.
+fn first_attack(monster: &Monster) -> Option<Attack> {
+    monster.attacks.first().and_then(Attack::of)
 }
 
 /// The monster's attacks, each with its slot, in crawl's order.
@@ -846,9 +995,10 @@ fn cost(energy: u32) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use copilot_gk::Library;
+    use copilot_gk::{ItemKind, Library};
 
     use super::*;
+    use crate::carried_gear::CarriedItem;
 
     /// Two ogres beside a player on 15 HP who shows AC 6, EV 8 and SH 4: their true defences lie
     /// somewhere from exactly that to one point more, and so does their chance of death.
@@ -927,5 +1077,227 @@ mod tests {
         let turns = turns_always_casting("shock serpent", 4);
         assert!(turns.iter().all(|turn| turn.closed == 0 && turn.melee == 0));
         assert!(turns.iter().any(|turn| turn.casts == 2));
+    }
+
+    /// The look text's listing of a monster wielding these weapons, each as
+    /// `(name, weapon_type, plus, brand)`, the plus and brand as its name shows them.
+    fn wielding(weapons: &[(&str, &str, Option<i32>, ItemBrand)]) -> CarriedGear {
+        CarriedGear {
+            items: weapons
+                .iter()
+                .map(|(name, weapon, plus, brand)| CarriedItem {
+                    slot: GearSlot::Wielding,
+                    name: (*name).to_owned(),
+                    kind: Some(ItemKind {
+                        class: EnumId(object_classes::WEAPONS.to_owned()),
+                        sub_type: Some(EnumId((*weapon).to_owned())),
+                    }),
+                    plus: *plus,
+                    brand: brand.clone(),
+                })
+                .collect(),
+            unlisted: Unlisted::Nothing,
+        }
+    }
+
+    /// A plain +0 weapon of `weapon_type`, named `name`.
+    fn plain(name: &str, weapon: &str) -> CarriedGear {
+        wielding(&[(name, weapon, Some(0), ItemBrand::None)])
+    }
+
+    /// The slots of the attacks `attacker` makes from `distance`, each with the damage of the
+    /// weapon it makes it with, if any.
+    fn attacks_with_weapons(attacker: &Attacker<'_>, distance: i32) -> Vec<(usize, Option<i32>)> {
+        attacks_from(
+            Formulas::CRAWL_0_34,
+            &attacker.fighter,
+            attacker.monster,
+            distance,
+        )
+        .map(|(slot, _, weapon)| (slot, weapon.map(|wielded| wielded.weapon.damage)))
+        .collect()
+    }
+
+    #[test]
+    fn a_monster_wielding_two_weapons_makes_its_odd_attacks_with_its_off_hands() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let ettin = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "ettin")
+            .unwrap();
+        let gear = wielding(&[
+            ("+0 spear", "WPN_SPEAR", Some(0), ItemBrand::None),
+            ("+0 dagger", "WPN_DAGGER", Some(0), ItemBrand::None),
+        ]);
+        let (armed, unplayed) = Attacker::new(bundle, ettin, 1).carrying(bundle, &gear);
+        assert!(unplayed.is_empty(), "{unplayed:?}");
+        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+        let dagger = bundle.melee_weapons[&EnumId("WPN_DAGGER".to_owned())].damage;
+        assert_eq!(
+            attacks_with_weapons(&armed, 1),
+            [(0, Some(spear)), (1, Some(dagger))]
+        );
+        // The spear in its main hand reaches two squares; the dagger in its off hand doesn't.
+        assert_eq!(attacks_with_weapons(&armed, 2), [(0, Some(spear))]);
+    }
+
+    #[test]
+    fn a_pair_of_weapons_alike_is_held_one_in_each_hand() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let ettin = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "ettin")
+            .unwrap();
+        let gear = plain("two +0 spears", "WPN_SPEAR");
+        let (armed, _) = Attacker::new(bundle, ettin, 2).carrying(bundle, &gear);
+        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+        assert_eq!(
+            attacks_with_weapons(&armed, 2),
+            [(0, Some(spear)), (1, Some(spear))]
+        );
+    }
+
+    #[test]
+    fn only_the_weapon_of_a_monsters_first_attack_sets_how_far_it_reaches() {
+        // A spear in the ettin's off hand would reach two squares with its second attack, but
+        // crawl's reach is its main hand's (`monster::reach_range`).
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let ettin = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "ettin")
+            .unwrap();
+        let gear = wielding(&[
+            ("+0 dagger", "WPN_DAGGER", Some(0), ItemBrand::None),
+            ("+0 spear", "WPN_SPEAR", Some(0), ItemBrand::None),
+        ]);
+        let (armed, _) = Attacker::new(bundle, ettin, 2).carrying(bundle, &gear);
+        assert_eq!(melee_reach(Formulas::CRAWL_0_34, &armed.fighter, ettin), 1);
+        assert!(attacks_with_weapons(&armed, 2).is_empty());
+    }
+
+    #[test]
+    fn a_draugr_fights_with_its_weapon_only_in_its_first_attack() {
+        // A draugr takes its attacks from the monster it was made from, which its Game Knowledge
+        // doesn't hold: give it two hits.
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let ettin = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "ettin")
+            .unwrap();
+        let mut draugr = bundle
+            .monsters
+            .values()
+            .find(|m| m.id.0 == monster_types::DRAUGR)
+            .unwrap()
+            .clone();
+        draugr.attacks.clone_from(&ettin.attacks);
+        draugr.item_use = ItemUse::StartingEquipment;
+        let (armed, _) =
+            Attacker::new(bundle, &draugr, 1).carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
+        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+        assert_eq!(
+            attacks_with_weapons(&armed, 1),
+            [(0, Some(spear)), (1, None)]
+        );
+        assert_eq!(attacks_with_weapons(&armed, 2), [(0, Some(spear))]);
+    }
+
+    #[test]
+    fn a_monster_known_to_wield_nothing_makes_no_attack_only_a_weapon_makes() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let statue = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "statue")
+            .unwrap();
+        let unread = Attacker::new(bundle, statue, 1);
+        assert_eq!(attacks_with_weapons(&unread, 1), [(0, None)]);
+        assert!(unread.weapons_unread(Formulas::CRAWL_0_34));
+        let empty_handed = CarriedGear {
+            items: Vec::new(),
+            unlisted: Unlisted::Nothing,
+        };
+        let (unarmed, _) = Attacker::new(bundle, statue, 1).carrying(bundle, &empty_handed);
+        assert!(attacks_with_weapons(&unarmed, 1).is_empty());
+        assert!(!unarmed.weapons_unread(Formulas::CRAWL_0_34));
+        let (armed, _) =
+            Attacker::new(bundle, statue, 1).carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
+        let spear = bundle.melee_weapons[&EnumId("WPN_SPEAR".to_owned())].damage;
+        assert_eq!(attacks_with_weapons(&armed, 2), [(0, Some(spear))]);
+    }
+
+    #[test]
+    fn a_group_sighting_that_names_nothing_in_hand_leaves_the_weapon_unread() {
+        // A group's sighting message leaves out a plain weapon in the main hand.
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
+        let unlisted = CarriedGear {
+            items: Vec::new(),
+            unlisted: Unlisted::PlainWeaponsAndLargeRocks,
+        };
+        let (attacker, _) = Attacker::new(bundle, orc, 1).carrying(bundle, &unlisted);
+        assert!(attacker.weapons_unread(Formulas::CRAWL_0_34));
+    }
+
+    #[test]
+    fn a_monster_known_to_wield_a_polearm_strikes_from_two_squares() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let formulas = bundle.formulas;
+        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
+        let target = Target {
+            defences: Defences::exact(0, 0, 0),
+            lighting: Lighting::Plain,
+        };
+        let turns = |attacker: &Attacker<'_>| {
+            let mut rng = Rng::new(SEED.0, SEED.1);
+            (0..1_000)
+                .map(|_| turn(formulas, &mut rng, attacker, target, &mut 0))
+                .collect::<Vec<_>>()
+        };
+        let unread = Attacker::new(bundle, orc, 2).without_gear();
+        assert!(turns(&unread).iter().all(|turn| turn.closed == 1));
+        let (armed, _) = Attacker::new(bundle, orc, 2)
+            .without_gear()
+            .carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
+        let armed_turns = turns(&armed);
+        assert!(armed_turns.iter().all(|turn| turn.closed == 0));
+        assert!(armed_turns.iter().all(|turn| turn.melee >= 1));
+    }
+
+    #[test]
+    fn a_weapons_unknown_plus_and_unported_brand_are_named_as_unplayed() {
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let orc = bundle.monsters.values().find(|m| m.name == "orc").unwrap();
+        let gear = wielding(&[(
+            "spear of venom",
+            "WPN_SPEAR",
+            None,
+            ItemBrand::Weapon(EnumId("SPWPN_VENOM".to_owned())),
+        )]);
+        let (_, unplayed) = Attacker::new(bundle, orc, 1).carrying(bundle, &gear);
+        assert_eq!(
+            unplayed,
+            [
+                Unplayed::UnknownPlus {
+                    item: "spear of venom".to_owned()
+                },
+                Unplayed::BrandNotPorted {
+                    item: "spear of venom".to_owned(),
+                    brand: "venom".to_owned(),
+                },
+            ]
+        );
     }
 }

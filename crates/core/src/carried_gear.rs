@@ -93,18 +93,18 @@ pub enum ItemBrand {
     rename_all_fields = "camelCase"
 )]
 pub enum Unplayed {
-    /// A launcher whose name doesn't show its enchantment: played as +0.
+    /// A launcher or melee weapon whose name doesn't show its enchantment: played as +0.
     UnknownPlus {
         /// Its name, as the game wrote it.
         item: String,
     },
-    /// A launcher whose name doesn't show its brand: played as unbranded.
+    /// A launcher or melee weapon whose name doesn't show its brand: played as unbranded.
     UnknownBrand {
         /// Its name, as the game wrote it.
         item: String,
     },
-    /// A launcher or missile whose brand isn't ported, such as venom or poison: played as
-    /// unbranded, its effect left with the attack flavours.
+    /// A launcher, melee weapon or missile whose brand isn't ported, such as venom or poison:
+    /// played as unbranded, its effect left with the attack flavours.
     BrandNotPorted {
         /// Its name, as the game wrote it.
         item: String,

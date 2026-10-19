@@ -59334,12 +59334,6 @@
       "accuracy": -4,
       "reach": 1
     },
-    "WPN_BLOWGUN": {
-      "name": "old blowgun",
-      "damage": 0,
-      "accuracy": 2,
-      "reach": 1
-    },
     "WPN_BROAD_AXE": {
       "name": "broad axe",
       "damage": 13,

@@ -13,6 +13,14 @@ crawl_identifiers! {
         /// Made with a tier and facets its Game Knowledge entry doesn't carry:
         /// `_mutant_beast_facet_attack` and `init_mutant_beast` in `mon-util.cc`.
         MUTANT_BEAST = "MONS_MUTANT_BEAST";
+        /// Fights with its weapon only in its first attack (`monster::weapon`, `monster.cc:494`).
+        DRAUGR = "MONS_DRAUGR";
+        /// The animated objects, which fight as the item they are, which their Carried Gear
+        /// doesn't list: `mons_class_is_animated_object` in `mon-util.cc`.
+        DANCING_WEAPON = "MONS_DANCING_WEAPON";
+        SPECTRAL_WEAPON = "MONS_SPECTRAL_WEAPON";
+        ARMOUR_ECHO = "MONS_ARMOUR_ECHO";
+        HAUNTED_ARMOUR = "MONS_HAUNTED_ARMOUR";
     }
 }
 
@@ -30,6 +38,10 @@ crawl_identifiers! {
     attack_types {
         /// The empty slot crawl pads a monster's attacks with.
         NONE = "AT_NONE";
+        /// A hit, made with the monster's weapon if it has one.
+        HIT = "AT_HIT";
+        /// Made only with a melee weapon in the monster's main hand.
+        WEAP_ONLY = "AT_WEAP_ONLY";
     }
 }
 

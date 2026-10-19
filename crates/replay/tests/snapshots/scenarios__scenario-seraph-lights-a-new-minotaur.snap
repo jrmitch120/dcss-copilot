@@ -26,10 +26,10 @@ expression: replay
           "level": "lethal",
           "hp": 19,
           "death": {
-            "times": 8018,
+            "times": 9561,
             "trials": 10000
           },
-          "worstHit": 104,
+          "worstHit": 187,
           "hostilesInView": 1,
           "acting": [
             {
@@ -70,7 +70,6 @@ expression: replay
           ],
           "lighting": "backlit",
           "notModelled": [
-            "monsterEquipment",
             "attackFlavours",
             "statuses",
             "paths",
@@ -176,7 +175,7 @@ expression: replay
           "state": "rated",
           "level": "lethal",
           "line": "Seraph can attack before your next action.",
-          "detail": "Death 80.2% · worst hit 104 of 19 HP"
+          "detail": "Death 95.6% · worst hit 187 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -231,10 +230,10 @@ expression: replay
         "level": "lethal",
         "hp": 19,
         "death": {
-          "times": 8018,
+          "times": 9561,
           "trials": 10000
         },
-        "worstHit": 104,
+        "worstHit": 187,
         "hostilesInView": 1,
         "acting": [
           {
@@ -275,7 +274,6 @@ expression: replay
         ],
         "lighting": "backlit",
         "notModelled": [
-          "monsterEquipment",
           "attackFlavours",
           "statuses",
           "paths",
@@ -381,7 +379,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Seraph can attack before your next action.",
-        "detail": "Death 80.2% · worst hit 104 of 19 HP"
+        "detail": "Death 95.6% · worst hit 187 of 19 HP"
       },
       "focus": {
         "card": "inView",

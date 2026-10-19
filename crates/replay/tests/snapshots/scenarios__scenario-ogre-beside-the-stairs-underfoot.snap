@@ -26,10 +26,10 @@ expression: replay
           "level": "lethal",
           "hp": 19,
           "death": {
-            "times": 116,
+            "times": 2205,
             "trials": 10000
           },
-          "worstHit": 19,
+          "worstHit": 34,
           "hostilesInView": 1,
           "acting": [
             {
@@ -65,7 +65,6 @@ expression: replay
           ],
           "lighting": "plain",
           "notModelled": [
-            "monsterEquipment",
             "attackFlavours",
             "statuses",
             "paths",
@@ -202,7 +201,7 @@ expression: replay
           "state": "rated",
           "level": "lethal",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 1.2% · worst hit 19 of 19 HP"
+          "detail": "Death 22.1% · worst hit 34 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -257,10 +256,10 @@ expression: replay
         "level": "lethal",
         "hp": 19,
         "death": {
-          "times": 116,
+          "times": 2205,
           "trials": 10000
         },
-        "worstHit": 19,
+        "worstHit": 34,
         "hostilesInView": 1,
         "acting": [
           {
@@ -296,7 +295,6 @@ expression: replay
         ],
         "lighting": "plain",
         "notModelled": [
-          "monsterEquipment",
           "attackFlavours",
           "statuses",
           "paths",
@@ -433,7 +431,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Ogre can attack before your next action.",
-        "detail": "Death 1.2% · worst hit 19 of 19 HP"
+        "detail": "Death 22.1% · worst hit 34 of 19 HP"
       },
       "focus": {
         "card": "inView",

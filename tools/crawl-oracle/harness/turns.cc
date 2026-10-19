@@ -8,8 +8,11 @@
  * - block: for no shield and each shield the player can wear, how many attacks it blocks before
  *   the player's next action (actor::shield_block_limit).
  * - reach: for every kind of monster with a damaging melee attack, made with no items, how far
- *   its melee reaches (monster::reach_range) and which of its attacks melee_attack::can_reach
- *   lets it make from each distance within that.
+ *   its melee reaches (monster::reach_range) and which of its attacks it makes from each
+ *   distance within that: those melee_attack::can_reach lets it make, but an attack only a
+ *   weapon makes, which it doesn't make unarmed (attack::init_attack). A kind that uses its
+ *   starting equipment and hits has a second reach case holding a +0 spear, a polearm, in its
+ *   main hand, and when it wields two weapons a +0 dagger in its off hand.
  * - turn: a random monster a few squares from the player, awake, hunting them, with no items
  *   and no statuses and with its book cut down to the spells the engine ports, plays out the
  *   player's next standard-speed action many times. Each time it starts with the energy crawl
@@ -225,6 +228,51 @@ static bool _has_melee(const monster &mon)
     return false;
 }
 
+// Whether any of `mon`'s damaging attacks may be made with a weapon (monster::weapon).
+static bool _hits(const monster &mon)
+{
+    for (int i = 0; i < MAX_NUM_ATTACKS; ++i)
+    {
+        const mon_attack_def attk = mons_attack_spec(mon, i);
+        if ((attk.type == AT_HIT || attk.type == AT_WEAP_ONLY) && attk.damage > 0)
+            return true;
+    }
+    return false;
+}
+
+// Prints `mon`'s reach case, and counts it in `index`.
+static void _reach_case(int &index, bool print, monster &mon)
+{
+    const int reach = mon.reach_range();
+    string from = "{";
+    for (int distance = 1; distance <= reach; ++distance)
+    {
+        string slots;
+        for (int slot = 0; slot < MAX_NUM_ATTACKS; ++slot)
+        {
+            if (get_monster_data(mon.type)->attack[slot].type == AT_NONE)
+                continue;
+            melee_attack swing(&mon, &you, slot, slot);
+            // An attack only a weapon makes, made without one (attack::init_attack).
+            if (swing.attk_type == AT_NONE)
+                continue;
+            if (swing.can_reach(distance))
+                slots += make_stringf("%s%d", slots.empty() ? "" : ",", slot);
+        }
+        from += make_stringf("%s\"%d\":[%s]", distance > 1 ? "," : "", distance,
+                             slots.c_str());
+    }
+    if (print)
+    {
+        printf("{\"case\":%d,\"kind\":\"reach\",\"monster\":%d,\"name\":\"%s\","
+               "\"main\":%s,\"off\":%s,\"reach\":%d,\"attacks_from\":%s}}\n",
+               index, mon.type, mon.name(DESC_PLAIN, true).c_str(),
+               _weapon_json(_held(mon, true)).c_str(), _weapon_json(_held(mon, false)).c_str(),
+               reach, from.c_str());
+    }
+    ++index;
+}
+
 static void _reach_cases(int &index, bool print)
 {
     for (int i = 0; i < NUM_MONSTERS; ++i)
@@ -240,29 +288,18 @@ static void _reach_cases(int &index, bool print)
             _clear_monsters();
             continue;
         }
-        const int reach = mon->reach_range();
-        string from = "{";
-        for (int distance = 1; distance <= reach; ++distance)
+        _reach_case(index, print, *mon);
+        if (mons_class_itemuse(type) >= MONUSE_STARTING_EQUIPMENT && _hits(*mon))
         {
-            string slots;
-            for (int slot = 0; slot < MAX_NUM_ATTACKS; ++slot)
-            {
-                if (get_monster_data(type)->attack[slot].type == AT_NONE)
-                    continue;
-                melee_attack swing(mon, &you, slot, slot);
-                if (swing.can_reach(distance))
-                    slots += make_stringf("%s%d", slots.empty() ? "" : ",", slot);
-            }
-            from += make_stringf("%s\"%d\":[%s]", distance > 1 ? "," : "", distance,
-                                 slots.c_str());
+            _give_weapon(*mon, WPN_SPEAR, 0, SPWPN_NORMAL);
+            if (mons_wields_two_weapons(*mon))
+                _give_weapon(*mon, WPN_DAGGER, 0, SPWPN_NORMAL);
+            const item_def *main = _held(*mon, true);
+            // Crawl may refuse a weapon, as a draconian monk refuses any.
+            if (main && main->sub_type == WPN_SPEAR)
+                _reach_case(index, print, *mon);
+            mon->destroy_inventory();
         }
-        if (print)
-        {
-            printf("{\"case\":%d,\"kind\":\"reach\",\"monster\":%d,\"name\":\"%s\","
-                   "\"reach\":%d,\"attacks_from\":%s}}\n",
-                   index, type, mon->name(DESC_PLAIN, true).c_str(), reach, from.c_str());
-        }
-        ++index;
         _clear_monsters();
     }
 }

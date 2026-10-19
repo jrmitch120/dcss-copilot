@@ -26,10 +26,10 @@ expression: replay
           "level": "lethal",
           "hp": 19,
           "death": {
-            "times": 4802,
+            "times": 7245,
             "trials": 10000
           },
-          "worstHit": 49,
+          "worstHit": 67,
           "hostilesInView": 1,
           "acting": [
             {
@@ -65,7 +65,6 @@ expression: replay
           ],
           "lighting": "umbra",
           "notModelled": [
-            "monsterEquipment",
             "attackFlavours",
             "statuses",
             "paths",
@@ -170,7 +169,7 @@ expression: replay
           "state": "rated",
           "level": "lethal",
           "line": "Profane servitor can attack before your next action.",
-          "detail": "Death 48.0% · worst hit 49 of 19 HP"
+          "detail": "Death 72.5% · worst hit 67 of 19 HP"
         },
         "focus": {
           "card": "inView",
@@ -225,10 +224,10 @@ expression: replay
         "level": "lethal",
         "hp": 19,
         "death": {
-          "times": 4802,
+          "times": 7245,
           "trials": 10000
         },
-        "worstHit": 49,
+        "worstHit": 67,
         "hostilesInView": 1,
         "acting": [
           {
@@ -264,7 +263,6 @@ expression: replay
         ],
         "lighting": "umbra",
         "notModelled": [
-          "monsterEquipment",
           "attackFlavours",
           "statuses",
           "paths",
@@ -369,7 +367,7 @@ expression: replay
         "state": "rated",
         "level": "lethal",
         "line": "Profane servitor can attack before your next action.",
-        "detail": "Death 48.0% · worst hit 49 of 19 HP"
+        "detail": "Death 72.5% · worst hit 67 of 19 HP"
       },
       "focus": {
         "card": "inView",
