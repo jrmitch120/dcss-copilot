@@ -12,10 +12,10 @@ use crate::carried_gear::{Unlisted, Unplayed};
 use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
-use crate::engine::resists::{Holiness, Needs, Resists};
+use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
-use crate::screen::{Resistance, Resistances, Screen};
+use crate::screen::{Resistances, Screen};
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
@@ -724,20 +724,24 @@ impl ResistsPlayed {
             Some(Remembered::Stale(as_of)) => (KnownOrStale::Stale, as_of),
             Some(Remembered::Missing) | None => return none,
         };
-        let Some(mut resists) = resists_read(&as_of.value) else {
+        let seen = Seen {
+            resistances: &as_of.value,
+            species,
+            statuses: visible.statuses.as_deref(),
+            religion: visible.religion.as_ref(),
+        };
+        let Some(read) = resists::read(bundle, &seen) else {
             return none;
         };
-        let holiness = holiness(visible, species, bundle);
-        resists.holiness = holiness.unwrap_or(Holiness::MORTAL);
         Self {
-            resists,
+            resists: read.resists,
             applied: Some(ResistancesApplied {
                 state,
                 turn: as_of.turn,
                 source: as_of.source.clone(),
                 resistances: as_of.value.clone(),
             }),
-            holiness_known: holiness.is_some(),
+            holiness_known: read.holiness_known,
         }
     }
 
@@ -747,59 +751,6 @@ impl ResistsPlayed {
             || self.applied.is_none() && needs.any()
             || needs.holiness && !self.holiness_known
     }
-}
-
-/// The resistances `read` shows, as the engine takes them: `None` unless it shows each of those
-/// that cut damage.
-fn resists_read(read: &Resistances) -> Option<Resists> {
-    // Immunity is drawn only for a resistance of 3 on a one-pip scale (`_resist_composer`).
-    let level = |resistance: Option<Resistance>| match resistance? {
-        Resistance::Pips(pips) => Some(i32::from(pips)),
-        Resistance::Immune => Some(3),
-    };
-    Some(Resists {
-        fire: level(read.fire)?,
-        cold: level(read.cold)?,
-        negative: level(read.negative)?,
-        poison: level(read.poison)?,
-        electricity: level(read.electricity)?,
-        corrosion: level(read.corrosion)?,
-        holiness: Holiness::MORTAL,
-    })
-}
-
-/// The player's holiness, from their `species` and the form and petrification the status pane
-/// lights in `visible`, and whether they worship a good god, judged through `bundle`: `None` when
-/// the bundle doesn't know the species, or the game hasn't reported the statuses or the god.
-fn holiness(visible: &VisibleState, species: Option<&str>, bundle: &Bundle) -> Option<Holiness> {
-    let species = bundle.species_named(species?)?;
-    let signs = &bundle.holiness;
-    let lights: Vec<&str> = visible
-        .statuses
-        .as_ref()?
-        .iter()
-        .filter_map(|status| status.light.as_deref())
-        .collect();
-    let form = signs
-        .forms
-        .iter()
-        .find(|form| lights.contains(&form.light.as_str()));
-    let petrified = signs
-        .petrified_lights
-        .iter()
-        .any(|light| lights.contains(&light.as_str()));
-    let good_god = match visible.religion.as_ref()? {
-        Religion::NoGod => false,
-        Religion::God { name, .. } => signs.good_gods.contains(name),
-    };
-    Some(Holiness::of(
-        bundle.formulas.resist_damage,
-        signs,
-        species,
-        form,
-        petrified,
-        good_god,
-    ))
 }
 
 /// How the light falls on the player, as crawl's `player::backlit(false)` and `player::umbra()`
@@ -970,6 +921,7 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::AsOf;
+    use crate::screen::Resistance;
     use crate::view_model::{Colour, Glyph};
     use crate::visible_state::Stats;
 

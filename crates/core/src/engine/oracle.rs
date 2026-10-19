@@ -15,11 +15,13 @@ use crate::crawl_ids::monster_types;
 use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
-use super::resists::{Holiness, Resists};
+use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
 use super::wands;
+use crate::screen::{Resistance, Resistances};
+use crate::visible_state::Religion;
 
 pub use super::lighting::Lighting;
 pub use super::melee::AUTOMATIC_HIT;
@@ -64,38 +66,69 @@ pub struct PlayerResists {
     pub god: String,
 }
 
+/// What crawl's `god_name` calls no god.
+const NO_GOD: &str = "No God";
+
+impl PlayerResists {
+    /// The resistances as the character overview draws them (`_resist_composer`): immunity to
+    /// poison as `∞`, every other level as pips.
+    fn overview(&self) -> Resistances {
+        let pips = |level: i32| Some(Resistance::Pips(i8::try_from(level).unwrap_or(i8::MAX)));
+        Resistances {
+            fire: pips(self.fire),
+            cold: pips(self.cold),
+            negative: pips(self.negative),
+            poison: if self.poison == 3 {
+                Some(Resistance::Immune)
+            } else {
+                pips(self.poison)
+            },
+            electricity: pips(self.electricity),
+            corrosion: pips(self.corrosion),
+            see_invisible: None,
+            willpower: None,
+        }
+    }
+
+    /// The god as the status pane reports it.
+    fn religion(&self) -> Religion {
+        if self.god == NO_GOD {
+            Religion::NoGod
+        } else {
+            Religion::God {
+                name: self.god.clone(),
+                piety_rank: None,
+                penance: false,
+            }
+        }
+    }
+}
+
 /// The player a case's monster attacks: exactly these defences, in this light, resisting as
-/// `resists` says, with the holiness their species and god give them, judged through `bundle`.
+/// `resists` says, with the holiness their species and god give them, read through `bundle` as
+/// the Advisor reads the character overview, with no statuses lit.
 fn target(
     bundle: &Bundle,
     defences: ExactDefences,
     lighting: Lighting,
     resists: &PlayerResists,
 ) -> Result<Target, CaseError> {
-    let signs = &bundle.holiness;
-    let species = bundle
-        .species_named(&resists.species)
-        .ok_or_else(|| CaseError::NoSpecies(resists.species.clone()))?;
-    let holiness = Holiness::of(
-        bundle.formulas.resist_damage,
-        signs,
-        species,
-        None,
-        false,
-        signs.good_gods.contains(&resists.god),
-    );
+    let no_species = || CaseError::NoSpecies(resists.species.clone());
+    let overview = resists.overview();
+    let religion = resists.religion();
+    let seen = Seen {
+        resistances: &overview,
+        species: Some(&resists.species),
+        statuses: Some(&[]),
+        religion: Some(&religion),
+    };
+    let read = resists::read(bundle, &seen)
+        .filter(|read| read.holiness_known)
+        .ok_or_else(no_species)?;
     Ok(Target {
         defences: defences.into(),
         lighting,
-        resists: Resists {
-            fire: resists.fire,
-            cold: resists.cold,
-            negative: resists.negative,
-            poison: resists.poison,
-            electricity: resists.electricity,
-            corrosion: resists.corrosion,
-            holiness,
-        },
+        resists: read.resists,
     })
 }
 

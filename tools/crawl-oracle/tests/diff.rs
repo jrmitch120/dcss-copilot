@@ -279,7 +279,7 @@ fn a_players_good_god_left_out_is_caught() {
     // Case 46, a centaur warrior's foul flame at a worshipper of the Shining One, whom it hurts
     // half as much again: the player taken to worship no god.
     let dump = with_changed(MISSILES, 46, |case| {
-        case["resists"]["god"] = "No God".into()
+        case["resists"]["god"] = "No God".into();
     });
     assert_eq!(caught(&dump), [(46, Measure::Damage)]);
 }

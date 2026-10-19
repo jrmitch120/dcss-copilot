@@ -5,9 +5,13 @@
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1).
 
-use copilot_gk::{EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Undeadness};
+use copilot_gk::{
+    Bundle, EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Undeadness,
+};
 
 use crate::crawl_ids::beam_types;
+use crate::screen::{Resistance, Resistances};
+use crate::visible_state::{Religion, Status};
 
 /// What about the player changes the damage a beam deals them, or a brand adds to a hit: their
 /// resistances, as the character overview shows them, and their holiness and god.
@@ -191,6 +195,87 @@ impl Resists {
     fn steam(self) -> i32 {
         (self.fire * 2).min(2)
     }
+}
+
+/// What the Advisor has seen of the player that changes the damage they take.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Seen<'a> {
+    /// Their resistances, as the character overview or dump showed them.
+    pub(crate) resistances: &'a Resistances,
+    /// Their species, as the game names it, once it has.
+    pub(crate) species: Option<&'a str>,
+    /// The statuses the status pane lists, once the game has reported them.
+    pub(crate) statuses: Option<&'a [Status]>,
+    /// Their god, once the game has reported it.
+    pub(crate) religion: Option<&'a Religion>,
+}
+
+/// The player's resistances, holiness and god as the engine plays what the Advisor has seen.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Read {
+    /// As the engine plays them.
+    pub(crate) resists: Resists,
+    /// Whether their holiness and god are known, and played. Otherwise they are played as a
+    /// living mortal of no good god.
+    pub(crate) holiness_known: bool,
+}
+
+/// The player as `seen`, judged through `bundle`: `None` unless their resistances show each of
+/// those that cut damage. Their holiness, from their species, the form and petrification the
+/// status pane lights and whether they worship a good god, is known when the bundle knows the
+/// species and the game has reported the statuses and the god.
+pub(crate) fn read(bundle: &Bundle, seen: &Seen<'_>) -> Option<Read> {
+    // Immunity is drawn only for a resistance of 3 on a one-pip scale (`_resist_composer`).
+    let level = |resistance: Option<Resistance>| match resistance? {
+        Resistance::Pips(pips) => Some(i32::from(pips)),
+        Resistance::Immune => Some(3),
+    };
+    let read = seen.resistances;
+    let holiness = holiness(bundle, seen);
+    Some(Read {
+        resists: Resists {
+            fire: level(read.fire)?,
+            cold: level(read.cold)?,
+            negative: level(read.negative)?,
+            poison: level(read.poison)?,
+            electricity: level(read.electricity)?,
+            corrosion: level(read.corrosion)?,
+            holiness: holiness.unwrap_or(Holiness::MORTAL),
+        },
+        holiness_known: holiness.is_some(),
+    })
+}
+
+/// The player's holiness as `seen`, judged through `bundle`: `None` when the bundle doesn't know
+/// the species, or the game hasn't reported the statuses or the god.
+fn holiness(bundle: &Bundle, seen: &Seen<'_>) -> Option<Holiness> {
+    let species = bundle.species_named(seen.species?)?;
+    let signs = &bundle.holiness;
+    let lights: Vec<&str> = seen
+        .statuses?
+        .iter()
+        .filter_map(|status| status.light.as_deref())
+        .collect();
+    let form = signs
+        .forms
+        .iter()
+        .find(|form| lights.contains(&form.light.as_str()));
+    let petrified = signs
+        .petrified_lights
+        .iter()
+        .any(|light| lights.contains(&light.as_str()));
+    let good_god = match seen.religion? {
+        Religion::NoGod => false,
+        Religion::God { name, .. } => signs.good_gods.contains(name),
+    };
+    Some(Holiness::of(
+        bundle.formulas.resist_damage,
+        signs,
+        species,
+        form,
+        petrified,
+        good_god,
+    ))
 }
 
 /// A kind of damage, as `resist_adjust_damage` tells them apart for the player.
