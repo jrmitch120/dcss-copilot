@@ -496,11 +496,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         &["dungeon_char_type"],
         features::STAIR_CHARS,
     )?;
-    crawl.require(
-        "mon-mst.h",
-        &["mon_spellbook_type"],
-        [yaml::PER_MONSTER_SPELLBOOK],
-    )?;
+    // `mon-mst.h`, which defines `mon_spellbook_type`, is made by crawl's build, not checked in.
+    crawl.require_written("util/gen-mst.pl", [yaml::PER_MONSTER_SPELLBOOK])?;
     let tentacles = crawl.tentacles(&monster_type)?;
     let exceptions = yaml::KindExceptions {
         never_firewood: never_firewood(series, &tentacles, &monster_type)?,
@@ -595,6 +592,27 @@ impl Crawl {
             enumerators.extend(source.enumerator_names(name)?);
         }
         match ids.into_iter().find(|id| !enumerators.contains(id)) {
+            Some(missing) => Err(ExtractError::Missing {
+                file: file.to_owned(),
+                what: missing.to_owned(),
+            }),
+            None => Ok(()),
+        }
+    }
+
+    /// Fails unless the script `file`, which crawl's build runs to write a header, names each of
+    /// `ids` as a whole word: for an identifier only a generated header defines, as
+    /// `util/gen-mst.pl` writes `MST_GHOST` into `mon-mst.h`.
+    fn require_written<'a>(
+        &self,
+        file: &str,
+        ids: impl IntoIterator<Item = &'a str>,
+    ) -> Result<(), ExtractError> {
+        let script = read(&self.source.join(file))?;
+        let words: BTreeSet<&str> = script
+            .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+            .collect();
+        match ids.into_iter().find(|id| !words.contains(id)) {
             Some(missing) => Err(ExtractError::Missing {
                 file: file.to_owned(),
                 what: missing.to_owned(),
