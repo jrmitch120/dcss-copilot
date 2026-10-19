@@ -8,7 +8,7 @@ Webtiles sends monster, item and dungeon feature types, and a monster's attitude
 
 The extractor reads the source as a webtiles server's build compiles it: `TAG_MAJOR_VERSION` from `tag-version.h`, with `USE_TILE` and `USE_TILE_WEB` defined.
 
-It reads only files crawl checks in, since CI checks crawl out at the tag without building it. A header crawl's build writes, such as `mon-mst.h`, isn't there, so an identifier only such a header defines is checked against the script that writes it (`util/gen-mst.pl` for `MST_GHOST`).
+It reads only files crawl checks in, since CI checks crawl out at the tag without building it. A header crawl's build writes, such as `mon-mst.h`, isn't there, so an identifier only such a header defines is checked against the script that writes it (`util/gen-mst.pl` for `MST_GHOST`). CI checks out only the paths the extractor reads (the sparse checkout in `.github/workflows/ci.yml`), so a file it starts reading goes on that list too.
 
 | Bundle part | From |
 |---|---|
