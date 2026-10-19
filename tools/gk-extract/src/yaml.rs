@@ -149,6 +149,10 @@ const ARCHER_FLAG: &str = "archer";
 /// The flag `dat/mons` gives a monster that shoots more readily: crawl's `M_PREFER_RANGED`.
 const PREFER_RANGED_FLAG: &str = "prefer_ranged";
 
+/// The flag `dat/mons` gives a monster that wields a melee weapon in each hand: crawl's
+/// `M_TWO_WEAPONS`.
+const TWO_WEAPONS_FLAG: &str = "two_weapons";
+
 /// The flag `dat/mons` gives a monster there is only one of: crawl's `M_UNIQUE`.
 const UNIQUE_FLAG: &str = "unique";
 
@@ -318,6 +322,7 @@ pub fn monsters(
                 nightvision,
                 archer: flag(ARCHER_FLAG),
                 prefers_ranged: flag(PREFER_RANGED_FLAG),
+                two_weapons: flag(TWO_WEAPONS_FLAG),
                 unique: flag(UNIQUE_FLAG),
                 batty: flag(BATTY_FLAG),
                 keeps_range: flag(MAINTAIN_RANGE_FLAG),

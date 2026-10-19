@@ -67,7 +67,6 @@ expression: replay
           ],
           "lighting": "plain",
           "notModelled": [
-            "monsterEquipment",
             "attackFlavours",
             "statuses",
             "paths",
@@ -271,7 +270,6 @@ expression: replay
           ],
           "lighting": "plain",
           "notModelled": [
-            "monsterEquipment",
             "attackFlavours",
             "statuses",
             "paths",
@@ -477,7 +475,6 @@ expression: replay
         ],
         "lighting": "plain",
         "notModelled": [
-          "monsterEquipment",
           "attackFlavours",
           "statuses",
           "paths",

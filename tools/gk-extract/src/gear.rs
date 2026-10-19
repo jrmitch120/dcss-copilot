@@ -1,8 +1,8 @@
 //! What monsters are made with to shoot, throw or zap, from crawl's `mon-gear.cc`: the weapon
 //! specs `make_mons_weapon` draws from, read from its tables, and the code around them, ported by
 //! hand for each release series ([`GearRules`]). Also the launchers and missiles themselves, from
-//! `Weapon_prop` and `Missile_prop` in `item-prop.cc`, and the spell each wand zaps, from
-//! `_wand_spells` in `spl-book.cc`.
+//! `Weapon_prop` and `Missile_prop` in `item-prop.cc`, the melee weapons monsters fight with,
+//! from `Weapon_prop`, and the spell each wand zaps, from `_wand_spells` in `spl-book.cc`.
 //!
 //! A kind's gear is given as crawl's `give_item` gives it to a monster made on D:3 or deeper
 //! (`level` at least 2), outside the Orcish Mines and not in a band, which is what
@@ -10,13 +10,29 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use copilot_gk::{EnumId, ItemUse, MissileKind, MissileWeapon, MonsterGear, Odds, Wand, Weighted};
+use copilot_gk::{
+    EnumId, ItemUse, MeleeWeapon, MissileKind, MissileWeapon, MonsterGear, Odds, Wand, Weighted,
+};
 
 use crate::ExtractError;
 use crate::cpp::{Source, Token, number, split_top_level};
 
 /// The skill `Weapon_prop` gives launchers: crawl's `is_range_weapon`.
 pub const LAUNCHER_SKILL: &str = "SK_RANGED_WEAPONS";
+
+/// The skill `Weapon_prop` gives the retired blowgun, which shoots needles rather than striking in
+/// melee, and whose enchantment adds nothing to its damage (`attack::get_weapon_plus`,
+/// `attack.cc:815`): crawl's `SK_THROWING`.
+pub const THROWING_SKILL: &str = "SK_THROWING";
+
+/// The skill `Weapon_prop` gives polearms, which reach two squares (`weapon_reach`,
+/// `item-prop.cc:2323`): crawl's `SK_POLEARMS`.
+pub const POLEARM_SKILL: &str = "SK_POLEARMS";
+
+/// How far a polearm reaches, and any other melee weapon that isn't an artefact
+/// (`weapon_reach`).
+const POLEARM_REACH: i32 = 2;
+const MELEE_REACH: i32 = 1;
 
 /// The weapon type a weapon spec picks for no weapon at all.
 pub const NO_WEAPON: &str = "NUM_WEAPONS";
@@ -476,6 +492,41 @@ pub fn missile_weapons(
                 damage: integer(damage)
                     .ok_or_else(|| unreadable(file, &format!("the damage of {id}")))?,
                 accuracy: 0,
+            },
+        );
+    }
+    Ok(weapons)
+}
+
+/// Every melee weapon in `Weapon_prop` (`item-prop.cc`): those trained by neither
+/// [`LAUNCHER_SKILL`] nor [`THROWING_SKILL`], with their damage, accuracy and reach. The entry's
+/// fields are read as [`missile_weapons`] reads them.
+pub fn melee_weapons(
+    item_prop: &Source,
+    file: &str,
+) -> Result<BTreeMap<EnumId, MeleeWeapon>, ExtractError> {
+    let mut weapons = BTreeMap::new();
+    for fields in item_prop.entries("Weapon_prop")? {
+        let [id, name, damage, accuracy, _, skill, ..] = fields.as_slice() else {
+            return Err(unreadable(file, "an entry of Weapon_prop"));
+        };
+        let skill = identifier(skill).ok_or_else(|| unreadable(file, "a weapon's skill"))?;
+        if skill == LAUNCHER_SKILL || skill == THROWING_SKILL {
+            continue;
+        }
+        let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a weapon"))?;
+        let what = format!("the damage or accuracy of {id}");
+        weapons.insert(
+            EnumId(id.to_owned()),
+            MeleeWeapon {
+                name: name.to_owned(),
+                damage: integer(damage).ok_or_else(|| unreadable(file, &what))?,
+                accuracy: integer(accuracy).ok_or_else(|| unreadable(file, &what))?,
+                reach: if skill == POLEARM_SKILL {
+                    POLEARM_REACH
+                } else {
+                    MELEE_REACH
+                },
             },
         );
     }

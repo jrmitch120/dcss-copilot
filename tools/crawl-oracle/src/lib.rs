@@ -6,8 +6,8 @@
 //! drew, then one line per case, with the inputs the ported formulas take and tallies of what
 //! crawl rolled:
 //!
-//! - a melee case: a monster attacking the player many times, run through
-//!   [`copilot_core::oracle::melee`];
+//! - a melee case: a monster attacking the player many times, holding melee weapons or nothing,
+//!   run through [`copilot_core::oracle::melee`];
 //! - a beam case (`"kind":"beam"`): a monster casting one spell at the player many times, run
 //!   through [`copilot_core::oracle::spell`];
 //! - a choice case (`"kind":"choice"`): a monster picking a spell many times, run through
@@ -25,7 +25,7 @@
 //! - a block case (`"kind":"block"`): how many attacks a shield blocks before the player's next
 //!   action, against [`copilot_core::oracle::shield_block_limit`];
 //! - a reach case (`"kind":"reach"`): how far a kind of monster reaches in melee and with which
-//!   attacks, against [`copilot_core::oracle::melee_reach`];
+//!   attacks, holding melee weapons or nothing, against [`copilot_core::oracle::melee_reach`];
 //! - a turn case (`"kind":"turn"`): a monster playing out the player's next standard-speed
 //!   action many times, run through [`copilot_core::oracle::turn`].
 //!
@@ -38,8 +38,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use copilot_core::oracle::{
-    self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, Lighting, MeleeCase,
-    MissileCase, SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase, ZapCase,
+    self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
+    MeleeCase, MeleeTally, MissileCase, SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase,
+    WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -121,6 +122,8 @@ pub enum Measure {
     WandMade,
     /// The energy a monster's action took, 0 when it didn't shoot or zap.
     Energy,
+    /// The delay of a monster's melee action, which its weapon's brand changes.
+    Delay,
     /// How many attacks the player's shield blocks before their next action.
     BlockLimit,
     /// How far a monster reaches in melee.
@@ -155,6 +158,7 @@ impl fmt::Display for Measure {
             Self::MissileMade => "missile weapon made with",
             Self::WandMade => "wand made with",
             Self::Energy => "energy spent",
+            Self::Delay => "melee delay",
             Self::BlockLimit => "shield block limit",
             Self::Reach => "melee reach",
             Self::AttacksFrom => "attacks made from a distance",
@@ -265,7 +269,12 @@ struct Case {
     hit_dice: i32,
     fighter: bool,
     nightvision: bool,
+    /// The attack's slot among the monster's, numbered from 0.
+    slot: usize,
     attack: CaseAttack,
+    /// The melee weapons it holds in its main and off hands.
+    main: Option<WeaponLine>,
+    off: Option<WeaponLine>,
     player: ExactDefences,
     lighting: Lighting,
     trials: u32,
@@ -273,12 +282,23 @@ struct Case {
     hits: u32,
     blocks: u32,
     damage: BTreeMap<i32, u32>,
+    /// The delay of a melee action, rolled once per trial.
+    delay: BTreeMap<i32, u32>,
 }
 
 #[derive(Deserialize)]
 struct CaseAttack {
     damage: i32,
-    crush: bool,
+}
+
+/// A melee weapon a monster holds.
+#[derive(Deserialize)]
+struct WeaponLine {
+    /// As `<object_class_type>:<sub_type>`.
+    weapon: String,
+    plus: i32,
+    /// By `brand_type` identifier.
+    brand: String,
 }
 
 #[derive(Deserialize)]
@@ -399,6 +419,9 @@ struct ReachLine {
     index: u64,
     monster: u16,
     name: String,
+    /// The melee weapons it holds in its main and off hands.
+    main: Option<WeaponLine>,
+    off: Option<WeaponLine>,
     reach: i32,
     /// From each distance up to its reach, the slots of the attacks it makes.
     attacks_from: BTreeMap<i32, Vec<usize>>,
@@ -510,16 +533,22 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         monster: case.monster_type,
         hit_dice: case.hit_dice,
         fighter: case.fighter,
+        slot: case.slot,
         damage: case.attack.damage,
-        crushes: case.attack.crush,
+        hands: hands(bundle, case.index, case.main.as_ref(), case.off.as_ref())?,
         defences: case.player,
         lighting: case.lighting,
     };
-    let engine: AttackTally = oracle::melee(bundle, &input, (seed, case.index), case.trials)
-        .map_err(|source| DiffError::Case {
+    let MeleeTally {
+        attack: engine,
+        delay,
+    } = oracle::melee(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+        DiffError::Case {
             case: case.index,
             source,
-        })?;
+        }
+    })?;
+    let who = armed(&case.monster, case.main.as_ref(), case.off.as_ref());
     let measures = [
         (Measure::ToHit, case.to_hit.clone(), engine.to_hit),
         (
@@ -533,16 +562,52 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
             rate(case.index, case.trials, engine.blocks)?,
         ),
         (Measure::Damage, case.damage.clone(), engine.damage),
+        (Measure::Delay, case.delay.clone(), delay),
     ];
     let mut mismatches = nightvision_mismatch(
         bundle,
         case.index,
-        &case.monster,
+        &who,
         case.monster_type,
         case.nightvision,
     )?;
-    mismatches.extend(differing(case.index, &case.monster, measures));
+    mismatches.extend(differing(case.index, &who, measures));
     Ok(mismatches)
+}
+
+/// The melee weapons a harness's monster holds in its `main` and `off` hands.
+fn hands(
+    bundle: &Bundle,
+    case: u64,
+    main: Option<&WeaponLine>,
+    off: Option<&WeaponLine>,
+) -> Result<HandsCase, DiffError> {
+    let weapon = |line: &WeaponLine| -> Result<WeaponCase, DiffError> {
+        Ok(WeaponCase {
+            weapon: item_id(bundle, case, &line.weapon)?,
+            plus: line.plus,
+            brand: EnumId(line.brand.clone()),
+        })
+    };
+    Ok(HandsCase {
+        main: main.map(weapon).transpose()?,
+        off: off.map(weapon).transpose()?,
+    })
+}
+
+/// A monster named with the melee weapons it holds, such as `orc wielding +2 7:4 (SPWPN_NORMAL)`,
+/// for a mismatch to name.
+fn armed(monster: &str, main: Option<&WeaponLine>, off: Option<&WeaponLine>) -> String {
+    let held: Vec<String> = main
+        .into_iter()
+        .chain(off)
+        .map(|line| weapon_name(&line.weapon, line.plus, &line.brand))
+        .collect();
+    if held.is_empty() {
+        monster.to_owned()
+    } else {
+        format!("{monster} wielding {}", held.join(" and "))
+    }
 }
 
 /// The mismatch, if any, when crawl's monster numbered `monster` sees through an umbra and its
@@ -816,19 +881,17 @@ fn compare_block(bundle: &Bundle, case: &BlockLine) -> Result<Option<Mismatch>, 
 
 /// Every measure of a reach `case` on which crawl and the engine differ.
 fn compare_reach(bundle: &Bundle, case: &ReachLine) -> Result<Vec<Mismatch>, DiffError> {
-    let ours = oracle::melee_reach(bundle, case.monster).map_err(|source| DiffError::Case {
-        case: case.index,
-        source,
-    })?;
-    let mut mismatches: Vec<Mismatch> = unequal(
-        case.index,
-        &case.name,
-        Measure::Reach,
-        case.reach,
-        ours.reach,
-    )
-    .into_iter()
-    .collect();
+    let hands = hands(bundle, case.index, case.main.as_ref(), case.off.as_ref())?;
+    let ours =
+        oracle::melee_reach(bundle, case.monster, &hands).map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
+    let who = armed(&case.name, case.main.as_ref(), case.off.as_ref());
+    let mut mismatches: Vec<Mismatch> =
+        unequal(case.index, &who, Measure::Reach, case.reach, ours.reach)
+            .into_iter()
+            .collect();
     // Counted as the number of distances whose attacks differ.
     let differing = case
         .attacks_from
@@ -840,7 +903,7 @@ fn compare_reach(bundle: &Bundle, case: &ReachLine) -> Result<Vec<Mismatch>, Dif
         .count();
     mismatches.extend(unequal(
         case.index,
-        &case.name,
+        &who,
         Measure::AttacksFrom,
         0,
         u32::try_from(differing).unwrap_or(u32::MAX),

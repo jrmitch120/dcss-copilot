@@ -1,7 +1,7 @@
 //! Crawl's weapon brands, ported closely (ADR 0002) behind the formula variant a Game Knowledge
 //! bundle names: the damage a brand adds to a hit, and how it changes the weapon's own damage and
-//! the time an attack with it takes. A monster's launcher is played with them; so can its melee
-//! weapon be (#98).
+//! the time an attack with it takes. A monster's launcher and its melee weapons are played with
+//! them.
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). The player is taken as
 //! one who resists nothing, as spells take them, and as a living mortal who worships no good god,
@@ -90,7 +90,7 @@ impl Necromancy {
     /// it is as clever as a person, twice its hit dice with a necromancy spell in its book, and
     /// half of them otherwise. A kind given its spells as it is made is taken to have none. An
     /// avatar, such as a spectral weapon, which has the skill whatever its intelligence, carries
-    /// no launcher.
+    /// no launcher, and its weapon, an animated object's, isn't played.
     pub(crate) fn of(bundle: &Bundle, monster: &Monster, hit_dice: i32) -> Self {
         if monster.intelligence < Intelligence::Human {
             return Self(0);

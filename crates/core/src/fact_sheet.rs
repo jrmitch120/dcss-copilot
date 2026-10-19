@@ -224,8 +224,13 @@ pub enum KnownOrStale {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
-    /// Monsters fight in melee as if they wield nothing, with no weapon damage or brands, and
-    /// wear no armour.
+    /// A monster in view that can fight in melee may wield a weapon the Advisor hasn't read: its
+    /// Carried Gear isn't read, its listing may leave out a plain weapon in its main hand, it
+    /// holds something the Advisor can't name as a weapon, or it is an animated object, such as a
+    /// dancing weapon, which fights as the item it is. It fights as if it wields nothing, with no
+    /// weapon's damage, accuracy, brand or reach, and still makes the attacks only a weapon
+    /// makes. Its look text (`x`) tells it. Monsters' armour and shields aren't counted either,
+    /// which matters only to the player's own attacks.
     MonsterEquipment,
     /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
     /// draining, nets, clouds left behind and the like.
@@ -249,7 +254,7 @@ pub enum NotModelled {
     /// A mutant beast in view is judged by its kind alone: the tier and facets it was made with
     /// aren't played out, so its reach, attacks, damage, speed and spells may all be wrong.
     MutantBeastFacets,
-    /// Spells, and what a launcher's brand adds, land as if the player resists nothing and is a
+    /// Spells, and what a weapon's brand adds, land as if the player resists nothing and is a
     /// living mortal who worships no good god, because the engine doesn't apply the player's
     /// resistances yet.
     PlayerResistances,
@@ -344,8 +349,7 @@ impl NotModelled {
 }
 
 /// What the simulation leaves out, whatever is in view.
-const ALWAYS_NOT_MODELLED: [NotModelled; 5] = [
-    NotModelled::MonsterEquipment,
+const ALWAYS_NOT_MODELLED: [NotModelled; 4] = [
     NotModelled::AttackFlavours,
     NotModelled::Statuses,
     NotModelled::Paths,
@@ -527,6 +531,8 @@ fn threat(
     // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
     // them.
     let mut moves: BTreeSet<NotModelled> = BTreeSet::new();
+    // Whether a monster in view may fight with a weapon the Advisor hasn't read.
+    let mut weapons_unread = false;
     for (seen, monster) in hostile {
         let distance = distance(player, seen.position);
         let attacker = Attacker::new(bundle, monster, distance);
@@ -562,6 +568,7 @@ fn threat(
             basis,
             unplayed,
         });
+        weapons_unread |= attacker.weapons_unread(formulas);
         let its_moves = moves_not_modelled(monster);
         if threat::can_attack(formulas, &attacker) {
             moves.extend(its_moves.iter().copied());
@@ -588,6 +595,10 @@ fn threat(
         }
     }
     not_modelled.extend(moves);
+    if weapons_unread {
+        // First, where it stood when it was listed whatever was in view.
+        not_modelled.insert(0, NotModelled::MonsterEquipment);
+    }
     if gear.iter().any(GearPlayed::guessed_shooter) {
         not_modelled.push(NotModelled::CarriedGear);
     }
@@ -601,9 +612,7 @@ fn threat(
         not_modelled.push(NotModelled::OtherWands);
     }
     if attackers.iter().any(|attacker| {
-        !attacker.spells.is_empty()
-            || !attacker.wands.is_empty()
-            || attacker.shoots_resisted_brand()
+        !attacker.spells.is_empty() || !attacker.wands.is_empty() || attacker.has_resisted_brand()
     }) {
         not_modelled.push(NotModelled::PlayerResistances);
     }

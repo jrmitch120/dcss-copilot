@@ -1,5 +1,6 @@
 ---
 source: crates/replay/tests/replay.rs
+assertion_line: 614
 expression: threats
 ---
 [
@@ -85,7 +86,6 @@ expression: threats
       ],
       "lighting": "plain",
       "notModelled": [
-        "monsterEquipment",
         "attackFlavours",
         "statuses",
         "paths",
@@ -161,7 +161,6 @@ expression: threats
       ],
       "lighting": "plain",
       "notModelled": [
-        "monsterEquipment",
         "attackFlavours",
         "statuses",
         "paths",

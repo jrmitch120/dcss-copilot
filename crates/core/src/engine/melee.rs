@@ -5,14 +5,15 @@
 //! (`crawl-ref/source/` at tag 0.34.1); trunk at 28a137de has the same code for all of them except
 //! reach, where an attack carries its own reach (`mon_attack_def::reach`), which a later variant
 //! will read. Only the paths a monster's plain melee attack on the player takes are ported: the
-//! attacker wields nothing and has no statuses, and the player and it see each other. The Fact
-//! Sheet lists what that leaves out.
+//! attacker has no statuses, holds a melee weapon or nothing in each hand, and the player and it
+//! see each other. The Fact Sheet lists what that leaves out.
 
 use copilot_gk::{
-    Armour, EvasionRoll, Formulas, MonsterAttack, MonsterDamage, MonsterEnergy, MonsterReach,
-    MonsterToHit, ShieldBlock,
+    Armour, EvasionRoll, Formulas, MeleeWeapon, MonsterAttack, MonsterDamage, MonsterEnergy,
+    MonsterReach, MonsterToHit, MonsterWeapon, ShieldBlock,
 };
 
+use super::brands::{self, Brand, Necromancy};
 use super::lighting::Lighting;
 use super::rng::Rng;
 use crate::accumulated_state::Shield;
@@ -22,10 +23,24 @@ use crate::crawl_ids::{attack_flavours, attack_types};
 /// from crawl's `attack_type` and `attack_flavour` identifiers in its Game Knowledge.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Attack {
+    /// Its type, as far as the formulas care.
+    pub(crate) kind: Kind,
     /// What the attack does besides its damage, as far as the formulas care.
     pub(crate) flavour: Flavour,
     /// The most damage it deals before armour.
     pub(crate) damage: i32,
+}
+
+/// The attack types the ported formulas treat differently: those a monster may make with a
+/// weapon (`monster::weapon`, `monster.cc:494`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Kind {
+    /// `AT_HIT`: made with the monster's weapon, if it has one.
+    Hit,
+    /// `AT_WEAP_ONLY`: made only with a melee weapon in the monster's main hand, as a hit.
+    WeaponOnly,
+    /// Any other type, such as a bite: never made with a weapon.
+    Other,
 }
 
 /// The attack flavours the ported formulas treat differently. Every other flavour only adds an
@@ -49,6 +64,11 @@ impl Attack {
         if attack.kind.0 == attack_types::NONE {
             return None;
         }
+        let kind = match attack.kind.0.as_str() {
+            attack_types::HIT => Kind::Hit,
+            attack_types::WEAP_ONLY => Kind::WeaponOnly,
+            _ => Kind::Other,
+        };
         let flavour = match attack.flavour.0.as_str() {
             attack_flavours::CRUSH => Flavour::Crush,
             attack_flavours::REACH
@@ -59,6 +79,7 @@ impl Attack {
             _ => Flavour::Other,
         };
         Some(Self {
+            kind,
             flavour,
             damage: i32::try_from(attack.damage).unwrap_or(i32::MAX),
         })
@@ -95,7 +116,7 @@ pub(crate) struct Aim {
     /// It is skilled with the attack: a fighter in melee (`M_FIGHTER`) or an archer with
     /// missiles (`M_ARCHER`).
     pub(crate) skilled: bool,
-    /// The accuracy of its +0 weapon (`PWPN_HIT`), 0 for none.
+    /// What its weapon adds to its accuracy ([`Weapon::to_hit`]), 0 for none.
     pub(crate) accuracy: i32,
     /// It sees through an umbra (`monster::nightvision`, `monster.cc:6545`).
     pub(crate) nightvision: bool,
@@ -216,28 +237,203 @@ pub(crate) struct RolledDamage {
     pub(crate) max: i32,
 }
 
-/// The damage of one monster attack that hit, before armour: the monster branch of
-/// `attack::calc_damage` (`attack.cc:918`) with no weapon, `1 + random2(attk_damage)`.
-///
-/// `melee_attack::apply_damage_modifiers` (`melee-attack.cc:5098`) changes nothing for a monster
-/// without statuses attacking an awake player. A crushing attack only grabs, and deals nothing
-/// itself (`melee_attack::calc_damage`, `melee-attack.cc:5156`).
-pub(crate) fn monster_damage(
-    variant: MonsterDamage,
-    rng: &mut Rng,
-    attack: Attack,
-) -> RolledDamage {
-    match variant {
-        MonsterDamage::Crawl034 => {
-            if attack.flavour == Flavour::Crush {
-                return RolledDamage { damage: 0, max: 0 };
-            }
-            RolledDamage {
-                damage: 1 + rng.random2(attack.damage),
-                max: attack.damage,
+/// A weapon as crawl's `attack` rolls with it: a melee weapon in a monster's hand, or a launcher
+/// or throwing missile it fires.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Weapon {
+    /// Its damage: `PWPN_DAMAGE`, or a throwing missile's own.
+    pub(crate) damage: i32,
+    /// The accuracy it adds: `PWPN_HIT`, and none for a throwing missile.
+    pub(crate) accuracy: i32,
+    /// Its enchantment, which adds to its accuracy and its damage.
+    pub(crate) plus: i32,
+    /// Its brand.
+    pub(crate) brand: Brand,
+}
+
+impl Weapon {
+    /// What it adds to its wielder's to-hit: its accuracy and its enchantment, as the monster
+    /// branch of `attack::calc_pre_roll_to_hit` (`attack.cc:231`) adds them.
+    pub(crate) fn to_hit(self) -> i32 {
+        self.accuracy + self.plus
+    }
+}
+
+/// A melee weapon in a monster's hand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Wielded {
+    /// It, as an attack rolls with it.
+    pub(crate) weapon: Weapon,
+    /// How many squares away it strikes from: `weapon_reach` (`item-prop.cc:2323`).
+    pub(crate) reach: i32,
+}
+
+impl Wielded {
+    /// The melee weapon `known`, with enchantment `plus` and `brand`.
+    pub(crate) fn of(known: &MeleeWeapon, plus: i32, brand: Brand) -> Self {
+        Self {
+            weapon: Weapon {
+                damage: known.damage,
+                accuracy: known.accuracy,
+                plus,
+                brand,
+            },
+            reach: known.reach,
+        }
+    }
+}
+
+/// The melee weapons a monster holds as it fights, once it has wielded the one it fights with
+/// (`monster::wield_melee_weapon`, `monster.cc:1083`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct Hands {
+    /// In its main hand (`MSLOT_WEAPON`).
+    pub(crate) main: Option<Wielded>,
+    /// In its off hand (`MSLOT_ALT_WEAPON`), which only a monster that wields two weapons
+    /// (`mons_wields_two_weapons`) fights with: none for any other.
+    pub(crate) off: Option<Wielded>,
+}
+
+/// A monster fighting the player in melee, as the formulas take it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Fighter {
+    /// Its hit dice.
+    pub(crate) hit_dice: i32,
+    /// It has crawl's `fighter` flag, which makes its attacks more accurate.
+    pub(crate) skilled: bool,
+    /// It sees through an umbra.
+    pub(crate) nightvision: bool,
+    /// Its necromancy skill, which a weapon of pain rolls against.
+    pub(crate) necromancy: Necromancy,
+    /// It is a draugr, which fights with its weapon only in its first attack.
+    pub(crate) draugr: bool,
+    /// The melee weapons it holds, when they are known; when they aren't, it fights as if it
+    /// wields nothing, but makes the attacks only a weapon makes.
+    pub(crate) hands: Option<Hands>,
+}
+
+impl Fighter {
+    /// The weapon it makes `attack`, its attack numbered `slot` from 0, with:
+    /// `monster::weapon` (`monster.cc:494`). Only a hit or an attack only a weapon makes uses
+    /// one, a draugr's only in its first attack. A monster that wields two weapons makes its odd
+    /// attacks with its off hand's, or its main hand's if its off hand is empty, and its even
+    /// ones with its main hand's.
+    pub(crate) fn weapon(
+        &self,
+        variant: MonsterWeapon,
+        slot: usize,
+        attack: Attack,
+    ) -> Option<Wielded> {
+        match variant {
+            MonsterWeapon::Crawl034 => {
+                let hands = self.hands?;
+                if attack.kind == Kind::Other || self.draugr && slot != 0 {
+                    return None;
+                }
+                if slot % 2 == 1 {
+                    hands.off.or(hands.main)
+                } else {
+                    hands.main
+                }
             }
         }
     }
+
+    /// Whether it makes `attack` at all: an attack only a weapon makes is made as a hit with a
+    /// melee weapon in its main hand, and not at all without one (`attack::init_attack`,
+    /// `attack.cc:413`). When its weapons aren't known, it is made.
+    pub(crate) fn makes(&self, variant: MonsterWeapon, attack: Attack) -> bool {
+        match variant {
+            MonsterWeapon::Crawl034 => {
+                attack.kind != Kind::WeaponOnly
+                    || self.hands.is_none_or(|hands| hands.main.is_some())
+            }
+        }
+    }
+
+    /// The delay of one of its melee actions, whose first attack is `first`, if it has one:
+    /// `monster::attack_delay` (`monster.cc:439`), 10 as the brand of the weapon
+    /// `monster::weapon()` gives changes it (`weapon_adjust_delay`, `fight.cc:1294`). That is
+    /// the weapon of its first attack, but a monster that wields two weapons takes its off hand's
+    /// one time in two, or always with its main hand empty, and a draugr none.
+    pub(crate) fn attack_delay(
+        &self,
+        formulas: Formulas,
+        rng: &mut Rng,
+        first: Option<Attack>,
+    ) -> i32 {
+        const BASE: i32 = 10;
+        match formulas.monster_weapon {
+            MonsterWeapon::Crawl034 => {
+                let Some(hands) = self.hands else {
+                    return BASE;
+                };
+                // `monster::weapon(-1)` reads the first attack's type, and is never the first.
+                if first.is_none_or(|attack| attack.kind == Kind::Other) || self.draugr {
+                    return BASE;
+                }
+                let weapon = match (hands.main, hands.off) {
+                    (None, off) => off,
+                    (Some(main), Some(off)) => Some(if rng.random2(2) == 1 { off } else { main }),
+                    (main, None) => main,
+                };
+                weapon.map_or(BASE, |wielded| {
+                    brands::delay(formulas.damage_brand, rng, wielded.weapon.brand, BASE)
+                })
+            }
+        }
+    }
+}
+
+/// The damage of a monster attack with `attack_damage` of its own, made with `weapon` if any,
+/// before armour: the monster branch of `attack::calc_damage` (`attack.cc:918`) before its
+/// modifiers. A weapon adds `random2` of its damage as its brand adjusts it
+/// (`attack::adjusted_weapon_damage`), and its enchantment as `_core_apply_slaying`
+/// (`attack.cc:829`) adds it, with no slaying; the attack adds `1 + random2(attk_damage)`.
+pub(crate) fn monster_damage(
+    formulas: Formulas,
+    rng: &mut Rng,
+    weapon: Option<Weapon>,
+    attack_damage: i32,
+) -> RolledDamage {
+    match formulas.monster_damage {
+        MonsterDamage::Crawl034 => {
+            let (mut damage, mut max) = (0, 0);
+            if let Some(weapon) = weapon {
+                max =
+                    brands::weapon_damage(formulas.damage_brand, rng, weapon.brand, weapon.damage);
+                damage = rng.random2(max);
+                // A +0 weapon adds `random2(1)`, nothing.
+                damage = if weapon.plus >= 0 {
+                    damage + rng.random2(1 + weapon.plus)
+                } else {
+                    damage - rng.random2(1 - weapon.plus)
+                };
+            }
+            RolledDamage {
+                damage: damage + 1 + rng.random2(attack_damage),
+                max: max + attack_damage,
+            }
+        }
+    }
+}
+
+/// The damage of one monster melee attack that hit, before armour: `melee_attack::calc_damage`
+/// (`melee-attack.cc:5156`), where a crushing attack only grabs, and deals nothing itself, and
+/// any other deals [`monster_damage`].
+///
+/// `melee_attack::apply_damage_modifiers` (`melee-attack.cc:5098`) changes nothing for a monster
+/// without statuses attacking an awake player.
+pub(crate) fn melee_damage(
+    formulas: Formulas,
+    rng: &mut Rng,
+    attack: Attack,
+    weapon: Option<Weapon>,
+) -> RolledDamage {
+    if attack.flavour == Flavour::Crush {
+        return RolledDamage { damage: 0, max: 0 };
+    }
+    monster_damage(formulas, rng, weapon, attack.damage)
 }
 
 /// What the player takes from `damage` after armour: `actor::apply_ac` (`actor.cc:343`) under the
@@ -375,19 +571,27 @@ impl Swing {
     }
 }
 
-/// One monster attack on the player, rolled in the order `melee_attack::attack`
-/// (`melee-attack.cc:1898`) rolls it: accuracy, evasion, the shield, then damage and armour for an
-/// attack that lands. `can_block` is whether the shield has a block left before the player's next
-/// action (`actor::shield_exhausted`, `actor.cc:397`).
+/// One monster attack on the player, made with `weapon` if any, rolled in the order
+/// `melee_attack::attack` (`melee-attack.cc:1898`) rolls it: accuracy, evasion, the shield, then
+/// for an attack that lands, damage, armour, and what the weapon's brand adds
+/// (`melee_attack::handle_phase_hit`, `melee-attack.cc:927`). `can_block` is whether the shield
+/// has a block left before the player's next action (`actor::shield_exhausted`, `actor.cc:397`).
 pub(crate) fn swing(
     formulas: Formulas,
     rng: &mut Rng,
-    aim: Aim,
+    fighter: &Fighter,
     attack: Attack,
+    weapon: Option<Weapon>,
     target: Target,
     can_block: bool,
 ) -> Swing {
     let Target { defences, lighting } = target;
+    let aim = Aim {
+        hit_dice: fighter.hit_dice,
+        skilled: fighter.skilled,
+        accuracy: weapon.map_or(0, Weapon::to_hit),
+        nightvision: fighter.nightvision,
+    };
     let to_hit = monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
     let hits = evasion_margin(formulas.evasion_roll, rng, to_hit, defences) >= 0;
     let blocked =
@@ -399,14 +603,18 @@ pub(crate) fn swing(
         damage: 0,
     };
     if swing.landed() {
-        let rolled = monster_damage(formulas.monster_damage, rng, attack);
-        swing.damage = apply_ac(formulas.armour, rng, rolled, defences);
+        let rolled = melee_damage(formulas, rng, attack, weapon);
+        let dealt = apply_ac(formulas.armour, rng, rolled, defences);
+        // Without a weapon, the brand is `SPWPN_NORMAL` (`monster::damage_brand`).
+        let brand = weapon.map_or(Brand::Plain, |weapon| weapon.brand);
+        swing.damage =
+            dealt + brands::damage(formulas.damage_brand, rng, brand, fighter.necromancy, dealt);
     }
     swing
 }
 
-/// How many squares away this attack lets an unarmed monster strike from: two when its flavour
-/// reaches (`flavour_has_reach`, `mon-util.cc:2209`) and three for a rift, as
+/// How many squares away this attack lets a monster strike from by its flavour: two when its
+/// flavour reaches (`flavour_has_reach`, `mon-util.cc:2209`) and three for a rift, as
 /// `monster::reach_range` (`monster.cc:6224`) counts the attacks that deal damage.
 pub(crate) fn attack_reach(variant: MonsterReach, attack: Attack) -> i32 {
     match variant {
@@ -418,14 +626,50 @@ pub(crate) fn attack_reach(variant: MonsterReach, attack: Attack) -> i32 {
     }
 }
 
-/// Whether an unarmed monster striking from `distance` squares, within its reach, makes this
-/// attack: `melee_attack::can_reach` (`melee-attack.cc:97`), where an attack whose flavour
-/// reaches is made from anywhere the monster reaches, so a starflower's `AF_REACH` lash
-/// follows its rift three squares away, and any other only from beside the player.
-pub(crate) fn reaches_from(variant: MonsterReach, attack: Attack, distance: i32) -> bool {
+/// How far a monster whose attacks reach `by_flavour` squares by their flavours reaches with
+/// `primary`, the weapon of its first attack, if any: `monster::reach_range` (`monster.cc:6224`)
+/// takes the farther.
+pub(crate) fn reach_with(variant: MonsterReach, by_flavour: i32, primary: Option<Wielded>) -> i32 {
+    match variant {
+        MonsterReach::Crawl034 => primary.map_or(by_flavour, |weapon| by_flavour.max(weapon.reach)),
+    }
+}
+
+/// Whether a monster striking from `distance` squares, within its reach, makes this attack with
+/// `weapon`: `melee_attack::can_reach` (`melee-attack.cc:97`). An attack is made from beside the
+/// player; a hit, which an attack only a weapon makes is by then, from as far as its weapon
+/// reaches; and an attack whose flavour reaches from anywhere the monster reaches, so a
+/// starflower's `AF_REACH` lash follows its rift three squares away.
+pub(crate) fn reaches_from(
+    variant: MonsterReach,
+    attack: Attack,
+    weapon: Option<Wielded>,
+    distance: i32,
+) -> bool {
     match variant {
         MonsterReach::Crawl034 => {
-            distance <= 1 || matches!(attack.flavour, Flavour::Reaching | Flavour::Rift)
+            distance <= 1
+                || matches!(attack.flavour, Flavour::Reaching | Flavour::Rift)
+                || attack.kind != Kind::Other
+                    && weapon.is_some_and(|weapon| weapon.reach >= distance)
+        }
+    }
+}
+
+/// The energy one melee action whose actions cost `cost` takes `fighter`, whose first attack is
+/// `first`: its cost times the action's delay over 10 (`fight_melee`, `fight.cc:562`), with the
+/// delay [`Fighter::attack_delay`].
+pub(crate) fn melee_energy(
+    formulas: Formulas,
+    rng: &mut Rng,
+    fighter: &Fighter,
+    first: Option<Attack>,
+    cost: i32,
+) -> i32 {
+    match formulas.monster_energy {
+        MonsterEnergy::Crawl034 => {
+            let delay = fighter.attack_delay(formulas, rng, first);
+            rng.div_rand_round(cost * delay, 10)
         }
     }
 }
@@ -643,7 +887,7 @@ mod tests {
     fn a_monster_attack_deals_one_to_its_damage_before_armour() {
         let mut rng = rng();
         let rolls: Vec<_> = (0..10_000)
-            .map(|_| monster_damage(MonsterDamage::Crawl034, &mut rng, attack("AF_PLAIN", 5)))
+            .map(|_| melee_damage(Formulas::CRAWL_0_34, &mut rng, attack("AF_PLAIN", 5), None))
             .collect();
         assert!(rolls.iter().all(|roll| roll.max == 5));
         assert_eq!(rolls.iter().map(|roll| roll.damage).min(), Some(1));
@@ -652,7 +896,12 @@ mod tests {
 
     #[test]
     fn a_crushing_attack_deals_nothing_as_it_grabs() {
-        let roll = monster_damage(MonsterDamage::Crawl034, &mut rng(), attack("AF_CRUSH", 20));
+        let roll = melee_damage(
+            Formulas::CRAWL_0_34,
+            &mut rng(),
+            attack("AF_CRUSH", 20),
+            None,
+        );
         assert_eq!(roll, RolledDamage { damage: 0, max: 0 });
     }
 

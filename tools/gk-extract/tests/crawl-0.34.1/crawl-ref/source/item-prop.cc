@@ -60,6 +60,14 @@ static const weapon_def Weapon_prop[] =
         SK_MACES_FLAILS, SIZE_LITTLE, SIZE_LITTLE,
         DAMV_CRUSHING, 9, 0, 30, M_AND_F_BRANDS },
 
+    // Polearms
+    { WPN_SPEAR,             "spear",               6,  4, 11,
+        SK_POLEARMS,     SIZE_LITTLE, SIZE_LITTLE,
+        DAMV_PIERCING, 8, 0, 30, {
+            { SPWPN_NORMAL,     46 },
+            { SPWPN_VENOM,      17 },
+        }},
+
     // Range weapons
     { WPN_SHORTBOW,          "shortbow",            8,  2, 14,
         SK_RANGED_WEAPONS,   SIZE_LITTLE, NUM_SIZE_LEVELS,

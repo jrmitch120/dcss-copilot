@@ -10,12 +10,11 @@
 //! out.
 
 use copilot_gk::{
-    Bundle, DamageBrand, EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster,
-    MonsterFire,
+    Bundle, EnumId, Formulas, MissileAttack, MissileKind, MissileWeapon, Monster, MonsterFire,
 };
 
 use super::brands::{self, Brand, Necromancy};
-use super::melee::{self, Aim, RolledDamage, Swing, Target};
+use super::melee::{self, Aim, RolledDamage, Swing, Target, Weapon};
 use super::rng::Rng;
 use crate::crawl_ids::missile_types;
 
@@ -65,6 +64,16 @@ impl<'a> Missile<'a> {
                     brand: if launcher { brand } else { Brand::Plain },
                 }
             }
+        }
+    }
+
+    /// It as crawl's `attack` rolls with it.
+    pub(crate) fn weapon(self) -> Weapon {
+        Weapon {
+            damage: self.weapon.damage,
+            accuracy: self.weapon.accuracy,
+            plus: self.plus,
+            brand: self.brand,
         }
     }
 
@@ -223,7 +232,7 @@ pub(crate) fn shoot(
             let aim = Aim {
                 hit_dice: shooter.hit_dice,
                 skilled: shooter.archer,
-                accuracy: missile.weapon.accuracy + missile.plus,
+                accuracy: missile.weapon().to_hit(),
                 nightvision: shooter.nightvision,
             };
             let to_hit = melee::monster_to_hit(formulas.monster_to_hit, rng, aim, lighting);
@@ -247,7 +256,7 @@ pub(crate) fn shoot(
                 let dealt = if missile.harmless {
                     0
                 } else {
-                    let rolled = missile_damage(formulas.damage_brand, rng, shooter, missile);
+                    let rolled = missile_damage(formulas, rng, shooter, missile);
                     melee::apply_ac(formulas.armour, rng, rolled, defences)
                 };
                 let brand = brands::damage(
@@ -264,32 +273,20 @@ pub(crate) fn shoot(
     }
 }
 
-/// A missile's damage before armour: the monster branch of `attack::calc_damage`
-/// (`attack.cc:918`), `random2` of its damage as its brand adjusts it, its enchantment as
-/// `_core_apply_slaying` (`attack.cc:829`) adds it, the monster's own
-/// `1 + random2(first_attack)`, and an archer's bonus `random2avg(hd * 4 / 3, 2)`
-/// (`ranged_attack::apply_damage_modifiers`, `ranged-attack.cc:369`, and
-/// `archer_bonus_damage`, `fight.cc:1671`).
+/// A missile's damage before armour: [`melee::monster_damage`] with the missile as the weapon
+/// and the monster's first attack as its own, and an archer's bonus
+/// `random2avg(hd * 4 / 3, 2)` (`ranged_attack::apply_damage_modifiers`, `ranged-attack.cc:369`,
+/// and `archer_bonus_damage`, `fight.cc:1671`).
 fn missile_damage(
-    variant: DamageBrand,
+    formulas: Formulas,
     rng: &mut Rng,
     shooter: Shooter,
     missile: Missile<'_>,
 ) -> RolledDamage {
-    let weapon = brands::weapon_damage(variant, rng, missile.brand, missile.weapon.damage);
-    let mut damage = rng.random2(weapon);
-    // No slaying: a +0 weapon adds `random2(1)`, nothing.
-    damage = if missile.plus >= 0 {
-        damage + rng.random2(1 + missile.plus)
-    } else {
-        damage - rng.random2(1 - missile.plus)
-    };
-    damage += 1 + rng.random2(shooter.first_attack);
+    let mut rolled =
+        melee::monster_damage(formulas, rng, Some(missile.weapon()), shooter.first_attack);
     if shooter.archer {
-        damage += rng.random2avg(shooter.hit_dice * 4 / 3, 2);
+        rolled.damage += rng.random2avg(shooter.hit_dice * 4 / 3, 2);
     }
-    RolledDamage {
-        damage,
-        max: weapon + shooter.first_attack,
-    }
+    rolled
 }
