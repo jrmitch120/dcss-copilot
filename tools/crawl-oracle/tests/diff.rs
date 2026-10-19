@@ -1,7 +1,7 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders,
-//! 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's block and reach cases with 27 turn cases
-//! (all seed 34).
+//! 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
+//! block and reach cases with 27 turn cases (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -313,8 +313,8 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
 
 /// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
 /// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
-/// unarmed and, for a kind that hits, holding a spear, and 27 monsters playing out the player's next action 20,000 times each, taking turns at the
-/// rules they exercise (seed 34).
+/// unarmed and, for a kind that hits, holding a spear, and 27 monsters playing out the player's
+/// next action 20,000 times each, taking turns at the rules they exercise (seed 34).
 const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 
 #[test]

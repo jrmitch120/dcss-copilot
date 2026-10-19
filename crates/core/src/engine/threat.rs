@@ -3,7 +3,7 @@
 //! through crawl's own dice, many times over.
 
 use copilot_gk::{
-    Bundle, EnumId, Formulas, ItemUse, MissileKind, Monster, MonsterSpells, Odds, Wand,
+    Bundle, EnumId, Formulas, ItemUse, MeleeWeapon, MissileKind, Monster, MonsterSpells, Odds, Wand,
 };
 
 use crate::accumulated_state::Shield;
@@ -418,7 +418,7 @@ fn carried_hands(
     if !wields && gear.unlisted == Unlisted::PlainWeaponsAndLargeRocks {
         return None;
     }
-    let mut hold = |(item, known): (&CarriedItem, &copilot_gk::MeleeWeapon)| {
+    let mut hold = |(item, known): (&CarriedItem, &MeleeWeapon)| {
         let plus = weapon_plus(item, unplayed);
         Wielded::of(known, plus, weapon_brand(bundle, item, unplayed))
     };
@@ -1273,8 +1273,8 @@ mod tests {
                 .map(|_| turn(formulas, &mut rng, attacker, target, &mut 0))
                 .collect::<Vec<_>>()
         };
-        let unread = Attacker::new(bundle, orc, 2).without_gear();
-        assert!(turns(&unread).iter().all(|turn| turn.closed == 1));
+        let unarmed = Attacker::new(bundle, orc, 2).without_gear();
+        assert!(turns(&unarmed).iter().all(|turn| turn.closed == 1));
         let (armed, _) = Attacker::new(bundle, orc, 2)
             .without_gear()
             .carrying(bundle, &plain("+0 spear", "WPN_SPEAR"));
