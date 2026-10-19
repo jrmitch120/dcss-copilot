@@ -1,6 +1,6 @@
 /*
  * Trimmed from crawl 0.34.1 for the extractor test: the durations whose status lights or texts
- * tell the player's Lighting, or stop them using their Ways Out.
+ * tell the player's Lighting or holiness, or stop them using their Ways Out.
  */
 
 static const duration_def duration_data[] =
@@ -26,6 +26,11 @@ static const duration_def duration_data[] =
       RED, "Fire",
       "on fire", "liquid fire",
       "You are covered in liquid fire.", D_DISPELLABLE /*but special-cased*/ | D_NEGATIVE},
+    // (trimmed for the extractor test)
+    { DUR_PETRIFIED,
+      RED, "Stone",
+      "petrified", "",
+      "You are petrified.", D_DISPELLABLE | D_NEGATIVE},
     // (trimmed for the extractor test)
     { DUR_QUAD_DAMAGE,
       BLUE, "Quad",
