@@ -9,15 +9,19 @@ use serde::Serialize;
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, object_classes};
 use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
-use crate::visible_state::{GameMessage, InventoryItem, Sighting, VisibleMonster, VisibleState};
+use crate::visible_state::{
+    GameMessage, InventoryItem, Sighting, Status, VisibleMonster, VisibleState,
+};
 
 /// What the Advisor remembers of one game.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccumulatedState {
-    /// The character's resistances, as the character overview or dump last showed them. Nothing
-    /// the Advisor follows yet tells it they changed, so once read they stay Known: they are
-    /// labelled with the turn they were read on, never presented as current.
+    /// The character's resistances, as the character overview or dump last showed them, with
+    /// those temporary effects give. They go Stale when anything that could change them does:
+    /// what is carried or equipped (as [`AccumulatedState::equipped`] tells it), the experience
+    /// level, the god or piety, or a status starting or ending. A change with no such sign, such
+    /// as a mutation from a potion the inventory still shows another of, goes unnoticed.
     pub resistances: Remembered<Resistances>,
     /// The shield the character wears, if any, as the character overview or dump last showed it
     /// with the inventory decoded. It goes Stale when the SH the game reports changes.
@@ -205,11 +209,18 @@ impl AccumulatedState {
         }
         let (was, is) = (&before.stats, &now.stats);
         let carried_changed = !carries_the_same(before, now);
-        if carried_changed
+        let equipment_may_have_changed = carried_changed
             || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
-            || before.light_at_player() != now.light_at_player()
-        {
+            || before.light_at_player() != now.light_at_player();
+        if equipment_may_have_changed {
             self.equipped.go_stale();
+        }
+        if equipment_may_have_changed
+            || was.xl != is.xl
+            || before.religion != now.religion
+            || !lists_the_same_statuses(before, now)
+        {
+            self.resistances.go_stale();
         }
         if carried_changed
             || (was.xl, was.intelligence) != (is.xl, is.intelligence)
@@ -461,6 +472,16 @@ fn carries_the_same(before: &VisibleState, now: &VisibleState) -> bool {
     }
 }
 
+/// Whether the status pane lists the same statuses in `before` and `now`, by their lights and
+/// words: not whether one's colour changed, as it does when it starts to run out.
+fn lists_the_same_statuses(before: &VisibleState, now: &VisibleState) -> bool {
+    let key = |status: &Status| (status.light.clone(), status.text.clone());
+    match (&before.statuses, &now.statuses) {
+        (Some(was), Some(is)) => was.iter().map(key).eq(is.iter().map(key)),
+        (was, is) => was.is_none() && is.is_none(),
+    }
+}
+
 /// The messages `now` shows that `before` didn't: those after the last one `before` showed, or
 /// all of them when it is gone.
 fn new_messages<'a>(before: &VisibleState, now: &'a VisibleState) -> &'a [GameMessage] {
@@ -483,4 +504,146 @@ fn worn_shield(equipped: &[char], visible: &VisibleState) -> Option<Option<Shiel
         worn = worn.or(Shield::of(kind));
     }
     Some(worn)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::view_model::Colour;
+    use crate::visible_state::{Religion, Stats};
+
+    /// A character with one potion, a status lit `Pois`, XL 5 and AC 3, who worships Trog at two
+    /// stars.
+    fn character() -> VisibleState {
+        VisibleState {
+            turn: Some(40),
+            stats: Stats {
+                xl: Some(5),
+                ac: Some(3),
+                ev: Some(10),
+                sh: Some(0),
+                ..Stats::default()
+            },
+            religion: Some(Religion::God {
+                name: "Trog".to_owned(),
+                piety_rank: Some(2),
+                penance: false,
+            }),
+            statuses: Some(vec![Status {
+                light: Some("Pois".to_owned()),
+                text: Some("poisoned".to_owned()),
+                colour: Some(Colour::Yellow),
+            }]),
+            inventory: Some(vec![InventoryItem {
+                letter: 'a',
+                name: "a potion of curing".to_owned(),
+                quantity: 1,
+                kind: None,
+                useless: false,
+            }]),
+            ..VisibleState::default()
+        }
+    }
+
+    /// Whether the resistances read off the character overview in `before` are Stale once the
+    /// game reports `now`.
+    fn goes_stale(before: &VisibleState, now: &VisibleState) -> bool {
+        let overview = ScreenRead {
+            screen: Screen::CharacterOverview,
+            title: None,
+            lines: vec!["rFire   + . .".to_owned()],
+        };
+        let mut remembered = AccumulatedState::default();
+        remembered.read(&overview, before);
+        assert!(remembered.resistances.known().is_some());
+        remembered.update(before, now, None);
+        matches!(remembered.resistances, Remembered::Stale(_))
+    }
+
+    #[test]
+    fn resistances_stay_known_while_nothing_that_changes_them_does() {
+        let before = character();
+        let now = VisibleState {
+            turn: Some(41),
+            ..character()
+        };
+        assert!(!goes_stale(&before, &now));
+    }
+
+    #[test]
+    fn resistances_stay_known_as_a_status_changes_colour_running_out() {
+        let mut now = character();
+        if let Some(status) = now
+            .statuses
+            .as_mut()
+            .and_then(|statuses| statuses.first_mut())
+        {
+            status.colour = Some(Colour::DarkGrey);
+        }
+        assert!(!goes_stale(&character(), &now));
+    }
+
+    #[test]
+    fn resistances_go_stale_when_a_status_starts_or_ends() {
+        let mut started = character();
+        started.statuses.get_or_insert_with(Vec::new).push(Status {
+            light: Some("Resist".to_owned()),
+            text: Some("resistant".to_owned()),
+            colour: Some(Colour::LightBlue),
+        });
+        assert!(goes_stale(&character(), &started));
+        let ended = VisibleState {
+            statuses: Some(Vec::new()),
+            ..character()
+        };
+        assert!(goes_stale(&character(), &ended));
+    }
+
+    #[test]
+    fn resistances_go_stale_when_the_inventory_or_equipment_changes() {
+        let mut picked_up = character();
+        picked_up
+            .inventory
+            .get_or_insert_with(Vec::new)
+            .push(InventoryItem {
+                letter: 'b',
+                name: "a ring of fire".to_owned(),
+                quantity: 1,
+                kind: None,
+                useless: false,
+            });
+        assert!(goes_stale(&character(), &picked_up));
+        let mut put_on = character();
+        put_on.stats.ac = Some(4);
+        assert!(goes_stale(&character(), &put_on));
+    }
+
+    #[test]
+    fn resistances_go_stale_when_the_experience_level_changes() {
+        let mut levelled = character();
+        levelled.stats.xl = Some(6);
+        assert!(goes_stale(&character(), &levelled));
+    }
+
+    #[test]
+    fn resistances_go_stale_when_the_god_or_piety_changes() {
+        let pious = VisibleState {
+            religion: Some(Religion::God {
+                name: "Trog".to_owned(),
+                piety_rank: Some(3),
+                penance: false,
+            }),
+            ..character()
+        };
+        assert!(goes_stale(&character(), &pious));
+        let converted = VisibleState {
+            religion: Some(Religion::God {
+                name: "the Shining One".to_owned(),
+                piety_rank: Some(0),
+                penance: false,
+            }),
+            ..character()
+        };
+        assert!(goes_stale(&character(), &converted));
+    }
 }

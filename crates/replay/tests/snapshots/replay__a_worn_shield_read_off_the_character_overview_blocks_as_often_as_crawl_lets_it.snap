@@ -430,7 +430,7 @@ expression: by_turn
         ],
         "lighting": "plain",
         "resistances": {
-          "state": "known",
+          "state": "stale",
           "turn": 101,
           "source": {
             "kind": "characterOverview"
