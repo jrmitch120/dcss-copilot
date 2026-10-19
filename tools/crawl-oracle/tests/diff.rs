@@ -1,6 +1,6 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
-//! randomised monster attackers, every other one holding a melee weapon, and player defenders,
-//! 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
+//! randomised monster attackers, every other one holding a melee weapon, and player defenders of
+//! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
 //! block and reach cases with 27 turn cases (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
@@ -44,7 +44,7 @@ fn with_to_hit_one_higher(case: usize) -> String {
 
 #[test]
 fn a_to_hit_off_by_one_is_caught() {
-    // Case 0, a peacekeeper, rolls to-hit over 0..=41: one in 42 rolls lands one higher.
+    // Case 0, a battlemage, rolls to-hit over 0..=24: one in 25 rolls lands one higher.
     assert_eq!(caught(&with_to_hit_one_higher(0)), [(0, Measure::ToHit)]);
 }
 
@@ -79,17 +79,17 @@ fn one_shard_of_a_run_is_diffed_on_its_own() {
 }
 
 #[test]
-fn a_seraphs_halo_left_out_of_its_aim_is_caught() {
-    // Case 10, a seraph, whose halo backlights the player: counted as plain light.
-    let dump = with_changed(DUMP, 10, |case| case["lighting"] = "plain".into());
-    assert!(caught(&dump).contains(&(10, Measure::ToHit)));
+fn a_cherubs_halo_left_out_of_its_aim_is_caught() {
+    // Case 11, a cherub, whose halo backlights the player: counted as plain light.
+    let dump = with_changed(DUMP, 11, |case| case["lighting"] = "plain".into());
+    assert!(caught(&dump).contains(&(11, Measure::ToHit)));
 }
 
 #[test]
 fn an_umbra_left_out_of_the_aim_of_a_monster_without_nightvision_is_caught() {
-    // Case 1, a merfolk siren, which can't see through the player's umbra: counted as plain light.
-    let dump = with_changed(DUMP, 1, |case| case["lighting"] = "plain".into());
-    assert!(caught(&dump).contains(&(1, Measure::ToHit)));
+    // Case 2, a yaktaur, which can't see through the player's umbra: counted as plain light.
+    let dump = with_changed(DUMP, 2, |case| case["lighting"] = "plain".into());
+    assert!(caught(&dump).contains(&(2, Measure::ToHit)));
 }
 
 #[test]
@@ -108,26 +108,33 @@ fn nightvision_the_game_knowledge_doesnt_give_a_monster_is_caught() {
 
 #[test]
 fn a_wielded_weapons_enchantment_left_out_is_caught() {
-    // Case 17, a naga mage's +7 triple sword of holy wrath, which doesn't hurt a mortal: played
-    // as +0.
-    let dump = with_changed(DUMP, 17, |case| case["main"]["plus"] = 0.into());
+    // Case 9, a spriggan's +3 demon blade: played as +0.
+    let dump = with_changed(DUMP, 9, |case| case["main"]["plus"] = 0.into());
     assert_eq!(
         caught(&dump),
         [
-            (17, Measure::ToHit),
-            (17, Measure::Hits),
-            (17, Measure::Damage)
+            (9, Measure::ToHit),
+            (9, Measure::Hits),
+            (9, Measure::Damage)
         ]
     );
 }
 
 #[test]
 fn a_wielded_weapons_brand_left_out_is_caught() {
-    // Case 13, a kobold brigand's +3 old hammer of flaming: played unbranded.
+    // Case 13, a pale draconian's +3 bardiche of pain, at a human with rN+: played unbranded.
     let dump = with_changed(DUMP, 13, |case| {
         case["main"]["brand"] = "SPWPN_NORMAL".into();
     });
     assert_eq!(caught(&dump), [(13, Measure::Damage)]);
+}
+
+#[test]
+fn a_players_holiness_left_out_is_caught() {
+    // Case 3, a minotaur's +4 halberd of draining, which doesn't drain a mummy: the player taken
+    // for a human.
+    let dump = with_changed(DUMP, 3, |case| case["resists"]["species"] = "Human".into());
+    assert_eq!(caught(&dump), [(3, Measure::Damage)]);
 }
 
 #[test]
@@ -142,7 +149,7 @@ fn a_heavy_weapon_swung_as_quickly_as_any_is_caught() {
 
 #[test]
 fn a_weapon_held_by_a_monster_crawl_shows_wielding_nothing_is_caught() {
-    // Case 10, a seraph hitting unarmed: given a +9 spear.
+    // Case 10, a djinni hitting unarmed: given a +9 spear.
     let dump = with_changed(DUMP, 10, |case| {
         case["main"] = serde_json::json!({ "weapon": "0:23", "plus": 9, "brand": "SPWPN_NORMAL" });
     });
@@ -200,16 +207,23 @@ fn shifted(tally: &serde_json::Value) -> serde_json::Value {
 
 #[test]
 fn a_beam_damage_off_by_one_is_caught() {
-    // Case 22, a servant of whispers' lightning bolt (1 to 54): every hit one point harder.
-    let dump = with_changed(SPELLS, 22, |case| case["damage"] = shifted(&case["damage"]));
-    assert_eq!(caught(&dump), [(22, Measure::Damage)]);
+    // Case 6, a tengu conjurer's lightning bolt (0 to 14): every hit one point harder.
+    let dump = with_changed(SPELLS, 6, |case| case["damage"] = shifted(&case["damage"]));
+    assert_eq!(caught(&dump), [(6, Measure::Damage)]);
+}
+
+#[test]
+fn a_players_resistance_left_out_is_caught() {
+    // Case 16, a hell knight's bolt of fire at a mummy with rF+: the player taken to resist none.
+    let dump = with_changed(SPELLS, 16, |case| case["resists"]["fire"] = 0.into());
+    assert_eq!(caught(&dump), [(16, Measure::Damage)]);
 }
 
 #[test]
 fn a_backlit_player_counted_as_in_plain_light_is_caught() {
-    // Case 8, a fire giant's bolt of fire at a player under a corona: counted as plain light.
-    let dump = with_changed(SPELLS, 8, |case| case["lighting"] = "plain".into());
-    assert_eq!(caught(&dump), [(8, Measure::Hits)]);
+    // Case 10, an electric golem's lightning bolt at a backlit player: counted as plain light.
+    let dump = with_changed(SPELLS, 10, |case| case["lighting"] = "plain".into());
+    assert_eq!(caught(&dump), [(10, Measure::Hits)]);
 }
 
 #[test]
@@ -248,16 +262,26 @@ fn the_engine_agrees_with_crawl_on_every_missile_gear_and_wand_case() {
 
 #[test]
 fn a_launchers_enchantment_left_out_is_caught() {
-    // Case 36, a nekomata's +9 arbalest of freezing: played as +0.
+    // Case 36, a naga sharpshooter's +2 shortbow of speed: played as +0.
     let dump = with_changed(MISSILES, 36, |case| case["plus"] = 0.into());
     assert_eq!(caught(&dump), [(36, Measure::ToHit), (36, Measure::Damage)]);
 }
 
 #[test]
 fn a_launchers_brand_left_out_is_caught() {
-    // Case 41, a centaur warrior's -1 orcbow of flaming: played unbranded.
-    let dump = with_changed(MISSILES, 41, |case| case["brand"] = "SPWPN_NORMAL".into());
-    assert_eq!(caught(&dump), [(41, Measure::Damage)]);
+    // Case 46, a centaur warrior's -1 shortbow of foul flame: played unbranded.
+    let dump = with_changed(MISSILES, 46, |case| case["brand"] = "SPWPN_NORMAL".into());
+    assert_eq!(caught(&dump), [(46, Measure::Damage)]);
+}
+
+#[test]
+fn a_players_good_god_left_out_is_caught() {
+    // Case 46, a centaur warrior's foul flame at a worshipper of the Shining One, whom it hurts
+    // half as much again: the player taken to worship no god.
+    let dump = with_changed(MISSILES, 46, |case| {
+        case["resists"]["god"] = "No God".into()
+    });
+    assert_eq!(caught(&dump), [(46, Measure::Damage)]);
 }
 
 #[test]
@@ -279,11 +303,11 @@ fn caught(dump: &str) -> Vec<(u64, Measure)> {
 
 #[test]
 fn a_missile_damage_off_by_one_is_caught() {
-    // Case 21, a merfolk javelineer's javelin, which deals up to 33: every hit one point harder.
-    let dump = with_changed(MISSILES, 21, |case| {
+    // Case 16, a merfolk javelineer's javelin, which deals up to 37: every hit one point harder.
+    let dump = with_changed(MISSILES, 16, |case| {
         case["damage"] = shifted(&case["damage"]);
     });
-    assert_eq!(caught(&dump), [(21, Measure::Damage)]);
+    assert_eq!(caught(&dump), [(16, Measure::Damage)]);
 }
 
 #[test]

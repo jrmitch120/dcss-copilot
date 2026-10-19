@@ -91,7 +91,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What crawl does:** a beam's damage, and what a launcher's or melee weapon's elemental, draining or pain brand adds, is cut or raised by the player's resistances (`check_your_resists`, `resist_adjust_damage`), and holy fire, holy wrath, foul flame, draining and miasma by their holiness and god (`player::res_holy_energy`, `player::res_foul_flame`, `attack::drain_defender`, `player::res_miasma`).
 - **What the engine assumes:** the resistances the character overview or dump last showed, Known or Stale, and the holiness the player's species, form, petrification and god give (`resists.rs`). Steam is resisted by `rFire` alone, as if the player had no resistance to steam of their own, from steam dragon scales or a mutation, which the overview doesn't show; miasma harms them unless they are nonliving or lifeless undead, as if no form, mutation or artefact resisted it. Before the overview is read, the player resists nothing and is a living mortal who worships no good god. While their species, statuses or god are unreported, or their species isn't in the Game Knowledge, they are a living mortal of no good god with the resistances read.
 - **Surfaced as:** `playerResistances`, when a monster that can attack may deal damage whose adjustment the engine can't settle from what it knows: the resistances haven't been read and the damage is one they change; it is steam or miasma, which need a resistance the overview doesn't show; or it is holy fire, holy wrath, foul flame, draining or miasma and the player's holiness or god can't be told.
-- **Harness:** the spell harness casts at a human without resistances, and the melee and missile harnesses attack one who worships no god or Yredelemnul.
+- **Harness:** the spell, melee and missile harnesses give the player a species, a god and resistances from what the overview shows (`docs/crawl-oracle.md`), but no form and no steam or miasma resistance of their own.
 - **Impact and cost:** steam and miasma err low for a player with steam dragon scales, a foul stench or an artefact against miasma, which are rare; unread resistances err high by half or more of an elemental caster's damage, and low for an undead or demonic player shot with holy wrath. Opening the character overview (`%`) closes most of it; the rest would need the player's mutations and body armour read.
 
 ### The dragonskin cloak
@@ -107,7 +107,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What crawl does:** a holy monster's foul flame weapon or launcher, and an undead or demonic one's holy wrath weapon or launcher, add nothing, nor does pain in the hands of a follower of Trog (`attack::apply_damage_brand`).
 - **What the engine assumes:** a brand adds the same whoever attacks with it.
 - **Surfaced as:** accepted simplification: crawl makes almost none of these monsters with such a weapon, and holy wrath hurts only an undead or demonic player.
-- **Harness:** the melee and missile harnesses give neither a holy monster foul flame nor a follower of Trog pain.
+- **Harness:** the melee and missile harnesses give no holy monster foul flame, no undead or demonic monster holy wrath and no follower of Trog pain.
 - **Impact and cost:** errs high, and rarely. Game Knowledge would carry each kind's holiness and god.
 
 ### Caster safety

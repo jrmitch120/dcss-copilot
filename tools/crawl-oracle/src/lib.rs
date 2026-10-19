@@ -39,8 +39,8 @@ use std::fmt;
 
 use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
-    MeleeCase, MeleeTally, MissileCase, SpellCase, SpellChoiceCase, SpellTally, TurnCase, WandCase,
-    WeaponCase, ZapCase,
+    MeleeCase, MeleeTally, MissileCase, PlayerResists, SpellCase, SpellChoiceCase, SpellTally,
+    TurnCase, WandCase, WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -276,6 +276,8 @@ struct Case {
     main: Option<WeaponLine>,
     off: Option<WeaponLine>,
     player: ExactDefences,
+    /// What the player resists, as the character overview shows it, and their species and god.
+    resists: PlayerResists,
     lighting: Lighting,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
@@ -313,6 +315,8 @@ struct BeamLine {
     spell_name: String,
     nightvision: bool,
     player: ExactDefences,
+    /// What the player resists, as the character overview shows it, and their species and god.
+    resists: PlayerResists,
     lighting: Lighting,
     power: i32,
     range: i32,
@@ -365,6 +369,8 @@ struct MissileLine {
     brand: String,
     nightvision: bool,
     player: ExactDefences,
+    /// What the player resists, as the character overview shows it, and their species and god.
+    resists: PlayerResists,
     lighting: Lighting,
     trials: u32,
     to_hit: BTreeMap<i32, u32>,
@@ -537,6 +543,7 @@ fn compare_melee(bundle: &Bundle, seed: u64, case: &Case) -> Result<Vec<Mismatch
         damage: case.attack.damage,
         hands: hands(bundle, case.index, case.main.as_ref(), case.off.as_ref())?,
         defences: case.player,
+        resists: case.resists.clone(),
         lighting: case.lighting,
     };
     let MeleeTally {
@@ -641,6 +648,7 @@ fn compare_beam(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
         spell: case.spell,
         hit_dice: case.hit_dice,
         defences: case.player,
+        resists: case.resists.clone(),
         lighting: case.lighting,
     };
     let engine: SpellTally = oracle::spell(bundle, &input, (seed, case.index), case.trials)
@@ -659,6 +667,7 @@ fn compare_wand(bundle: &Bundle, seed: u64, case: &BeamLine) -> Result<Vec<Misma
         spell: case.spell,
         hit_dice: case.hit_dice,
         defences: case.player,
+        resists: case.resists.clone(),
         lighting: case.lighting,
     };
     let engine =
@@ -766,6 +775,7 @@ fn compare_missile(
         brand: EnumId(case.brand.clone()),
         hit_dice: case.hit_dice,
         defences: case.player,
+        resists: case.resists.clone(),
         lighting: case.lighting,
     };
     let engine: AttackTally = oracle::missile(bundle, &input, (seed, case.index), case.trials)

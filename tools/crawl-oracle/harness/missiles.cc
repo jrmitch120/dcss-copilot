@@ -13,12 +13,14 @@
  *   random enchantment and brand and a missile none, fires it at the player many times, rolled as
  *   ranged_attack::attack rolls it: the to-hit, attack::test_hit against the player's evasion,
  *   attack_shield_blocked, then calc_damage, which applies armour, and apply_damage_brand, as
- *   ranged_attack::handle_phase_hit adds the brand's damage. It skips the other effects of a hit.
+ *   ranged_attack::handle_phase_hit adds the brand's damage, for a player given a species, a god
+ *   and resistances at random (common.h). It skips the other effects of a hit.
  * - fire: such a monster a few squares from the player decides whether to shoot or throw, many
  *   times, through crawl's handle_throw, which fires for real. It tallies the energy each action
  *   took, 0 when it didn't fire. Nets are left out: one that hits catches the player.
  * - wand: a random monster zaps a wand of a spell the engine ports at the player many times,
- *   set up by setup_mons_cast as a wand zap and rolled as the spell harness rolls a beam.
+ *   set up by setup_mons_cast as a wand zap and rolled as the spell harness rolls a beam, the
+ *   player given a species, a god and resistances as in a missile case.
  * - zap: a monster given such a wand, which it likes, a few squares from the player decides
  *   whether to zap it, many times, through crawl's _handle_wand, which zaps for real. It tallies
  *   the energy each action took.
@@ -243,10 +245,12 @@ static void _gear_case(int index, int trials)
 
 static void _missile_case(int index, int trials)
 {
+    _random_species();
     const defences def = _random_player();
     _random_light();
     monster *mon = _random_shooter(1, true);
     const item_def weapon = *_missile_weapon(*mon);
+    const string resists = _random_resists(def);
     const bool harmless = weapon.is_type(OBJ_MISSILES, MI_DART)
                           || weapon.is_type(OBJ_MISSILES, MI_THROWING_NET);
 
@@ -282,12 +286,12 @@ static void _missile_case(int index, int trials)
     printf("{\"case\":%d,\"kind\":\"missile\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
            "\"weapon\":\"%s\",\"weapon_name\":\"%s\",\"plus\":%d,\"brand\":\"%s\","
            "\"nightvision\":%s,"
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"resists\":%s,\"lighting\":\"%s\","
            "\"trials\":%d,\"to_hit\":%s,\"hits\":%d,\"blocks\":%d,\"damage\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(),
            _item_name(&weapon).c_str(), weapon.name(DESC_DBNAME, true).c_str(), weapon.plus,
            _brand_id(weapon.brand), _json_bool(mon->nightvision()), def.ac, def.ev, def.sh,
-           _lighting(), trials,
+           resists.c_str(), _lighting(), trials,
            _histogram(to_hit).c_str(), hits, blocks, _histogram(damage).c_str());
     mon->destroy_inventory();
     _remove(*mon);
@@ -345,6 +349,7 @@ static vector<wand_type> _ported_wands(const set<spell_type> &ported)
 
 static void _wand_case(int index, int trials, const vector<wand_type> &wands)
 {
+    _random_species();
     const defences def = _random_player();
     _random_light();
     monster *mon = _random_monster(1, _any_kind);
@@ -353,15 +358,16 @@ static void _wand_case(int index, int trials, const vector<wand_type> &wands)
     const spell_type spell = spell_in_wand(wand);
     const int power = mons_wand_power(mon->get_hit_dice(), spell);
     const int range = spell_range(spell, mon, power);
+    const string resists = _random_resists(def);
     const beam_tally tally = _cast_at_player(*mon, spell, true, trials);
 
     printf("{\"case\":%d,\"kind\":\"wand\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
            "\"spell\":%d,\"spell_name\":\"%s\",\"nightvision\":%s,"
-           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"lighting\":\"%s\","
-           "\"power\":%d,\"range\":%d,%s}\n",
+           "\"player\":{\"ac\":%d,\"ev\":%d,\"sh\":%d},\"resists\":%s,"
+           "\"lighting\":\"%s\",\"power\":%d,\"range\":%d,%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(), spell,
            spell_title(spell), _json_bool(mon->nightvision()), def.ac, def.ev, def.sh,
-           _lighting(), power, range, _beam_json(tally, trials).c_str());
+           resists.c_str(), _lighting(), power, range, _beam_json(tally, trials).c_str());
     _remove(*mon);
 }
 
