@@ -545,7 +545,7 @@ fn threat(
     if defences.any_hides_a_fraction() {
         not_modelled.push(NotModelled::DefenceFractions);
     }
-    let resists = PlayerResists::of(visible, remembered, species, bundle);
+    let resists = ResistsPlayed::of(visible, remembered, species, bundle);
     let defender = Defender {
         hp,
         defences,
@@ -693,7 +693,7 @@ fn threat(
 
 /// The player's resistances, holiness and god as the simulation plays them, and what of them the
 /// Advisor knows.
-struct PlayerResists {
+struct ResistsPlayed {
     /// As the simulation plays them.
     resists: Resists,
     /// The reading of the resistances applied, if they have been read.
@@ -702,7 +702,7 @@ struct PlayerResists {
     holiness_known: bool,
 }
 
-impl PlayerResists {
+impl ResistsPlayed {
     /// The player as `visible` shows them and the Advisor remembers them, of `species`, judged
     /// through `bundle`. With no reading of their resistances, they resist nothing and are a
     /// living mortal of no good god. With one, their holiness is applied when their species is in
