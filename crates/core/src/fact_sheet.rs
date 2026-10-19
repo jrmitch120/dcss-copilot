@@ -254,7 +254,7 @@ pub enum NotModelled {
     /// A mutant beast in view is judged by its kind alone: the tier and facets it was made with
     /// aren't played out, so its reach, attacks, damage, speed and spells may all be wrong.
     MutantBeastFacets,
-    /// Spells, and what a launcher's brand adds, land as if the player resists nothing and is a
+    /// Spells, and what a weapon's brand adds, land as if the player resists nothing and is a
     /// living mortal who worships no good god, because the engine doesn't apply the player's
     /// resistances yet.
     PlayerResistances,
@@ -611,9 +611,7 @@ fn threat(
         not_modelled.push(NotModelled::OtherWands);
     }
     if attackers.iter().any(|attacker| {
-        !attacker.spells.is_empty()
-            || !attacker.wands.is_empty()
-            || attacker.shoots_resisted_brand()
+        !attacker.spells.is_empty() || !attacker.wands.is_empty() || attacker.has_resisted_brand()
     }) {
         not_modelled.push(NotModelled::PlayerResistances);
     }

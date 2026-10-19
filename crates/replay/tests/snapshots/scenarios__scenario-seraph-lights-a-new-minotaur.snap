@@ -75,7 +75,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions",
-            "otherSpells"
+            "otherSpells",
+            "playerResistances"
           ]
         },
         "waysOut": {
@@ -279,7 +280,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions",
-          "otherSpells"
+          "otherSpells",
+          "playerResistances"
         ]
       },
       "waysOut": {

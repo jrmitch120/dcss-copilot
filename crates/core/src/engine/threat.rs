@@ -319,12 +319,20 @@ impl<'a> Attacker<'a> {
             .collect()
     }
 
-    /// Whether it may shoot a launcher whose brand's damage the player's resistances would cut.
-    pub(crate) fn shoots_resisted_brand(&self) -> bool {
-        self.missiles
+    /// Whether it may shoot a launcher, or fight with a melee weapon, whose brand's damage the
+    /// player's resistances would cut.
+    pub(crate) fn has_resisted_brand(&self) -> bool {
+        let launchers = self
+            .missiles
             .items()
             .filter_map(|missiles| missiles.launcher)
-            .any(|launcher| launcher.brand.resisted())
+            .map(|launcher| launcher.brand);
+        let hands = self.fighter.hands.unwrap_or_default();
+        let held = [hands.main, hands.off]
+            .into_iter()
+            .flatten()
+            .map(|wielded| wielded.weapon.brand);
+        launchers.chain(held).any(Brand::resisted)
     }
 
     /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand

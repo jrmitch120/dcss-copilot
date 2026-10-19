@@ -1,0 +1,24 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, rises to XL 14, creates an orc warrior with a +2 halberd of flaming beside them on D:1, blinks two squares away from it and shouts to wake it: crawl lists the halberd as the orc warrior comes into view, and the Threat Level has it strike from two squares, with the halberd's damage, plus and brand"
+recording = "orc-warrior-reaches-with-a-halberd.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0, 1]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Set the experience level to 14, for the hit points to survive the halberd.
+  "l", "14\r",
+  # Create a monster by MONS spec: an orc warrior with a +2 halberd of flaming.
+  "&", "m", "orc warrior ; halberd ego:flaming plus:2\r",
+  # Blink, moving the target two squares west, then confirming it.
+  "&", "b", "h", "h", ".",
+  # Shout, to wake it: crawl makes it asleep.
+  "\u001b", "t", "t",
+  # Wait two turns while it acts; Escape clears any --more--.
+  "\u001b", ".", "\u001b", ".",
+]

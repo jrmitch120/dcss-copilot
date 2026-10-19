@@ -88,10 +88,10 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### The player's resistances
 
-- **What crawl does:** a beam's damage, and what a launcher's elemental, draining or pain brand adds, is cut by the player's resistances (`check_your_resists`, `resist_adjust_damage`). Holy wrath hurts only an undead or demonic player, and foul flame hurts them less and a holy one more (`player::res_foul_flame`).
+- **What crawl does:** a beam's damage, and what a launcher's or melee weapon's elemental, draining or pain brand adds, is cut by the player's resistances (`check_your_resists`, `resist_adjust_damage`). Holy wrath hurts only an undead or demonic player, and foul flame hurts them less and a holy one more (`player::res_foul_flame`).
 - **What the engine assumes:** the player resists nothing, and is a living mortal who worships no good god.
-- **Surfaced as:** `playerResistances`, when a monster that can attack casts, zaps or shoots a launcher whose brand's damage the player's resistances would cut.
-- **Harness:** the spell harness casts at a human without resistances, and the missile harness shoots at one who worships no god or Yredelemnul.
+- **Surfaced as:** `playerResistances`, when a monster that can attack casts, zaps, shoots a launcher or fights with a melee weapon whose brand's damage the player's resistances would cut.
+- **Harness:** the spell harness casts at a human without resistances, and the melee and missile harnesses attack one who worships no god or Yredelemnul.
 - **Impact and cost:** errs high, often by half or more of an elemental caster's damage, and low for an undead or demonic player shot with holy wrath. The Advisor already remembers the resistances from the character overview, and the player's species and god are in view; the engine needs to apply them.
 - **Issue:** [#99]
 

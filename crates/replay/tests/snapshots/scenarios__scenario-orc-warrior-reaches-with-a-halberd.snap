@@ -1,0 +1,640 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz374446283",
+    "character": "wiz374446283",
+    "species": "Minotaur",
+    "firstSeenMs": 1792374447535,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 102,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 30,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "orc warrior",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "orc warrior",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "look",
+                "unlisted": "nothing"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions",
+            "playerResistances"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc warrior",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 3
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc warrior",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 6,
+            "nearestCorridor": {
+              "position": {
+                "x": 4,
+                "y": 5
+              },
+              "steps": 6
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz374446283",
+          "species": "Minotaur",
+          "hp": 102,
+          "hpMax": 102,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Orc warrior can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "o",
+                  "colour": "yellow"
+                },
+                "tile": "mon/humanoids/orcs/orc_warrior"
+              },
+              "name": "orc warrior",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Orc warrior is beside it"
+            }
+          ],
+          "ground": "On open ground: 6 sides open · a corridor 6 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 102,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 30,
+          "hostilesInView": 1,
+          "acting": [
+            {
+              "name": "orc warrior",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "orc warrior",
+              "position": {
+                "x": 0,
+                "y": 1
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "look",
+                "unlisted": "nothing"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions",
+            "playerResistances"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc warrior",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 0,
+                        "arrivesAfter": 0,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 3
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "orc warrior",
+                        "position": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "moves": 2,
+                        "arrivesAfter": 2,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 6,
+            "nearestCorridor": {
+              "position": {
+                "x": 4,
+                "y": 5
+              },
+              "steps": 6
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            },
+            {
+              "gap": "spellList"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz374446283",
+          "species": "Minotaur",
+          "hp": 102,
+          "hpMax": 102,
+          "turn": 1
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Orc warrior can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "o",
+                  "colour": "yellow"
+                },
+                "tile": "mon/humanoids/orcs/orc_warrior"
+              },
+              "name": "orc warrior",
+              "detail": null,
+              "count": 1
+            }
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Orc warrior is beside it"
+            }
+          ],
+          "ground": "On open ground: 6 sides open · a corridor 6 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the spell list (I) to judge your spells."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 3,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 102,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 30,
+        "hostilesInView": 1,
+        "acting": [
+          {
+            "name": "orc warrior",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "orc warrior",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "look",
+              "unlisted": "nothing"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions",
+          "playerResistances"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "orc warrior",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 3
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "orc warrior",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 2,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 6,
+          "nearestCorridor": {
+            "position": {
+              "x": 4,
+              "y": 5
+            },
+            "steps": 6
+          }
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz374446283",
+        "species": "Minotaur",
+        "hp": 102,
+        "hpMax": 102,
+        "turn": 3
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Orc warrior can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "yellow"
+              },
+              "tile": "mon/humanoids/orcs/orc_warrior"
+            },
+            "name": "orc warrior",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Orc warrior is beside it"
+          }
+        ],
+        "ground": "On open ground: 6 sides open · a corridor 6 steps away",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the spell list (I) to judge your spells."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
