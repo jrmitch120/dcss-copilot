@@ -8,3 +8,31 @@ file = "player-0.34.1-seed-7.dcssrec"
 sha256 = "a90cafc984f98db78891d2857e8da9fde36c502848ff664a1639da0d717ce56d"
 crawl_version = "0.34.1"
 seed = 7
+
+[[game]]
+# A Draconian Conjurer killed by a gnoll on D:2 at turn 2207, XL 5.
+file = "player-0.34.1-seed-8.dcssrec"
+sha256 = "f9ac16cfd262d1b35619731eec09889d6bfd11f2f282f0ba59216058afee57c0"
+crawl_version = "0.34.1"
+seed = 8
+
+[[game]]
+# A Draconian Conjurer killed by Crazy Yiuf on D:3 at turn 3034, XL 5.
+file = "player-0.34.1-seed-9.dcssrec"
+sha256 = "28c7651ccb2609872078b84b656dfc8737f30fc5d05bfdea10bf9f96d50e6d05"
+crawl_version = "0.34.1"
+seed = 9
+
+[[game]]
+# A Draconian Conjurer killed by a gnoll on D:2 at turn 1362, XL 2.
+file = "player-0.34.1-seed-11.dcssrec"
+sha256 = "fd5ece270590c233ba975c739f06e739bf95a1d89f5da761d41aff2cf1442161"
+crawl_version = "0.34.1"
+seed = 11
+
+[[game]]
+# A Gargoyle Earth Elementalist killed from afar by an orc wizard on D:2 at turn 1740, XL 5.
+file = "player-0.34.1-seed-12.dcssrec"
+sha256 = "b52be463b2c85441a6838c52df131ae6214e08446e1859464e61f5ffb11b8478"
+crawl_version = "0.34.1"
+seed = 12
