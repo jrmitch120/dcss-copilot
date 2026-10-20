@@ -22,7 +22,10 @@ pub use fact_sheet::{
     Threat, ThreatAssessment, ThreatLevel,
 };
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
-pub use screen::{KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead};
+pub use screen::{
+    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, Skills, SpellPower,
+    SpellReach,
+};
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
     Listing, NowPill, RunPlanRail, TileName, ViewModel, WayOutRow, WaysOutList,
@@ -30,6 +33,7 @@ pub use view_model::{
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,
     RECENT_MESSAGES, Religion, Sighting, SquareLight, Stats, Status, VisibleMonster, VisibleState,
+    Wielding,
 };
 pub use ways_out::{
     Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, ReadOn, Usable, WayOut, WaysOut,

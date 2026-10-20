@@ -8,7 +8,9 @@ use serde::Serialize;
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, object_classes};
-use crate::screen::{KnownAbility, KnownSpell, Resistances, Screen, ScreenRead};
+use crate::screen::{
+    KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, Skills, SpellReach,
+};
 use crate::visible_state::{
     GameMessage, InventoryItem, Sighting, Status, VisibleMonster, VisibleState,
 };
@@ -38,6 +40,15 @@ pub struct AccumulatedState {
     /// lower failure rates bit by bit, go unnoticed, and so does a spell learned or forgotten
     /// without any of those changing.
     pub spells: Remembered<Vec<KnownSpell>>,
+    /// The power and range of the spells the character knows, as the spell list (`I`) last
+    /// showed them switched to its other columns (`!`). It goes Stale as
+    /// [`AccumulatedState::spells`] does, as power changes with the same.
+    pub spell_reaches: Remembered<Vec<SpellReach>>,
+    /// The character's skills, as the skills screen (`m`) or the character dump last showed
+    /// them. They go Stale when the experience level or the statuses change, as a level brings
+    /// skill points and a status such as heroism raises them for a while. Skills trained between
+    /// levels, a little with each kill, go unnoticed.
+    pub skills: Remembered<Skills>,
     /// The abilities the character has, with their costs and failure rates, as the ability
     /// menu (`a`) last showed them. It goes Stale when the experience level, god, piety,
     /// maximum magic points or inventory changes, as abilities come and go with them.
@@ -189,6 +200,12 @@ impl AccumulatedState {
         if let Some(spells) = read.spells() {
             self.spells = Remembered::read(spells, read, visible);
         }
+        if let Some(reaches) = read.spell_reaches() {
+            self.spell_reaches = Remembered::read(reaches, read, visible);
+        }
+        if let Some(skills) = read.skills() {
+            self.skills = Remembered::read(skills, read, visible);
+        }
         if let Some(abilities) = read.abilities() {
             self.abilities = Remembered::read(abilities, read, visible);
         }
@@ -227,6 +244,10 @@ impl AccumulatedState {
             || (was.ac, was.ev, was.sh) != (is.ac, is.ev, is.sh)
         {
             self.spells.go_stale();
+            self.spell_reaches.go_stale();
+        }
+        if was.xl != is.xl || !lists_the_same_statuses(before, now) {
+            self.skills.go_stale();
         }
         if carried_changed
             || (was.xl, was.mp_max) != (is.xl, is.mp_max)
@@ -241,6 +262,7 @@ impl AccumulatedState {
             let turn = message.turn.or(now.turn);
             if message.text == signs.no_spells {
                 self.spells = Remembered::nothing_on(Screen::Spells, turn);
+                self.spell_reaches = Remembered::nothing_on(Screen::Spells, turn);
             }
             if message.text == signs.no_abilities {
                 self.abilities = Remembered::nothing_on(Screen::Abilities, turn);

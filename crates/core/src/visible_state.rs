@@ -30,6 +30,8 @@ pub struct VisibleState {
     /// The items the player carries, by inventory letter. `None` until the game has sent the
     /// inventory.
     pub inventory: Option<Vec<InventoryItem>>,
+    /// What the player holds in their weapon hand. `None` until the game has said.
+    pub wielded: Option<Wielding>,
     /// The current level as the game shows it: the squares in view and those remembered. `None`
     /// until the game has sent its map.
     pub map: Option<LevelMap>,
@@ -281,6 +283,16 @@ pub struct InventoryItem {
     /// Crawl judges it of no use to the character right now, as the inventory greys it out:
     /// `is_useless_item` with temporary conditions, such as a scroll while confused.
     pub useless: bool,
+}
+
+/// What the player holds in their weapon hand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(tag = "holds", content = "letter", rename_all = "camelCase")]
+pub enum Wielding {
+    /// Nothing: they fight unarmed.
+    Nothing,
+    /// The item they carry under this inventory letter.
+    Item(char),
 }
 
 /// A monster the player can see.

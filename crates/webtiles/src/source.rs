@@ -212,6 +212,7 @@ impl TabGame {
                 .inventory
                 .as_ref()
                 .map(|inventory| inventory.items(knowledge)),
+            wielded: player.wielded(),
             map: map.level(knowledge),
             messages: messages.recent(),
             screen: screens.open(),

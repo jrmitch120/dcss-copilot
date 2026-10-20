@@ -1,6 +1,6 @@
 //! The character, merged from webtiles `player` messages, which send a field only when it changed.
 
-use copilot_core::{Colour, Place, Position, Religion, Stats, Status};
+use copilot_core::{Colour, Place, Position, Religion, Stats, Status, Wielding};
 use serde_json::Value;
 
 use crate::inventory::Inventory;
@@ -25,6 +25,8 @@ pub struct Player {
     pub statuses: Option<Vec<Status>>,
     /// `None` until a `player` message has carried the inventory.
     pub inventory: Option<Inventory>,
+    /// The inventory slot of the item in the weapon hand, -1 for none: `weapon_index`.
+    weapon_index: Option<i64>,
 }
 
 impl Player {
@@ -69,6 +71,7 @@ impl Player {
                     .map(|(x, y)| Position { x, y }),
             );
         }
+        set(&mut self.weapon_index, int(msg, "weapon_index"));
         if let Some(statuses) = msg.get("status").and_then(Value::as_array) {
             // The status list is always sent whole.
             self.statuses = Some(statuses.iter().map(status).collect());
@@ -87,6 +90,16 @@ impl Player {
                 penance: self.penance,
             }
         })
+    }
+
+    /// What the character holds in their weapon hand, once the game has said and, when it is an
+    /// item, sent the inventory slot it is in.
+    pub fn wielded(&self) -> Option<Wielding> {
+        let index = self.weapon_index?;
+        let Ok(slot) = u16::try_from(index) else {
+            return Some(Wielding::Nothing);
+        };
+        self.inventory.as_ref()?.letter_of(slot).map(Wielding::Item)
     }
 
     /// The level the character is on, once the game has said.
