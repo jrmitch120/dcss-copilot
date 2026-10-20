@@ -19,9 +19,9 @@ use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::threat::{self, Attacker, Draw};
-use super::wands;
+use super::{torment, wands};
 use crate::screen::{Resistance, Resistances};
-use crate::visible_state::Religion;
+use crate::visible_state::{Religion, Status};
 
 pub use super::lighting::Lighting;
 pub use super::melee::AUTOMATIC_HIT;
@@ -305,6 +305,9 @@ pub enum CaseError {
     /// The bundle has no species of this name.
     #[error("the Game Knowledge has no species {0}")]
     NoSpecies(String),
+    /// The bundle has no form the status pane lights with this text.
+    #[error("the Game Knowledge has no form lit {0}")]
+    NoForm(String),
     /// The bundle has no melee weapon with this sub-type identifier.
     #[error("the Game Knowledge has no melee weapon {0}")]
     NoMeleeWeapon(String),
@@ -871,6 +874,8 @@ pub struct TurnCase {
     pub distance: i32,
     /// How the light falls on the player.
     pub lighting: Lighting,
+    /// The player's hit points.
+    pub hp: i32,
 }
 
 /// What a monster did before the player's next standard-speed action, over many trials: how
@@ -922,11 +927,86 @@ pub fn turn(
     for _ in 0..trials {
         // The undefended player has no shield to block with.
         let mut blocks_left = 0;
-        let turn = threat::turn(formulas, &mut rng, &attacker, target, &mut blocks_left);
+        let turn = threat::turn(
+            formulas,
+            &mut rng,
+            &attacker,
+            target,
+            case.hp,
+            &mut blocks_left,
+        );
         *tally.melee.entry(turn.melee).or_default() += 1;
         *tally.casts.entry(turn.casts).or_default() += 1;
         *tally.closed.entry(turn.closed).or_default() += 1;
         tally.struck |= turn.damage > 0;
     }
     Ok(tally)
+}
+
+/// A player torment meets, as a harness made them: their species, `rNeg` as the character
+/// overview shows it, the status light of the form they are in, if any, and whether they are
+/// petrified.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TormentCase {
+    /// The species, such as `Mummy`.
+    pub species: String,
+    /// `rNeg`, from 0 to 3.
+    pub negative: i32,
+    /// The status light of their form, such as `Statue`.
+    pub form: Option<String>,
+    /// Whether they are petrified.
+    pub petrified: bool,
+}
+
+/// The hit points torment, as a lurking horror sets it off, takes from `case`'s player on `hp`,
+/// read as the Advisor reads the character overview and the status pane: worshipping no god,
+/// with no status lit but their form and petrification.
+///
+/// # Errors
+/// If the bundle doesn't know the species, or the form by its light.
+pub fn torment(bundle: &Bundle, case: &TormentCase, hp: i32) -> Result<i32, CaseError> {
+    let signs = &bundle.holiness;
+    if let Some(light) = &case.form
+        && !signs.forms.iter().any(|form| form.light == *light)
+    {
+        return Err(CaseError::NoForm(light.clone()));
+    }
+    let petrified_light = case
+        .petrified
+        .then(|| signs.petrified_lights.first().cloned())
+        .flatten();
+    let statuses: Vec<Status> = case
+        .form
+        .iter()
+        .cloned()
+        .chain(petrified_light)
+        .map(|light| Status {
+            light: Some(light),
+            text: None,
+            colour: None,
+        })
+        .collect();
+    let none = Some(Resistance::Pips(0));
+    let overview = Resistances {
+        fire: none,
+        cold: none,
+        negative: Some(Resistance::Pips(
+            i8::try_from(case.negative).unwrap_or(i8::MAX),
+        )),
+        poison: none,
+        electricity: none,
+        corrosion: none,
+        see_invisible: None,
+        willpower: None,
+    };
+    let seen = Seen {
+        resistances: &overview,
+        species: Some(&case.species),
+        statuses: Some(&statuses),
+        religion: Some(&Religion::NoGod),
+    };
+    let read = resists::read(bundle, &seen)
+        .filter(|read| read.holiness_known)
+        .ok_or_else(|| CaseError::NoSpecies(case.species.clone()))?;
+    Ok(torment::damage(bundle.formulas.torment, hp, read.resists))
 }

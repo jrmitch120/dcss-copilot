@@ -11,6 +11,7 @@ mod rng;
 pub(crate) mod spells;
 pub(crate) mod step;
 pub(crate) mod threat;
+pub(crate) mod torment;
 pub(crate) mod wands;
 
 /// How far the player sees, crawl's `you.current_vision`, taken as everyone's normal sight,

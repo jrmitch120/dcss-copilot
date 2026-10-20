@@ -37,11 +37,12 @@
  * moves away from them (NotModelled::BlinksAway) is left out of the case it is found in, and
  * said so on standard error. A caster of an explosion or a cloud starts three squares or more
  * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
- * doesn't port. So does a kind that blows itself up as it attacks (mons_self_destructs), the
- * lurking horror, which from there can't reach the player and attack before their next action,
- * and so isn't left out for dying in its own turns. A caster of a blinkbolt has the square
- * behind the player walled, so crawl lands it beside them, as the engine does, and not past
- * them; said so on standard error, and a case that lands it anywhere else is left out.
+ * doesn't port. A kind that blows itself up as it attacks (mons_self_destructs), the lurking
+ * horror, isn't left out for dying in its own turns: a play in which it does so after a melee
+ * action counts it as having closed on the player, and it is placed again. A caster of a
+ * blinkbolt has the square behind the player walled, so crawl lands it beside them, as the
+ * engine does, and not past them; said so on standard error, and a case that lands it anywhere
+ * else is left out.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled
@@ -529,50 +530,63 @@ struct turn_tally
 // or crumble in its own turns, move the player, as a trampling, dragging or blinking hit does
 // (NotModelled::MovesThePlayer, BlinksWithThePlayer), move away from them, as a blinking hit
 // does (NotModelled::BlinksAway), or cast a blinkbolt and land anywhere but beside them.
-static const char *_play_turns(monster &mon, int distance, bool corona, bool walled, int trials,
-                               turn_tally &tally)
+static const char *_play_turns(monster *mon, const turn_kind &kind, int distance, bool corona,
+                               bool walled, int trials, turn_tally &tally)
 {
-    const coord_def start = mon.pos();
+    const coord_def start = mon->pos();
     const coord_def player = you.pos();
-    const int hit_dice = mon.get_hit_dice();
+    const int hit_dice = mon->get_hit_dice();
     for (int t = 0; t < trials; ++t)
     {
-        _clear_monsters(&mon);
+        _clear_monsters(mon);
         _restore_player();
         if (corona)
             you.duration[DUR_CORONA] = 1000;
         _lay_terrain(walled);
         delete_all_clouds();
-        if (mon.pos() != start)
-            mon.move_to(start);
-        _clear_statuses(mon);
-        mon.hit_points = mon.max_hit_points;
+        if (mon->pos() != start)
+            mon->move_to(start);
+        _clear_statuses(*mon);
+        mon->hit_points = mon->max_hit_points;
         // A spore attack costs its attacker a hit die (melee_attack::mons_apply_attack_flavour).
         // Set directly: monster::set_hit_dice also resets an oklob plant's spitting frequency.
-        mon.hit_dice = hit_dice;
-        mon.foe = MHITYOU;
-        mon.target = you.pos();
+        mon->hit_dice = hit_dice;
+        mon->foe = MHITYOU;
+        mon->target = you.pos();
         // As crawl leaves a monster that has acted.
-        mon.speed_increment = 200;
-        mon.drain_action_energy();
+        mon->speed_increment = 200;
+        mon->drain_action_energy();
 
         melee_actions = 0;
         spells_cast = 0;
         you.time_taken = BASELINE_DELAY;
         handle_monsters(false);
-        if (!mon.alive())
-            return "doesn't survive its own turns";
+        if (!mon->alive())
+        {
+            // One that blows itself up as it attacks does so from beside the player, and is
+            // placed again for the next play.
+            if (!kind.self_destructs || melee_actions == 0)
+                return "doesn't survive its own turns";
+            ++tally.melee[melee_actions];
+            ++tally.casts[spells_cast];
+            ++tally.closed[distance - 1];
+            mon = _place(kind.type, distance);
+            if (!mon)
+                return "isn't placed again after blowing itself up";
+            mon->spells = kind.book;
+            continue;
+        }
         if (you.pos() != player)
             return "moves the player";
-        if (grid_distance(mon.pos(), you.pos()) > distance)
+        if (grid_distance(mon->pos(), you.pos()) > distance)
             return "moves away from the player";
-        if (walled && spells_cast > 0 && grid_distance(mon.pos(), you.pos()) > 1)
+        if (walled && spells_cast > 0 && grid_distance(mon->pos(), you.pos()) > 1)
         {
             return "lands its blinkbolt away from the player";
         }
         ++tally.melee[melee_actions];
         ++tally.casts[spells_cast];
-        ++tally.closed[distance - grid_distance(mon.pos(), you.pos())];
+        ++tally.closed[distance - grid_distance(mon->pos(), you.pos())];
     }
     _restore_player();
     return nullptr;
@@ -599,10 +613,8 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
             exit(1);
         }
         const turn_kind &kind = *kinds[random2(kinds.size())];
-        // Farther than any blast reaches back, where the weighing doesn't arise; and too far for
-        // a kind that blows itself up as it attacks to reach the player and attack, dying in its
-        // own turns.
-        const int nearest = _book_may_catch_caster(kind.book) || kind.self_destructs ? 3 : 1;
+        // Farther than any blast reaches back, where the weighing doesn't arise.
+        const int nearest = _book_may_catch_caster(kind.book) ? 3 : 1;
         const int distance = nearest + random2(LOS_DEFAULT_RANGE - nearest + 1);
         monster *mon = _place(kind.type, distance);
         if (!mon)
@@ -629,7 +641,7 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         }
 
         turn_tally tally;
-        const char *unfollowed = _play_turns(*mon, distance, corona, walled, trials, tally);
+        const char *unfollowed = _play_turns(mon, kind, distance, corona, walled, trials, tally);
         _clear_monsters();
         if (walled)
         {
@@ -648,13 +660,78 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         }
         printf("{\"case\":%d,\"kind\":\"turn\",\"rule\":\"%s\",\"monster\":%d,\"name\":\"%s\","
                "\"hd\":%d,\"speed\":%d,\"distance\":%d,\"nightvision\":%s,"
-               "\"lighting\":\"%s\",\"trials\":%d,\"melee\":%s,\"casts\":%s,\"closed\":%s}\n",
+               "\"lighting\":\"%s\",\"hp\":%d,\"trials\":%d,\"melee\":%s,\"casts\":%s,"
+               "\"closed\":%s}\n",
                index, rule.name, kind.type, name.c_str(), hd, speed, distance,
-               _json_bool(nightvision), lighting, trials,
+               _json_bool(nightvision), lighting, you.hp_max, trials,
                _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
                _histogram(tally.closed).c_str());
         return;
     }
+}
+
+// The hit points a torment case gives the player before each lurking horror attacks them.
+static const vector<int> TORMENT_HP = { 1, 2, 3, 4, 10, 21, 40, 99, 250, 500 };
+
+// Lets a lurking horror beside the player attack them on each of TORMENT_HP, blowing itself up
+// into torment (mons_self_destructs, explode_monster), and prints the hit points each attack
+// took, with what about the player the engine reads: their species, rNeg as the character
+// overview shows it, and the status lights of their form, `form_light`, and of petrification.
+static void _torment_case(int &index, const char *form_light)
+{
+    string lost = "{";
+    for (int hp : TORMENT_HP)
+    {
+        monster *mon = _place(MONS_LURKING_HORROR, 1);
+        if (!mon || hp > you.hp_max)
+        {
+            fprintf(stderr, "no lurking horror beside a player on %d HP\n", hp);
+            exit(1);
+        }
+        you.hp = hp;
+        fight_melee(mon, &you);
+        if (mon->alive())
+        {
+            fprintf(stderr, "a lurking horror attacked without blowing itself up\n");
+            exit(1);
+        }
+        lost += make_stringf("%s\"%d\":%d", lost.size() > 1 ? "," : "", hp, hp - you.hp);
+        _clear_monsters();
+    }
+    printf("{\"case\":%d,\"kind\":\"torment\",\"species\":\"%s\",\"negative\":%d,"
+           "\"form\":%s,\"petrified\":%s,\"lost\":%s}}\n",
+           index, species::name(you.species).c_str(), player_prot_life(false),
+           form_light ? make_stringf("\"%s\"", form_light).c_str() : "null",
+           _json_bool(you.petrified()), lost.c_str());
+    ++index;
+}
+
+// The torment cases: each species the harnesses draw at each level of rNeg its mutation gives,
+// then a human in each form, and a petrified human.
+static void _torment_cases(int &index)
+{
+    const species_type species = you.species;
+    for (species_type drawn : SPECIES)
+    {
+        you.species = drawn;
+        for (int negative = 0; negative <= 3; ++negative)
+        {
+            you.mutation[MUT_NEGATIVE_ENERGY_RESISTANCE] = negative;
+            _torment_case(index, nullptr);
+        }
+    }
+    you.species = SP_HUMAN;
+    you.mutation[MUT_NEGATIVE_ENERGY_RESISTANCE] = 0;
+    for (int form = 1; form < NUM_TRANSFORMS; ++form)
+    {
+        you.form = static_cast<transformation>(form);
+        _torment_case(index, get_form()->short_name.c_str());
+    }
+    you.form = transformation::none;
+    you.duration[DUR_PETRIFIED] = 1000;
+    _torment_case(index, nullptr);
+    you.species = species;
+    _restore_player();
 }
 
 int main(int argc, char *argv[])
@@ -688,5 +765,8 @@ int main(int argc, char *argv[])
         _start_case(run, index);
         _turn_case(index, run.trials, rules[i % rules.size()]);
     }
+    // After the turn cases, which keep their numbers; the same every run.
+    if (run.shard == 0)
+        _torment_cases(index);
     return 0;
 }

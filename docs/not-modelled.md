@@ -102,6 +102,14 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** no harness dresses the player in it.
 - **Impact and cost:** errs high by up to half of an elemental hit, while the cloak is worn. Telling it from the inventory and rolling each check would close it.
 
+### Torment resistance
+
+- **What crawl does:** torment takes about half the player's hit points (`torment_player`), half that with the Torment Resistance mutation, a demonspawn's, and none with two levels of it or the unrandart "Eternal Torment" (`player::res_torment`). Kikubaaqudgha shields a worshipper from it now and then, more often the more pious they are.
+- **What the engine assumes:** none of these: torment, as a lurking horror sets it off, is cut only by `rNeg`, a form, petrification or being a plant.
+- **Surfaced as:** accepted simplification: one mutation, one unrandart and one god, and leaving them out errs high.
+- **Harness:** the torment cases give the player none of them.
+- **Impact and cost:** errs high, by up to the whole of a lurking horror's torment. Reading mutations ([#40]), the inventory and piety would close it.
+
 ### Attackers a brand spares
 
 - **What crawl does:** a holy monster's foul flame weapon or launcher, and an undead or demonic one's holy wrath weapon or launcher, add nothing, nor does pain in the hands of a follower of Trog (`attack::apply_damage_brand`).
@@ -295,7 +303,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 ### Dying in its own turns
 
 - **What crawl does:** some monsters die in their own turns (`monster_die`), as one that explodes does.
-- **What the engine assumes:** it goes on acting until the player's next action.
+- **What the engine assumes:** it goes on acting until the player's next action, but for the lurking horror, which blows itself up into torment as it attacks.
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.

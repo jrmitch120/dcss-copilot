@@ -22,7 +22,7 @@ use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::{step, wands};
+use super::{step, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -345,8 +345,15 @@ impl<'a> Attacker<'a> {
             .into_iter()
             .flatten()
             .map(|wielded| wielded.weapon.brand);
+        // Torment is cut by `rNeg`, and by what the player is.
+        let torment = Needs {
+            reading: true,
+            holiness: true,
+            ..Needs::NOTHING
+        };
         beams
             .chain(launchers.chain(held).map(Brand::needs))
+            .chain(self.monster.torments_as_it_dies.then_some(torment))
             .fold(Needs::NOTHING, Needs::and)
     }
 
@@ -705,6 +712,7 @@ pub(crate) fn simulate(
                 formulas,
                 &mut rng,
                 target,
+                defender.hp,
                 defender.shield_blocks,
                 attackers,
             )
@@ -724,20 +732,29 @@ pub(crate) fn simulate(
     }
 }
 
-/// The damage `target` takes in one trial of their next action, with a shield that blocks up to
-/// `shield_blocks` attacks.
+/// The damage `target`, on `hp`, takes in one trial of their next action, with a shield that
+/// blocks up to `shield_blocks` attacks.
 fn one_action(
     formulas: Formulas,
     rng: &mut Rng,
     target: Target,
+    hp: i32,
     shield_blocks: u32,
     attackers: &[Attacker<'_>],
 ) -> i32 {
     let mut blocks_left = shield_blocks;
-    attackers
-        .iter()
-        .map(|attacker| turn(formulas, rng, attacker, target, &mut blocks_left).damage)
-        .sum()
+    attackers.iter().fold(0, |taken, attacker| {
+        taken
+            + turn(
+                formulas,
+                rng,
+                attacker,
+                target,
+                hp - taken,
+                &mut blocks_left,
+            )
+            .damage
+    })
 }
 
 /// What one monster did before the player's next standard-speed action, in one trial.
@@ -754,12 +771,13 @@ pub(crate) struct Turn {
 }
 
 /// Plays out `attacker`'s actions before the player's next standard-speed action against
-/// `target`, whose shield has `blocks_left` blocks left this action.
+/// `target`, on `hp` as it starts, whose shield has `blocks_left` blocks left this action.
 pub(crate) fn turn(
     formulas: Formulas,
     rng: &mut Rng,
     attacker: &Attacker<'_>,
     target: Target,
+    hp: i32,
     blocks_left: &mut u32,
 ) -> Turn {
     let monster = attacker.monster;
@@ -857,6 +875,12 @@ pub(crate) fn turn(
             continue;
         }
         turn.melee += 1;
+        // One that blows up as it dies blows itself up as it attacks, before any roll, and acts
+        // no more (`melee_attack::attack`, `melee-attack.cc:1816`).
+        if monster.torments_as_it_dies {
+            turn.damage += torment::damage(formulas.torment, hp - turn.damage, target.resists);
+            break;
+        }
         // Every attack it makes, as one melee action makes them
         // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
         for (_, attack, weapon) in attacks_from(formulas, fighter, monster, distance) {
@@ -1041,7 +1065,7 @@ mod tests {
                         lighting: Lighting::Plain,
                         resists: Resists::NONE,
                     };
-                    one_action(formulas, &mut rng, target, 1, &attackers) >= hp
+                    one_action(formulas, &mut rng, target, hp, 1, &attackers) >= hp
                 })
                 .count()
         };
@@ -1075,7 +1099,7 @@ mod tests {
         turns_of(&attacker, 1_000)
     }
 
-    /// The turns `attacker` plays out against an undefended player over `trials` trials.
+    /// The turns `attacker` plays out against an undefended player on 40 HP over `trials` trials.
     fn turns_of(attacker: &Attacker<'_>, trials: u32) -> Vec<Turn> {
         let target = Target {
             defences: Defences::exact(0, 0, 0),
@@ -1084,7 +1108,7 @@ mod tests {
         };
         let mut rng = Rng::new(SEED.0, SEED.1);
         (0..trials)
-            .map(|_| turn(bundle().formulas, &mut rng, attacker, target, &mut 0))
+            .map(|_| turn(bundle().formulas, &mut rng, attacker, target, 40, &mut 0))
             .collect()
     }
 
@@ -1200,6 +1224,23 @@ mod tests {
         }
         let afar = unarmed(monster("lurking horror"), 2);
         assert!(can_attack(bundle().formulas, &afar));
+    }
+
+    #[test]
+    fn a_lurking_horror_attacking_blows_itself_up_into_torment() {
+        // Beside a player on 40 HP who resists nothing it attacks, unless its roll holds it
+        // back: torment takes 40 * 50 / 100 - 1 of their hit points, and it acts no more.
+        let horror = unarmed(monster("lurking horror"), 1);
+        let turns = turns_of(&horror, 1_000);
+        assert!(turns.iter().any(|turn| turn.melee == 1));
+        for turn in &turns {
+            assert!(turn.melee <= 1, "{turn:?}");
+            assert_eq!(
+                turn.damage,
+                if turn.melee == 1 { 19 } else { 0 },
+                "{turn:?}"
+            );
+        }
     }
 
     #[test]

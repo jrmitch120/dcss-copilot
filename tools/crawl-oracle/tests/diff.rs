@@ -1,7 +1,7 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
 //! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
-//! block and reach cases with 27 turn cases (all seed 34).
+//! block and reach cases with 27 turn cases and its torment cases (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -337,15 +337,24 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
 
 /// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
 /// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
-/// unarmed and, for a kind that hits, holding a spear, and 27 monsters playing out the player's
-/// next action 20,000 times each, taking turns at the rules they exercise (seed 34).
+/// unarmed and, for a kind that hits, holding a spear, 27 monsters playing out the player's next
+/// action 20,000 times each, taking turns at the rules they exercise (seed 34), and the hit
+/// points a lurking horror's torment takes from 51 players.
 const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 
 #[test]
-fn the_engine_agrees_with_crawl_on_every_block_reach_and_turn_case() {
+fn the_engine_agrees_with_crawl_on_every_block_reach_turn_and_torment_case() {
     let report = diff(TURNS).unwrap();
-    assert_eq!(report.cases, 772);
+    assert_eq!(report.cases, 823);
     assert!(report.mismatches.is_empty(), "{report}");
+}
+
+#[test]
+fn torment_taking_one_hit_point_more_is_caught() {
+    // Case 790, a human in statue form with rNeg 1, whom torment takes 8 from on 40 HP: half
+    // of 40 * 45 / 100 - 1.
+    let dump = with_changed(TURNS, 790, |case| case["lost"]["40"] = 9.into());
+    assert_eq!(caught(&dump), [(790, Measure::Torment)]);
 }
 
 #[test]

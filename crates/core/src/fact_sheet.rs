@@ -1096,6 +1096,12 @@ mod tests {
     }
 
     #[test]
+    fn unread_resistances_are_named_for_a_lurking_horrors_torment() {
+        let assessment = rated(&facing("lurking horror", 1), None, Some("Human"));
+        assert!(names_resistances(&assessment), "{assessment:?}");
+    }
+
+    #[test]
     fn unread_resistances_arent_named_for_damage_no_resistance_changes() {
         let assessment = rated(&facing("ogre", 1), None, Some("Human"));
         assert!(!names_resistances(&assessment), "{assessment:?}");

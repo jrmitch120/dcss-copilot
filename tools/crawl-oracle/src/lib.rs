@@ -27,7 +27,9 @@
 //! - a reach case (`"kind":"reach"`): how far a kind of monster reaches in melee and with which
 //!   attacks, holding melee weapons or nothing, against [`copilot_core::oracle::melee_reach`];
 //! - a turn case (`"kind":"turn"`): a monster playing out the player's next standard-speed
-//!   action many times, run through [`copilot_core::oracle::turn`].
+//!   action many times, run through [`copilot_core::oracle::turn`];
+//! - a torment case (`"kind":"torment"`): the hit points a lurking horror's torment takes from a
+//!   player on each of some hit points, against [`copilot_core::oracle::torment`].
 //!
 //! Each case runs with the formula variants the crawl version's Game Knowledge bundle names.
 //! Values the formulas fix, such as a spell's power or a monster's reach, must be equal; each
@@ -40,7 +42,7 @@ use std::fmt;
 use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
     MeleeCase, MeleeTally, MissileCase, PlayerResists, SpellCase, SpellChoiceCase, SpellTally,
-    TurnCase, WandCase, WeaponCase, ZapCase,
+    TormentCase, TurnCase, WandCase, WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -142,6 +144,8 @@ pub enum Measure {
     /// Whether a monster sees through an umbra: crawl's `monster::nightvision` against its Game
     /// Knowledge.
     Nightvision,
+    /// The hit points torment took from the player.
+    Torment,
 }
 
 impl fmt::Display for Measure {
@@ -167,6 +171,7 @@ impl fmt::Display for Measure {
             Self::Closed => "squares closed",
             Self::CanAttack => "whether it can attack",
             Self::Nightvision => "whether it sees through an umbra",
+            Self::Torment => "hit points torment took",
         })
     }
 }
@@ -434,6 +439,19 @@ struct ReachLine {
 }
 
 #[derive(Deserialize)]
+struct TormentLine {
+    #[serde(rename = "case")]
+    index: u64,
+    species: String,
+    negative: i32,
+    /// The status light of the player's form, if any.
+    form: Option<String>,
+    petrified: bool,
+    /// From each of the player's hit points as the lurking horror attacked, those torment took.
+    lost: BTreeMap<i32, i32>,
+}
+
+#[derive(Deserialize)]
 struct TurnLine {
     #[serde(rename = "case")]
     index: u64,
@@ -445,6 +463,7 @@ struct TurnLine {
     distance: i32,
     nightvision: bool,
     lighting: Lighting,
+    hp: i32,
     trials: u32,
     melee: BTreeMap<i32, u32>,
     casts: BTreeMap<i32, u32>,
@@ -513,6 +532,10 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             Some("reach") => {
                 let case: ReachLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_reach(bundle, &case)?);
+            }
+            Some("torment") => {
+                let case: TormentLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_torment(bundle, &case)?);
             }
             Some("turn") => {
                 let case: TurnLine = serde_json::from_value(value).map_err(read)?;
@@ -889,6 +912,40 @@ fn compare_block(bundle: &Bundle, case: &BlockLine) -> Result<Option<Mismatch>, 
     ))
 }
 
+/// Each of a torment `case`'s hit points from which crawl and the engine take differently.
+fn compare_torment(bundle: &Bundle, case: &TormentLine) -> Result<Vec<Mismatch>, DiffError> {
+    let input = TormentCase {
+        species: case.species.clone(),
+        negative: case.negative,
+        form: case.form.clone(),
+        petrified: case.petrified,
+    };
+    let who = format!(
+        "a {}{}{} with rNeg {}",
+        case.species,
+        case.form
+            .as_ref()
+            .map_or_else(String::new, |form| format!(" in {form} form")),
+        if case.petrified { ", petrified," } else { "" },
+        case.negative
+    );
+    let mut mismatches = Vec::new();
+    for (&hp, &lost) in &case.lost {
+        let ours = oracle::torment(bundle, &input, hp).map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
+        mismatches.extend(unequal(
+            case.index,
+            &format!("{who} on {hp} HP"),
+            Measure::Torment,
+            lost,
+            ours,
+        ));
+    }
+    Ok(mismatches)
+}
+
 /// Every measure of a reach `case` on which crawl and the engine differ.
 fn compare_reach(bundle: &Bundle, case: &ReachLine) -> Result<Vec<Mismatch>, DiffError> {
     let hands = hands(bundle, case.index, case.main.as_ref(), case.off.as_ref())?;
@@ -929,6 +986,7 @@ fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Misma
         speed: case.speed,
         distance: case.distance,
         lighting: case.lighting,
+        hp: case.hp,
     };
     let engine =
         oracle::turn(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
