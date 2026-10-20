@@ -92,7 +92,7 @@ pub const AUTOMATIC_HIT: i32 = 1500;
 
 /// `MIN_HIT_MISS_PERCENTAGE` (`defines.h:147`): the chance in 100 that an attack ignores
 /// evasion, hitting or missing outright with equal odds.
-const MIN_HIT_MISS_PERCENTAGE: i32 = 5;
+pub(crate) const MIN_HIT_MISS_PERCENTAGE: i32 = 5;
 
 /// `ENERGY_THRESHOLD` (`monster.cc:5353`): a monster acts while it has this much energy.
 pub(crate) const ENERGY_THRESHOLD: i32 = 80;

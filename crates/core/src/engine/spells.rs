@@ -358,13 +358,66 @@ pub(crate) fn choose(
     }
 }
 
-/// How a beam's armour applies: `ac_type`, chosen by `bolt::apply_AC` (`beam.cc:4588`).
+/// How armour applies to a hit: `ac_type`, chosen for a beam by `bolt::apply_AC`
+/// (`beam.cc:4588`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ArmourRule {
+pub(crate) enum ArmourRule {
     Normal,
     Half,
     Triple,
     None,
+}
+
+impl ArmourRule {
+    /// The rule `bolt::apply_AC` applies to a beam of `flavour`, with `get_beam_resist_type`
+    /// (`fight.cc:759`) for electricity.
+    pub(crate) fn of(flavour: &EnumId) -> Self {
+        match flavour.0.as_str() {
+            beam_types::DAMNATION => Self::None,
+            beam_types::ELECTRICITY | beam_types::THUNDER | beam_types::STUN_BOLT => Self::Half,
+            beam_types::FRAG => Self::Triple,
+            _ => Self::Normal,
+        }
+    }
+
+    /// What armour class `ac`, at least 0, saves of a hit under this rule: `actor::apply_ac`
+    /// (`actor.cc:343`) without guaranteed damage reduction.
+    pub(crate) fn saved(self, rng: &mut Rng, ac: i32) -> i32 {
+        match self {
+            Self::None => 0,
+            Self::Normal => rng.random2(1 + ac),
+            Self::Half => rng.random2(1 + ac) / 2,
+            Self::Triple => rng.random2(1 + ac) + rng.random2(1 + ac) + rng.random2(1 + ac),
+        }
+    }
+}
+
+/// A zap's damage dice at `power`: `zap_damage` (`beam.cc:398`) with `dicedef_calculator`, or with
+/// `calcdice_calculator`'s rounding at random for dice that share a total (`calc_dice`,
+/// `random.cc:289`), as `(dice, sides)`.
+pub(crate) fn dice(rng: &mut Rng, damage: ZapDamage, power: i32) -> (i32, i32) {
+    let total = damage.adder + power * damage.per_power / damage.per.max(1);
+    if !damage.spread {
+        (damage.dice, total)
+    } else if damage.dice <= 1 {
+        (1, total)
+    } else if total <= damage.dice {
+        (total, 1)
+    } else {
+        (damage.dice, rng.div_rand_round(total, damage.dice))
+    }
+}
+
+/// A zap's accuracy at `power`: `zap_to_hit` (`beam.cc:385`), `None` when it never misses.
+pub(crate) fn accuracy(to_hit: ZapToHit, power: i32) -> Option<i32> {
+    match to_hit {
+        ZapToHit::Automatic => None,
+        ZapToHit::ByPower {
+            adder,
+            per_power,
+            per,
+        } => Some(adder + power * per_power / per.max(1)).filter(|&hit| hit != AUTOMATIC_HIT),
+    }
 }
 
 /// A beam a monster fires, set up for one cast: `zappy` (`beam.cc:470`).
@@ -405,27 +458,8 @@ pub(crate) fn bolt(formulas: Formulas, rng: &mut Rng, firing: Firing<'_, '_>) ->
     let (spell, power) = (firing.spell, firing.power);
     match formulas.beam_damage {
         BeamDamage::Crawl034 => {
-            let damage = spell.damage;
-            let total = damage.adder + power * damage.per_power / damage.per.max(1);
-            let (dice, sides) = if !damage.spread {
-                (damage.dice, total)
-            } else if damage.dice <= 1 {
-                (1, total)
-            } else if total <= damage.dice {
-                (total, 1)
-            } else {
-                (damage.dice, rng.div_rand_round(total, damage.dice))
-            };
-            let to_hit = match spell.to_hit {
-                ZapToHit::Automatic => None,
-                ZapToHit::ByPower {
-                    adder,
-                    per_power,
-                    per,
-                } => {
-                    Some(adder + power * per_power / per.max(1)).filter(|&hit| hit != AUTOMATIC_HIT)
-                }
-            };
+            let (dice, sides) = dice(rng, spell.damage, power);
+            let to_hit = accuracy(spell.to_hit, power);
             let zap = spell.zap;
             let flavour = zap.flavour.0.as_str();
             // `bolt::is_blockable` (`beam.cc:107`).
@@ -433,15 +467,7 @@ pub(crate) fn bolt(formulas: Formulas, rng: &mut Rng, firing: Firing<'_, '_>) ->
                 && !zap.explodes
                 && flavour != beam_types::ELECTRICITY
                 && to_hit.is_some();
-            // `bolt::apply_AC`, with `get_beam_resist_type` (`fight.cc:759`) for electricity.
-            let armour = match flavour {
-                beam_types::DAMNATION => ArmourRule::None,
-                beam_types::ELECTRICITY | beam_types::THUNDER | beam_types::STUN_BOLT => {
-                    ArmourRule::Half
-                }
-                beam_types::FRAG => ArmourRule::Triple,
-                _ => ArmourRule::Normal,
-            };
+            let armour = ArmourRule::of(&zap.flavour);
             Bolt {
                 to_hit,
                 dice,
@@ -519,17 +545,9 @@ pub(crate) fn shoot(
     match formulas.beam_damage {
         BeamDamage::Crawl034 => {
             let rolled = rng.roll_dice(bolt.dice, bolt.sides);
-            // `actor::apply_ac` (`actor.cc:343`) without guaranteed damage reduction, which beams
-            // don't get.
+            // Beams don't get guaranteed damage reduction.
             let ac = target.defences.armour_class(rng).max(0);
-            let saved = match bolt.armour {
-                ArmourRule::None => 0,
-                ArmourRule::Normal => rng.random2(1 + ac),
-                ArmourRule::Half => rng.random2(1 + ac) / 2,
-                ArmourRule::Triple => {
-                    rng.random2(1 + ac) + rng.random2(1 + ac) + rng.random2(1 + ac)
-                }
-            };
+            let saved = bolt.armour.saved(rng, ac);
             let taken = (rolled - saved).max(0);
             shot.damage =
                 resists::beam_damage(formulas.resist_damage, bolt.resist, target.resists, taken);
