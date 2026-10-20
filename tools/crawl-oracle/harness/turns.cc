@@ -37,12 +37,12 @@
  * moves away from them (NotModelled::BlinksAway) is left out of the case it is found in, and
  * said so on standard error. A caster of an explosion or a cloud starts three squares or more
  * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
- * doesn't port. A kind that blows itself up as it attacks (mons_self_destructs), the lurking
- * horror, isn't left out for dying in its own turns: a play in which it does so after a melee
- * action counts it as having closed on the player, and it is placed again. A caster of a
- * blinkbolt has the square behind the player walled, so crawl lands it beside them, as the
- * engine does, and not past them; said so on standard error, and a case that lands it anywhere
- * else is left out.
+ * doesn't port. A kind that blows itself up into torment as it attacks (mons_self_destructs,
+ * explode_monster), the lurking horror, isn't left out for dying in its own turns: a play in
+ * which it does so after a melee action counts it as having closed on the player, and it is
+ * placed again. A caster of a blinkbolt has the square behind the player walled, so crawl lands
+ * it beside them, as the engine does, and not past them; said so on standard error, and a case
+ * that lands it anywhere else is left out.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled
@@ -375,14 +375,16 @@ struct turn_kind
     bool stationary;
     int reach;
     monster_spells book;
-    // It blows itself up as it attacks (mons_self_destructs), as the lurking horror does.
-    bool self_destructs;
 };
 
 // Kinds _fungal_move_check lets step toward a foe that watches them only from beside them, and
 // only by chance, as Game Knowledge's series rules list them (WatchedStep).
 static const set<monster_type> STEPS_FROM_BESIDE = { MONS_WANDERING_MUSHROOM, MONS_DEATHCAP };
 static const set<monster_type> STEPS_BY_CHANCE = { MONS_LURKING_HORROR };
+
+// Kinds explode_monster blows up into torment as they die, as Game Knowledge's series rules list
+// them: they blow themselves up as they attack (mons_self_destructs), which the engine plays.
+static const set<monster_type> TORMENTS_AS_IT_DIES = { MONS_LURKING_HORROR };
 
 // The rules a turn case's monster exercises, one per case in turn.
 static const vector<pair<const char *, bool (*)(const turn_kind &)>> TURN_RULES = {
@@ -463,8 +465,8 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
         if ((_has_melee(*mon) || !book.empty()) && first != AF_SWOOP && first != AF_FLANK
             && !recasts_clouds)
         {
-            kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(), book,
-                              mons_self_destructs(*mon) });
+            kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(),
+                              book });
         }
         _clear_monsters();
     }
@@ -563,9 +565,9 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         handle_monsters(false);
         if (!mon->alive())
         {
-            // One that blows itself up as it attacks does so from beside the player, and is
-            // placed again for the next play.
-            if (!kind.self_destructs || melee_actions == 0)
+            // One that blows itself up into torment as it attacks does so from beside the
+            // player, and is placed again for the next play.
+            if (!TORMENTS_AS_IT_DIES.count(kind.type) || melee_actions == 0)
                 return "doesn't survive its own turns";
             ++tally.melee[melee_actions];
             ++tally.casts[spells_cast];
@@ -675,8 +677,8 @@ static const vector<int> TORMENT_HP = { 1, 2, 3, 4, 10, 21, 40, 99, 250, 500 };
 
 // Lets a lurking horror beside the player attack them on each of TORMENT_HP, blowing itself up
 // into torment (mons_self_destructs, explode_monster), and prints the hit points each attack
-// took, with what about the player the engine reads: their species, rNeg as the character
-// overview shows it, and the status lights of their form, `form_light`, and of petrification.
+// took, with what about the player the engine reads: their resistances, species and god
+// (_resists_json), and the status lights of their form, `form_light`, and of petrification.
 static void _torment_case(int &index, const char *form_light)
 {
     string lost = "{";
@@ -698,9 +700,9 @@ static void _torment_case(int &index, const char *form_light)
         lost += make_stringf("%s\"%d\":%d", lost.size() > 1 ? "," : "", hp, hp - you.hp);
         _clear_monsters();
     }
-    printf("{\"case\":%d,\"kind\":\"torment\",\"species\":\"%s\",\"negative\":%d,"
-           "\"form\":%s,\"petrified\":%s,\"lost\":%s}}\n",
-           index, species::name(you.species).c_str(), player_prot_life(false),
+    printf("{\"case\":%d,\"kind\":\"torment\",\"resists\":%s,\"form\":%s,\"petrified\":%s,"
+           "\"lost\":%s}}\n",
+           index, _resists_json().c_str(),
            form_light ? make_stringf("\"%s\"", form_light).c_str() : "null",
            _json_bool(you.petrified()), lost.c_str());
     ++index;

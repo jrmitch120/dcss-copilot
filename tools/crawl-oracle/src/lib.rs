@@ -442,8 +442,7 @@ struct ReachLine {
 struct TormentLine {
     #[serde(rename = "case")]
     index: u64,
-    species: String,
-    negative: i32,
+    resists: PlayerResists,
     /// The status light of the player's form, if any.
     form: Option<String>,
     petrified: bool,
@@ -915,19 +914,18 @@ fn compare_block(bundle: &Bundle, case: &BlockLine) -> Result<Option<Mismatch>, 
 /// Each of a torment `case`'s hit points from which crawl and the engine take differently.
 fn compare_torment(bundle: &Bundle, case: &TormentLine) -> Result<Vec<Mismatch>, DiffError> {
     let input = TormentCase {
-        species: case.species.clone(),
-        negative: case.negative,
+        resists: case.resists.clone(),
         form: case.form.clone(),
         petrified: case.petrified,
     };
     let who = format!(
         "a {}{}{} with rNeg {}",
-        case.species,
+        case.resists.species,
         case.form
             .as_ref()
             .map_or_else(String::new, |form| format!(" in {form} form")),
         if case.petrified { ", petrified," } else { "" },
-        case.negative
+        case.resists.negative
     );
     let mut mismatches = Vec::new();
     for (&hp, &lost) in &case.lost {

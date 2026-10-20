@@ -90,6 +90,24 @@ impl PlayerResists {
         }
     }
 
+    /// The resistances, holiness and god the engine plays for the player these are, with
+    /// `statuses` lit, read through `bundle` as the Advisor reads the character overview and the
+    /// status pane.
+    fn read(&self, bundle: &Bundle, statuses: &[Status]) -> Result<Resists, CaseError> {
+        let overview = self.overview();
+        let religion = self.religion();
+        let seen = Seen {
+            resistances: &overview,
+            species: Some(&self.species),
+            statuses: Some(statuses),
+            religion: Some(&religion),
+        };
+        resists::read(bundle, &seen)
+            .filter(|read| read.holiness_known)
+            .map(|read| read.resists)
+            .ok_or_else(|| CaseError::NoSpecies(self.species.clone()))
+    }
+
     /// The god as the status pane reports it.
     fn religion(&self) -> Religion {
         if self.god == NO_GOD {
@@ -113,22 +131,10 @@ fn target(
     lighting: Lighting,
     resists: &PlayerResists,
 ) -> Result<Target, CaseError> {
-    let no_species = || CaseError::NoSpecies(resists.species.clone());
-    let overview = resists.overview();
-    let religion = resists.religion();
-    let seen = Seen {
-        resistances: &overview,
-        species: Some(&resists.species),
-        statuses: Some(&[]),
-        religion: Some(&religion),
-    };
-    let read = resists::read(bundle, &seen)
-        .filter(|read| read.holiness_known)
-        .ok_or_else(no_species)?;
     Ok(Target {
         defences: defences.into(),
         lighting,
-        resists: read.resists,
+        resists: resists.read(bundle, &[])?,
     })
 }
 
@@ -943,15 +949,12 @@ pub fn turn(
     Ok(tally)
 }
 
-/// A player torment meets, as a harness made them: their species, `rNeg` as the character
-/// overview shows it, the status light of the form they are in, if any, and whether they are
-/// petrified.
+/// A player torment meets, as a harness made them: their resistances, species and god, the
+/// status light of the form they are in, if any, and whether they are petrified.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TormentCase {
-    /// The species, such as `Mummy`.
-    pub species: String,
-    /// `rNeg`, from 0 to 3.
-    pub negative: i32,
+    /// Their resistances as the character overview shows them, with their species and god.
+    pub resists: PlayerResists,
     /// The status light of their form, such as `Statue`.
     pub form: Option<String>,
     /// Whether they are petrified.
@@ -959,8 +962,8 @@ pub struct TormentCase {
 }
 
 /// The hit points torment, as a lurking horror sets it off, takes from `case`'s player on `hp`,
-/// read as the Advisor reads the character overview and the status pane: worshipping no god,
-/// with no status lit but their form and petrification.
+/// read as the Advisor reads the character overview and the status pane, with no status lit but
+/// their form and petrification.
 ///
 /// # Errors
 /// If the bundle doesn't know the species, or the form by its light.
@@ -986,27 +989,6 @@ pub fn torment(bundle: &Bundle, case: &TormentCase, hp: i32) -> Result<i32, Case
             colour: None,
         })
         .collect();
-    let none = Some(Resistance::Pips(0));
-    let overview = Resistances {
-        fire: none,
-        cold: none,
-        negative: Some(Resistance::Pips(
-            i8::try_from(case.negative).unwrap_or(i8::MAX),
-        )),
-        poison: none,
-        electricity: none,
-        corrosion: none,
-        see_invisible: None,
-        willpower: None,
-    };
-    let seen = Seen {
-        resistances: &overview,
-        species: Some(&case.species),
-        statuses: Some(&statuses),
-        religion: Some(&Religion::NoGod),
-    };
-    let read = resists::read(bundle, &seen)
-        .filter(|read| read.holiness_known)
-        .ok_or_else(|| CaseError::NoSpecies(case.species.clone()))?;
-    Ok(torment::damage(bundle.formulas.torment, hp, read.resists))
+    let resists = case.resists.read(bundle, &statuses)?;
+    Ok(torment::damage(bundle.formulas.torment, hp, resists))
 }

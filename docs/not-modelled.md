@@ -305,7 +305,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What crawl does:** some monsters die in their own turns (`monster_die`), as one that explodes does.
 - **What the engine assumes:** it goes on acting until the player's next action, but for the lurking horror, which blows itself up into torment as it attacks.
 - **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
+- **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error, but for the lurking horror, which it places again.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.
 
 ## Ways Out

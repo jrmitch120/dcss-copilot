@@ -9,11 +9,11 @@ use copilot_gk::{Form, Torment};
 
 use super::resists::Resists;
 
-/// How torment hurts the player for what they are.
+/// The share of its hit points torment takes from the player for what they are.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Shield {
-    /// It takes its full share.
-    None,
+pub(crate) enum Share {
+    /// Its full share.
+    Full,
     /// It takes half, in a form that leaves them only partly petrified or undead.
     Halved,
     /// It takes nothing.
@@ -24,20 +24,15 @@ pub(crate) enum Shield {
 /// as `variant` judges them: `player::res_torment` and the halving of `torment_player`, but for
 /// the Torment Resistance mutation, the unrandart "Eternal Torment" and Kikubaaqudgha's
 /// shielding, which the Advisor doesn't read.
-pub(crate) fn shield(
-    variant: Torment,
-    form: Option<&Form>,
-    petrified: bool,
-    plant: bool,
-) -> Shield {
+pub(crate) fn share(variant: Torment, form: Option<&Form>, petrified: bool, plant: bool) -> Share {
     match variant {
         Torment::Crawl034 => {
             if petrified || plant || form.is_some_and(|form| form.negative >= 3) {
-                Shield::Immune
+                Share::Immune
             } else if form.is_some_and(|form| form.halves_torment) {
-                Shield::Halved
+                Share::Halved
             } else {
-                Shield::None
+                Share::Full
             }
         }
     }
@@ -50,9 +45,9 @@ pub(crate) fn damage(variant: Torment, hp: i32, resists: Resists) -> i32 {
         Torment::Crawl034 => {
             let full = (hp * (50 - resists.negative * 5) / 100 - 1).max(0);
             match resists.holiness.torment {
-                Shield::None => full,
-                Shield::Halved => full / 2,
-                Shield::Immune => 0,
+                Share::Full => full,
+                Share::Halved => full / 2,
+                Share::Immune => 0,
             }
         }
     }

@@ -699,11 +699,19 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
 /// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`. Each
 /// trial draws the fraction of the player's defences the display drops: it is fixed for the
 /// player at any moment, and crawl rounds it afresh on every roll.
+///
+/// A monster that torments plays before the others: torment takes a share of the hit points
+/// left, so it takes the most before others have struck, which errs high, as crawl's order of
+/// play, by energy and the monsters' order on the level, isn't modelled.
 pub(crate) fn simulate(
     formulas: Formulas,
     defender: Defender,
     attackers: &[Attacker<'_>],
 ) -> Outcome {
+    let (tormenting, striking): (Vec<&Attacker<'_>>, Vec<&Attacker<'_>>) = attackers
+        .iter()
+        .partition(|attacker| attacker.monster.torments_as_it_dies);
+    let attackers: Vec<&Attacker<'_>> = tormenting.into_iter().chain(striking).collect();
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
         .map(|_| {
@@ -714,7 +722,7 @@ pub(crate) fn simulate(
                 target,
                 defender.hp,
                 defender.shield_blocks,
-                attackers,
+                &attackers,
             )
         })
         .collect();
@@ -740,7 +748,7 @@ fn one_action(
     target: Target,
     hp: i32,
     shield_blocks: u32,
-    attackers: &[Attacker<'_>],
+    attackers: &[&Attacker<'_>],
 ) -> i32 {
     let mut blocks_left = shield_blocks;
     attackers.iter().fold(0, |taken, attacker| {
@@ -1055,6 +1063,7 @@ mod tests {
         let formulas = bundle.formulas;
         let ogre = bundle.monsters.values().find(|m| m.name == "ogre").unwrap();
         let attackers = vec![Attacker::new(bundle, ogre, 1).without_gear(); 2];
+        let playing: Vec<&Attacker<'_>> = attackers.iter().collect();
         let hp = 15;
         let exact_deaths = |ac, ev, sh| {
             let mut rng = Rng::new(SEED.0, SEED.1);
@@ -1065,7 +1074,7 @@ mod tests {
                         lighting: Lighting::Plain,
                         resists: Resists::NONE,
                     };
-                    one_action(formulas, &mut rng, target, hp, 1, &attackers) >= hp
+                    one_action(formulas, &mut rng, target, hp, 1, &playing) >= hp
                 })
                 .count()
         };
@@ -1241,6 +1250,30 @@ mod tests {
                 "{turn:?}"
             );
         }
+    }
+
+    #[test]
+    fn a_lurking_horrors_torment_takes_from_the_player_before_others_strike_however_listed() {
+        // Torment takes a share of the hit points left: played before the ogre's blows, it takes
+        // the most it can, whichever order the monsters come in.
+        let defender = Defender {
+            hp: 60,
+            defences: DisplayedDefences {
+                ac: 0,
+                ev: 0,
+                sh: 0,
+            },
+            lighting: Lighting::Plain,
+            shield_blocks: 0,
+            resists: Resists::NONE,
+        };
+        let ogre = unarmed(monster("ogre"), 1);
+        let horror = unarmed(monster("lurking horror"), 1);
+        let formulas = bundle().formulas;
+        assert_eq!(
+            simulate(formulas, defender, &[ogre.clone(), horror.clone()]),
+            simulate(formulas, defender, &[horror, ogre])
+        );
     }
 
     #[test]

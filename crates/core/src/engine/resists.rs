@@ -9,7 +9,7 @@ use copilot_gk::{
     Bundle, EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Torment, Undeadness,
 };
 
-use super::torment::{self, Shield};
+use super::torment::{self, Share};
 
 use crate::crawl_ids::beam_types;
 use crate::screen::{Resistance, Resistances};
@@ -50,8 +50,8 @@ pub(crate) struct Holiness {
     /// Nonliving or lifeless undead, whom miasma doesn't harm (`player::res_miasma`,
     /// `player.cc:6987`).
     pub(crate) miasma_immune: bool,
-    /// How torment hurts them ([`torment::shield`]).
-    pub(crate) torment: Shield,
+    /// The share of their hit points torment takes ([`torment::share`]).
+    pub(crate) torment: Share,
 }
 
 impl Holiness {
@@ -61,7 +61,7 @@ impl Holiness {
         holy: false,
         drainable: true,
         miasma_immune: false,
-        torment: Shield::None,
+        torment: Share::Full,
     };
 }
 
@@ -118,10 +118,10 @@ impl Holiness {
     /// (`player.cc:6859`), with the form's own holiness taking the species' place and
     /// petrification both's, `player::undead_state` (`player.cc:7268`), `undead_or_demonic`,
     /// `is_holy` and `res_miasma`, but for a resistance to miasma of a form, a mutation or an
-    /// artefact; and how torment hurts them, as `torment` judges it.
+    /// artefact; and the share of their hit points torment takes, as `torment_variant` judges it.
     pub(crate) fn of(
         variant: ResistDamage,
-        torment: Torment,
+        torment_variant: Torment,
         signs: &HolinessSigns,
         species: &Species,
         form: Option<&Form>,
@@ -152,7 +152,7 @@ impl Holiness {
                     holy: kinds.holy || good_god,
                     drainable: kinds.natural || kinds.plant,
                     miasma_immune: kinds.nonliving || undead == Undeadness::Undead,
-                    torment: torment::shield(torment, form, petrified, kinds.plant),
+                    torment: torment::share(torment_variant, form, petrified, kinds.plant),
                 }
             }
         }
