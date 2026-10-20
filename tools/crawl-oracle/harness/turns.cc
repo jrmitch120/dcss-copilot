@@ -16,14 +16,16 @@
  * - turn: a random monster a few squares from the player, awake, hunting them, with no items
  *   and no statuses and with its book cut down to the spells the engine ports, plays out the
  *   player's next standard-speed action many times. Each time it starts with the energy crawl
- *   leaves a monster that has acted (monster::drain_action_energy), the player is restored and
- *   the floor around them laid again, and crawl's own handle_monsters runs its turns with
- *   you.time_taken at BASELINE_DELAY, attacking and casting for real. It tallies the melee
+ *   leaves a monster that has acted (monster::drain_action_energy), with its hit points and its
+ *   hit dice, which a spore attack spends, the player is restored and the floor around them
+ *   laid again, and crawl's own handle_monsters runs its turns with you.time_taken at
+ *   BASELINE_DELAY, attacking and casting for real. It tallies the melee
  *   actions it took against the player, the spells it cast and the squares it closed. Turn
  *   cases take turns at drawing from kinds of monster that
  *   each exercise a rule: the slowest and the fastest that act, any, faster or slower than the
  *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
- *   cloud, and casting a blinkbolt. A rule no kind exercises is left out.
+ *   cloud, casting a blinkbolt, and, watched, stepping toward the player only from beside them
+ *   or only by chance (_fungal_move_check). A rule no kind exercises is left out.
  *
  * It switches off monster special abilities (mon_special_ability; NotModelled::SpecialAbilities),
  * which the engine doesn't port, and leaves out monsters that crawl moves otherwise than the
@@ -35,9 +37,11 @@
  * moves away from them (NotModelled::BlinksAway) is left out of the case it is found in, and
  * said so on standard error. A caster of an explosion or a cloud starts three squares or more
  * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
- * doesn't port. A caster of a blinkbolt has the square behind the player walled, so
- * crawl lands it beside them, as the engine does, and not past them; said so on standard error,
- * and a case that lands it anywhere else is left out.
+ * doesn't port. So does a kind that blows itself up as it attacks (mons_self_destructs), the
+ * lurking horror, which from there can't reach the player and attack before their next action,
+ * and so isn't left out for dying in its own turns. A caster of a blinkbolt has the square
+ * behind the player walled, so crawl lands it beside them, as the engine does, and not past
+ * them; said so on standard error, and a case that lands it anywhere else is left out.
  *
  * It includes mon-act.cc, to count what a monster does as it calls into the code that does it,
  * and links against a crawl build's objects without mon-act.o and main.o (oracle.mk). Compiled
@@ -370,7 +374,14 @@ struct turn_kind
     bool stationary;
     int reach;
     monster_spells book;
+    // It blows itself up as it attacks (mons_self_destructs), as the lurking horror does.
+    bool self_destructs;
 };
+
+// Kinds _fungal_move_check lets step toward a foe that watches them only from beside them, and
+// only by chance, as Game Knowledge's series rules list them (WatchedStep).
+static const set<monster_type> STEPS_FROM_BESIDE = { MONS_WANDERING_MUSHROOM, MONS_DEATHCAP };
+static const set<monster_type> STEPS_BY_CHANCE = { MONS_LURKING_HORROR };
 
 // The rules a turn case's monster exercises, one per case in turn.
 static const vector<pair<const char *, bool (*)(const turn_kind &)>> TURN_RULES = {
@@ -392,6 +403,9 @@ static const vector<pair<const char *, bool (*)(const turn_kind &)>> TURN_RULES 
       } },
     { "blast", [](const turn_kind &k) { return _book_may_catch_caster(k.book); } },
     { "blinkbolt", [](const turn_kind &k) { return _casts_blinkbolt(k.book); } },
+    { "steps from beside",
+      [](const turn_kind &k) { return STEPS_FROM_BESIDE.count(k.type) > 0; } },
+    { "steps by chance", [](const turn_kind &k) { return STEPS_BY_CHANCE.count(k.type) > 0; } },
 };
 
 // Kinds handle_monster_move acts or moves for with code of their own, rather than by walking,
@@ -403,23 +417,13 @@ static const set<monster_type> OWN_ACTIONS = {
     MONS_SOLAR_EMBER, MONS_BOUNDLESS_TESSERACT,
 };
 
-// Kinds that won't move while the player watches them (_fungal_move_check;
-// NotModelled::WontMoveWhileWatched).
-static const set<monster_type> WONT_MOVE_WHILE_WATCHED = {
-    MONS_WANDERING_MUSHROOM,
-    MONS_DEATHCAP,
-    MONS_LURKING_HORROR,
-};
-
 // Whether crawl moves a kind the way the engine does: straight at the player across the floor,
-// unless it never moves. Each kind it doesn't is one the Fact Sheet names by a NotModelled
-// variant.
+// unless it never moves or, watched, doesn't step (_fungal_move_check). Each kind it doesn't is
+// one the Fact Sheet names by a NotModelled variant.
 static bool _walks_as_engine_does(monster_type type)
 {
     // OwnActions, with projectiles, which iood_act flies.
     return !OWN_ACTIONS.count(type) && !mons_is_projectile(type)
-           // WontMoveWhileWatched.
-           && !WONT_MOVE_WHILE_WATCHED.count(type)
            // SpecialAbilities: a seeker bursts by its own, switched off here.
            && !mons_is_seeker(type)
            // MovesWithParent.
@@ -458,8 +462,8 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
         if ((_has_melee(*mon) || !book.empty()) && first != AF_SWOOP && first != AF_FLANK
             && !recasts_clouds)
         {
-            kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(),
-                              book });
+            kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(), book,
+                              mons_self_destructs(*mon) });
         }
         _clear_monsters();
     }
@@ -530,6 +534,7 @@ static const char *_play_turns(monster &mon, int distance, bool corona, bool wal
 {
     const coord_def start = mon.pos();
     const coord_def player = you.pos();
+    const int hit_dice = mon.get_hit_dice();
     for (int t = 0; t < trials; ++t)
     {
         _clear_monsters(&mon);
@@ -542,6 +547,9 @@ static const char *_play_turns(monster &mon, int distance, bool corona, bool wal
             mon.move_to(start);
         _clear_statuses(mon);
         mon.hit_points = mon.max_hit_points;
+        // A spore attack costs its attacker a hit die (melee_attack::mons_apply_attack_flavour).
+        // Set directly: monster::set_hit_dice also resets an oklob plant's spitting frequency.
+        mon.hit_dice = hit_dice;
         mon.foe = MHITYOU;
         mon.target = you.pos();
         // As crawl leaves a monster that has acted.
@@ -591,8 +599,10 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
             exit(1);
         }
         const turn_kind &kind = *kinds[random2(kinds.size())];
-        // Farther than any blast reaches back, where the weighing doesn't arise.
-        const int nearest = _book_may_catch_caster(kind.book) ? 3 : 1;
+        // Farther than any blast reaches back, where the weighing doesn't arise; and too far for
+        // a kind that blows itself up as it attacks to reach the player and attack, dying in its
+        // own turns.
+        const int nearest = _book_may_catch_caster(kind.book) || kind.self_destructs ? 3 : 1;
         const int distance = nearest + random2(LOS_DEFAULT_RANGE - nearest + 1);
         monster *mon = _place(kind.type, distance);
         if (!mon)

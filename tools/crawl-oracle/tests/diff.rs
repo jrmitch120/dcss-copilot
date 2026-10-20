@@ -396,14 +396,14 @@ fn an_off_hands_dagger_reaching_as_far_as_the_main_hands_spear_is_caught() {
 
 #[test]
 fn a_monster_attacking_once_more_than_crawl_lets_it_is_caught() {
-    // Case 755, a death cob two squares from the player at speed 25, which fights once or twice.
-    let dump = with_changed(TURNS, 755, |case| case["melee"] = shifted(&case["melee"]));
-    assert_eq!(caught(&dump), [(755, Measure::MeleeActions)]);
+    // Case 770, a goliath frog beside the player at speed 12, which fights once or twice.
+    let dump = with_changed(TURNS, 770, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(770, Measure::MeleeActions)]);
 }
 
 #[test]
 fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
-    // Case 759, a snapping turtle at speed 8, which closes a square four times in five.
+    // Case 759, a hog at speed 13, which closes a square, and three times in ten two.
     let dump = with_changed(TURNS, 759, |case| case["closed"] = shifted(&case["closed"]));
     assert_eq!(caught(&dump), [(759, Measure::Closed)]);
 }
@@ -423,7 +423,17 @@ fn a_blinkbolt_landing_past_the_player_is_caught() {
 
 #[test]
 fn a_monster_the_threat_level_leaves_out_that_crawl_shows_fighting_is_caught() {
-    // Case 755, a death cob, counted twenty squares away while crawl shows it fighting.
-    let dump = with_changed(TURNS, 755, |case| case["distance"] = 20.into());
-    assert!(caught(&dump).contains(&(755, Measure::CanAttack)));
+    // Case 770, a goliath frog, counted twenty squares away while crawl shows it fighting.
+    let dump = with_changed(TURNS, 770, |case| case["distance"] = 20.into());
+    assert!(caught(&dump).contains(&(770, Measure::CanAttack)));
+}
+
+#[test]
+fn a_watched_monster_walking_up_as_if_unwatched_is_caught() {
+    // Case 754, a wandering mushroom five squares away, which crawl keeps where it is while the
+    // player watches it: walked a square, as any other monster would be.
+    let dump = with_changed(TURNS, 754, |case| {
+        case["closed"] = serde_json::json!({ "1": 20_000 });
+    });
+    assert_eq!(caught(&dump), [(754, Measure::Closed)]);
 }
