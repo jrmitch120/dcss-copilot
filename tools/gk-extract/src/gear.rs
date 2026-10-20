@@ -454,7 +454,8 @@ impl Gear {
 ///
 /// A `Weapon_prop` entry's fields are, in order: identifier, name, damage, accuracy, speed and
 /// skill (`struct weapon_def`); a `Missile_prop` entry's: identifier, name, damage, mulch rate
-/// and price (`struct missile_def`). A launcher keeps its speed; a thrown missile has none.
+/// and price (`struct missile_def`). A launcher keeps its speed, a thrown missile its mulch
+/// rate.
 pub fn missile_weapons(
     item_prop: &Source,
     file: &str,
@@ -477,11 +478,12 @@ pub fn missile_weapons(
                 damage: integer(damage).ok_or_else(|| unreadable(file, &what))?,
                 accuracy: integer(accuracy).ok_or_else(|| unreadable(file, &what))?,
                 delay: Some(integer(speed).ok_or_else(|| unreadable(file, &what))?),
+                mulch: None,
             },
         );
     }
     for fields in item_prop.entries("Missile_prop")? {
-        let [id, name, damage, ..] = fields.as_slice() else {
+        let [id, name, damage, mulch, ..] = fields.as_slice() else {
             return Err(unreadable(file, "an entry of Missile_prop"));
         };
         let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a missile"))?;
@@ -494,6 +496,10 @@ pub fn missile_weapons(
                     .ok_or_else(|| unreadable(file, &format!("the damage of {id}")))?,
                 accuracy: 0,
                 delay: None,
+                mulch: Some(
+                    integer(mulch)
+                        .ok_or_else(|| unreadable(file, &format!("the mulch rate of {id}")))?,
+                ),
             },
         );
     }

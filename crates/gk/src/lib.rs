@@ -987,6 +987,9 @@ pub struct MissileWeapon {
     /// standard-speed action takes 10: its `PWPN_SPEED`. `None` for a thrown missile, whose
     /// delay comes from its damage.
     pub delay: Option<i32>,
+    /// One time in how many a thrown missile breaks as it lands: its `mulch_rate`, unbranded.
+    /// `None` for a launcher.
+    pub mulch: Option<i32>,
 }
 
 /// A melee weapon, as `Weapon_prop` (`item-prop.cc`) defines it.

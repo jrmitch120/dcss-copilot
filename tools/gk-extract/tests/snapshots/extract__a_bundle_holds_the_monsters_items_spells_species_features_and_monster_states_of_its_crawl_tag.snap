@@ -2098,28 +2098,32 @@ expression: bundle
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 12
     },
     "MI_STONE": {
       "name": "stone",
       "kind": "thrown",
       "damage": 2,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 8
     },
     "WPN_ORCBOW": {
       "name": "orcbow",
       "kind": "launcher",
       "damage": 11,
       "accuracy": -3,
-      "delay": 15
+      "delay": 15,
+      "mulch": null
     },
     "WPN_SHORTBOW": {
       "name": "shortbow",
       "kind": "launcher",
       "damage": 8,
       "accuracy": 2,
-      "delay": 14
+      "delay": 14,
+      "mulch": null
     }
   },
   "meleeWeapons": {

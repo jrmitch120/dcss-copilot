@@ -69180,133 +69180,152 @@
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 1
     },
     "MI_BOLT": {
       "name": "bolt",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 1
     },
     "MI_BOOMERANG": {
       "name": "boomerang",
       "kind": "thrown",
       "damage": 6,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 20
     },
     "MI_DART": {
       "name": "dart",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 12
     },
     "MI_JAVELIN": {
       "name": "javelin",
       "kind": "thrown",
       "damage": 10,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 20
     },
     "MI_LARGE_ROCK": {
       "name": "large rock",
       "kind": "thrown",
       "damage": 20,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 25
     },
     "MI_NEEDLE": {
       "name": "needle",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 12
     },
     "MI_SLING_BULLET": {
       "name": "sling bullet",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 1
     },
     "MI_SLUG": {
       "name": "slug",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 1
     },
     "MI_STONE": {
       "name": "stone",
       "kind": "thrown",
       "damage": 2,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 8
     },
     "MI_THROWING_NET": {
       "name": "throwing net",
       "kind": "thrown",
       "damage": 0,
       "accuracy": 0,
-      "delay": null
+      "delay": null,
+      "mulch": 0
     },
     "WPN_ARBALEST": {
       "name": "arbalest",
       "kind": "launcher",
       "damage": 16,
       "accuracy": -2,
-      "delay": 19
+      "delay": 19,
+      "mulch": null
     },
     "WPN_FUSTIBALUS": {
       "name": "old fustibalus",
       "kind": "launcher",
       "damage": 10,
       "accuracy": -2,
-      "delay": 16
+      "delay": 16,
+      "mulch": null
     },
     "WPN_HAND_CANNON": {
       "name": "hand cannon",
       "kind": "launcher",
       "damage": 16,
       "accuracy": 3,
-      "delay": 19
+      "delay": 19,
+      "mulch": null
     },
     "WPN_LONGBOW": {
       "name": "longbow",
       "kind": "launcher",
       "damage": 14,
       "accuracy": 0,
-      "delay": 17
+      "delay": 17,
+      "mulch": null
     },
     "WPN_ORCBOW": {
       "name": "orcbow",
       "kind": "launcher",
       "damage": 11,
       "accuracy": -3,
-      "delay": 15
+      "delay": 15,
+      "mulch": null
     },
     "WPN_SHORTBOW": {
       "name": "shortbow",
       "kind": "launcher",
       "damage": 8,
       "accuracy": 2,
-      "delay": 14
+      "delay": 14,
+      "mulch": null
     },
     "WPN_SLING": {
       "name": "sling",
       "kind": "launcher",
       "damage": 7,
       "accuracy": 0,
-      "delay": 14
+      "delay": 14,
+      "mulch": null
     },
     "WPN_TRIPLE_CROSSBOW": {
       "name": "triple crossbow",
       "kind": "launcher",
       "damage": 23,
       "accuracy": -2,
-      "delay": 23
+      "delay": 23,
+      "mulch": null
     }
   },
   "meleeWeapons": {
