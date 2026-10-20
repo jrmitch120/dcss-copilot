@@ -1,0 +1,204 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz452281420",
+    "character": "wiz452281420",
+    "species": "Minotaur",
+    "firstSeenMs": 1792452282670,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "end": {
+    "turn": 5,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 1,
+        "acting": [],
+        "gear": [
+          {
+            "name": "wandering mushroom",
+            "position": {
+              "x": -2,
+              "y": 2
+            },
+            "distance": 6,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 1,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 5
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 6
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -2,
+                "y": 24
+              },
+              "steps": 30
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 32,
+                "y": 7
+              },
+              "steps": 31
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 3,
+          "nearestCorridor": {
+            "position": {
+              "x": 9,
+              "y": 1
+            },
+            "steps": 5
+          }
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz452281420",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 5
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Nothing hostile can reach you before your next action.",
+        "detail": null
+      },
+      "focus": {
+        "card": "inView",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "f",
+                "colour": "brown"
+              },
+              "tile": "mon/fungi_plants/wandering_mushroom"
+            },
+            "name": "wandering mushroom",
+            "detail": null,
+            "count": 1
+          }
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": true,
+            "name": "Stone staircase leading down",
+            "detail": "5 steps",
+            "whyNot": null
+          }
+        ],
+        "ground": "On open ground: 3 sides open · a corridor 5 steps away",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

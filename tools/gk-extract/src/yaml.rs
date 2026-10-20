@@ -6,7 +6,7 @@ use std::path::Path;
 
 use copilot_gk::{
     Energy, EnumId, Form, FormHoliness, Habitat, Intelligence, ItemUse, Monster, MonsterAttack,
-    MonsterSpell, MonsterSpells, Species, Undeadness, Will,
+    MonsterSpell, MonsterSpells, Species, Undeadness, WatchedStep, Will,
 };
 use serde::Deserialize;
 
@@ -128,8 +128,15 @@ struct FormFile {
     short_name: Option<String>,
     /// As `mon_holy_type` names it without `MH_`: none unless set.
     holiness: Option<String>,
+    resists: Option<FormResists>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
+}
+
+/// A form's `resists`: those the bundle keeps, each 0 unless set.
+#[derive(Deserialize)]
+struct FormResists {
+    neg: Option<i32>,
 }
 
 /// `util/mon-gen.py`'s default speed.
@@ -196,8 +203,12 @@ pub struct KindExceptions {
     pub tentacles: BTreeSet<String>,
     /// Kinds `handle_monster_move` acts or moves for with code of its own.
     pub own_actions: BTreeSet<String>,
-    /// Kinds that won't step while their foe watches them.
-    pub wont_move_while_watched: BTreeSet<String>,
+    /// Kinds that step toward a foe that watches them only from beside them.
+    pub steps_from_beside: BTreeSet<String>,
+    /// Kinds that step toward a foe that watches them only by chance.
+    pub steps_by_chance: BTreeSet<String>,
+    /// Kinds that blow themselves up into torment as they die.
+    pub torments_as_it_dies: BTreeSet<String>,
     /// Kinds with a special ability of their own.
     pub special_abilities: BTreeSet<String>,
 }
@@ -298,8 +309,15 @@ pub fn monsters(
             || exceptions.innate_umbras.contains(&id);
         let tentacle = exceptions.tentacles.contains(&id);
         let own_actions = flag(PROJECTILE_FLAG) || exceptions.own_actions.contains(&id);
-        let wont_move_while_watched = exceptions.wont_move_while_watched.contains(&id);
+        let watched_step = if exceptions.steps_from_beside.contains(&id) {
+            WatchedStep::FromBeside
+        } else if exceptions.steps_by_chance.contains(&id) {
+            WatchedStep::ByChance
+        } else {
+            WatchedStep::Always
+        };
         let special_ability = exceptions.special_abilities.contains(&id);
+        let torments_as_it_dies = exceptions.torments_as_it_dies.contains(&id);
         let habitat =
             habitat(monster.habitat.as_deref()).ok_or_else(|| ExtractError::Unreadable {
                 file: file.clone(),
@@ -346,7 +364,8 @@ pub fn monsters(
                 habitat,
                 tentacle,
                 own_actions,
-                wont_move_while_watched,
+                watched_step,
+                torments_as_it_dies,
                 special_ability,
                 intelligence,
                 genus: EnumId(genus),
@@ -475,6 +494,8 @@ pub fn forms(source: &Path, tag_major: i64) -> Result<Vec<Form>, ExtractError> {
                 id: form.id,
                 holiness,
                 undead: Undeadness::Alive,
+                negative: form.resists.and_then(|resists| resists.neg).unwrap_or(0),
+                halves_torment: false,
             })
         })
         .collect()

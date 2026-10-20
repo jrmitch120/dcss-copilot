@@ -329,9 +329,6 @@ pub enum NotModelled {
     /// firing position away from the player (`_decide_monster_firing_position`), and the
     /// simulation walks it up to fight.
     KeepsRange,
-    /// A monster that can attack won't step toward the player while they watch it, such as the
-    /// wandering mushroom (`_fungal_move_check`), and the simulation walks it up.
-    WontMoveWhileWatched,
     /// A monster in view is a tentacle or vine, such as the snaplasher vine, which crawl moves
     /// with its parent (`mons_is_tentacle_or_tentacle_segment`): the simulation walks it on its
     /// own, so it may strike from where it is judged out of reach.
@@ -861,10 +858,6 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
     [
         (NotModelled::Batty, monster.batty),
         (NotModelled::KeepsRange, monster.keeps_range),
-        (
-            NotModelled::WontMoveWhileWatched,
-            monster.wont_move_while_watched,
-        ),
         (NotModelled::MovesWithParent, monster.tentacle),
         (NotModelled::OwnActions, monster.own_actions),
         (
@@ -1103,6 +1096,12 @@ mod tests {
     }
 
     #[test]
+    fn unread_resistances_are_named_for_a_lurking_horrors_torment() {
+        let assessment = rated(&facing("lurking horror", 1), None, Some("Human"));
+        assert!(names_resistances(&assessment), "{assessment:?}");
+    }
+
+    #[test]
     fn unread_resistances_arent_named_for_damage_no_resistance_changes() {
         let assessment = rated(&facing("ogre", 1), None, Some("Human"));
         assert!(!names_resistances(&assessment), "{assessment:?}");
@@ -1254,7 +1253,6 @@ mod tests {
         match variant {
             NotModelled::Batty
             | NotModelled::KeepsRange
-            | NotModelled::WontMoveWhileWatched
             | NotModelled::MovesWithParent
             | NotModelled::OwnActions
             | NotModelled::SwoopOrFlank
@@ -1308,7 +1306,6 @@ mod tests {
         for (name, variant) in [
             ("shard shrike", NotModelled::Batty),
             ("orb spider", NotModelled::KeepsRange),
-            ("wandering mushroom", NotModelled::WontMoveWhileWatched),
             ("snaplasher vine", NotModelled::MovesWithParent),
             ("jiangshi", NotModelled::OwnActions),
             ("tengu warrior", NotModelled::SwoopOrFlank),
@@ -1401,7 +1398,6 @@ mod tests {
             OwnConditions,
             Batty,
             KeepsRange,
-            WontMoveWhileWatched,
             MovesWithParent,
             OwnActions,
             SwoopOrFlank,

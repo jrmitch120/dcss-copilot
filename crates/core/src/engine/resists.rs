@@ -6,8 +6,10 @@
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1).
 
 use copilot_gk::{
-    Bundle, EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Undeadness,
+    Bundle, EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Torment, Undeadness,
 };
+
+use super::torment::{self, Share};
 
 use crate::crawl_ids::beam_types;
 use crate::screen::{Resistance, Resistances};
@@ -48,6 +50,8 @@ pub(crate) struct Holiness {
     /// Nonliving or lifeless undead, whom miasma doesn't harm (`player::res_miasma`,
     /// `player.cc:6987`).
     pub(crate) miasma_immune: bool,
+    /// The share of their hit points torment takes ([`torment::share`]).
+    pub(crate) torment: Share,
 }
 
 impl Holiness {
@@ -57,6 +61,7 @@ impl Holiness {
         holy: false,
         drainable: true,
         miasma_immune: false,
+        torment: Share::Full,
     };
 }
 
@@ -113,9 +118,10 @@ impl Holiness {
     /// (`player.cc:6859`), with the form's own holiness taking the species' place and
     /// petrification both's, `player::undead_state` (`player.cc:7268`), `undead_or_demonic`,
     /// `is_holy` and `res_miasma`, but for a resistance to miasma of a form, a mutation or an
-    /// artefact.
+    /// artefact; and the share of their hit points torment takes, as `torment_variant` judges it.
     pub(crate) fn of(
         variant: ResistDamage,
+        torment_variant: Torment,
         signs: &HolinessSigns,
         species: &Species,
         form: Option<&Form>,
@@ -146,6 +152,7 @@ impl Holiness {
                     holy: kinds.holy || good_god,
                     drainable: kinds.natural || kinds.plant,
                     miasma_immune: kinds.nonliving || undead == Undeadness::Undead,
+                    torment: torment::share(torment_variant, form, petrified, kinds.plant),
                 }
             }
         }
@@ -270,6 +277,7 @@ fn holiness(bundle: &Bundle, seen: &Seen<'_>) -> Option<Holiness> {
     };
     Some(Holiness::of(
         bundle.formulas.resist_damage,
+        bundle.formulas.torment,
         signs,
         species,
         form,
@@ -500,6 +508,7 @@ mod tests {
         let form = form.map(|light| signs.forms.iter().find(|f| f.light == light).unwrap());
         Holiness::of(
             bundle.formulas.resist_damage,
+            bundle.formulas.torment,
             signs,
             bundle.species_named(species).unwrap(),
             form,

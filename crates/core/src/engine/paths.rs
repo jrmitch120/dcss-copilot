@@ -169,6 +169,16 @@ pub(crate) struct Moves {
 }
 
 impl Moves {
+    /// The moves of a walker that stays where it is, `from`: it reaches only that square, in no
+    /// moves.
+    pub(crate) fn staying(from: Position) -> Self {
+        let start = Cost { past: 0, moves: 0 };
+        Moves {
+            from,
+            best: BTreeMap::from([((from.y, from.x), (start, from))]),
+        }
+    }
+
     /// The moves of the path to `position`, `None` when the walker can't reach it.
     pub(crate) fn to(&self, position: Position) -> Option<u32> {
         self.best

@@ -102,6 +102,14 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** no harness dresses the player in it.
 - **Impact and cost:** errs high by up to half of an elemental hit, while the cloak is worn. Telling it from the inventory and rolling each check would close it.
 
+### Torment resistance
+
+- **What crawl does:** torment takes about half the player's hit points (`torment_player`), half that with the Torment Resistance mutation, a demonspawn's, and none with two levels of it or the unrandart "Eternal Torment" (`player::res_torment`). Kikubaaqudgha shields a worshipper from it now and then, more often the more pious they are.
+- **What the engine assumes:** none of these: torment, as a lurking horror sets it off, is cut only by `rNeg`, a form, petrification or being a plant.
+- **Surfaced as:** accepted simplification: one mutation, one unrandart and one god, and leaving them out errs high.
+- **Harness:** the torment cases give the player none of them.
+- **Impact and cost:** errs high, by up to the whole of a lurking horror's torment. Reading mutations ([#40]), the inventory and piety would close it.
+
 ### Attackers a brand spares
 
 - **What crawl does:** a holy monster's foul flame weapon or launcher, and an undead or demonic one's holy wrath weapon or launcher, add nothing, nor does pain in the hands of a follower of Trog (`attack::apply_damage_brand`).
@@ -169,6 +177,14 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Impact and cost:** errs high, modestly. Reading mutations comes first ([#40]); then it is a term in two to-hit formulas.
 - **Issue:** [#94]
 
+### The player's sight
+
+- **What crawl does:** the player sees `you.current_vision` squares: 7, one more with the Daystalker mutation, and fewer with the Nightstalker mutation, a scarf of shadows or a meteoran's bezotting (`update_vision_range`). A monster's missile flies that far, and a lurking horror watched by the player steps toward them only when they are no farther than `random2(you.current_vision + 1)` (`_fungal_move_check`).
+- **What the engine assumes:** 7.
+- **Surfaced as:** accepted simplification: only a Daystalker sees farther, by one square, and narrower sight errs high.
+- **Harness:** every harness plays a player with crawl's default sight.
+- **Impact and cost:** small: for a Daystalker, a missile flies one square farther and a lurking horror steps a little more often. Reading mutations ([#40]) and the scarf would close it.
+
 ### A beam's or missile's flight
 
 - **What crawl does:** a beam or missile flies its path (`bolt::fire`): a bolt may bounce off a wall and strike the player twice (`bolt::bounce`), and a piercing one goes on past them.
@@ -218,15 +234,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the turn harness leaves out kinds that keep their range.
 - **Impact and cost:** errs high when its melee is worse than what it fires.
 - **Issue:** [#102]
-
-### Won't move while watched
-
-- **What crawl does:** the wandering mushroom, deathcap and lurking horror won't step toward the player while the player watches them (`_fungal_move_check`).
-- **What the engine assumes:** they walk up like anything else.
-- **Surfaced as:** `wontMoveWhileWatched`, when a monster that can attack is one of them; its row names it.
-- **Harness:** the turn harness leaves them out.
-- **Impact and cost:** errs high. Crawl hard-codes the kinds, and Game Knowledge mirrors its list.
-- **Issue:** [#101]
 
 ### Moving with a parent
 
@@ -296,9 +303,9 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 ### Dying in its own turns
 
 - **What crawl does:** some monsters die in their own turns (`monster_die`), as one that explodes does.
-- **What the engine assumes:** it goes on acting until the player's next action.
+- **What the engine assumes:** it goes on acting until the player's next action, but for the lurking horror, which blows itself up into torment as it attacks.
 - **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error.
+- **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error, but for the lurking horror, which it places again.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.
 
 ## Ways Out
@@ -352,7 +359,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#101]: https://github.com/jrmitch120/dcss-copilot/issues/101
 [#102]: https://github.com/jrmitch120/dcss-copilot/issues/102
 [#103]: https://github.com/jrmitch120/dcss-copilot/issues/103
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104

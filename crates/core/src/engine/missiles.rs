@@ -18,9 +18,9 @@ use super::melee::{self, Aim, RolledDamage, Swing, Target, Weapon};
 use super::rng::Rng;
 use crate::crawl_ids::missile_types;
 
-/// How far a missile flies: `you.current_vision` (`ranged_attack_beam::initialise_beam`,
-/// `throw.cc:478`), the player's normal sight, `LOS_DEFAULT_RANGE` (`defines.h:115`).
-pub(crate) const MISSILE_RANGE: i32 = 7;
+/// How far a missile flies: the player's sight (`ranged_attack_beam::initialise_beam`,
+/// `throw.cc:478`).
+pub(crate) const MISSILE_RANGE: i32 = super::PLAYER_VISION;
 
 /// A launcher or throwing missile a monster may fire, as the formulas tell them apart.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

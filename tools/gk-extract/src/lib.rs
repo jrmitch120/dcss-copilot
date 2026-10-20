@@ -62,14 +62,20 @@ const SERIES: &[Series] = &[Series {
             "MONS_BOUNDLESS_TESSERACT",
         ],
     },
-    wont_move_while_watched: NamedKinds {
+    steps_from_beside: NamedKinds {
         file: "mon-act.cc",
         functions: &["_fungal_move_check"],
-        kinds: &[
-            "MONS_WANDERING_MUSHROOM",
-            "MONS_DEATHCAP",
-            "MONS_LURKING_HORROR",
-        ],
+        kinds: &["MONS_WANDERING_MUSHROOM", "MONS_DEATHCAP"],
+    },
+    steps_by_chance: NamedKinds {
+        file: "mon-act.cc",
+        functions: &["_fungal_move_check"],
+        kinds: &["MONS_LURKING_HORROR"],
+    },
+    torments_as_it_dies: NamedKinds {
+        file: "mon-explode.cc",
+        functions: &["explode_monster"],
+        kinds: &["MONS_LURKING_HORROR"],
     },
     lighting: &LIGHTING_0_34,
     holiness: &HOLINESS_0_34,
@@ -141,6 +147,7 @@ const HOLINESS_0_34: HolinessRules = HolinessRules {
         ("bat_swarm", Undeadness::SemiUndead),
     ],
     undead_adding_forms: &["vampire", "bat_swarm"],
+    torment_halving_forms: &["statue", "vampire", "bat_swarm"],
     petrified_lights: &[Shown::quoted("Stone", "duration-data.h")],
 };
 
@@ -158,6 +165,8 @@ struct HolinessRules {
     undead_forms: &'static [(&'static str, Undeadness)],
     /// The forms that add undead to the species' holiness rather than setting their own.
     undead_adding_forms: &'static [&'static str],
+    /// The forms `torment_player` (`spl-goditem.cc`) halves torment for.
+    torment_halving_forms: &'static [&'static str],
     /// The status lights of being petrified.
     petrified_lights: &'static [Shown],
 }
@@ -216,8 +225,14 @@ struct Series {
     /// The kinds `handle_monster_move`, or `_pre_monster_move` before it, acts or moves for with
     /// code of its own: crawl tests for each by kind.
     own_actions: NamedKinds,
-    /// The kinds `_fungal_move_check` keeps from stepping while their foe watches them.
-    wont_move_while_watched: NamedKinds,
+    /// The kinds `_fungal_move_check` lets step toward a foe that watches them only from beside
+    /// them (`WatchedStep::FromBeside`).
+    steps_from_beside: NamedKinds,
+    /// The kinds `_fungal_move_check` lets step toward a foe that watches them only by chance
+    /// (`WatchedStep::ByChance`).
+    steps_by_chance: NamedKinds,
+    /// The kinds `explode_monster` blows up into torment as they die.
+    torments_as_it_dies: NamedKinds,
     /// What it shows that tells the player's Lighting.
     lighting: &'static LightingRules,
     /// What it decides in code about the player's holiness.
@@ -564,8 +579,9 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         never_firewood: never_firewood(series, &tentacles, &monster_type)?,
         innate_umbras: known_monsters(series.innate_umbras.iter().copied(), &monster_type)?,
         own_actions: crawl.named_kinds(&series.own_actions, &monster_type)?,
-        wont_move_while_watched: crawl
-            .named_kinds(&series.wont_move_while_watched, &monster_type)?,
+        steps_from_beside: crawl.named_kinds(&series.steps_from_beside, &monster_type)?,
+        steps_by_chance: crawl.named_kinds(&series.steps_by_chance, &monster_type)?,
+        torments_as_it_dies: crawl.named_kinds(&series.torments_as_it_dies, &monster_type)?,
         special_abilities: crawl.special_abilities(&monster_type)?,
         tentacles,
     };
@@ -996,7 +1012,8 @@ impl Crawl {
             .undead_forms
             .iter()
             .map(|(id, _)| id)
-            .chain(rules.undead_adding_forms);
+            .chain(rules.undead_adding_forms)
+            .chain(rules.torment_halving_forms);
         for id in named {
             if !forms.iter().any(|form| form.id == *id) {
                 return Err(ExtractError::Missing {
@@ -1005,8 +1022,19 @@ impl Crawl {
                 });
             }
         }
+        let source = self.parse("spl-goditem.cc")?;
+        let torment = source.function_body("torment_player")?;
+        for id in rules.torment_halving_forms {
+            if !torment.contains(&Token::Ident((*id).to_owned())) {
+                return Err(ExtractError::Missing {
+                    file: "spl-goditem.cc".to_owned(),
+                    what: format!("{id}, in torment_player"),
+                });
+            }
+        }
         for form in &mut forms {
             mark_undead(form, rules);
+            form.halves_torment = rules.torment_halving_forms.contains(&form.id.as_str());
         }
         Ok(HolinessSigns {
             nonliving_species: known_species(rules.nonliving_species)?,

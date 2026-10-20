@@ -273,11 +273,23 @@ static void _random_species()
 // each good god.
 static const vector<god_type> GODS = { GOD_NO_GOD, GOD_ZIN, GOD_SHINING_ONE, GOD_ELYVILON };
 
+// The player's resistances as the character overview shows them, which is all the engine reads,
+// with their species and god as the game names them: the JSON object the oracle reads.
+static string _resists_json()
+{
+    return make_stringf("{\"fire\":%d,\"cold\":%d,\"negative\":%d,\"poison\":%d,"
+                        "\"electricity\":%d,\"corrosion\":%d,\"species\":\"%s\","
+                        "\"god\":\"%s\"}",
+                        player_res_fire(false), player_res_cold(false), player_prot_life(false),
+                        player_res_poison(false), player_res_electricity(false),
+                        player_res_corrosion(false), species::name(you.species).c_str(),
+                        god_name(you.religion).c_str());
+}
+
 // Gives the player, defended as `def`, a god at random, keeping Yredelemnul for their umbra, and
 // mutations or a status that give each of rFire, rCold, rNeg, rPois, rElec and rCorr a random
-// level, from vulnerable to as resistant as each goes. Returns those as the character overview
-// shows them, which is all the engine reads, as the JSON object the oracle reads, with the
-// species (_random_species) and god as the game names them.
+// level, from vulnerable to as resistant as each goes. Returns those as _resists_json gives
+// them.
 static string _random_resists(const defences &def)
 {
     if (you.religion != GOD_YREDELEMNUL)
@@ -310,13 +322,7 @@ static string _random_resists(const defences &def)
                 player_displayed_shield_class());
         exit(1);
     }
-    return make_stringf("{\"fire\":%d,\"cold\":%d,\"negative\":%d,\"poison\":%d,"
-                        "\"electricity\":%d,\"corrosion\":%d,\"species\":\"%s\","
-                        "\"god\":\"%s\"}",
-                        player_res_fire(false), player_res_cold(false), player_prot_life(false),
-                        player_res_poison(false), player_res_electricity(false),
-                        player_res_corrosion(false), species::name(you.species).c_str(),
-                        god_name(you.religion).c_str());
+    return _resists_json();
 }
 
 // `value` as a JSON boolean.

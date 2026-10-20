@@ -22,7 +22,7 @@ use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::wands;
+use super::{step, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -345,8 +345,15 @@ impl<'a> Attacker<'a> {
             .into_iter()
             .flatten()
             .map(|wielded| wielded.weapon.brand);
+        // Torment is cut by `rNeg`, and by what the player is.
+        let torment = Needs {
+            reading: true,
+            holiness: true,
+            ..Needs::NOTHING
+        };
         beams
             .chain(launchers.chain(held).map(Brand::needs))
+            .chain(self.monster.torments_as_it_dies.then_some(torment))
             .fold(Needs::NOTHING, Needs::and)
     }
 
@@ -664,10 +671,11 @@ pub(crate) struct Outcome {
 }
 
 /// Whether `attacker` can attack before the player's next standard-speed action at all: with the
-/// most energy it could have, it closes the distance, unless it never moves, and still has an
-/// action left to strike the player in melee, with a spell or wand, or with a missile. Where a
-/// spell lands its caster ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the
-/// player from wherever it is cast at them.
+/// most energy it could have, it closes the distance, unless it never moves or never steps toward
+/// a player watching it from there ([`step::may_step`]), and still has an action left to strike
+/// the player in melee, with a spell or wand, or with a missile. Where a spell lands its caster
+/// ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the player from wherever it
+/// is cast at them.
 pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
@@ -676,7 +684,10 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
         if attacker.strikes_from(formulas, distance) {
             return true;
         }
-        if monster.stationary || distance <= 1 {
+        if monster.stationary
+            || distance <= 1
+            || !step::may_step(formulas.monster_step, monster.watched_step, distance)
+        {
             return false;
         }
         distance -= 1;
@@ -688,11 +699,19 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
 /// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`. Each
 /// trial draws the fraction of the player's defences the display drops: it is fixed for the
 /// player at any moment, and crawl rounds it afresh on every roll.
+///
+/// A monster that torments plays before the others: torment takes a share of the hit points
+/// left, so it takes the most before others have struck, which errs high, as crawl's order of
+/// play, by energy and the monsters' order on the level, isn't modelled.
 pub(crate) fn simulate(
     formulas: Formulas,
     defender: Defender,
     attackers: &[Attacker<'_>],
 ) -> Outcome {
+    let (tormenting, striking): (Vec<&Attacker<'_>>, Vec<&Attacker<'_>>) = attackers
+        .iter()
+        .partition(|attacker| attacker.monster.torments_as_it_dies);
+    let attackers: Vec<&Attacker<'_>> = tormenting.into_iter().chain(striking).collect();
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut totals: Vec<i32> = (0..TRIALS)
         .map(|_| {
@@ -701,8 +720,9 @@ pub(crate) fn simulate(
                 formulas,
                 &mut rng,
                 target,
+                defender.hp,
                 defender.shield_blocks,
-                attackers,
+                &attackers,
             )
         })
         .collect();
@@ -720,20 +740,29 @@ pub(crate) fn simulate(
     }
 }
 
-/// The damage `target` takes in one trial of their next action, with a shield that blocks up to
-/// `shield_blocks` attacks.
+/// The damage `target`, on `hp`, takes in one trial of their next action, with a shield that
+/// blocks up to `shield_blocks` attacks.
 fn one_action(
     formulas: Formulas,
     rng: &mut Rng,
     target: Target,
+    hp: i32,
     shield_blocks: u32,
-    attackers: &[Attacker<'_>],
+    attackers: &[&Attacker<'_>],
 ) -> i32 {
     let mut blocks_left = shield_blocks;
-    attackers
-        .iter()
-        .map(|attacker| turn(formulas, rng, attacker, target, &mut blocks_left).damage)
-        .sum()
+    attackers.iter().fold(0, |taken, attacker| {
+        taken
+            + turn(
+                formulas,
+                rng,
+                attacker,
+                target,
+                hp - taken,
+                &mut blocks_left,
+            )
+            .damage
+    })
 }
 
 /// What one monster did before the player's next standard-speed action, in one trial.
@@ -750,12 +779,13 @@ pub(crate) struct Turn {
 }
 
 /// Plays out `attacker`'s actions before the player's next standard-speed action against
-/// `target`, whose shield has `blocks_left` blocks left this action.
+/// `target`, on `hp` as it starts, whose shield has `blocks_left` blocks left this action.
 pub(crate) fn turn(
     formulas: Formulas,
     rng: &mut Rng,
     attacker: &Attacker<'_>,
     target: Target,
+    hp: i32,
     blocks_left: &mut u32,
 ) -> Turn {
     let monster = attacker.monster;
@@ -779,7 +809,10 @@ pub(crate) fn turn(
             breath_timeout = breath_timeout.saturating_sub(1);
         }
         first_action = false;
-        // A monster tries its spells before anything else, then its wand, then its missiles
+        // Whether it would step toward the player this action, which crawl decides before it
+        // tries anything (`_find_best_step`, `mon-act.cc:2280`).
+        let steps = step::steps(formulas.monster_step, rng, monster.watched_step, distance);
+        // A monster tries its spells first, then its wand, then its missiles
         // (`_mons_take_special_action`, `mon-act.cc:1840`).
         let can_breathe = breath_timeout == 0;
         if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, can_breathe) {
@@ -837,10 +870,12 @@ pub(crate) fn turn(
             energy -= missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
             continue;
         }
-        if reach == 0 || distance > reach {
-            // It walks straight at the player, unless it never moves: walls and other
-            // monsters aren't modelled.
-            if !monster.stationary && distance > 1 {
+        // Beside the player it attacks by stepping into them; from farther, a reaching attack
+        // needs no step.
+        if reach == 0 || distance > reach || (distance == 1 && !steps) {
+            // It walks straight at the player, unless it never moves or doesn't step: walls and
+            // other monsters aren't modelled.
+            if steps && !monster.stationary && distance > 1 {
                 distance -= 1;
                 turn.closed += 1;
             }
@@ -848,6 +883,12 @@ pub(crate) fn turn(
             continue;
         }
         turn.melee += 1;
+        // One that blows up as it dies blows itself up as it attacks, before any roll, and acts
+        // no more (`melee_attack::attack`, `melee-attack.cc:1816`).
+        if monster.torments_as_it_dies {
+            turn.damage += torment::damage(formulas.torment, hp - turn.damage, target.resists);
+            break;
+        }
         // Every attack it makes, as one melee action makes them
         // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
         for (_, attack, weapon) in attacks_from(formulas, fighter, monster, distance) {
@@ -1011,6 +1052,7 @@ mod tests {
 
     use super::*;
     use crate::carried_gear::{self, Said};
+    use crate::engine::PLAYER_VISION;
 
     /// Two ogres beside a player on 15 HP who shows AC 6, EV 8 and SH 4: their true defences lie
     /// somewhere from exactly that to one point more, and so does their chance of death.
@@ -1021,6 +1063,7 @@ mod tests {
         let formulas = bundle.formulas;
         let ogre = bundle.monsters.values().find(|m| m.name == "ogre").unwrap();
         let attackers = vec![Attacker::new(bundle, ogre, 1).without_gear(); 2];
+        let playing: Vec<&Attacker<'_>> = attackers.iter().collect();
         let hp = 15;
         let exact_deaths = |ac, ev, sh| {
             let mut rng = Rng::new(SEED.0, SEED.1);
@@ -1031,7 +1074,7 @@ mod tests {
                         lighting: Lighting::Plain,
                         resists: Resists::NONE,
                     };
-                    one_action(formulas, &mut rng, target, 1, &attackers) >= hp
+                    one_action(formulas, &mut rng, target, hp, 1, &playing) >= hp
                 })
                 .count()
         };
@@ -1057,22 +1100,24 @@ mod tests {
     /// The turns `name`, `distance` squares from an undefended player, plays out over 1,000
     /// trials, casting a spell of its book on every action it can.
     fn turns_always_casting(name: &str, distance: i32) -> Vec<Turn> {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
-        let mut attacker = Attacker::new(bundle, monster, distance).without_gear();
+        let mut attacker = Attacker::new(bundle(), monster(name), distance).without_gear();
         assert!(!attacker.spells.is_empty(), "{name} casts no ported spell");
         for cast in &mut attacker.spells {
             cast.slot.frequency = 200;
         }
+        turns_of(&attacker, 1_000)
+    }
+
+    /// The turns `attacker` plays out against an undefended player on 40 HP over `trials` trials.
+    fn turns_of(attacker: &Attacker<'_>, trials: u32) -> Vec<Turn> {
         let target = Target {
             defences: Defences::exact(0, 0, 0),
             lighting: Lighting::Plain,
             resists: Resists::NONE,
         };
         let mut rng = Rng::new(SEED.0, SEED.1);
-        (0..1_000)
-            .map(|_| turn(bundle.formulas, &mut rng, &attacker, target, &mut 0))
+        (0..trials)
+            .map(|_| turn(bundle().formulas, &mut rng, attacker, target, 40, &mut 0))
             .collect()
     }
 
@@ -1142,6 +1187,93 @@ mod tests {
         )
         .map(|(slot, _, weapon)| (slot, weapon.map(|wielded| wielded.weapon.damage)))
         .collect()
+    }
+
+    /// `monster`, `distance` squares from the player, carrying nothing.
+    fn unarmed(monster: &Monster, distance: i32) -> Attacker<'_> {
+        Attacker::new(bundle(), monster, distance).without_gear()
+    }
+
+    #[test]
+    fn a_wandering_mushroom_in_view_attacks_only_from_beside_the_player() {
+        let mushroom = monster("wandering mushroom");
+        let formulas = bundle().formulas;
+        let afar = unarmed(mushroom, 3);
+        assert!(!can_attack(formulas, &afar));
+        assert!(
+            turns_of(&afar, 1_000)
+                .iter()
+                .all(|turn| turn.closed == 0 && turn.melee == 0)
+        );
+        let beside = unarmed(mushroom, 1);
+        assert!(can_attack(formulas, &beside));
+        assert!(turns_of(&beside, 1_000).iter().all(|turn| turn.melee == 1));
+    }
+
+    #[test]
+    fn a_lurking_horror_in_view_steps_as_often_as_a_roll_on_the_players_sight_allows() {
+        // At the player's speed it has one action, in which it steps from `distance` squares
+        // when `distance <= random2(PLAYER_VISION + 1)`: into the player from beside them, to
+        // attack.
+        let mut horror = monster("lurking horror").clone();
+        horror.speed = 10;
+        let trials = 20_000;
+        let rolls = f64::from(PLAYER_VISION + 1);
+        for distance in 1..=PLAYER_VISION {
+            let stepped = turns_of(&unarmed(&horror, distance), trials)
+                .iter()
+                .filter(|turn| turn.closed + turn.melee == 1)
+                .count();
+            let rate = f64::from(u32::try_from(stepped).unwrap()) / f64::from(trials);
+            let expected = (rolls - f64::from(distance)) / rolls;
+            assert!(
+                (rate - expected).abs() < 0.015,
+                "{distance} squares: {rate}, not {expected}"
+            );
+        }
+        let afar = unarmed(monster("lurking horror"), 2);
+        assert!(can_attack(bundle().formulas, &afar));
+    }
+
+    #[test]
+    fn a_lurking_horror_attacking_blows_itself_up_into_torment() {
+        // Beside a player on 40 HP who resists nothing it attacks, unless its roll holds it
+        // back: torment takes 40 * 50 / 100 - 1 of their hit points, and it acts no more.
+        let horror = unarmed(monster("lurking horror"), 1);
+        let turns = turns_of(&horror, 1_000);
+        assert!(turns.iter().any(|turn| turn.melee == 1));
+        for turn in &turns {
+            assert!(turn.melee <= 1, "{turn:?}");
+            assert_eq!(
+                turn.damage,
+                if turn.melee == 1 { 19 } else { 0 },
+                "{turn:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_lurking_horrors_torment_takes_from_the_player_before_others_strike_however_listed() {
+        // Torment takes a share of the hit points left: played before the ogre's blows, it takes
+        // the most it can, whichever order the monsters come in.
+        let defender = Defender {
+            hp: 60,
+            defences: DisplayedDefences {
+                ac: 0,
+                ev: 0,
+                sh: 0,
+            },
+            lighting: Lighting::Plain,
+            shield_blocks: 0,
+            resists: Resists::NONE,
+        };
+        let ogre = unarmed(monster("ogre"), 1);
+        let horror = unarmed(monster("lurking horror"), 1);
+        let formulas = bundle().formulas;
+        assert_eq!(
+            simulate(formulas, defender, &[ogre.clone(), horror.clone()]),
+            simulate(formulas, defender, &[horror, ogre])
+        );
     }
 
     #[test]

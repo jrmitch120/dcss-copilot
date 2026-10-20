@@ -7,6 +7,7 @@ use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
 
 use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
+use crate::engine::step;
 use crate::fact_sheet::{Gap, attacks_player};
 use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 
@@ -200,8 +201,12 @@ impl OnTheLevel<'_> {
     }
 
     /// The hostiles in view that can move, each with its kind and its moves to every square it
-    /// can reach.
+    /// can reach. One that steps toward the player only from beside them while they watch it,
+    /// such as the wandering mushroom, stays where it is, so it cuts off only a staircase it stands
+    /// beside. One that steps by chance, the lurking horror, walks as if every roll let it, which
+    /// errs high ([`step::walks_while_watched`]).
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
+        let variant = self.bundle.formulas.monster_step;
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
             // A monster whose side isn't decoded may be hostile: without Game Knowledge, as the
@@ -226,14 +231,19 @@ impl OnTheLevel<'_> {
             if monster.stationary {
                 continue;
             }
-            let walker = Walker::Monster {
-                opens_doors: monster.item_use >= ItemUse::OpenDoors,
+            let moves = if step::walks_while_watched(variant, monster.watched_step) {
+                let walker = Walker::Monster {
+                    opens_doors: monster.item_use >= ItemUse::OpenDoors,
+                };
+                self.level.moves_from(walker, seen.position)
+            } else {
+                Moves::staying(seen.position)
             };
             chasers.push(Chaser {
                 seen,
                 speed: monster.speed,
                 walk: monster.energy.walk,
-                moves: self.level.moves_from(walker, seen.position),
+                moves,
             });
         }
         chasers
