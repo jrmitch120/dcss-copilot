@@ -36,3 +36,10 @@ file = "player-0.34.1-seed-12.dcssrec"
 sha256 = "b52be463b2c85441a6838c52df131ae6214e08446e1859464e61f5ffb11b8478"
 crawl_version = "0.34.1"
 seed = 12
+
+[[game]]
+# A Spriggan Enchanter mangled by a wight on D:7 at turn 6029, XL 8.
+file = "player-0.34.1-seed-13.dcssrec"
+sha256 = "c8ba6bc09a452aba9cd96f262d2d51c6d3cdb1106f050911214b2056661c13d3"
+crawl_version = "0.34.1"
+seed = 13
