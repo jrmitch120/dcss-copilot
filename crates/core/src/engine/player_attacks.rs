@@ -18,7 +18,7 @@ use super::melee::{AUTOMATIC_HIT, MIN_HIT_MISS_PERCENTAGE};
 use super::resists::{self, MonsterBeamResist, MonsterResistances};
 use super::rng::Rng;
 use super::spells::{self, ArmourRule};
-use crate::crawl_ids::{brand_types, missile_types, skill_types, weapon_types};
+use crate::crawl_ids::{brand_types, missile_types, skill_types};
 
 /// `FASTEST_PLAYER_THROWING_SPEED` (`player.h:100`): no throw takes less than this.
 const FASTEST_THROWING_DELAY: i32 = 7;
@@ -50,6 +50,18 @@ const PLAYER_ZAPS_0_34: &[&str] = &[
     "SPELL_STICKY_FLAME",
     "SPELL_ICEBLAST",
 ];
+
+/// The crossbows crawl 0.34's `is_crossbow` (`item-prop.cc:2158`) names, which skill never makes
+/// faster than a standard-speed action (`weapon_min_delay`, `fight.cc:1259`).
+const CROSSBOWS_0_34: &[&str] = &["WPN_HAND_CANNON", "WPN_ARBALEST", "WPN_TRIPLE_CROSSBOW"];
+
+/// The skills whose weapons crawl 0.34's damage takes Dexterity for rather than Strength
+/// (`weapon_uses_strength`, `fight.cc:1680`).
+const DEXTEROUS_SKILLS_0_34: &[&str] = &["SK_SHORT_BLADES", "SK_LONG_BLADES", "SK_RANGED_WEAPONS"];
+
+/// The skill whose weapons crawl 0.34 lets skill make as fast as an unarmed attack
+/// (`weapon_min_delay`, `fight.cc:1259`).
+const SHORT_BLADES_0_34: &str = "SK_SHORT_BLADES";
 
 /// A spell the player casts, or a wand zaps, as one zap that deals damage: one the engine ports.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -337,6 +349,9 @@ pub(crate) fn swing(
     hand: Hand<'_>,
     defence: Defence,
 ) -> Blow {
+    let dexterous_skills = match variant {
+        PlayerAttack::Crawl034 => DEXTEROUS_SKILLS_0_34,
+    };
     let to_hit = melee_to_hit(variant, rng, striker, hand);
     if !hits(rng, to_hit, defence.ev) {
         return Blow::missed(to_hit);
@@ -348,7 +363,7 @@ pub(crate) fn swing(
             let potential = UNARMED_BASE_DAMAGE + skill.rounded(rng);
             let damage = rolled(rng, potential.max(0), true, striker);
             let damage = with_fighting(rng, damage, striker);
-            slain(rng, damage, 0)
+            with_slaying(rng, damage, 0)
         }
         Hand::Weapon {
             weapon,
@@ -357,14 +372,11 @@ pub(crate) fn swing(
             skill,
         } => {
             let potential = hefted_damage(rng, weapon.damage, heft);
-            let uses_strength = !matches!(
-                weapon.skill.0.as_str(),
-                skill_types::SHORT_BLADES | skill_types::LONG_BLADES
-            );
+            let uses_strength = !dexterous_skills.contains(&weapon.skill.0.as_str());
             let damage = rolled(rng, potential, uses_strength, striker);
             let damage = with_weapon_skill(rng, damage, skill);
             let damage = with_fighting(rng, damage, striker);
-            slain(rng, damage, plus)
+            with_slaying(rng, damage, plus)
         }
     };
     Blow {
@@ -429,7 +441,7 @@ fn with_fighting(rng: &mut Rng, damage: i32, striker: Striker) -> i32 {
 
 /// `attack::player_apply_slaying_bonuses` (`attack.cc:840`) with no slaying: the weapon's
 /// enchantment, by `_core_apply_slaying` (`attack.cc:829`).
-fn slain(rng: &mut Rng, damage: i32, plus: i32) -> i32 {
+fn with_slaying(rng: &mut Rng, damage: i32, plus: i32) -> i32 {
     if plus >= 0 {
         damage + rng.random2(1 + plus)
     } else {
@@ -461,7 +473,8 @@ pub(crate) fn melee_delay(variant: PlayerAttack, rng: &mut Rng, hand: Hand<'_>) 
                     skilled_delay(rng, weapon.delay, min_delay, skill, heft)
                 }
             };
-            delay.max(3).max(1)
+            // At the player's normal speed, the scaling by speed and its floor of 1 change nothing.
+            delay.max(3)
         }
     }
 }
@@ -479,17 +492,13 @@ pub(crate) fn shot_delay(variant: PlayerAttack, rng: &mut Rng, shot: Shot<'_>) -
                     delay.max(FASTEST_THROWING_DELAY)
                 }
                 Some(speed) => {
-                    let crossbow = matches!(
-                        shot.id.0.as_str(),
-                        weapon_types::HAND_CANNON
-                            | weapon_types::ARBALEST
-                            | weapon_types::TRIPLE_CROSSBOW
-                    );
+                    let crossbow = CROSSBOWS_0_34.contains(&shot.id.0.as_str());
                     let min_delay = min_delay(speed, skill_types::RANGED_WEAPONS, crossbow);
                     skilled_delay(rng, speed, min_delay, shot.skill, shot.heft)
                 }
             };
-            delay.max(3).max(1)
+            // At the player's normal speed, the scaling by speed and its floor of 1 change nothing.
+            delay.max(3)
         }
     }
 }
@@ -512,7 +521,7 @@ fn skilled_delay(rng: &mut Rng, speed: i32, min_delay: i32, skill: DrawnSkill, h
 /// (`fight.cc:1259`) for a weapon that isn't an artefact, without its brand.
 fn min_delay(speed: i32, skill: &str, crossbow: bool) -> i32 {
     let mut min_delay = speed / 2;
-    if skill == skill_types::SHORT_BLADES && min_delay > 5 {
+    if skill == SHORT_BLADES_0_34 && min_delay > 5 {
         min_delay = 5;
     }
     min_delay = min_delay.min(7);
@@ -570,7 +579,7 @@ pub(crate) fn shoot(
             let damage = rolled(rng, potential, thrown, striker);
             let damage = with_weapon_skill(rng, damage, shot.skill);
             let damage = with_fighting(rng, damage, striker);
-            let damage = slain(rng, damage, if thrown { 0 } else { shot.plus });
+            let damage = with_slaying(rng, damage, if thrown { 0 } else { shot.plus });
             let mut damage = monster_armour(rng, ArmourRule::Normal, defence.ac, damage);
             // A thrown missile that breaks hits a third harder, but a stone
             // (`ranged_attack::mulch_bonus`, `ranged-attack.cc:404`).
@@ -685,6 +694,30 @@ mod tests {
     use copilot_gk::Library;
 
     use super::*;
+
+    #[test]
+    fn every_identifier_the_player_attack_variants_name_is_in_every_shipped_bundle() {
+        let library = Library::shipped().unwrap();
+        for bundle in library.bundles() {
+            let (crossbows, dexterous, short_blades) = match bundle.formulas.player_attack {
+                PlayerAttack::Crawl034 => {
+                    (CROSSBOWS_0_34, DEXTEROUS_SKILLS_0_34, SHORT_BLADES_0_34)
+                }
+            };
+            for &id in crossbows {
+                let weapon = bundle.missile_weapons.get(&EnumId(id.to_owned()));
+                assert!(
+                    weapon.is_some(),
+                    "{} has no launcher {id}",
+                    bundle.crawl.tag
+                );
+            }
+            for &id in dexterous.iter().chain([&short_blades]) {
+                let skill = bundle.skills.get(&EnumId(id.to_owned()));
+                assert!(skill.is_some(), "{} has no skill {id}", bundle.crawl.tag);
+            }
+        }
+    }
 
     #[test]
     fn every_player_zap_names_a_spell_the_player_fires_in_every_shipped_bundle_of_its_variant() {

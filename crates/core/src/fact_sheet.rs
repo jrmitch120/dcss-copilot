@@ -332,8 +332,8 @@ pub enum NotModelled {
     /// each trial guesses them afresh, any as likely as another, so the chance of death is an
     /// average over what they could be, and the player's own may give more or less.
     DefenceFractions,
-    /// The player is assumed to walk at standard speed, a square an action, whatever their
-    /// species, statuses or gear.
+    /// The player is assumed to walk at standard speed, a square an action, and to cast, zap and
+    /// wait at it in a fight, whatever their species, statuses or gear.
     PlayerSpeed,
     /// Everyone is assumed to walk: deep water and lava stop them, even those who swim or fly.
     SwimmingAndFlying,
@@ -481,7 +481,7 @@ pub enum Gap {
     Inventory,
     /// The game hasn't said what the player holds.
     Wielded,
-    /// The player's Strength or Dexterity hasn't been reported.
+    /// The player's Strength, Dexterity or magic points haven't been reported.
     Attributes,
 }
 

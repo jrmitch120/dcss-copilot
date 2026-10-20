@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use copilot_gk::{Bundle, EnumId, ItemUse, MissileKind};
 use serde::Serialize;
 
-use crate::accumulated_state::{AccumulatedState, Remembered};
+use crate::accumulated_state::AccumulatedState;
 use crate::carried_gear::{self, ItemBrand};
 use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
@@ -65,9 +65,10 @@ pub struct FightOutcome {
     /// Each plan, the best first: the likeliest to win, then the one costing the fewest hit
     /// points.
     pub plans: Vec<PlanOutcome>,
-    /// The player's spells no plan casts, by name: those the engine doesn't port as attacks,
-    /// such as a hex, a summons or Blink.
-    pub spells_not_played: Vec<String>,
+    /// The player's spells and wands no plan uses, by name: those the engine doesn't port as
+    /// attacks, such as a hex, a summons or Blink, and those it can't play as the game shows
+    /// them, such as a wand whose charges aren't shown.
+    pub not_played: Vec<String>,
     /// Facts the Advisor lacks that may hide a better plan, such as the spell list unread.
     pub gaps: Vec<Gap>,
     /// What the fights leave out, so the numbers are read for what they are. The hostiles fight
@@ -181,7 +182,7 @@ impl AttackPlan {
 }
 
 /// What the Fight Outcome leaves out, whatever is in view.
-const ALWAYS_NOT_MODELLED: [NotModelled; 9] = [
+const ALWAYS_NOT_MODELLED: [NotModelled; 10] = [
     NotModelled::Summons,
     NotModelled::Allies,
     NotModelled::Hexes,
@@ -191,6 +192,7 @@ const ALWAYS_NOT_MODELLED: [NotModelled; 9] = [
     NotModelled::MonsterWounds,
     NotModelled::OwnAttackExtras,
     NotModelled::OwnFractions,
+    NotModelled::PlayerSpeed,
 ];
 
 /// The fight with the hostiles in view, `hostiles`, each with the gear the Threat Level plays it
@@ -230,7 +232,7 @@ pub(crate) fn judge<'a>(
     let (base, base_plan) = player.base(bundle, &mut not_modelled);
     let fighter = Fighter {
         hp: defender.hp,
-        mp: visible.stats.mp.unwrap_or(0),
+        mp: player.mp,
         strength: player.strength,
         dexterity: player.dexterity,
         fighting: player.skill(bundle, skill_types::FIGHTING),
@@ -248,10 +250,15 @@ pub(crate) fn judge<'a>(
     if foes_in_light(visible, &foes) {
         not_modelled.insert(NotModelled::MonsterLighting);
     }
-    let (spells, spells_not_played) =
-        player.spells(remembered, bundle, &mut gaps, &mut not_modelled);
-    let mut openings: Vec<(PlanOpening, Opening<'a>)> = spells;
-    openings.extend(player.wands(bundle));
+    let mut not_played = Vec::new();
+    let mut openings: Vec<(PlanOpening, Opening<'a>)> = player.spells(
+        remembered,
+        bundle,
+        &mut gaps,
+        &mut not_played,
+        &mut not_modelled,
+    );
+    openings.extend(player.wands(bundle, &mut not_played));
     openings.extend(player.thrown(bundle));
     if openings
         .iter()
@@ -301,7 +308,7 @@ pub(crate) fn judge<'a>(
     Fight::Judged(Box::new(FightOutcome {
         hp: defender.hp,
         plans,
-        spells_not_played,
+        not_played,
         gaps: gaps.into_iter().collect(),
         not_modelled: not_modelled.into_iter().collect(),
     }))
@@ -356,6 +363,8 @@ fn opening_blasts_or_pierces(opening: &Opening<'_>) -> bool {
 struct Player<'v> {
     strength: i32,
     dexterity: i32,
+    mp: i32,
+    mp_max: i32,
     skills: &'v Skills,
     inventory: &'v [InventoryItem],
     wielding: Wielding,
@@ -370,7 +379,11 @@ impl<'v> Player<'v> {
     ) -> Result<Self, Vec<Gap>> {
         let mut gaps = BTreeSet::new();
         let stats = &visible.stats;
-        if stats.strength.is_none() || stats.dexterity.is_none() {
+        if stats.strength.is_none()
+            || stats.dexterity.is_none()
+            || stats.mp.is_none()
+            || stats.mp_max.is_none()
+        {
             gaps.insert(Gap::Attributes);
         }
         let skills = remembered.and_then(|state| state.skills.read_value());
@@ -384,23 +397,25 @@ impl<'v> Player<'v> {
             gaps.insert(Gap::Wielded);
         }
         match (
-            stats.strength,
-            stats.dexterity,
+            (stats.strength, stats.dexterity, stats.mp, stats.mp_max),
             skills,
             visible.inventory.as_deref(),
             visible.wielded,
         ) {
-            (Some(strength), Some(dexterity), Some(skills), Some(inventory), Some(wielding))
-                if gaps.is_empty() =>
-            {
-                Ok(Self {
-                    strength,
-                    dexterity,
-                    skills,
-                    inventory,
-                    wielding,
-                })
-            }
+            (
+                (Some(strength), Some(dexterity), Some(mp), Some(mp_max)),
+                Some(skills),
+                Some(inventory),
+                Some(wielding),
+            ) if gaps.is_empty() => Ok(Self {
+                strength,
+                dexterity,
+                mp,
+                mp_max,
+                skills,
+                inventory,
+                wielding,
+            }),
             _ => Err(gaps.into_iter().collect()),
         }
     }
@@ -501,19 +516,20 @@ impl<'v> Player<'v> {
         remembered: Option<&AccumulatedState>,
         bundle: &'b Bundle,
         gaps: &mut BTreeSet<Gap>,
+        not_played: &mut Vec<String>,
         not_modelled: &mut BTreeSet<NotModelled>,
-    ) -> (Vec<(PlanOpening, Opening<'b>)>, Vec<String>) {
+    ) -> Vec<(PlanOpening, Opening<'b>)> {
         let variant = bundle.formulas.player_beam;
         let known = remembered.and_then(|state| state.spells.read_value());
         let Some(known) = known else {
-            if remembered.is_some_and(|state| state.spells == Remembered::Missing) {
+            // Only a player with magic to cast with may know an attack spell.
+            if self.mp_max > 0 {
                 gaps.insert(Gap::SpellList);
             }
-            return (Vec::new(), Vec::new());
+            return Vec::new();
         };
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
-        let mut not_played = Vec::new();
         for spell in known {
             let zap = bundle
                 .spells
@@ -530,42 +546,59 @@ impl<'v> Player<'v> {
                 gaps.insert(Gap::SpellPower);
                 continue;
             };
-            if let Some(opening) = spell_opening(spell, reach, zap, not_modelled) {
-                openings.push((
+            match spell_opening(spell, reach, zap, not_modelled) {
+                Some(opening) => openings.push((
                     PlanOpening::Spell {
                         name: spell.name.clone(),
                     },
                     opening,
-                ));
+                )),
+                None => not_played.push(spell.name.clone()),
             }
         }
-        (openings, not_played)
+        openings
     }
 
     /// An opening for each wand the player carries that zaps a spell the engine ports as an
-    /// attack, known by its kind and with its charges shown.
-    fn wands<'b>(&self, bundle: &'b Bundle) -> Vec<(PlanOpening, Opening<'b>)> {
+    /// attack, known by its kind and with its charges shown, and the names of the other wands in
+    /// `not_played`.
+    fn wands<'b>(
+        &self,
+        bundle: &'b Bundle,
+        not_played: &mut Vec<String>,
+    ) -> Vec<(PlanOpening, Opening<'b>)> {
         let variant = bundle.formulas.player_beam;
-        self.inventory
-            .iter()
-            .filter_map(|item| {
-                let kind = item.kind.as_ref()?;
-                if kind.class.0 != object_classes::WANDS {
-                    return None;
-                }
-                let wand = bundle.wands.get(kind.sub_type.as_ref()?)?;
+        let wands = self.inventory.iter().filter(|item| {
+            item.kind
+                .as_ref()
+                .is_some_and(|kind| kind.class.0 == object_classes::WANDS)
+        });
+        let mut openings = Vec::new();
+        for item in wands {
+            let opening = (|| {
+                let wand = bundle.wands.get(item.kind.as_ref()?.sub_type.as_ref()?)?;
                 let spell = bundle.spell_by_id(&wand.spell)?;
                 let zap = PlayerZap::of(variant, spell)?;
+                let range = spell.range?;
                 let charges = charges(&item.name)?;
                 Some((
                     PlanOpening::Wand {
                         name: format!("{}{}", carried_gear::WAND_OF, wand.name),
                         charges,
                     },
-                    Opening::Wand { zap, charges },
+                    Opening::Wand {
+                        zap,
+                        range,
+                        charges,
+                    },
                 ))
-            })
-            .collect()
+            })();
+            match opening {
+                Some(opening) => openings.push(opening),
+                None => not_played.push(carried_gear::without_article(&item.name).to_owned()),
+            }
+        }
+        openings
     }
 
     /// An opening for each stack of missiles the player carries that they throw and that deal
@@ -659,7 +692,13 @@ impl Fight {
             gaps: gaps.iter().map(gap).collect(),
         };
         match self {
-            Self::NoFight | Self::TooMany { .. } => None,
+            Self::NoFight => None,
+            Self::TooMany { hostiles } => Some(card(
+                format!("Too many hostiles to judge a fight: {hostiles} in view."),
+                Vec::new(),
+                None,
+                &[],
+            )),
             Self::Unjudged { gaps } if !gaps.iter().any(fight_input) => None,
             Self::Unjudged { gaps } => Some(card(
                 "The Advisor can't judge a fight yet.".to_owned(),
@@ -682,7 +721,11 @@ impl Fight {
                     .iter()
                     .filter_map(|&variant| fight_words(variant))
                     .collect();
-                let not_modelled = format!("Not modelled: {}", words.join(", "));
+                let mut not_modelled = format!("Not modelled: {}", words.join(", "));
+                if !outcome.not_played.is_empty() {
+                    not_modelled
+                        .push_str(&format!(". Not played: {}", outcome.not_played.join(", ")));
+                }
                 Some(card(line, others, Some(not_modelled), &outcome.gaps))
             }
         }
@@ -722,6 +765,7 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         NotModelled::OwnAttackExtras => Some("brands, kicks and slaying"),
         NotModelled::OwnWeapon => Some("your weapon as named"),
         NotModelled::OwnFractions => Some("skill fractions"),
+        NotModelled::PlayerSpeed => Some("your speed"),
         NotModelled::Miscasts => Some("miscasts"),
         NotModelled::BlastsAndBolts => Some("blast and bolt spread"),
         NotModelled::MonsterLighting => Some("halos and umbras"),
@@ -742,7 +786,6 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         | NotModelled::WornShield
         | NotModelled::OwnHalo
         | NotModelled::DefenceFractions
-        | NotModelled::PlayerSpeed
         | NotModelled::SwimmingAndFlying
         | NotModelled::UnexploredSquares
         | NotModelled::HitsOnTheWay
@@ -793,7 +836,7 @@ mod tests {
     use copilot_gk::{ItemKind, Library};
 
     use super::*;
-    use crate::accumulated_state::AsOf;
+    use crate::accumulated_state::{AsOf, Remembered};
     use crate::fact_sheet::{FactSheet, Threat, ThreatLevel};
     use crate::screen::Screen;
     use crate::view_model::{Colour, Glyph};
@@ -1109,6 +1152,7 @@ mod tests {
     #[test]
     fn an_unread_spell_list_or_its_power_may_hide_a_better_plan() {
         let mut unread = fighter();
+        unread.mp = 5;
         unread.spells = None;
         assert_eq!(
             judged(&unread.against(&[("jackal", 2)])).gaps,
@@ -1127,11 +1171,37 @@ mod tests {
     }
 
     #[test]
-    fn spells_that_are_no_attack_are_named_as_not_played() {
+    fn spells_and_wands_no_plan_uses_are_named_as_not_played() {
         let sheet = fighter()
             .casting(10, &[("Blink", 5, 2)], &[("Blink", 30, 0)])
+            .carrying('c', "a wand of flame", 1, "OBJ_WANDS", "WAND_FLAME")
             .against(&[("jackal", 2)]);
-        assert_eq!(judged(&sheet).spells_not_played, ["Blink"]);
+        assert_eq!(judged(&sheet).not_played, ["Blink", "wand of flame"]);
+        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None) else {
+            panic!("no fight card");
+        };
+        assert!(
+            not_modelled
+                .unwrap()
+                .ends_with("Not played: Blink, wand of flame"),
+        );
+    }
+
+    #[test]
+    fn a_player_without_magic_isnt_asked_for_the_spell_list() {
+        let mut fighter = fighter();
+        fighter.spells = None;
+        assert!(judged(&fighter.against(&[("jackal", 2)])).gaps.is_empty());
+    }
+
+    #[test]
+    fn too_many_hostiles_are_said_on_the_card() {
+        let sheet =
+            fighter().against(&[("jackal", 2), ("jackal", 3), ("jackal", 4), ("jackal", 5)]);
+        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None) else {
+            panic!("no fight card");
+        };
+        assert_eq!(line, "Too many hostiles to judge a fight: 4 in view.");
     }
 
     #[test]

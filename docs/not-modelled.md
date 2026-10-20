@@ -430,9 +430,9 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 
 - **What crawl does:** the player moves at the speed their form, species, statuses and gear give (`player_movement_speed`).
 - **What the engine assumes:** the player walks a square an action. The Threat Level assumes the same: its simulation plays out one standard-speed action, as the turn harness does, but doesn't list it.
-- **Surfaced as:** `playerSpeed`, on the Ways Out whenever there are staircases.
+- **Surfaced as:** `playerSpeed`, on the Ways Out whenever there are staircases, and on every judged fight, where the player casts, zaps and waits at standard speed too and their attacks take crawl's delays at it.
 - **Harness:** the turn harness plays the player's next action at standard speed.
-- **Impact and cost:** a hasted player sees staircases cut off that they could reach first; in the Threat Level, a hasted player faces fewer attacks before acting. Needs the player's speed read from the game.
+- **Impact and cost:** a hasted player sees staircases cut off that they could reach first; in the Threat Level, a hasted player faces fewer attacks before acting; in a fight, a fast player gets more free shots and a slow one fewer. Needs the player's speed read from the game.
 - **Issue:** [#106]
 
 ### Swimming and flying

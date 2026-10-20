@@ -200,9 +200,10 @@ expression: replay
               "hpLost": 8
             }
           ],
-          "spellsNotPlayed": [],
+          "notPlayed": [],
           "gaps": [],
           "notModelled": [
+            "playerSpeed",
             "summons",
             "allies",
             "hexes",
@@ -250,7 +251,7 @@ expression: replay
           "others": [
             "Melee: ~74% win, ~62% HP lost"
           ],
-          "notModelled": "Not modelled: summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
+          "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
           "gaps": []
         },
         "waysOut": {
@@ -463,9 +464,10 @@ expression: replay
             "hpLost": 8
           }
         ],
-        "spellsNotPlayed": [],
+        "notPlayed": [],
         "gaps": [],
         "notModelled": [
+          "playerSpeed",
           "summons",
           "allies",
           "hexes",
@@ -513,7 +515,7 @@ expression: replay
         "others": [
           "Melee: ~74% win, ~62% HP lost"
         ],
-        "notModelled": "Not modelled: summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
+        "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
         "gaps": []
       },
       "waysOut": {

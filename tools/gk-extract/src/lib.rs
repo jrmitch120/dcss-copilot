@@ -806,11 +806,6 @@ impl Crawl {
         Ok(classes)
     }
 
-    /// The brands a weapon may have, by `brand_type` identifier, with how a weapon's name shows
-    /// each (`weapon_brand_desc` in `item-name.cc`): its words from `weapon_brands_adj` when it is
-    /// in `brand_prefers_adj` and named before the weapon, from `weapon_brands_verbose` otherwise.
-    /// Both tables run in `brand_type` order. Brands crawl has retired, which it names
-    /// `obsolescence`, and the brand of none are left out.
     /// Every skill before [`SKILLS_END`], by its `skill_type` identifier, named by the first
     /// column of its row of `skill_titles` in `skills.cc`, which lists them in the enum's order.
     fn skills(&self) -> Result<BTreeMap<EnumId, String>, ExtractError> {
@@ -836,6 +831,11 @@ impl Crawl {
         Ok(skills.into_values().zip(names).collect())
     }
 
+    /// The brands a weapon may have, by `brand_type` identifier, with how a weapon's name shows
+    /// each (`weapon_brand_desc` in `item-name.cc`): its words from `weapon_brands_adj` when it is
+    /// in `brand_prefers_adj` and named before the weapon, from `weapon_brands_verbose` otherwise.
+    /// Both tables run in `brand_type` order. Brands crawl has retired, which it names
+    /// `obsolescence`, and the brand of none are left out.
     fn weapon_brands(&self) -> Result<BTreeMap<EnumId, WeaponBrand>, ExtractError> {
         let file = "item-name.cc";
         let source = self.parse(file)?;

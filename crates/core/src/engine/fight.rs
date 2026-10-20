@@ -6,7 +6,7 @@
 //! to come into reach, and step toward one that never moves. Each of their actions takes as long
 //! as crawl makes it take, and every hostile then gains the energy that time gives it and acts.
 
-use copilot_gk::{EnumId, Formulas, MeleeWeapon, MissileWeapon};
+use copilot_gk::{EnumId, Formulas, MeleeWeapon, MissileWeapon, PlayerBeam, SpellRange};
 
 use super::melee::BASELINE_DELAY;
 use super::missiles::MISSILE_RANGE;
@@ -117,6 +117,8 @@ pub(crate) enum Opening<'a> {
     Wand {
         /// The spell it zaps.
         zap: PlayerZap<'a>,
+        /// How far the spell reaches, and the power past which it grows no stronger.
+        range: SpellRange,
         /// Its charges.
         charges: u32,
     },
@@ -285,6 +287,18 @@ fn one_fight<'a>(
     }
 }
 
+/// Fires `zap` at `power` at `hostile`, which takes what it deals.
+fn fire_at(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    zap: PlayerZap<'_>,
+    power: i32,
+    hostile: &mut Hostile<'_, '_>,
+) {
+    let beam = player_attacks::beam(variant, zap, power);
+    hostile.hp -= player_attacks::fire(variant, rng, beam, hostile.defence).damage;
+}
+
 impl<'f, 'a> Side<'f, 'a> {
     /// `fighter` as one fight plays them, with what of their skills and their spell's power the
     /// game doesn't show drawn afresh.
@@ -307,9 +321,9 @@ impl<'f, 'a> Side<'f, 'a> {
         };
         let (power, opening_skill) = match opening {
             Some(Opening::Spell { power, .. }) => (power.drawn(rng), DrawnSkill::default()),
-            Some(Opening::Wand { zap, .. }) => {
+            Some(Opening::Wand { range, .. }) => {
                 let evocations = fighter.evocations.drawn(rng);
-                let cap = zap.power_cap().unwrap_or(0);
+                let cap = range.power_cap;
                 let power = player_attacks::wand_power(formulas.wand_power, evocations, cap);
                 (power, DrawnSkill::default())
             }
@@ -377,22 +391,23 @@ impl<'f, 'a> Side<'f, 'a> {
                 self.mp -= *cost;
                 // A failed cast spends the magic and the time all the same.
                 if !rng.x_chance_in_y(*failure_percent, 100) {
-                    let beam = player_attacks::beam(variant, *zap, self.power);
-                    hostile.hp -= player_attacks::fire(variant, rng, beam, hostile.defence).damage;
+                    fire_at(variant, rng, *zap, self.power, hostile);
                 }
                 Some(BASELINE_DELAY)
             }
-            Opening::Wand { zap, charges } => {
-                let range = zap
-                    .spell
-                    .range
-                    .map(|range| spells::range(formulas.monster_spell_power, range, self.power))?;
-                if *charges == 0 || distance > range {
+            Opening::Wand {
+                zap,
+                range,
+                charges,
+            } => {
+                // Crawl's `calc_spell_range` serves the player's wands as it does monsters'
+                // spells.
+                let reach = spells::range(formulas.monster_spell_power, *range, self.power);
+                if *charges == 0 || distance > reach {
                     return None;
                 }
                 *charges -= 1;
-                let beam = player_attacks::beam(variant, *zap, self.power);
-                hostile.hp -= player_attacks::fire(variant, rng, beam, hostile.defence).damage;
+                fire_at(variant, rng, *zap, self.power, hostile);
                 Some(BASELINE_DELAY)
             }
             Opening::Thrown {

@@ -169,24 +169,9 @@ crawl_identifiers! {
 }
 
 crawl_identifiers! {
-    /// `weapon_type` identifiers.
-    weapon_types {
-        /// The crossbows, which skill never makes faster than a standard-speed action
-        /// (`weapon_min_delay` and `is_crossbow` in crawl).
-        HAND_CANNON = "WPN_HAND_CANNON";
-        ARBALEST = "WPN_ARBALEST";
-        TRIPLE_CROSSBOW = "WPN_TRIPLE_CROSSBOW";
-    }
-}
-
-crawl_identifiers! {
     /// `skill_type` identifiers.
     skill_types {
         FIGHTING = "SK_FIGHTING";
-        /// The blades, which crawl's damage takes Dexterity for rather than Strength
-        /// (`weapon_uses_strength` in `fight.cc`), as it does for launchers.
-        SHORT_BLADES = "SK_SHORT_BLADES";
-        LONG_BLADES = "SK_LONG_BLADES";
         RANGED_WEAPONS = "SK_RANGED_WEAPONS";
         THROWING = "SK_THROWING";
         UNARMED_COMBAT = "SK_UNARMED_COMBAT";
@@ -236,7 +221,7 @@ mod tests {
     ];
 
     /// The identifiers of each kind a bundle carries.
-    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 14] {
+    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 13] {
         let monsters = || bundle.monsters.values();
         let attacks = || monsters().flat_map(|monster| &monster.attacks);
         let class_sub_types = |class: &str| {
@@ -328,11 +313,6 @@ mod tests {
                 "armour",
                 armour_types::ALL,
                 class_sub_types(object_classes::ARMOUR),
-            ),
-            (
-                "weapons",
-                weapon_types::ALL,
-                class_sub_types(object_classes::WEAPONS),
             ),
             (
                 "skills",
