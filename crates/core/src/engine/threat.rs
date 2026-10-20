@@ -1020,6 +1020,7 @@ mod tests {
 
     use super::*;
     use crate::carried_gear::{self, Said};
+    use crate::engine::PLAYER_VISION;
 
     /// Two ogres beside a player on 15 HP who shows AC 6, EV 8 and SH 4: their true defences lie
     /// somewhere from exactly that to one point more, and so does their chance of death.
@@ -1066,22 +1067,24 @@ mod tests {
     /// The turns `name`, `distance` squares from an undefended player, plays out over 1,000
     /// trials, casting a spell of its book on every action it can.
     fn turns_always_casting(name: &str, distance: i32) -> Vec<Turn> {
-        let library = Library::shipped().unwrap();
-        let bundle = library.for_version("0.34.1").unwrap();
-        let monster = bundle.monsters.values().find(|m| m.name == name).unwrap();
-        let mut attacker = Attacker::new(bundle, monster, distance).without_gear();
+        let mut attacker = Attacker::new(bundle(), monster(name), distance).without_gear();
         assert!(!attacker.spells.is_empty(), "{name} casts no ported spell");
         for cast in &mut attacker.spells {
             cast.slot.frequency = 200;
         }
+        turns_of(&attacker, 1_000)
+    }
+
+    /// The turns `attacker` plays out against an undefended player over `trials` trials.
+    fn turns_of(attacker: &Attacker<'_>, trials: u32) -> Vec<Turn> {
         let target = Target {
             defences: Defences::exact(0, 0, 0),
             lighting: Lighting::Plain,
             resists: Resists::NONE,
         };
         let mut rng = Rng::new(SEED.0, SEED.1);
-        (0..1_000)
-            .map(|_| turn(bundle.formulas, &mut rng, &attacker, target, &mut 0))
+        (0..trials)
+            .map(|_| turn(bundle().formulas, &mut rng, attacker, target, &mut 0))
             .collect()
     }
 
@@ -1153,62 +1156,49 @@ mod tests {
         .collect()
     }
 
-    /// The turns `monster`, `distance` squares from an undefended player, plays out over
-    /// `trials` trials.
-    fn turns_of(monster: &Monster, distance: i32, trials: u32) -> Vec<Turn> {
-        let attacker = Attacker::new(bundle(), monster, distance).without_gear();
-        let target = Target {
-            defences: Defences::exact(0, 0, 0),
-            lighting: Lighting::Plain,
-            resists: Resists::NONE,
-        };
-        let mut rng = Rng::new(SEED.0, SEED.1);
-        (0..trials)
-            .map(|_| turn(bundle().formulas, &mut rng, &attacker, target, &mut 0))
-            .collect()
+    /// `monster`, `distance` squares from the player, carrying nothing.
+    fn unarmed(monster: &Monster, distance: i32) -> Attacker<'_> {
+        Attacker::new(bundle(), monster, distance).without_gear()
     }
 
     #[test]
     fn a_wandering_mushroom_in_view_attacks_only_from_beside_the_player() {
         let mushroom = monster("wandering mushroom");
         let formulas = bundle().formulas;
-        let afar = Attacker::new(bundle(), mushroom, 3).without_gear();
+        let afar = unarmed(mushroom, 3);
         assert!(!can_attack(formulas, &afar));
         assert!(
-            turns_of(mushroom, 3, 1_000)
+            turns_of(&afar, 1_000)
                 .iter()
                 .all(|turn| turn.closed == 0 && turn.melee == 0)
         );
-        let beside = Attacker::new(bundle(), mushroom, 1).without_gear();
+        let beside = unarmed(mushroom, 1);
         assert!(can_attack(formulas, &beside));
-        assert!(
-            turns_of(mushroom, 1, 1_000)
-                .iter()
-                .all(|turn| turn.melee == 1)
-        );
+        assert!(turns_of(&beside, 1_000).iter().all(|turn| turn.melee == 1));
     }
 
     #[test]
     fn a_lurking_horror_in_view_steps_as_often_as_a_roll_on_the_players_sight_allows() {
         // At the player's speed it has one action, in which it steps from `distance` squares
-        // when `distance <= random2(8)`: into the player from beside them, to attack.
+        // when `distance <= random2(PLAYER_VISION + 1)`: into the player from beside them, to
+        // attack.
         let mut horror = monster("lurking horror").clone();
         horror.speed = 10;
         let trials = 20_000;
-        for distance in 1..=7 {
-            let turns = turns_of(&horror, distance, trials);
-            let stepped = turns
+        let rolls = f64::from(PLAYER_VISION + 1);
+        for distance in 1..=PLAYER_VISION {
+            let stepped = turns_of(&unarmed(&horror, distance), trials)
                 .iter()
                 .filter(|turn| turn.closed + turn.melee == 1)
                 .count();
             let rate = f64::from(u32::try_from(stepped).unwrap()) / f64::from(trials);
-            let expected = f64::from(8 - distance) / 8.0;
+            let expected = (rolls - f64::from(distance)) / rolls;
             assert!(
                 (rate - expected).abs() < 0.015,
                 "{distance} squares: {rate}, not {expected}"
             );
         }
-        let afar = Attacker::new(bundle(), monster("lurking horror"), 2).without_gear();
+        let afar = unarmed(monster("lurking horror"), 2);
         assert!(can_attack(bundle().formulas, &afar));
     }
 

@@ -19,29 +19,34 @@ pub(crate) fn steps(
     watched: WatchedStep,
     distance: i32,
 ) -> bool {
-    match variant {
-        MonsterStep::Crawl034 => match watched {
-            WatchedStep::Always => true,
-            WatchedStep::FromBeside => distance <= 1,
-            WatchedStep::ByChance => distance <= rng.random2(PLAYER_VISION + 1),
-        },
-    }
+    farthest_step(variant, watched, || rng.random2(PLAYER_VISION + 1))
+        .is_none_or(|farthest| distance <= farthest)
 }
 
 /// Whether some roll of [`steps`] lets a monster that steps as `watched` step toward the player
 /// from `distance` squares.
 pub(crate) fn may_step(variant: MonsterStep, watched: WatchedStep, distance: i32) -> bool {
-    match variant {
-        MonsterStep::Crawl034 => match watched {
-            WatchedStep::Always => true,
-            WatchedStep::FromBeside => distance <= 1,
-            WatchedStep::ByChance => distance <= PLAYER_VISION,
-        },
-    }
+    farthest_step(variant, watched, || PLAYER_VISION).is_none_or(|farthest| distance <= farthest)
 }
 
 /// Whether a monster that steps as `watched` may walk at all while the player watches it, other
 /// than into them: whether some roll of [`steps`] lets it step from farther than beside them.
 pub(crate) fn walks_while_watched(variant: MonsterStep, watched: WatchedStep) -> bool {
-    may_step(variant, watched, 2)
+    farthest_step(variant, watched, || PLAYER_VISION).is_none_or(|farthest| farthest > 1)
+}
+
+/// The farthest from the player a monster that steps as `watched` steps toward them this action,
+/// `roll` giving the farthest one that steps by chance does: `None` when nothing holds it back.
+fn farthest_step(
+    variant: MonsterStep,
+    watched: WatchedStep,
+    roll: impl FnOnce() -> i32,
+) -> Option<i32> {
+    match variant {
+        MonsterStep::Crawl034 => match watched {
+            WatchedStep::Always => None,
+            WatchedStep::FromBeside => Some(1),
+            WatchedStep::ByChance => Some(roll()),
+        },
+    }
 }

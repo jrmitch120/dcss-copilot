@@ -200,9 +200,13 @@ impl OnTheLevel<'_> {
             .collect()
     }
 
-    /// The hostiles in view that can walk while the player watches them, each with its kind and
-    /// its moves to every square it can reach.
+    /// The hostiles in view that can move, each with its kind and its moves to every square it
+    /// can reach. One that steps toward the player only from beside them while they watch it,
+    /// such as the wandering mushroom, stays where it is, so it cuts off only a staircase it stands
+    /// beside. One that steps by chance, the lurking horror, walks as if every roll let it, which
+    /// errs high ([`step::walks_while_watched`]).
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
+        let variant = self.bundle.formulas.monster_step;
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
             // A monster whose side isn't decoded may be hostile: without Game Knowledge, as the
@@ -224,18 +228,22 @@ impl OnTheLevel<'_> {
                 });
                 continue;
             };
-            let step = self.bundle.formulas.monster_step;
-            if monster.stationary || !step::walks_while_watched(step, monster.watched_step) {
+            if monster.stationary {
                 continue;
             }
-            let walker = Walker::Monster {
-                opens_doors: monster.item_use >= ItemUse::OpenDoors,
+            let moves = if step::walks_while_watched(variant, monster.watched_step) {
+                let walker = Walker::Monster {
+                    opens_doors: monster.item_use >= ItemUse::OpenDoors,
+                };
+                self.level.moves_from(walker, seen.position)
+            } else {
+                Moves::staying(seen.position)
             };
             chasers.push(Chaser {
                 seen,
                 speed: monster.speed,
                 walk: monster.energy.walk,
-                moves: self.level.moves_from(walker, seen.position),
+                moves,
             });
         }
         chasers
@@ -276,7 +284,7 @@ impl OnTheLevel<'_> {
     }
 }
 
-/// A hostile in view that can walk while the player watches it.
+/// A hostile in view that can move.
 struct Chaser<'a> {
     seen: &'a VisibleMonster,
     /// Its speed, where 10 is the player's normal speed.
