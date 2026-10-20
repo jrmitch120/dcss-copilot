@@ -23,5 +23,13 @@ expression: replayer.advisor().fact_sheet()
       }
     ],
     "notModelled": []
+  },
+  "fight": {
+    "state": "unjudged",
+    "gaps": [
+      {
+        "gap": "gameKnowledge"
+      }
+    ]
   }
 }

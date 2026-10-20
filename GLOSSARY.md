@@ -101,11 +101,11 @@ _Avoid_: Win rates, meta, server stats
 ### Analysis
 
 **Fact Sheet**:
-Everything the Advisor has computed about one moment of a Game Situation, such as Threat Level, Ways Out, item comparisons, failure rates and which inputs are missing. Every number the Advisor shows or says comes from it.
+Everything the Advisor has computed about one moment of a Game Situation, such as Threat Level, Ways Out, the Fight Outcome, item comparisons, failure rates and which inputs are missing. Every number the Advisor shows or says comes from it.
 _Avoid_: Situation, snapshot, context, prompt data
 
 **Threat Level**:
-How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit.
+How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit, and how likely the best Attack Plan is to win the fight in view.
 _Avoid_: Danger score, threat score
 
 **Worst-Case Hit**:
@@ -145,7 +145,7 @@ A monster's sight through an Umbra, so an Umbra around the player doesn't spoil 
 _Avoid_: Darkvision, see in the dark
 
 **Not Modelled**:
-What the Threat Level's simulation or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, the ways crawl moves a monster otherwise than walking straight at the player, such as a batty one flitting away, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed. The Not Modelled ledger (`docs/not-modelled.md`) lists everything the engine leaves out, whether or not the Fact Sheet names it, as the backlog of what to model next.
+What the Threat Level's simulation, the Fight Outcome or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, the ways crawl moves a monster otherwise than walking straight at the player, such as a batty one flitting away, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed. The Not Modelled ledger (`docs/not-modelled.md`) lists everything the engine leaves out, whether or not the Fact Sheet names it, as the backlog of what to model next.
 _Avoid_: Unsupported, ignored, edge cases
 
 **Formula Variant**:
@@ -155,6 +155,14 @@ _Avoid_: Formula version, ruleset
 **Crawl Oracle**:
 Real crawl, built at a Game Knowledge bundle's commit, used to check the engine's Formula Variants: a harness runs crawl's own code for randomised attackers and defenders, and the engine must roll the same distributions. `docs/crawl-oracle.md` covers it.
 _Avoid_: Reference implementation, ground truth
+
+**Attack Plan**:
+A fixed way for the player to fight what is in view: open with one attack, a spell they know, a wand or missiles they throw, while its magic, charges or missiles last, then fall back on what they hold, a weapon, a launcher or their fists; or fight with what they hold throughout.
+_Avoid_: Strategy, tactic, build
+
+**Fight Outcome**:
+Each Attack Plan played out many times against the hostiles in view, in a small fight of about three monsters or fewer: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them. A best plan likely to lose makes the moment DANGEROUS.
+_Avoid_: Fight odds, combat sim, win rate
 
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not.

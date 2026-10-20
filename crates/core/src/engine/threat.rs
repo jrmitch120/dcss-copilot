@@ -53,7 +53,7 @@ pub(crate) struct Defender {
 impl Defender {
     /// The player as one trial's attacks meet them: in their light, with the fraction of their
     /// defences the display drops drawn afresh ([`Defences::drawn_behind`]).
-    fn target(&self, rng: &mut Rng) -> Target {
+    pub(crate) fn target(&self, rng: &mut Rng) -> Target {
         Target {
             defences: Defences::drawn_behind(self.defences, rng),
             lighting: self.lighting,
@@ -838,6 +838,17 @@ impl<'r, 'a> Engaged<'r, 'a> {
             acted: false,
             gone: false,
         }
+    }
+
+    /// The monster it is.
+    pub(crate) fn attacker(&self) -> &'r Attacker<'a> {
+        self.attacker
+    }
+
+    /// Gives it the energy it gains while the player takes another action, lasting `time`.
+    pub(crate) fn gain(&mut self, formulas: Formulas, rng: &mut Rng, time: i32) {
+        let speed = speed(self.attacker.monster);
+        self.energy += energy_gained(formulas.monster_energy, rng, speed, time);
     }
 
     /// Plays out its actions, while it has the energy, against `target`, on `hp` as it starts,

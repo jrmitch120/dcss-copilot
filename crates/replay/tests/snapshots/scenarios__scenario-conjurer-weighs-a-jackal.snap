@@ -1,0 +1,541 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz469664193",
+    "character": "wiz469664193",
+    "species": "Human",
+    "firstSeenMs": 1792469665440,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 13,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 3,
+          "hostilesInView": 1,
+          "bestPlanWin": {
+            "times": 1965,
+            "trials": 2000
+          },
+          "acting": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "inTheWay",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay"
+          ]
+        },
+        "fight": {
+          "state": "judged",
+          "hp": 13,
+          "plans": [
+            {
+              "plan": {
+                "opening": {
+                  "with": "spell",
+                  "name": "Magic Dart"
+                },
+                "base": {
+                  "with": "melee"
+                }
+              },
+              "win": {
+                "times": 1965,
+                "trials": 2000
+              },
+              "death": {
+                "times": 35,
+                "trials": 2000
+              },
+              "hpLost": 2
+            },
+            {
+              "plan": {
+                "opening": null,
+                "base": {
+                  "with": "melee"
+                }
+              },
+              "win": {
+                "times": 1475,
+                "trials": 2000
+              },
+              "death": {
+                "times": 525,
+                "trials": 2000
+              },
+              "hpLost": 8
+            }
+          ],
+          "spellsNotPlayed": [],
+          "gaps": [],
+          "notModelled": [
+            "summons",
+            "allies",
+            "hexes",
+            "selfBuffs",
+            "mixingWands",
+            "movingBetweenAttacks",
+            "monsterWounds",
+            "ownAttackExtras",
+            "ownFractions",
+            "miscasts"
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz469664193",
+          "species": "Human",
+          "hp": 13,
+          "hpMax": 13,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Jackal can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+        },
+        "focus": {
+          "card": "fight",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null,
+              "count": 1
+            }
+          ],
+          "line": "Fight on (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "others": [
+            "Melee: ~74% win, ~62% HP lost"
+          ],
+          "notModelled": "Not modelled: summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
+          "gaps": []
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Jackal is in the way"
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 1,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 13,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 3,
+        "hostilesInView": 1,
+        "bestPlanWin": {
+          "times": 1965,
+          "trials": 2000
+        },
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "inTheWay",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": 0
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay"
+        ]
+      },
+      "fight": {
+        "state": "judged",
+        "hp": 13,
+        "plans": [
+          {
+            "plan": {
+              "opening": {
+                "with": "spell",
+                "name": "Magic Dart"
+              },
+              "base": {
+                "with": "melee"
+              }
+            },
+            "win": {
+              "times": 1965,
+              "trials": 2000
+            },
+            "death": {
+              "times": 35,
+              "trials": 2000
+            },
+            "hpLost": 2
+          },
+          {
+            "plan": {
+              "opening": null,
+              "base": {
+                "with": "melee"
+              }
+            },
+            "win": {
+              "times": 1475,
+              "trials": 2000
+            },
+            "death": {
+              "times": 525,
+              "trials": 2000
+            },
+            "hpLost": 8
+          }
+        ],
+        "spellsNotPlayed": [],
+        "gaps": [],
+        "notModelled": [
+          "summons",
+          "allies",
+          "hexes",
+          "selfBuffs",
+          "mixingWands",
+          "movingBetweenAttacks",
+          "monsterWounds",
+          "ownAttackExtras",
+          "ownFractions",
+          "miscasts"
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz469664193",
+        "species": "Human",
+        "hp": 13,
+        "hpMax": 13,
+        "turn": 1
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Jackal can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "Fight on (Magic Dart, then melee): ~98% win, ~15% HP lost",
+        "others": [
+          "Melee: ~74% win, ~62% HP lost"
+        ],
+        "notModelled": "Not modelled: summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
+        "gaps": []
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Jackal is in the way"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

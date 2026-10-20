@@ -13,6 +13,7 @@ expression: replayer.advisor().fact_sheet()
     },
     "worstHit": 4,
     "hostilesInView": 1,
+    "bestPlanWin": null,
     "acting": [
       {
         "name": "hobgoblin",
@@ -106,6 +107,14 @@ expression: replayer.advisor().fact_sheet()
       "unexploredSquares",
       "playerSpeed",
       "hitsOnTheWay"
+    ]
+  },
+  "fight": {
+    "state": "unjudged",
+    "gaps": [
+      {
+        "gap": "skills"
+      }
     ]
   }
 }

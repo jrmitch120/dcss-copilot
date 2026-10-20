@@ -1,12 +1,12 @@
 # The Not Modelled ledger
 
-Everything the engine leaves out of the Threat Level and the judging of Ways Out, in one list: the backlog to read when deciding what to model next. The Fact Sheet lists what it leaves out at a moment as Not Modelled, but some of what the engine leaves out has no `NotModelled` variant, and the crawl oracle's harnesses leave out more besides (`docs/crawl-oracle.md`). Each entry here says:
+Everything the engine leaves out of the Threat Level, the Fight Outcome and the judging of Ways Out, in one list: the backlog to read when deciding what to model next. The Fact Sheet lists what it leaves out at a moment as Not Modelled, but some of what the engine leaves out has no `NotModelled` variant, and the crawl oracle's harnesses leave out more besides (`docs/crawl-oracle.md`). Each entry here says:
 
 - **What crawl does**, citing crawl 0.34.1's function as the code cites the formulas it ports.
 - **What the engine assumes** instead.
 - **Surfaced as**: the `NotModelled` variant, by the name the Fact Sheet gives it; or *accepted simplification*, where it was decided that the Fact Sheet needn't say, and why; or *harness only*, where the crawl oracle leaves it out but the Fact Sheet doesn't say so, a gap worth closing.
 - **Harness**: which of the crawl oracle's harnesses leave it out, if any.
-- **Impact and cost**: how much it moves the Threat Level or the Ways Out, and what modelling it would take.
+- **Impact and cost**: how much it moves the Threat Level, the Fight Outcome or the Ways Out, and what modelling it would take.
 - **Issue**: the open issue that covers it, if there is one.
 
 An entry is deleted when what it describes is modelled. `cargo test -p copilot-core` checks that every `NotModelled` variant has an entry, and that every variant an entry names exists. The entries aren't ranked: the impact and cost notes inform that choice.
@@ -307,6 +307,122 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** harness only.
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, and says so on standard error, but for the lurking horror, which it places again.
 - **Impact and cost:** small, and either way: an explosion may hurt more than the attacks it replaces. Each kind is its own port.
+
+## The Fight Outcome
+
+The hostiles fight as the Threat Level plays them, over as many of the player's actions as the fight takes, so what the Threat Level leaves out (above) the Fight Outcome leaves out too. These are what it leaves out besides.
+
+### Summons
+
+- **What crawl does:** a monster casts the summoning spells in its book (`_choose_spell_to_cast`), and the player casts theirs, each bringing allies into the fight.
+- **What the engine assumes:** a monster never summons, and fights instead; the player's summoning spells make no Attack Plan.
+- **Surfaced as:** `summons`, on every judged fight.
+- **Harness:** the player harness plays one attack at a time against one monster.
+- **Impact and cost:** either way, and large for a summoner such as an orc sorcerer or a player who summons. Summons need the summoned monsters played as monsters, and the player's allies as fighters.
+
+### Allies
+
+- **What crawl does:** allies in view, the player's and others', fight beside them or against them (`handle_monsters`).
+- **What the engine assumes:** allies take no part.
+- **Surfaced as:** `allies`, on every judged fight.
+- **Harness:** none.
+- **Impact and cost:** errs low for a player with allies, as no one else fights the hostiles. Needs allies played as monsters with foes of their own.
+
+### Hexes
+
+- **What crawl does:** a monster casts the hexes in its book, such as paralysis or confusion, and the player casts theirs, such as Slow or Confuse.
+- **What the engine assumes:** neither side casts a hex: a monster fights instead, and the player's hexes make no plan.
+- **Surfaced as:** `hexes`, on every judged fight.
+- **Harness:** none.
+- **Impact and cost:** either way, and large: a monster's paralysis can lose a fight the numbers call won, and a player's Slow can win one they call lost. Each hex is its own port, with the willpower roll and the status it leaves.
+
+### Self-buffs
+
+- **What crawl does:** either side may haste, might or otherwise buff itself: a monster with its spells, the player with spells, potions, scrolls and abilities.
+- **What the engine assumes:** nobody buffs themselves.
+- **Surfaced as:** `selfBuffs`, on every judged fight.
+- **Harness:** none.
+- **Impact and cost:** either way. A potion of haste or berserk rage is often what wins a hard fight. Each buff is a status to model in both sides' formulas.
+
+### Mixing wands
+
+- **What crawl does:** the player chooses each action afresh: a spell, a wand, a missile or a swing.
+- **What the engine assumes:** an Attack Plan opens with one spell, wand or kind of missile until it runs out, then falls back on what the player holds.
+- **Surfaced as:** `mixingWands`, on every judged fight.
+- **Harness:** none.
+- **Impact and cost:** errs low: a player who zaps one wand, then another, does better than either plan. Mixed plans multiply the plans played out, each 2,000 fights.
+
+### Moving between attacks
+
+- **What crawl does:** the player moves where they like: back into a corridor, away from a slow monster while shooting it, or up to a monster that won't come.
+- **What the engine assumes:** the player stands their ground, waits for a monster that walks up and steps toward one that never will.
+- **Surfaced as:** `movingBetweenAttacks`, on every judged fight.
+- **Harness:** none.
+- **Impact and cost:** errs low against slow monsters a ranged player could kite, and in the open where a corridor would hold monsters to one at a time. Needs the map in the simulation, as the Threat Level's paths do.
+
+### Monster wounds
+
+- **What crawl does:** a monster keeps the wounds it has taken.
+- **What the engine assumes:** each hostile starts the fight unhurt, with hit points rolled as crawl makes a monster of its kind (`hit_points`).
+- **Surfaced as:** `monsterWounds`, on every judged fight.
+- **Harness:** the player harness's hit points cases roll a monster's hit points as it is made.
+- **Impact and cost:** errs low in the middle of a fight. Webtiles doesn't send a monster's health on the map; its look text (`x`) describes it in words, which could narrow its hit points.
+
+### The player's attack extras
+
+- **What crawl does:** a weapon's other brands add damage or effects on a hit (`attack::apply_damage_brand`); auxiliary attacks such as kicks and headbutts follow a melee attack (`melee_attack::player_do_aux_attacks`); an axe cleaves; a sleeping monster is stabbed; rings and artefacts give slaying; and a shield or heavy armour slows the player's attacks (`player::attack_delay_with`).
+- **What the engine assumes:** none of these: a weapon's damage and delay with the heavy and speed brands, unarmed attacks with no claws or form.
+- **Surfaced as:** `ownAttackExtras`, on every judged fight.
+- **Harness:** the player harness gives its player none of them, and weapons a brand of none, heavy or speed.
+- **Impact and cost:** mostly errs low, as most of them add damage; a shield's or armour's delay errs high. Each is a port; slaying and the worn armour need the character overview read for more than it is now.
+
+### The player's weapon
+
+- **What crawl does:** the player attacks with what they hold, a weapon, a magical staff or anything else, at its enchantment and with its brand.
+- **What the engine assumes:** something it doesn't know as a melee weapon or launcher, such as a magical staff or an artefact whose name doesn't show its kind, is attacked with as nothing at all, so no plan falls back on it; a weapon whose enchantment or brand its name doesn't show, or whose brand isn't ported, is +0 and plain.
+- **Surfaced as:** `ownWeapon`, when the player holds such an item.
+- **Harness:** the player harness wields only weapons with a brand it ports.
+- **Impact and cost:** errs low. Identifying the item closes most of it; a magical staff is a weapon of its own to port.
+
+### Fractions the player's numbers drop
+
+- **What crawl does:** crawl rolls with each skill to finer fractions of a level than the tenths the skills screen shows (`player::skill`), and outside wizard mode the spell list shows a spell's power only as a percentage of its cap (`spell_power_percent`).
+- **What the engine assumes:** each fight draws where a skill lies within its tenth, and the power among those that show as the same percentage, any as likely as another.
+- **Surfaced as:** `ownFractions`, on every judged fight.
+- **Harness:** the player harness hands the engine each skill exactly, as `you.skill(sk, 179200)`, and a beam's power.
+- **Impact and cost:** small: a tenth of a skill level is a few points of to-hit or damage at most, and a percent of a cap a power point or two.
+
+### Miscasts
+
+- **What crawl does:** a spell the player fails to cast may miscast, with effects by its schools, such as damage to the player (`miscast_effect`).
+- **What the engine assumes:** a failed cast spends its magic and its time, and does nothing else.
+- **Surfaced as:** `miscasts`, when a plan casts a spell.
+- **Harness:** none.
+- **Impact and cost:** errs low, for spells with a high failure rate. A port of `miscast_effect` for each school's damage.
+
+### Blasts and bolts
+
+- **What crawl does:** an explosion strikes everything in its radius, and a beam or missile that passes through what it hits, such as a javelin, strikes everything on its path (`bolt::fire`).
+- **What the engine assumes:** each strikes only its target.
+- **Surfaced as:** `blastsAndBolts`, when a plan fires an explosion or a beam or missile that passes through.
+- **Harness:** the player harness fires each beam at one monster.
+- **Impact and cost:** errs low against monsters bunched together. Needs where each monster stands relative to the others, which the simulation doesn't place.
+
+### Monster lighting
+
+- **What crawl does:** a monster in a halo is easier for the player to hit, and one in an umbra harder, unless the player sees in the dark (`attack::post_roll_to_hit_modifiers`, `bolt::apply_lighting`).
+- **What the engine assumes:** the player aims as if no halo or umbra reached the monster.
+- **Surfaced as:** `monsterLighting`, when a hostile stands in a halo or umbra on the map.
+- **Harness:** the player harness leaves out monsters in a halo or umbra.
+- **Impact and cost:** a few points of to-hit, twice that for beams. The map already shows the light on each square; what remains is whether a halo is the monster's own, which doesn't light it up.
+
+### Monster armour
+
+- **What crawl does:** a monster that uses items wears armour and carries a shield, which add to its AC and EV and block the player's attacks (`monster::armour_class`, `monster::evasion`, `attack::attack_shield_blocked`).
+- **What the engine assumes:** only its kind's own AC and EV count, and it blocks nothing.
+- **Surfaced as:** `monsterArmour`, when a hostile is of a kind that uses items.
+- **Harness:** the player harness's monsters carry nothing.
+- **Impact and cost:** errs high for the player against well-armoured orcs and the like. Its Carried Gear lists what it wears; Game Knowledge would carry armour's AC and EV.
 
 ## Ways Out
 

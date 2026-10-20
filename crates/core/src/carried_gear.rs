@@ -378,6 +378,12 @@ fn item_names(part: &str) -> Vec<&str> {
 }
 
 /// The item crawl names `name` (with its article, if any) in `slot`, read through `bundle`.
+/// An item the player carries, named `name` as the game names it, read as a monster's
+/// would be: its kind, enchantment and brand, as far as its name shows them.
+pub(crate) fn read_item(name: &str, bundle: &Bundle) -> CarriedItem {
+    item(GearSlot::Wielding, name, bundle)
+}
+
 fn item(slot: GearSlot, name: &str, bundle: &Bundle) -> CarriedItem {
     let artefact = name.starts_with("the ") || name.contains('"');
     let name = without_article(name);

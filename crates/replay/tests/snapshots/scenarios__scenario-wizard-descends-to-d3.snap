@@ -32,6 +32,7 @@ expression: replay
           },
           "worstHit": 0,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [],
           "gear": [
             {
@@ -127,6 +128,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -144,7 +153,7 @@ expression: replay
           "detail": null
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -158,6 +167,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -205,6 +220,7 @@ expression: replay
           },
           "worstHit": 0,
           "hostilesInView": 0,
+          "bestPlanWin": null,
           "acting": [],
           "gear": [],
           "lighting": "plain",
@@ -244,6 +260,9 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "noFight"
         }
       },
       "game": {
@@ -291,6 +310,7 @@ expression: replay
         },
         "worstHit": 0,
         "hostilesInView": 0,
+        "bestPlanWin": null,
         "acting": [],
         "gear": [],
         "lighting": "plain",
@@ -330,6 +350,9 @@ expression: replay
           "playerSpeed",
           "hitsOnTheWay"
         ]
+      },
+      "fight": {
+        "state": "noFight"
       }
     },
     "game": {

@@ -93,6 +93,34 @@ impl<'a> PlayerZap<'a> {
     }
 }
 
+/// One of the player's skills at the level the skills screen shows, in tenths.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct Skill {
+    tenths: i32,
+}
+
+impl Skill {
+    /// A skill the screen shows at `tenths` tenths of a level.
+    pub(crate) fn shown(tenths: u32) -> Self {
+        Self {
+            tenths: i32::try_from(tenths).unwrap_or(i32::MAX),
+        }
+    }
+
+    /// The skill as one trial plays it: crawl rolls with finer fractions of a level than the
+    /// tenths it shows (`player::skill`, `player.cc:6212`), so where it lies within its tenth is
+    /// drawn, anywhere as likely as anywhere else. A skill shown at 0 is untrained, and exactly 0.
+    pub(crate) fn drawn(self, rng: &mut Rng) -> DrawnSkill {
+        let tenth = DrawnSkill::SCALE / 10;
+        let fine = if self.tenths > 0 {
+            self.tenths * tenth + rng.random2(tenth)
+        } else {
+            0
+        };
+        DrawnSkill { fine }
+    }
+}
+
 /// A skill as one trial plays it, in [`DrawnSkill::SCALE`]ths of a level.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) struct DrawnSkill {
@@ -556,6 +584,14 @@ pub(crate) fn shoot(
                 broke,
             }
         }
+    }
+}
+
+/// Whether a thrown missile of `id` comes back to the player unless it breaks: `_returning`
+/// (`throw.cc:432`).
+pub(crate) fn returns(variant: PlayerAttack, id: &EnumId) -> bool {
+    match variant {
+        PlayerAttack::Crawl034 => id.0 == missile_types::BOOMERANG,
     }
 }
 

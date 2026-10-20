@@ -31,6 +31,7 @@ expression: replay
           },
           "worstHit": 34,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "oklob plant",
@@ -134,6 +135,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -151,7 +160,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 34 of 102 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -165,6 +174,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -207,6 +222,7 @@ expression: replay
           },
           "worstHit": 34,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "oklob plant",
@@ -310,6 +326,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -327,7 +351,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 34 of 71 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -341,6 +365,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -383,6 +413,7 @@ expression: replay
           },
           "worstHit": 35,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "oklob plant",
@@ -486,6 +517,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -503,7 +542,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 35 of 52 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -517,6 +556,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -561,6 +606,7 @@ expression: replay
         },
         "worstHit": 35,
         "hostilesInView": 1,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "oklob plant",
@@ -664,6 +710,14 @@ expression: replay
           "playerSpeed",
           "hitsOnTheWay"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
       }
     },
     "game": {
@@ -681,7 +735,7 @@ expression: replay
         "detail": "Death 7.5% · worst hit 35 of 28 HP"
       },
       "focus": {
-        "card": "inView",
+        "card": "fight",
         "monsters": [
           {
             "depiction": {
@@ -695,6 +749,12 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
         ]
       },
       "waysOut": {

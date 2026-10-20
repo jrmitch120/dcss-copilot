@@ -33,6 +33,17 @@ expression: by_turn
           }
         ],
         "notModelled": []
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "hitPoints"
+          },
+          {
+            "gap": "monstersInView"
+          }
+        ]
       }
     }
   },
@@ -52,6 +63,7 @@ expression: by_turn
         },
         "worstHit": 6,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -161,6 +173,17 @@ expression: by_turn
           "swimmingAndFlying",
           "unexploredSquares"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
+        ]
       }
     }
   },
@@ -185,6 +208,7 @@ expression: by_turn
         },
         "worstHit": 6,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -325,6 +349,17 @@ expression: by_turn
           "swimmingAndFlying",
           "unexploredSquares"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
+        ]
       }
     }
   },
@@ -349,6 +384,7 @@ expression: by_turn
         },
         "worstHit": 6,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -489,6 +525,17 @@ expression: by_turn
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
         ]
       }
     }

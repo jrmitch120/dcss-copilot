@@ -164,6 +164,15 @@ impl<T, S> Remembered<T, S> {
         }
     }
 
+    /// The value as it was read, Known or Stale: a Stale reading is applied all the same.
+    #[must_use]
+    pub fn read_value(&self) -> Option<&T> {
+        match self {
+            Self::Known(fact) | Self::Stale(fact) => Some(&fact.value),
+            Self::Missing => None,
+        }
+    }
+
     /// Something seen since may have changed it. A Stale fact stays Stale, and a Missing one
     /// Missing.
     fn go_stale(&mut self) {

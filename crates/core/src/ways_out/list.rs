@@ -207,6 +207,13 @@ fn gap(gap: &Gap) -> String {
             "{} isn't in the Game Knowledge, so it isn't counted.",
             capitalised(monster)
         ),
-        Gap::HitPoints | Gap::Defences => "The game hasn't sent your stats yet.".to_owned(),
+        Gap::HitPoints | Gap::Defences | Gap::Attributes => {
+            "The game hasn't sent your stats yet.".to_owned()
+        }
+        Gap::Skills => "Open the skills screen (m) to judge your attacks.".to_owned(),
+        Gap::SpellPower => {
+            "Open the spell list (I) and press ! to judge your spells' power.".to_owned()
+        }
+        Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
     }
 }

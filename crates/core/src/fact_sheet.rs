@@ -15,6 +15,7 @@ use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
+use crate::fight_outcome::{self, Fight};
 use crate::screen::{Resistances, Screen};
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
@@ -33,6 +34,11 @@ const DANGEROUS_DEATHS_PER_MILLE: u32 = 5;
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
 const DANGEROUS_WORST_HIT_PERCENT_OF_HP: i32 = 40;
 
+/// DANGEROUS when a hostile is in view and the best Attack Plan wins less often than this, in
+/// percent. A starting threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the
+/// corpus.
+const DANGEROUS_BEST_PLAN_WIN_PERCENT: u32 = 90;
+
 /// Everything the Advisor has computed about one moment of the game it follows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,6 +47,8 @@ pub struct FactSheet {
     pub threat: Threat,
     /// The player's escapes and emergency options, and the ground they stand on.
     pub ways_out: WaysOut,
+    /// Each Attack Plan played out against the hostiles in view, in a small fight.
+    pub fight: Fight,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -76,6 +84,9 @@ pub struct ThreatAssessment {
     pub worst_hit: i32,
     /// How many monsters in view would attack the player, whether or not they can yet.
     pub hostiles_in_view: u32,
+    /// The chance the best Attack Plan wins the fight with the hostiles in view, when the Fight
+    /// Outcome judged one: below 90% it makes the moment DANGEROUS.
+    pub best_plan_win: Option<Chance>,
     /// The monsters that can attack before the player's next standard-speed action, in map
     /// order.
     pub acting: Vec<ActingMonster>,
@@ -91,6 +102,20 @@ pub struct ThreatAssessment {
     pub resistances: Option<ResistancesApplied>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
+}
+
+impl ThreatAssessment {
+    /// Whether the best Attack Plan wins too seldom for the moment to be CALM.
+    #[must_use]
+    pub fn fight_doubtful(&self) -> bool {
+        self.best_plan_win.is_some_and(fight_doubtful)
+    }
+}
+
+/// Whether a best Attack Plan winning `win` of its fights wins too seldom for the moment to be
+/// CALM.
+fn fight_doubtful(win: Chance) -> bool {
+    u64::from(win.times) * 100 < u64::from(DANGEROUS_BEST_PLAN_WIN_PERCENT) * u64::from(win.trials)
 }
 
 /// The player's resistances as the simulation applied them: the last reading of the character
@@ -241,8 +266,8 @@ pub enum KnownOrStale {
     Stale,
 }
 
-/// Something the engine doesn't model, in the Threat Level's simulation or in judging the Ways
-/// Out.
+/// Something the engine doesn't model, in the Threat Level's simulation, the Fight Outcome or
+/// in judging the Ways Out.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NotModelled {
@@ -360,6 +385,48 @@ pub enum NotModelled {
     /// A monster that can attack can't leave the lava or water it lives in, such as a lava snake
     /// (`monster_habitable_feat`), and the simulation walks it over the floor to the player.
     BoundToTerrain,
+    /// Neither side's summons are played out in a fight: a monster that summons is assumed to
+    /// fight instead, and the player's summoning spells make no plan.
+    Summons,
+    /// Allies, the player's or anyone's, take no part in a fight.
+    Allies,
+    /// Neither side's hexes are played out in a fight, such as a monster's paralysis or the
+    /// player's Slow.
+    Hexes,
+    /// Neither side buffs itself in a fight, such as with haste, might or a potion.
+    SelfBuffs,
+    /// An Attack Plan zaps at most one wand, then falls back on what the player holds, rather
+    /// than switching between wands, spells and missiles.
+    MixingWands,
+    /// The player stands their ground in a fight: they don't retreat, kite or fall back to a
+    /// corridor between attacks, and step only toward a monster that never comes to them.
+    MovingBetweenAttacks,
+    /// Each hostile starts a fight unhurt, with the hit points crawl gives its kind: the game
+    /// doesn't show how hurt one is.
+    MonsterWounds,
+    /// The player's attacks count only their weapon's damage and delay and the heavy and speed
+    /// brands: other brands, auxiliary attacks such as kicks, cleaving, stabs, slaying from rings
+    /// and artefacts, and armour or a shield slowing their attacks aren't counted.
+    OwnAttackExtras,
+    /// The player holds something the engine can't play as the game names it: something it
+    /// doesn't know as a weapon, such as a magical staff, played as attacking with nothing; or a
+    /// weapon whose enchantment or brand its name doesn't show, or whose brand isn't ported,
+    /// played as +0 and plain.
+    OwnWeapon,
+    /// The player's skills, and their spells' power outside wizard mode, carry fractions the game
+    /// doesn't show: each fight guesses them afresh, any as likely as another.
+    OwnFractions,
+    /// A failed cast spends its magic and its time, but its miscast does nothing.
+    Miscasts,
+    /// An explosion, or a beam or missile that passes through what it hits, such as Fireball or a
+    /// javelin, strikes only its target.
+    BlastsAndBolts,
+    /// A hostile stands in a halo or an umbra, which changes how well the player aims at it: the
+    /// fight aims as if it stood in neither.
+    MonsterLighting,
+    /// A hostile may wear armour or carry a shield, which would raise its AC, EV or SH against the
+    /// player's attacks: only its kind's own defences count.
+    MonsterArmour,
 }
 
 impl NotModelled {
@@ -405,6 +472,17 @@ pub enum Gap {
     /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
     /// how often they fail, isn't known.
     SpellList,
+    /// The player hasn't opened the skills screen (`m`), so their attacks can't be played out.
+    Skills,
+    /// The player hasn't switched the spell list to its power and range (`I`, then `!`), so their
+    /// attack spells can't be played out.
+    SpellPower,
+    /// The game hasn't sent the inventory.
+    Inventory,
+    /// The game hasn't said what the player holds.
+    Wielded,
+    /// The player's Strength or Dexterity hasn't been reported.
+    Attributes,
 }
 
 impl FactSheet {
@@ -418,9 +496,25 @@ impl FactSheet {
         species: Option<&str>,
         knowledge: Option<&Bundle>,
     ) -> Self {
+        let Assessed {
+            mut threat,
+            defender,
+            hostiles,
+        } = threat(visible, remembered, species, knowledge);
+        let fight = fight_outcome::judge(visible, remembered, knowledge, defender, hostiles);
+        if let (Threat::Rated(assessment), Some(best)) = (&mut threat, fight.best()) {
+            assessment.best_plan_win = Some(best.win);
+            assessment.level = level(
+                assessment.hp,
+                assessment.death,
+                assessment.worst_hit,
+                assessment.best_plan_win,
+            );
+        }
         Self {
-            threat: threat(visible, remembered, species, knowledge),
+            threat,
             ways_out: WaysOut::compute(visible, remembered, knowledge),
+            fight,
         }
     }
 }
@@ -431,12 +525,35 @@ pub(crate) fn attacks_player(attitude: Attitude) -> bool {
     matches!(attitude, Attitude::Hostile | Attitude::Neutral)
 }
 
-fn threat(
+/// The Threat Level, with what the Fight Outcome plays out.
+struct Assessed<'a> {
+    /// The Threat Level, judged without the Fight Outcome.
+    threat: Threat,
+    /// The player as monsters' attacks meet them; `None` with no hostile in view, and the Gaps
+    /// that kept the Advisor from judging the Threat Level.
+    defender: Result<Option<Defender>, Vec<Gap>>,
+    /// Every hostile in view, with the gear it is played with, in map order.
+    hostiles: Vec<Attacker<'a>>,
+}
+
+impl Assessed<'_> {
+    /// The Advisor couldn't judge the moment for want of `gaps`.
+    fn unrated(gaps: BTreeSet<Gap>) -> Self {
+        let gaps: Vec<Gap> = gaps.into_iter().collect();
+        Self {
+            threat: Threat::Unrated { gaps: gaps.clone() },
+            defender: Err(gaps),
+            hostiles: Vec::new(),
+        }
+    }
+}
+
+fn threat<'a>(
     visible: &VisibleState,
     remembered: Option<&AccumulatedState>,
     species: Option<&str>,
-    knowledge: Option<&Bundle>,
-) -> Threat {
+    knowledge: Option<&'a Bundle>,
+) -> Assessed<'a> {
     let mut gaps = BTreeSet::new();
     let hp = visible.stats.hp;
     if hp.is_none() {
@@ -444,13 +561,11 @@ fn threat(
     }
     let Some(monsters) = &visible.monsters else {
         gaps.insert(Gap::MonstersInView);
-        return Threat::Unrated {
-            gaps: gaps.into_iter().collect(),
-        };
+        return Assessed::unrated(gaps);
     };
 
     // The monsters that may attack, with their Game Knowledge.
-    let mut hostile: Vec<(&VisibleMonster, &copilot_gk::Monster)> = Vec::new();
+    let mut hostile: Vec<(&VisibleMonster, &'a copilot_gk::Monster)> = Vec::new();
     for monster in monsters {
         let Some(attitude) = monster.attitude else {
             gaps.insert(Gap::GameKnowledge);
@@ -487,20 +602,19 @@ fn threat(
         }
     }
     let (Some(hp), true) = (hp, gaps.is_empty()) else {
-        return Threat::Unrated {
-            gaps: gaps.into_iter().collect(),
-        };
+        return Assessed::unrated(gaps);
     };
     let (false, Some(bundle), Some(player), Some((ac, ev, sh))) =
         (hostile.is_empty(), knowledge, visible.position, defences)
     else {
         // Nothing in view attacks the player: a hostile would have needed the rest, or been a Gap.
-        return Threat::Rated(Box::new(ThreatAssessment {
+        let threat = Threat::Rated(Box::new(ThreatAssessment {
             level: ThreatLevel::Calm,
             hp,
             death: Chance::NONE,
             worst_hit: 0,
             hostiles_in_view: 0,
+            best_plan_win: None,
             acting: Vec::new(),
             gear: Vec::new(),
             lighting: knowledge
@@ -509,6 +623,11 @@ fn threat(
             resistances: None,
             not_modelled: Vec::new(),
         }));
+        return Assessed {
+            threat,
+            defender: Ok(None),
+            hostiles: Vec::new(),
+        };
     };
 
     let formulas = bundle.formulas;
@@ -555,7 +674,9 @@ fn threat(
     // its row.
     let mut gear: Vec<GearPlayed> = Vec::new();
     let mut acting: Vec<ActingMonster> = Vec::new();
-    let mut attackers: Vec<Attacker<'_>> = Vec::new();
+    let mut attackers: Vec<Attacker<'a>> = Vec::new();
+    // Every hostile in view, for the Fight Outcome.
+    let mut hostiles: Vec<Attacker<'a>> = Vec::new();
     // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
     // them.
     let mut moves: BTreeSet<NotModelled> = BTreeSet::new();
@@ -597,6 +718,7 @@ fn threat(
             unplayed,
         });
         weapons_unread |= attacker.weapons_unread(formulas);
+        hostiles.push(attacker.clone());
         let its_moves = moves_not_modelled(monster);
         if threat::can_attack(formulas, &attacker) {
             moves.extend(its_moves.iter().copied());
@@ -674,18 +796,24 @@ fn threat(
         times: outcome.deaths,
         trials: outcome.trials,
     };
-    Threat::Rated(Box::new(ThreatAssessment {
-        level: level(hp, death, outcome.worst_hit),
+    let threat = Threat::Rated(Box::new(ThreatAssessment {
+        level: level(hp, death, outcome.worst_hit, None),
         hp,
         death,
         worst_hit: outcome.worst_hit,
         hostiles_in_view,
+        best_plan_win: None,
         acting,
         gear,
         lighting: Some(lighting),
         resistances: resists.applied,
         not_modelled,
-    }))
+    }));
+    Assessed {
+        threat,
+        defender: Ok(Some(defender)),
+        hostiles,
+    }
 }
 
 /// The player's resistances, holiness and god as the simulation plays them, and what of them the
@@ -890,12 +1018,14 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
     .collect()
 }
 
-/// The Threat Level for a chance of death and a worst-case hit against `hp`.
-fn level(hp: i32, death: Chance, worst_hit: i32) -> ThreatLevel {
+/// The Threat Level for a chance of death and a worst-case hit against `hp`, and the chance the
+/// best Attack Plan wins the fight with the hostiles in view, when one was judged.
+fn level(hp: i32, death: Chance, worst_hit: i32, best_plan_win: Option<Chance>) -> ThreatLevel {
     if death.at_least_per_mille(LETHAL_DEATHS_PER_MILLE) || worst_hit >= hp {
         ThreatLevel::Lethal
     } else if death.at_least_per_mille(DANGEROUS_DEATHS_PER_MILLE)
         || worst_hit * 100 >= hp * DANGEROUS_WORST_HIT_PERCENT_OF_HP
+        || best_plan_win.is_some_and(fight_doubtful)
     {
         ThreatLevel::Dangerous
     } else {
@@ -927,27 +1057,39 @@ mod tests {
 
     #[test]
     fn a_five_percent_chance_of_death_is_lethal_and_just_under_it_dangerous() {
-        assert_eq!(level(100, chance(500), 0), ThreatLevel::Lethal);
-        assert_eq!(level(100, chance(499), 0), ThreatLevel::Dangerous);
+        assert_eq!(level(100, chance(500), 0, None), ThreatLevel::Lethal);
+        assert_eq!(level(100, chance(499), 0, None), ThreatLevel::Dangerous);
     }
 
     #[test]
     fn a_half_percent_chance_of_death_is_dangerous_and_just_under_it_calm() {
-        assert_eq!(level(100, chance(50), 0), ThreatLevel::Dangerous);
-        assert_eq!(level(100, chance(49), 0), ThreatLevel::Calm);
+        assert_eq!(level(100, chance(50), 0, None), ThreatLevel::Dangerous);
+        assert_eq!(level(100, chance(49), 0, None), ThreatLevel::Calm);
     }
 
     #[test]
     fn nothing_able_to_attack_is_calm() {
-        assert_eq!(level(1, Chance::NONE, 0), ThreatLevel::Calm);
+        assert_eq!(level(1, Chance::NONE, 0, None), ThreatLevel::Calm);
     }
 
     #[test]
     fn a_worst_hit_of_all_hp_is_lethal_and_of_forty_percent_dangerous() {
-        assert_eq!(level(50, chance(0), 50), ThreatLevel::Lethal);
-        assert_eq!(level(50, chance(0), 49), ThreatLevel::Dangerous);
-        assert_eq!(level(50, chance(0), 20), ThreatLevel::Dangerous);
-        assert_eq!(level(50, chance(0), 19), ThreatLevel::Calm);
+        assert_eq!(level(50, chance(0), 50, None), ThreatLevel::Lethal);
+        assert_eq!(level(50, chance(0), 49, None), ThreatLevel::Dangerous);
+        assert_eq!(level(50, chance(0), 20, None), ThreatLevel::Dangerous);
+        assert_eq!(level(50, chance(0), 19, None), ThreatLevel::Calm);
+    }
+
+    #[test]
+    fn a_best_plan_winning_under_ninety_percent_is_dangerous_and_from_ninety_calm() {
+        let win = |times| {
+            Some(Chance {
+                times,
+                trials: 2_000,
+            })
+        };
+        assert_eq!(level(100, chance(0), 0, win(1_799)), ThreatLevel::Dangerous);
+        assert_eq!(level(100, chance(0), 0, win(1_800)), ThreatLevel::Calm);
     }
 
     /// No defences to show, so no guessed fractions.
@@ -1281,7 +1423,21 @@ mod tests {
             | NotModelled::SwimmingAndFlying
             | NotModelled::UnexploredSquares
             | NotModelled::HitsOnTheWay
-            | NotModelled::OwnConditions => false,
+            | NotModelled::OwnConditions
+            | NotModelled::Summons
+            | NotModelled::Allies
+            | NotModelled::Hexes
+            | NotModelled::SelfBuffs
+            | NotModelled::MixingWands
+            | NotModelled::MovingBetweenAttacks
+            | NotModelled::MonsterWounds
+            | NotModelled::OwnAttackExtras
+            | NotModelled::OwnWeapon
+            | NotModelled::OwnFractions
+            | NotModelled::Miscasts
+            | NotModelled::BlastsAndBolts
+            | NotModelled::MonsterLighting
+            | NotModelled::MonsterArmour => false,
         }
     }
 
@@ -1406,6 +1562,20 @@ mod tests {
             BlinksAway,
             BlinksWithThePlayer,
             BoundToTerrain,
+            Summons,
+            Allies,
+            Hexes,
+            SelfBuffs,
+            MixingWands,
+            MovingBetweenAttacks,
+            MonsterWounds,
+            OwnAttackExtras,
+            OwnWeapon,
+            OwnFractions,
+            Miscasts,
+            BlastsAndBolts,
+            MonsterLighting,
+            MonsterArmour,
         ]
         .into_iter()
         .map(|variant| {

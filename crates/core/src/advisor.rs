@@ -156,13 +156,7 @@ impl Advisor {
                 turn: self.visible.turn,
             },
             now: now_pill(&self.fact_sheet.threat),
-            focus: FocusCard::InView {
-                monsters: self
-                    .visible
-                    .monsters
-                    .as_ref()
-                    .map(|monsters| in_view(monsters, self.game_knowledge())),
-            },
+            focus: self.focus(),
             ways_out: self
                 .hostile_in_view()
                 .then(|| self.fact_sheet.ways_out.list()),
@@ -173,6 +167,21 @@ impl Advisor {
 }
 
 impl Advisor {
+    /// The focus card: a small fight while anything hostile is in view, and what is in view
+    /// otherwise.
+    fn focus(&self) -> FocusCard {
+        let monsters = self
+            .visible
+            .monsters
+            .as_ref()
+            .map(|monsters| in_view(monsters, self.game_knowledge()));
+        let fight = self
+            .hostile_in_view()
+            .then(|| self.fact_sheet.fight.card(monsters.clone()))
+            .flatten();
+        fight.unwrap_or(FocusCard::InView { monsters })
+    }
+
     /// Whether a monster in view would attack the player, other than Firewood, or one whose
     /// side or kind the Advisor can't tell, which might.
     fn hostile_in_view(&self) -> bool {
@@ -204,8 +213,24 @@ fn now_pill(threat: &Threat) -> NowPill {
     }
 }
 
-/// One sentence saying what threatens the player before their next action.
+/// One sentence saying what threatens the player before their next action, and another when
+/// a fight with what is in view looks doubtful.
 fn threat_line(assessment: &ThreatAssessment) -> String {
+    let line = acting_line(assessment);
+    match assessment
+        .best_plan_win
+        .filter(|_| assessment.fight_doubtful())
+    {
+        Some(win) => format!(
+            "{line} Your best plan wins only ~{:.0}% of fights.",
+            win.percent()
+        ),
+        None => line,
+    }
+}
+
+/// One sentence saying which monsters can attack before the player's next action.
+fn acting_line(assessment: &ThreatAssessment) -> String {
     match assessment.acting.as_slice() {
         [] if assessment.hostiles_in_view == 0 => "No hostiles in view.".to_owned(),
         [] => "Nothing hostile can reach you before your next action.".to_owned(),

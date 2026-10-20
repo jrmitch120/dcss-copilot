@@ -101,7 +101,28 @@ export type FocusCard =
  *  Knowledge says which monsters are Firewood. `None` while the Advisor can't read
  *  monsters, which is not the same as there being none.
  */
-monsters: Listing[] | null };
+monsters: Listing[] | null } | 
+/**  A small fight: what is in view, and how fighting it by each Attack Plan comes out. */
+{ card: "fight"; 
+/**  The monsters in view, as [`FocusCard::InView`] lists them. */
+monsters: Listing[] | null; 
+/**
+ *  The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+ *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
+ */
+line: string; 
+/**  The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`. */
+others: string[]; 
+/**
+ *  What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.
+ *  `None` when the fight wasn't judged.
+ */
+notModelled: string | null; 
+/**
+ *  What keeps the Advisor from judging the fight, or may hide a better plan, one sentence
+ *  each, such as a screen to open.
+ */
+gaps: string[] };
 
 /**
  *  The docked panel for the followed game, top to bottom: header, now pill, focus card,

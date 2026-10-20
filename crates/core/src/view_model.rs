@@ -171,7 +171,11 @@ pub enum NowPill {
 
 /// The card under the now pill: what deserves the player's attention now.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
-#[serde(tag = "card", rename_all = "camelCase")]
+#[serde(
+    tag = "card",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum FocusCard {
     /// Nothing calls for a decision: the card lists what is in view.
     InView {
@@ -179,6 +183,22 @@ pub enum FocusCard {
         /// Knowledge says which monsters are Firewood. `None` while the Advisor can't read
         /// monsters, which is not the same as there being none.
         monsters: Option<Vec<Listing>>,
+    },
+    /// A small fight: what is in view, and how fighting it by each Attack Plan comes out.
+    Fight {
+        /// The monsters in view, as [`FocusCard::InView`] lists them.
+        monsters: Option<Vec<Listing>>,
+        /// The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+        /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
+        line: String,
+        /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
+        others: Vec<String>,
+        /// What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.
+        /// `None` when the fight wasn't judged.
+        not_modelled: Option<String>,
+        /// What keeps the Advisor from judging the fight, or may hide a better plan, one sentence
+        /// each, such as a screen to open.
+        gaps: Vec<String>,
     },
 }
 

@@ -7,6 +7,7 @@ mod carried_gear;
 mod crawl_ids;
 mod engine;
 mod fact_sheet;
+mod fight_outcome;
 mod game_source;
 mod screen;
 mod view_model;
@@ -21,6 +22,7 @@ pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, Gap, GearBasis, GearPlayed, KnownOrStale, NotModelled,
     Threat, ThreatAssessment, ThreatLevel,
 };
+pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{
     KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, Skills, SpellPower,

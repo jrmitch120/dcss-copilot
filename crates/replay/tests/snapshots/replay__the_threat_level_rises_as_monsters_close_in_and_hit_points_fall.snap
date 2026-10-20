@@ -32,6 +32,17 @@ expression: fact_sheets_by_turn(JACKALS)
           }
         ],
         "notModelled": []
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "hitPoints"
+          },
+          {
+            "gap": "monstersInView"
+          }
+        ]
       }
     }
   },
@@ -48,6 +59,7 @@ expression: fact_sheets_by_turn(JACKALS)
         },
         "worstHit": 0,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [],
         "gear": [
           {
@@ -119,6 +131,17 @@ expression: fact_sheets_by_turn(JACKALS)
           "swimmingAndFlying",
           "unexploredSquares"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
+        ]
       }
     }
   },
@@ -135,6 +158,7 @@ expression: fact_sheets_by_turn(JACKALS)
         },
         "worstHit": 6,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -242,6 +266,17 @@ expression: fact_sheets_by_turn(JACKALS)
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
         ]
       }
     }
@@ -259,6 +294,7 @@ expression: fact_sheets_by_turn(JACKALS)
         },
         "worstHit": 6,
         "hostilesInView": 3,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -366,6 +402,17 @@ expression: fact_sheets_by_turn(JACKALS)
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "wielded"
+          }
         ]
       }
     }
