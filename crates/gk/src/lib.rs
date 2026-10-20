@@ -281,6 +281,11 @@ pub struct Form {
     /// How undead it makes the player, whatever their species: crawl's `player::undead_state`,
     /// which names its forms in code.
     pub undead: Undeadness,
+    /// Its resistance to negative energy, `resists: neg` in `dat/forms`, from 0 to 3.
+    pub negative: i32,
+    /// Crawl halves the torment a player in it takes, as the form leaves them only partly
+    /// petrified or undead: `torment_player`, which names its forms in code.
+    pub halves_torment: bool,
 }
 
 /// The holiness a form gives the player: its `holiness` in `dat/forms`, or, for a form
@@ -434,6 +439,8 @@ pub struct Formulas {
     pub resist_damage: ResistDamage,
     /// Whether a monster its foe watches steps toward them this action: `_fungal_move_check`.
     pub monster_step: MonsterStep,
+    /// The hit points torment takes from the player: `torment_player` and `player::res_torment`.
+    pub torment: Torment,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -583,6 +590,14 @@ pub enum MonsterStep {
     Crawl034,
 }
 
+/// The variants of the hit points torment takes from the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Torment {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of which weapon a monster attacks with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MonsterWeapon {
@@ -613,6 +628,7 @@ impl Formulas {
         monster_weapon: MonsterWeapon::Crawl034,
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
+        torment: Torment::Crawl034,
     };
 }
 
@@ -724,6 +740,9 @@ pub struct Monster {
     pub own_actions: bool,
     /// When it steps toward a foe that watches it (`_fungal_move_check`).
     pub watched_step: WatchedStep,
+    /// It blows itself up as it dies, tormenting everyone in its sight (`explode_monster`), and
+    /// so as it attacks, as one that blows up does (`mons_self_destructs`): the lurking horror.
+    pub torments_as_it_dies: bool,
     /// It has a special ability of its own, outside its spells (`mon_special_ability`), such as
     /// a slime creature's splitting or a foxfire's burst.
     pub special_ability: bool,

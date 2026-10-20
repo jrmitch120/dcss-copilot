@@ -128,8 +128,15 @@ struct FormFile {
     short_name: Option<String>,
     /// As `mon_holy_type` names it without `MH_`: none unless set.
     holiness: Option<String>,
+    resists: Option<FormResists>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
+}
+
+/// A form's `resists`: those the bundle keeps, each 0 unless set.
+#[derive(Deserialize)]
+struct FormResists {
+    neg: Option<i32>,
 }
 
 /// `util/mon-gen.py`'s default speed.
@@ -200,6 +207,8 @@ pub struct KindExceptions {
     pub steps_from_beside: BTreeSet<String>,
     /// Kinds that step toward a foe that watches them only by chance.
     pub steps_by_chance: BTreeSet<String>,
+    /// Kinds that blow themselves up into torment as they die.
+    pub torments_as_it_dies: BTreeSet<String>,
     /// Kinds with a special ability of their own.
     pub special_abilities: BTreeSet<String>,
 }
@@ -308,6 +317,7 @@ pub fn monsters(
             WatchedStep::Always
         };
         let special_ability = exceptions.special_abilities.contains(&id);
+        let torments_as_it_dies = exceptions.torments_as_it_dies.contains(&id);
         let habitat =
             habitat(monster.habitat.as_deref()).ok_or_else(|| ExtractError::Unreadable {
                 file: file.clone(),
@@ -355,6 +365,7 @@ pub fn monsters(
                 tentacle,
                 own_actions,
                 watched_step,
+                torments_as_it_dies,
                 special_ability,
                 intelligence,
                 genus: EnumId(genus),
@@ -483,6 +494,8 @@ pub fn forms(source: &Path, tag_major: i64) -> Result<Vec<Form>, ExtractError> {
                 id: form.id,
                 holiness,
                 undead: Undeadness::Alive,
+                negative: form.resists.and_then(|resists| resists.neg).unwrap_or(0),
+                halves_torment: false,
             })
         })
         .collect()

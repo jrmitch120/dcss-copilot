@@ -43,6 +43,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_BAT",
@@ -105,6 +106,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_SNAKE",
@@ -167,6 +169,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_RAT",
@@ -229,6 +232,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_QUOKKA",
@@ -291,6 +295,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_HOUND",
@@ -353,6 +358,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_SNAPPING_TURTLE",
@@ -415,6 +421,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_GOBLIN",
@@ -477,6 +484,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_ORC",
@@ -568,6 +576,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_DRACONIAN",
@@ -630,6 +639,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_KOBOLD",
@@ -706,6 +716,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_CENTAUR",
@@ -782,6 +793,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_VINE_STALKER",
@@ -881,6 +893,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "brainless",
       "genus": "MONS_FUNGUS",
@@ -935,6 +948,7 @@ expression: bundle
       "tentacle": true,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_ELDRITCH_TENTACLE",
@@ -991,6 +1005,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "brainless",
       "genus": "MONS_TEST_STATUE",
@@ -1053,6 +1068,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_PHANTOM",
@@ -1115,6 +1131,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "human",
       "genus": "MONS_HUMAN",
@@ -1177,6 +1194,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "fromBeside",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "brainless",
       "genus": "MONS_FUNGUS",
@@ -1239,6 +1257,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": true,
       "intelligence": "brainless",
       "genus": "MONS_JELLY",
@@ -1301,6 +1320,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_SPIDER",
@@ -1363,6 +1383,7 @@ expression: bundle
       "tentacle": false,
       "ownActions": false,
       "watchedStep": "always",
+      "tormentsAsItDies": false,
       "specialAbility": false,
       "intelligence": "animal",
       "genus": "MONS_SNAKE",
@@ -2146,37 +2167,49 @@ expression: bundle
         "id": "bat_swarm",
         "light": "Bat Swarm",
         "holiness": "addsUndead",
-        "undead": "semiUndead"
+        "undead": "semiUndead",
+        "negative": 2,
+        "halvesTorment": true
       },
       {
         "id": "death",
         "light": "Death",
         "holiness": "undead",
-        "undead": "undead"
+        "undead": "undead",
+        "negative": 3,
+        "halvesTorment": false
       },
       {
         "id": "shadow",
         "light": "Shadow",
         "holiness": "nonliving",
-        "undead": "alive"
+        "undead": "alive",
+        "negative": 3,
+        "halvesTorment": false
       },
       {
         "id": "spider",
         "light": "Spider",
         "holiness": "species",
-        "undead": "alive"
+        "undead": "alive",
+        "negative": 0,
+        "halvesTorment": false
       },
       {
         "id": "statue",
         "light": "Statue",
         "holiness": "nonliving",
-        "undead": "alive"
+        "undead": "alive",
+        "negative": 1,
+        "halvesTorment": true
       },
       {
         "id": "vampire",
         "light": "Vampire",
         "holiness": "addsUndead",
-        "undead": "semiUndead"
+        "undead": "semiUndead",
+        "negative": 2,
+        "halvesTorment": true
       }
     ],
     "petrifiedLights": [
@@ -2421,6 +2454,7 @@ expression: bundle
     "damageBrand": "crawl-0.34",
     "monsterWeapon": "crawl-0.34",
     "resistDamage": "crawl-0.34",
-    "monsterStep": "crawl-0.34"
+    "monsterStep": "crawl-0.34",
+    "torment": "crawl-0.34"
   }
 }
