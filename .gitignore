@@ -4,3 +4,5 @@ node_modules
 /app/src-tauri/gen/schemas
 # Claude Code's worktrees, each a full checkout with its own biome.json.
 /.claude/worktrees
+# Local scratch space, never committed.
+/.scratch
