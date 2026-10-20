@@ -6,7 +6,7 @@ use std::path::Path;
 
 use copilot_gk::{
     Energy, EnumId, Form, FormHoliness, Habitat, Intelligence, ItemUse, Monster, MonsterAttack,
-    MonsterSpell, MonsterSpells, Species, Undeadness, WatchedStep, Will,
+    MonsterResists, MonsterSpell, MonsterSpells, Species, Undeadness, WatchedStep, Will,
 };
 use serde::Deserialize;
 
@@ -35,6 +35,8 @@ struct MonsterFile {
     /// What it is, such as `natural` or `undead`, as `mon_holy_type` names it without `MH_`.
     #[serde(default)]
     holiness: Vec<String>,
+    /// Its resistances: pips by name.
+    resists: Option<ResistsField>,
     /// The god it serves, by name.
     god: Option<String>,
     energy: Option<EnergyField>,
@@ -66,6 +68,50 @@ struct AttackField {
     kind: String,
     damage: u32,
     flavour: Option<String>,
+}
+
+/// A monster's `resists`, as `parse_resists` in `util/mon-gen.py` reads them. It refuses any
+/// other name, so a crawl that adds a resistance fails here rather than having it dropped; the
+/// bundle keeps those a beam's damage meets.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ResistsField {
+    #[serde(default)]
+    fire: i32,
+    #[serde(default)]
+    cold: i32,
+    #[serde(default)]
+    elec: i32,
+    #[serde(default)]
+    poison: i32,
+    #[serde(default)]
+    neg: i32,
+    #[serde(default)]
+    corr: i32,
+    #[serde(default)]
+    steam: i32,
+    #[serde(default, rename = "miasma")]
+    _miasma: i32,
+    #[serde(default, rename = "torment")]
+    _torment: i32,
+    #[serde(default, rename = "petrify")]
+    _petrify: i32,
+    #[serde(default, rename = "damnation")]
+    _damnation: i32,
+}
+
+impl ResistsField {
+    fn resists(&self) -> MonsterResists {
+        MonsterResists {
+            fire: self.fire,
+            cold: self.cold,
+            elec: self.elec,
+            poison: self.poison,
+            neg: self.neg,
+            corr: self.corr,
+            steam: self.steam,
+        }
+    }
 }
 
 /// A monster's `energy`, as `parse_energy` in `util/mon-gen.py` reads it: `move` sets both
@@ -154,6 +200,9 @@ const NO_THREAT_FLAG: &str = "no_threat";
 
 /// The holiness `dat/mons` gives an undead monster: crawl's `MH_UNDEAD`.
 const UNDEAD_HOLINESS: &str = "undead";
+
+/// The holiness of a monster `dat/mons` gives none: `util/mon-gen.py`'s default.
+pub const DEFAULT_HOLINESS: &str = "MH_NATURAL";
 
 /// The god whose servants see through an umbra (`monster::nightvision`), as `dat/mons` names it.
 const NIGHTVISION_GOD: &str = "Yredelemnul";
@@ -336,6 +385,20 @@ pub fn monsters(
                 ac: monster.ac,
                 ev: monster.ev,
                 will,
+                // As `parse_holiness` in `util/mon-gen.py` names them.
+                holiness: if monster.holiness.is_empty() {
+                    vec![EnumId(DEFAULT_HOLINESS.to_owned())]
+                } else {
+                    monster
+                        .holiness
+                        .iter()
+                        .map(|holy| EnumId(format!("MH_{}", holy.to_uppercase())))
+                        .collect()
+                },
+                resists: monster
+                    .resists
+                    .as_ref()
+                    .map_or_else(MonsterResists::default, ResistsField::resists),
                 speed: monster.speed.unwrap_or(DEFAULT_SPEED),
                 attacks: monster
                     .attacks

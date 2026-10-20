@@ -144,8 +144,9 @@ impl Source {
         Ok(entries)
     }
 
-    /// The tokens inside the braces of the initializer `<name> = { ... }`, `<name>[] = { ... }`
-    /// or `<name>[][3] = { ... }`, as a table, a table of rows or a `static const map` is written.
+    /// The tokens inside the braces of the initializer `<name> = { ... }`, `<name>[] = { ... }`,
+    /// `<name>[][3] = { ... }` or `<name>[COUNT][7] = { ... }`, as a table, a table of rows or a
+    /// `static const map` is written.
     pub fn initializer(&self, name: &str) -> Result<&[Token], ExtractError> {
         let open = (0..self.tokens.len())
             .find_map(|i| self.initializer_brace(i, name))
@@ -155,7 +156,7 @@ impl Source {
     }
 
     /// Where the opening brace is, when the tokens from `i` start `<name>`, any array
-    /// dimensions such as `[]` or `[3]`, then `= {`.
+    /// dimensions such as `[]`, `[3]` or `[NUM_SKILLS]`, then `= {`.
     fn initializer_brace(&self, i: usize, name: &str) -> Option<usize> {
         if self.tokens[i] != Token::Ident(name.into()) {
             return None;
@@ -164,7 +165,11 @@ impl Source {
         while self.tokens.get(next) == Some(&Token::Punct('[')) {
             next += match self.tokens.get(next + 1)? {
                 Token::Punct(']') => 2,
-                Token::Number(_) if self.tokens.get(next + 2) == Some(&Token::Punct(']')) => 3,
+                Token::Number(_) | Token::Ident(_)
+                    if self.tokens.get(next + 2) == Some(&Token::Punct(']')) =>
+                {
+                    3
+                }
                 _ => return None,
             };
         }

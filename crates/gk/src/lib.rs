@@ -93,8 +93,8 @@ pub struct Bundle {
     /// The launchers and throwing missiles monsters shoot or throw, by their sub-type
     /// identifier, such as `WPN_SHORTBOW` or `MI_JAVELIN`.
     pub missile_weapons: BTreeMap<EnumId, MissileWeapon>,
-    /// The melee weapons monsters fight with, by their `weapon_type` identifier, such as
-    /// `WPN_SPEAR`.
+    /// The melee weapons monsters and the player fight with, by their `weapon_type` identifier,
+    /// such as `WPN_SPEAR`.
     pub melee_weapons: BTreeMap<EnumId, MeleeWeapon>,
     /// Every wand, by its `wand_type` identifier, such as `WAND_FLAME`.
     pub wands: BTreeMap<EnumId, Wand>,
@@ -103,6 +103,9 @@ pub struct Bundle {
     pub weapon_brands: BTreeMap<EnumId, WeaponBrand>,
     /// Every species this version defines, playable or not, in crawl's file order.
     pub species: Vec<Species>,
+    /// Every skill, by its `skill_type` identifier, such as `SK_MACES_FLAILS`, with its name as
+    /// the skills screen shows it, such as `Maces & Flails`.
+    pub skills: BTreeMap<EnumId, String>,
     /// Every dungeon feature crawl defines, by its `dungeon_feature_type` enum value: a map
     /// cell's webtiles `f`.
     pub features: BTreeMap<u16, Feature>,
@@ -441,6 +444,18 @@ pub struct Formulas {
     pub monster_step: MonsterStep,
     /// The hit points torment takes from the player: `torment_player` and `player::res_torment`.
     pub torment: Torment,
+    /// The player's melee, launcher and thrown attacks on a monster: their accuracy, damage
+    /// after the monster's armour and how long each takes: `attack::calc_to_hit`,
+    /// `attack::calc_damage` and `player::attack_delay`.
+    pub player_attack: PlayerAttack,
+    /// A beam the player fires at a monster, from a spell or a wand: its dice and accuracy at a
+    /// power, the roll against the monster's evasion, its armour and its resistances:
+    /// `zappy`, `bolt::affect_monster` and `mons_adjust_flavoured`.
+    pub player_beam: PlayerBeam,
+    /// The power the player zaps a wand with: `wand_power`.
+    pub wand_power: WandPower,
+    /// A monster's hit points as it is made: `hit_points`.
+    pub monster_hit_points: MonsterHitPoints,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -606,6 +621,38 @@ pub enum MonsterWeapon {
     Crawl034,
 }
 
+/// The variants of the player's melee, launcher and thrown attacks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PlayerAttack {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a beam the player fires at a monster.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PlayerBeam {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of the power the player zaps a wand with.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum WandPower {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of a monster's hit points as it is made.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterHitPoints {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -629,6 +676,10 @@ impl Formulas {
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
         torment: Torment::Crawl034,
+        player_attack: PlayerAttack::Crawl034,
+        player_beam: PlayerBeam::Crawl034,
+        wand_power: WandPower::Crawl034,
+        monster_hit_points: MonsterHitPoints::Crawl034,
     };
 }
 
@@ -697,6 +748,11 @@ pub struct Monster {
     pub ev: i32,
     /// Willpower.
     pub will: Will,
+    /// What it is, by its `mon_holy_type` identifiers, such as `MH_UNDEAD`: `MH_NATURAL` unless
+    /// `dat/mons` says otherwise.
+    pub holiness: Vec<EnumId>,
+    /// Its resistances as `dat/mons` gives them, before what its holiness adds.
+    pub resists: MonsterResists,
     /// Speed, where 10 is the player's normal speed.
     pub speed: u32,
     /// Its melee attacks, in crawl's order: everything it does in one melee action. Empty for a
@@ -927,6 +983,10 @@ pub struct MissileWeapon {
     pub damage: i32,
     /// The accuracy it adds: a launcher's `PWPN_HIT`, and none for a thrown missile.
     pub accuracy: i32,
+    /// How long a launcher takes to fire with no skill, in crawl's time units where a
+    /// standard-speed action takes 10: its `PWPN_SPEED`. `None` for a thrown missile, whose
+    /// delay comes from its damage.
+    pub delay: Option<i32>,
 }
 
 /// A melee weapon, as `Weapon_prop` (`item-prop.cc`) defines it.
@@ -942,6 +1002,12 @@ pub struct MeleeWeapon {
     /// How many squares away it strikes from: crawl's `weapon_reach` for one that isn't an
     /// artefact, two for a polearm and one for any other.
     pub reach: i32,
+    /// The skill it trains and fights with, by its `skill_type` identifier, such as
+    /// `SK_POLEARMS`: its `PWPN_SKILL`.
+    pub skill: EnumId,
+    /// How long a swing takes with no skill, in crawl's time units where a standard-speed action
+    /// takes 10: its `PWPN_SPEED`.
+    pub delay: i32,
 }
 
 /// How a [`MissileWeapon`] is used.
@@ -986,6 +1052,28 @@ pub struct MonsterAttack {
     pub flavour: EnumId,
     /// The most damage it deals before armour, its "damage" in `dat/mons`.
     pub damage: u32,
+}
+
+/// A kind of monster's resistances, as its `dat/mons` file gives them: pips from -1 to 4, 0
+/// when not given. What its holiness adds, such as an undead monster's resistance to poison, is
+/// left to the engine (`get_mons_class_resists`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonsterResists {
+    /// `fire`.
+    pub fire: i32,
+    /// `cold`.
+    pub cold: i32,
+    /// `elec`.
+    pub elec: i32,
+    /// `poison`.
+    pub poison: i32,
+    /// `neg`: negative energy.
+    pub neg: i32,
+    /// `corr`: corrosion, which acid meets.
+    pub corr: i32,
+    /// `steam`.
+    pub steam: i32,
 }
 
 /// The spells a kind of monster casts.
@@ -1132,6 +1220,10 @@ pub struct Zap {
     pub monster_damage: Option<ZapDamage>,
     /// Its accuracy when a monster fires it, by power; `None` when it has none.
     pub monster_to_hit: Option<ZapToHit>,
+    /// The damage it deals when the player fires it, by power; `None` when it deals none.
+    pub player_damage: Option<ZapDamage>,
+    /// Its accuracy when the player fires it, by power; `None` when it has none.
+    pub player_to_hit: Option<ZapToHit>,
 }
 
 /// A zap's damage dice at a power: crawl's `dicedef_calculator` and `calcdice_calculator`.
