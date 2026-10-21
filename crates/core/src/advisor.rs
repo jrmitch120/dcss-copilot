@@ -1,6 +1,7 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 use copilot_gk::{Bundle, Library, Monster};
 
@@ -22,7 +23,9 @@ pub struct Advisor {
     visible: VisibleState,
     /// What is remembered of each game followed so far, by its game key.
     remembered: HashMap<GameKey, AccumulatedState>,
-    fact_sheet: FactSheet,
+    /// The Fact Sheet for this moment, computed when first asked for: playing a fight out is
+    /// costly, and many events pass before anything reads it.
+    fact_sheet: OnceLock<FactSheet>,
 }
 
 /// What tells one game apart from every other, for as long as it is played: the spec's game key.
@@ -51,12 +54,11 @@ impl Advisor {
     /// An Advisor following no game yet, judging games with the Game Knowledge in `knowledge`.
     #[must_use]
     pub fn new(knowledge: Library) -> Self {
-        let visible = VisibleState::default();
         Self {
-            fact_sheet: FactSheet::compute(&visible, None, None, None),
+            fact_sheet: OnceLock::new(),
             knowledge,
             identity: None,
-            visible,
+            visible: VisibleState::default(),
             remembered: HashMap::new(),
         }
     }
@@ -95,16 +97,7 @@ impl Advisor {
             // same game, and a new game has its own game key.
             SourceEvent::Session(_) => return,
         }
-        let species = self
-            .identity
-            .as_ref()
-            .map(|identity| identity.species.as_str());
-        self.fact_sheet = FactSheet::compute(
-            &self.visible,
-            self.accumulated(),
-            species,
-            self.game_knowledge(),
-        );
+        self.fact_sheet = OnceLock::new();
     }
 
     /// What is remembered of the followed game, once a Game Source has identified it.
@@ -125,7 +118,18 @@ impl Advisor {
     /// What the engine computed about this moment.
     #[must_use]
     pub fn fact_sheet(&self) -> &FactSheet {
-        &self.fact_sheet
+        self.fact_sheet.get_or_init(|| {
+            let species = self
+                .identity
+                .as_ref()
+                .map(|identity| identity.species.as_str());
+            FactSheet::compute(
+                &self.visible,
+                self.accumulated(),
+                species,
+                self.game_knowledge(),
+            )
+        })
     }
 
     /// The game being followed, once a Game Source has identified it.
@@ -155,11 +159,11 @@ impl Advisor {
                 hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
-            now: now_pill(&self.fact_sheet.threat),
+            now: now_pill(&self.fact_sheet().threat),
             focus: self.focus(),
             ways_out: self
                 .hostile_in_view()
-                .then(|| self.fact_sheet.ways_out.list()),
+                .then(|| self.fact_sheet().ways_out.list()),
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
         })
@@ -177,7 +181,7 @@ impl Advisor {
             .map(|monsters| in_view(monsters, self.game_knowledge()));
         let fight = self
             .hostile_in_view()
-            .then(|| self.fact_sheet.fight.card(monsters.clone()))
+            .then(|| self.fact_sheet().fight.card(monsters.clone()))
             .flatten();
         fight.unwrap_or(FocusCard::InView { monsters })
     }
