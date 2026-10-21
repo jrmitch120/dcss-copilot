@@ -39,11 +39,11 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Paths
 
-- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall.
-- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing.
+- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall. A monster that keeps its range, such as the orb spider, steps to a square around it that it can stand on and see the player from (`_set_firing_pos`); hemmed in, with none, it may step toward a farther one, and into the player to fight them.
+- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing. A monster that keeps its range always has a square to step to, so it never steps into the player to fight them.
 - **Surfaced as:** `paths`, on every rated Threat Level.
 - **Harness:** the turn harness lays open floor around the player for each trial, and walls the square behind them for a caster of a blinkbolt, so crawl lands it beside them too.
-- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
+- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. It errs low only for a monster that keeps its range hemmed in beside the player, which seldom happens. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
 
 ### Awareness
 
@@ -56,8 +56,8 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 ### Spells not played out
 
 - **What crawl does:** a monster picks from all the spells in its book (`_choose_spell_to_cast`): summons, hexes, self-buffs and spells that aren't a single bolt or explosion among them. A blink frog's book holds a blink (`SPELL_BLINK`), besides the hit that blinks it away.
-- **What the engine assumes:** a monster never casts a spell it doesn't port, and fights instead.
-- **Surfaced as:** `otherSpells`, when a monster that can attack has such a spell; its row names the spells.
+- **What the engine assumes:** a monster never casts a spell it doesn't port, and fights instead. One with nothing else to strike the player with from where it stands, such as an orb spider, which keeps its range rather than bite and whose Orb of Destruction isn't ported, doesn't attack at all.
+- **Surfaced as:** `otherSpells`, when a monster in view has such a spell; the row of one that can attack names the spells.
 - **Harness:** the spell and turn harnesses cut each monster's book down to the spells the engine ports.
 - **Impact and cost:** either way: a hex can be worse than a hit, a self-buff is lost time. Each spell is its own port; damaging ones are cheap, summons and hexes need what follows them modelled too.
 
@@ -225,15 +225,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the turn harness leaves out batty kinds.
 - **Impact and cost:** errs high, badly for fast batty monsters.
 - **Issue:** [#103]
-
-### Keeping range
-
-- **What crawl does:** a monster that keeps its range, such as the orb spider, holds a firing position away from the player rather than close in (`_decide_monster_firing_position`).
-- **What the engine assumes:** it walks up and fights in melee.
-- **Surfaced as:** `keepsRange`, when a monster that can attack keeps its range; its row names it.
-- **Harness:** the turn harness leaves out kinds that keep their range.
-- **Impact and cost:** errs high when its melee is worse than what it fires.
-- **Issue:** [#102]
 
 ### Moving with a parent
 
@@ -475,7 +466,6 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#102]: https://github.com/jrmitch120/dcss-copilot/issues/102
 [#103]: https://github.com/jrmitch120/dcss-copilot/issues/103
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104
 [#106]: https://github.com/jrmitch120/dcss-copilot/issues/106

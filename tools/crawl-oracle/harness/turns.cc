@@ -20,12 +20,16 @@
  *   hit dice, which a spore attack spends, the player is restored and the floor around them
  *   laid again, and crawl's own handle_monsters runs its turns with you.time_taken at
  *   BASELINE_DELAY, attacking and casting for real. It tallies the melee
- *   actions it took against the player, the spells it cast and the squares it closed. Turn
- *   cases take turns at drawing from kinds of monster that
+ *   actions it took against the player, the spells it cast and the squares it closed, less
+ *   those it backed off. Turn cases take turns at drawing from kinds of monster that
  *   each exercise a rule: the slowest and the fastest that act, any, faster or slower than the
  *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
- *   cloud, casting a blinkbolt, and, watched, stepping toward the player only from beside them
- *   or only by chance (_fungal_move_check). A rule no kind exercises is left out.
+ *   cloud, casting a blinkbolt, watched, stepping toward the player only from beside them
+ *   or only by chance (_fungal_move_check), and keeping its range (_set_firing_pos). A kind
+ *   that keeps its range is drawn for that rule with its own book or with the book of another
+ *   kind that casts a spell the engine ports, as none that keeps its range casts one in 0.34.1:
+ *   such a book holds it at a firing position three squares from the player, from which it
+ *   backs off when it starts nearer. A rule no kind exercises is left out.
  *
  * It switches off monster special abilities (mon_special_ability; NotModelled::SpecialAbilities),
  * which the engine doesn't port, and leaves out monsters that crawl moves otherwise than the
@@ -375,6 +379,8 @@ struct turn_kind
     bool stationary;
     int reach;
     monster_spells book;
+    // The kind whose book it casts from: its own, or another's.
+    monster_type book_of;
 };
 
 // Kinds _fungal_move_check lets step toward a foe that watches them only from beside them, and
@@ -433,8 +439,6 @@ static bool _walks_as_engine_does(monster_type type)
            && !mons_is_tentacle_or_tentacle_segment(type)
            // Batty: it flits away after it attacks.
            && !mons_class_flag(type, M_BATTY)
-           // KeepsRange: it won't close in to fight.
-           && !mons_class_flag(type, M_MAINTAIN_RANGE)
            // BoundToTerrain: a monster of lava or water can't leave it.
            && monster_habitable_feat(type, DNGN_FLOOR);
 }
@@ -466,11 +470,38 @@ static vector<turn_kind> _turn_kinds(const set<spell_type> &ported)
             && !recasts_clouds)
         {
             kinds.push_back({ type, mon->speed, mon->is_stationary(), mon->reach_range(),
-                              book });
+                              book, type });
         }
         _clear_monsters();
     }
     return kinds;
+}
+
+// Each kind among `kinds` that keeps its range, with the book of each other kind that casts a
+// spell the engine ports and doesn't weigh its own safety or blink as it casts: a book no kind
+// that keeps its range holds in 0.34.1, which holds it at a firing position away from the
+// player (_set_firing_pos, monster::threat_range).
+static vector<turn_kind> _borrowers(const vector<turn_kind> &kinds)
+{
+    vector<turn_kind> borrowing;
+    for (const turn_kind &kind : kinds)
+    {
+        if (!mons_class_flag(kind.type, M_MAINTAIN_RANGE))
+            continue;
+        for (const turn_kind &lender : kinds)
+        {
+            if (lender.book.empty() || _book_may_catch_caster(lender.book)
+                || _casts_blinkbolt(lender.book))
+            {
+                continue;
+            }
+            turn_kind borrower = kind;
+            borrower.book = lender.book;
+            borrower.book_of = lender.type;
+            borrowing.push_back(borrower);
+        }
+    }
+    return borrowing;
 }
 
 // A rule a turn case's monster exercises, and the kinds of monster that exercise it.
@@ -480,9 +511,11 @@ struct turn_rule
     vector<const turn_kind *> kinds;
 };
 
-// The rules some kind of monster exercises. A rule no kind exercises, such as an instant spell
+// The rules some kind of monster exercises, drawing from `kinds` and, for the rule of keeping
+// range, from the kinds in `borrowing` too. A rule no kind exercises, such as an instant spell
 // when the engine ports none, is left out, and said so.
-static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds)
+static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
+                                     const vector<turn_kind> &borrowing)
 {
     // The slowest and fastest kinds that act at all, which a draw from every other speed seldom
     // reaches.
@@ -515,6 +548,26 @@ static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds)
         else
             rules.push_back(drawn);
     }
+    // Kinds that keep their range, drawn with their own book as often as with one they borrow.
+    turn_rule keeping = { "keeps range", {} };
+    for (const turn_kind &kind : kinds)
+    {
+        if (!mons_class_flag(kind.type, M_MAINTAIN_RANGE))
+            continue;
+        keeping.kinds.push_back(&kind);
+        for (const turn_kind &borrower : borrowing)
+        {
+            if (borrower.type == kind.type)
+            {
+                keeping.kinds.push_back(&borrower);
+                keeping.kinds.push_back(&kind);
+            }
+        }
+    }
+    if (keeping.kinds.empty())
+        fprintf(stderr, "no kind of monster exercises the %s rule: left out\n", keeping.name);
+    else
+        rules.push_back(keeping);
     return rules;
 }
 
@@ -555,6 +608,8 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         mon->hit_dice = hit_dice;
         mon->foe = MHITYOU;
         mon->target = you.pos();
+        // One that keeps its range finds its firing position afresh.
+        mon->firing_pos.reset();
         // As crawl leaves a monster that has acted.
         mon->speed_increment = 200;
         mon->drain_action_energy();
@@ -580,8 +635,12 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         }
         if (you.pos() != player)
             return "moves the player";
-        if (grid_distance(mon->pos(), you.pos()) > distance)
+        // One that keeps its range backs off to its firing position, as the engine plays it.
+        if (grid_distance(mon->pos(), you.pos()) > distance
+            && !mons_class_flag(kind.type, M_MAINTAIN_RANGE))
+        {
             return "moves away from the player";
+        }
         if (walled && spells_cast > 0 && grid_distance(mon->pos(), you.pos()) > 1)
         {
             return "lands its blinkbolt away from the player";
@@ -661,10 +720,10 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
             continue;
         }
         printf("{\"case\":%d,\"kind\":\"turn\",\"rule\":\"%s\",\"monster\":%d,\"name\":\"%s\","
-               "\"hd\":%d,\"speed\":%d,\"distance\":%d,\"nightvision\":%s,"
+               "\"book\":%d,\"hd\":%d,\"speed\":%d,\"distance\":%d,\"nightvision\":%s,"
                "\"lighting\":\"%s\",\"hp\":%d,\"trials\":%d,\"melee\":%s,\"casts\":%s,"
                "\"closed\":%s}\n",
-               index, rule.name, kind.type, name.c_str(), hd, speed, distance,
+               index, rule.name, kind.type, name.c_str(), kind.book_of, hd, speed, distance,
                _json_bool(nightvision), lighting, you.hp_max, trials,
                _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
                _histogram(tally.closed).c_str());
@@ -759,7 +818,8 @@ int main(int argc, char *argv[])
     _block_cases(index, run.shard == 0);
     _reach_cases(index, run.shard == 0);
     const vector<turn_kind> kinds = _turn_kinds(ported);
-    const vector<turn_rule> rules = _turn_rules(kinds);
+    const vector<turn_kind> borrowing = _borrowers(kinds);
+    const vector<turn_rule> rules = _turn_rules(kinds, borrowing);
     for (int i = 0; i < run.cases; ++i, ++index)
     {
         if (!_in_shard(run, i, static_cast<int>(rules.size())))

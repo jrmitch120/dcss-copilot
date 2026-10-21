@@ -442,6 +442,9 @@ pub struct Formulas {
     pub resist_damage: ResistDamage,
     /// Whether a monster its foe watches steps toward them this action: `_fungal_move_check`.
     pub monster_step: MonsterStep,
+    /// Where a monster that keeps its range steps, rather than into its foe:
+    /// `_set_firing_pos` and `monster::threat_range`.
+    pub firing_position: FiringPosition,
     /// The hit points torment takes from the player: `torment_player` and `player::res_torment`.
     pub torment: Torment,
     /// The player's melee, launcher and thrown attacks on a monster: their accuracy, damage
@@ -605,6 +608,14 @@ pub enum MonsterStep {
     Crawl034,
 }
 
+/// The variants of where a monster that keeps its range steps.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FiringPosition {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of the hit points torment takes from the player.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Torment {
@@ -675,6 +686,7 @@ impl Formulas {
         monster_weapon: MonsterWeapon::Crawl034,
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
+        firing_position: FiringPosition::Crawl034,
         torment: Torment::Crawl034,
         player_attack: PlayerAttack::Crawl034,
         player_beam: PlayerBeam::Crawl034,

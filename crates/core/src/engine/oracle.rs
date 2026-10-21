@@ -879,6 +879,9 @@ pub fn melee_reach(
 pub struct TurnCase {
     /// The monster's `monster_type` value.
     pub monster: u16,
+    /// The `monster_type` value of the kind whose book it casts from: its own, or another's the
+    /// harness gave it.
+    pub book: u16,
     /// Its hit dice.
     pub hit_dice: u32,
     /// Its speed.
@@ -908,10 +911,11 @@ pub struct TurnTally {
 }
 
 /// Plays out `case`'s monster's actions before the player's next standard-speed action
-/// `trials` times, as the Threat Level's trial does, from a generator seeded with `seed`.
+/// `trials` times, as the Threat Level's trial does, from a generator seeded with `seed`, with
+/// its book cut down to the spells the engine ports, as the harness cuts it.
 ///
 /// # Errors
-/// If the bundle lacks the monster.
+/// If the bundle lacks the monster or the kind whose book it casts from.
 pub fn turn(
     bundle: &Bundle,
     case: &TurnCase,
@@ -925,6 +929,23 @@ pub fn turn(
         .clone();
     monster.hd = case.hit_dice;
     monster.speed = case.speed;
+    let book = bundle
+        .monster(case.book)
+        .ok_or(CaseError::NoMonster(case.book))?;
+    monster.spells = match &book.spells {
+        MonsterSpells::Book { spells } => MonsterSpells::Book {
+            spells: spells
+                .iter()
+                .filter(|slot| {
+                    bundle
+                        .spell_by_id(&slot.spell)
+                        .is_some_and(|spell| spells::is_ported(formulas.monster_spell_beam, spell))
+                })
+                .cloned()
+                .collect(),
+        },
+        MonsterSpells::PerMonster => MonsterSpells::PerMonster,
+    };
     let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
     // Undefended, so whatever strikes the player deals damage.
     let target = Target {

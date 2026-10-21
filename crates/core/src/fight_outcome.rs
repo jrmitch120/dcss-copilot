@@ -791,7 +791,6 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         | NotModelled::HitsOnTheWay
         | NotModelled::OwnConditions
         | NotModelled::Batty
-        | NotModelled::KeepsRange
         | NotModelled::MovesWithParent
         | NotModelled::OwnActions
         | NotModelled::SwoopOrFlank

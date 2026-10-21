@@ -22,7 +22,7 @@ use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::{step, torment, wands};
+use super::{PLAYER_VISION, step, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -93,6 +93,9 @@ pub(crate) struct Attacker<'a> {
     shooter: Shooter,
     /// It fighting in melee, with the melee weapons its Carried Gear shows, if read.
     pub(crate) fighter: Fighter,
+    /// The farthest any spell of its book reaches, ported or not, cast with its power: as far as
+    /// the player sees for one without a range or that the bundle lacks, and 0 with no book.
+    book_reach: i32,
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -230,6 +233,19 @@ impl<'a> Attacker<'a> {
             MonsterSpells::Book { spells } => spells.as_slice(),
             MonsterSpells::PerMonster => &[],
         };
+        let book_reach = book
+            .iter()
+            .map(|slot| {
+                let Some(spell) = bundle.spell_by_id(&slot.spell) else {
+                    return PLAYER_VISION;
+                };
+                spell.range.map_or(PLAYER_VISION, |range| {
+                    let power = spells::power(formulas.monster_spell_power, &spell.id, hit_dice);
+                    spells::range(formulas.monster_spell_power, range, power)
+                })
+            })
+            .max()
+            .unwrap_or(0);
         let spells = book
             .iter()
             .filter_map(|slot| {
@@ -264,6 +280,7 @@ impl<'a> Attacker<'a> {
                 draugr: monster.id.0 == monster_types::DRAUGR,
                 hands: unread_hands(monster),
             },
+            book_reach,
         };
         attacker.shoots = attacker.possible_names();
         attacker
@@ -357,15 +374,38 @@ impl<'a> Attacker<'a> {
             .fold(Needs::NOTHING, Needs::and)
     }
 
+    /// The distance it holds from the player, if it keeps its range ([`step::firing_range`]),
+    /// from the farthest it can harm them from, as `monster::threat_range` (`monster.cc:6820`)
+    /// reckons it: its melee reach, a launcher, missiles or wand it may carry, and its book's
+    /// spells. Crawl counts only the gear it carries, a wand by its spell's range, and only the
+    /// spells that harm (`is_offensive_spell`); here any gear it may carry reaches as far as the
+    /// player sees, and every spell counts by its range. Either holds it no farther than three
+    /// squares, which nearly every spell and wand reaches, and every kind that keeps its range in
+    /// 0.34.1 is held alike either way.
+    pub(crate) fn firing_range(&self, formulas: Formulas) -> Option<i32> {
+        if !self.monster.keeps_range {
+            return None;
+        }
+        let shoots = !self.missiles.is_empty() || !self.wands.is_empty() || self.unported_wand;
+        let threat_range = melee_reach(formulas, &self.fighter, self.monster)
+            .max(1)
+            .max(self.book_reach)
+            .max(if shoots { PLAYER_VISION } else { 0 });
+        Some(step::firing_range(formulas.firing_position, threat_range))
+    }
+
     /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand
-    /// or a missile, if it may carry them.
+    /// or a missile, if it may carry them. One that keeps its range fights in melee only with a
+    /// reaching attack, from farther than beside them.
     fn strikes_from(&self, formulas: Formulas, distance: i32) -> bool {
         let monster = self.monster;
         let shoots = !self.missiles.is_empty()
             && distance <= MISSILE_RANGE
             && (distance > 1 || monster.prefers_ranged);
+        let fights = distance <= melee_reach(formulas, &self.fighter, monster)
+            && (distance > 1 || !monster.keeps_range);
         distance >= 1
-            && (distance <= melee_reach(formulas, &self.fighter, monster)
+            && (fights
                 || self
                     .spells
                     .iter()
@@ -671,13 +711,15 @@ pub(crate) struct Outcome {
 }
 
 /// Whether `attacker` can attack before the player's next standard-speed action at all: with the
-/// most energy it could have, it closes the distance, unless it never moves or never steps toward
-/// a player watching it from there ([`step::may_step`]), and still has an action left to strike
+/// most energy it could have, it closes the distance, or steps toward its firing range if it
+/// keeps its range ([`step::toward_firing_range`]), unless it never moves or never steps toward a
+/// player watching it from there ([`step::may_step`]), and still has an action left to strike
 /// the player in melee, with a spell or wand, or with a missile. Where a spell lands its caster
 /// ([`spells::Landing`]) never changes the answer: a blinkbolt strikes the player from wherever it
 /// is cast at them.
 pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
+    let firing_range = attacker.firing_range(formulas);
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
     let mut distance = attacker.distance;
     while energy >= ENERGY_THRESHOLD {
@@ -685,12 +727,19 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
             return true;
         }
         if monster.stationary
-            || distance <= 1
             || !step::may_step(formulas.monster_step, monster.watched_step, distance)
         {
             return false;
         }
-        distance -= 1;
+        let next = match firing_range {
+            Some(range) => step::toward_firing_range(formulas.firing_position, distance, range),
+            None => (distance - 1).max(1),
+        };
+        // Nothing nearer or farther to strike from.
+        if next == distance {
+            return false;
+        }
+        distance = next;
         energy -= cost(monster.energy.walk);
     }
     false
@@ -774,7 +823,7 @@ pub(crate) struct Turn {
     pub(crate) melee: i32,
     /// The spells it cast.
     pub(crate) casts: i32,
-    /// The squares it closed on the player.
+    /// The squares it closed on the player, less those it backed off.
     pub(crate) closed: i32,
 }
 
@@ -807,6 +856,8 @@ pub(crate) struct Engaged<'r, 'a> {
     energy: i32,
     missiles: Option<Missiles<'a>>,
     wand: Option<WandZap<'a>>,
+    /// The distance it holds from the player, if it keeps its range.
+    firing_range: Option<i32>,
     /// The actions left before it can breathe again.
     breath_timeout: u32,
     /// It has taken an action, after which it catches its breath.
@@ -834,6 +885,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             energy,
             missiles: attacker.missiles.draw(rng),
             wand: attacker.wands.draw(rng),
+            firing_range: attacker.firing_range(formulas),
             breath_timeout: 0,
             acted: false,
             gone: false,
@@ -946,6 +998,21 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 turn.damage += shot.damage;
                 self.energy -=
                     missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
+                continue;
+            }
+            // One that keeps its range never steps into the player to fight, but makes a reaching
+            // attack before it moves (`_handle_reaching`, `mon-act.cc:1904`); otherwise it steps
+            // toward its firing range.
+            if let Some(range) = self.firing_range
+                && !(self.distance > 1 && self.distance <= reach)
+            {
+                if steps && !monster.stationary {
+                    let next =
+                        step::toward_firing_range(formulas.firing_position, self.distance, range);
+                    turn.closed += self.distance - next;
+                    self.distance = next;
+                }
+                self.energy -= cost(monster.energy.walk);
                 continue;
             }
             // Beside the player it attacks by stepping into them; from farther, a reaching attack
@@ -1217,6 +1284,97 @@ mod tests {
         let turns = turns_always_casting("shock serpent", 4);
         assert!(turns.iter().all(|turn| turn.closed == 0 && turn.melee == 0));
         assert!(turns.iter().any(|turn| turn.casts == 2));
+    }
+
+    /// An orb spider whose book holds only `spell`, which the engine ports, cast as often as its
+    /// Orb of Destruction: crawl's orb spider casts nothing the engine ports.
+    fn orb_spider_casting(spell: &str) -> Monster {
+        let mut spider = monster("orb spider").clone();
+        spider.spells = MonsterSpells::Book {
+            spells: vec![copilot_gk::MonsterSpell {
+                spell: EnumId(spell.to_owned()),
+                frequency: 80,
+                flags: vec![EnumId("MON_SPELL_MAGICAL".to_owned())],
+            }],
+        };
+        spider
+    }
+
+    #[test]
+    fn an_orb_spider_casts_at_the_player_from_afar_and_never_closes_in_to_fight() {
+        // Its magic dart reaches the player from three squares, where it holds
+        // (`_set_firing_pos`): it steps around them rather than closing in.
+        let spider = orb_spider_casting("SPELL_MAGIC_DART");
+        let afar = unarmed(&spider, 3);
+        assert!(can_attack(bundle().formulas, &afar));
+        let turns = turns_of(&afar, 1_000);
+        assert!(turns.iter().any(|turn| turn.casts > 0 && turn.damage > 0));
+        assert!(
+            turns.iter().all(|turn| turn.melee == 0 && turn.closed == 0),
+            "{turns:?}"
+        );
+        // From farther it closes in, but no nearer than three squares.
+        let farther = turns_of(&unarmed(&spider, 5), 1_000);
+        assert!(farther.iter().any(|turn| turn.closed == 2));
+        assert!(
+            farther
+                .iter()
+                .all(|turn| turn.melee == 0 && (0..=2).contains(&turn.closed))
+        );
+    }
+
+    #[test]
+    fn an_orb_spider_beside_the_player_backs_off_rather_than_bite() {
+        // Its Orb of Destruction reaches eight squares, so it holds three away: at speed 12 it
+        // backs off one square, or two when it has a second action.
+        let beside = unarmed(monster("orb spider"), 1);
+        let turns = turns_of(&beside, 1_000);
+        assert!(turns.iter().all(|turn| turn.melee == 0), "{turns:?}");
+        assert!(turns.iter().any(|turn| turn.closed == -1));
+        assert!(turns.iter().any(|turn| turn.closed == -2));
+        assert!(turns.iter().all(|turn| [-1, -2].contains(&turn.closed)));
+        // It casts nothing the engine ports, so it never attacks the player at all.
+        assert!(!can_attack(bundle().formulas, &beside));
+    }
+
+    #[test]
+    fn a_monster_keeping_its_range_with_nothing_to_fire_steps_around_the_player_unharmed() {
+        // With an empty book it harms the player from no farther than it bites, so it holds
+        // beside them, stepping around them each action without biting.
+        let mut spider = monster("orb spider").clone();
+        spider.spells = MonsterSpells::Book { spells: Vec::new() };
+        let beside = unarmed(&spider, 1);
+        assert!(
+            turns_of(&beside, 1_000)
+                .iter()
+                .all(|turn| turn.melee == 0 && turn.closed == 0)
+        );
+        let afar = unarmed(&spider, 3);
+        assert!(
+            turns_of(&afar, 1_000)
+                .iter()
+                .all(|turn| turn.melee == 0 && (1..=2).contains(&turn.closed))
+        );
+        assert!(!can_attack(bundle().formulas, &afar));
+    }
+
+    #[test]
+    fn a_monster_keeping_its_range_still_strikes_with_a_reaching_attack() {
+        // Given a reaching bite and an empty book, it holds two squares away, from where it
+        // reaches the player before it moves (`_handle_reaching`), but backs off from beside them.
+        let mut spider = monster("orb spider").clone();
+        spider.spells = MonsterSpells::Book { spells: Vec::new() };
+        spider.attacks[0].flavour = EnumId("AF_REACH".to_owned());
+        let held = unarmed(&spider, 2);
+        assert!(can_attack(bundle().formulas, &held));
+        assert!(
+            turns_of(&held, 1_000)
+                .iter()
+                .all(|turn| turn.melee >= 1 && turn.closed == 0)
+        );
+        let beside = turns_of(&unarmed(&spider, 1), 1_000);
+        assert!(beside.iter().all(|turn| turn.closed == -1), "{beside:?}");
+        assert!(beside.iter().any(|turn| turn.melee == 1));
     }
 
     /// The shipped 0.34.1 bundle.
