@@ -15,8 +15,8 @@ use crate::crawl_ids::{missile_types, monster_types, object_classes};
 use super::brands::{Brand, Necromancy};
 use super::lighting::Lighting;
 use super::melee::{
-    self, Attack, Defences, DisplayedDefences, ENERGY_THRESHOLD, Fighter, Hands, Target, Wielded,
-    attack_reach, energy_gained, starting_energy,
+    self, Attack, BASELINE_DELAY, Defences, DisplayedDefences, ENERGY_THRESHOLD, Fighter, Hands,
+    Target, Wielded, attack_reach, energy_gained, starting_energy,
 };
 use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
@@ -53,7 +53,7 @@ pub(crate) struct Defender {
 impl Defender {
     /// The player as one trial's attacks meet them: in their light, with the fraction of their
     /// defences the display drops drawn afresh ([`Defences::drawn_behind`]).
-    fn target(&self, rng: &mut Rng) -> Target {
+    pub(crate) fn target(&self, rng: &mut Rng) -> Target {
         Target {
             defences: Defences::drawn_behind(self.defences, rng),
             lighting: self.lighting,
@@ -788,134 +788,214 @@ pub(crate) fn turn(
     hp: i32,
     blocks_left: &mut u32,
 ) -> Turn {
-    let monster = attacker.monster;
-    let fighter = &attacker.fighter;
-    let reach = melee_reach(formulas, fighter, monster);
-    let mut distance = attacker.distance;
-    let mut energy = starting_energy(formulas.monster_energy, rng)
-        + energy_gained(formulas.monster_energy, rng, speed(monster));
-    let missiles = attacker.missiles.draw(rng);
-    let wand = attacker.wands.draw(rng);
-    let shooter = attacker.shooter;
-    let mut turn = Turn::default();
-    // The actions left before it can breathe again.
-    let mut breath_timeout: u32 = 0;
-    let mut first_action = true;
-    while energy >= ENERGY_THRESHOLD
-        && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
-    {
-        // It catches its breath after each action (`_post_monster_move`, `mon-act.cc:2569`).
-        if !first_action {
-            breath_timeout = breath_timeout.saturating_sub(1);
+    Engaged::new(formulas, rng, attacker, BASELINE_DELAY).act(
+        formulas,
+        rng,
+        target,
+        hp,
+        blocks_left,
+    )
+}
+
+/// A monster played out over one player action after another, in one trial: how far it is from
+/// the player, its energy, what it carries this trial and when it can breathe again.
+#[derive(Debug, Clone)]
+pub(crate) struct Engaged<'r, 'a> {
+    attacker: &'r Attacker<'a>,
+    /// Squares between it and the player.
+    pub(crate) distance: i32,
+    energy: i32,
+    missiles: Option<Missiles<'a>>,
+    wand: Option<WandZap<'a>>,
+    /// The actions left before it can breathe again.
+    breath_timeout: u32,
+    /// It has taken an action, after which it catches its breath.
+    acted: bool,
+    /// It blew itself up, and acts no more.
+    pub(crate) gone: bool,
+}
+
+impl<'r, 'a> Engaged<'r, 'a> {
+    /// `attacker` as the player's first action, lasting `time`, ends: with the energy crawl
+    /// leaves a monster that has acted and what it gained meanwhile, carrying what it draws this
+    /// trial.
+    pub(crate) fn new(
+        formulas: Formulas,
+        rng: &mut Rng,
+        attacker: &'r Attacker<'a>,
+        time: i32,
+    ) -> Self {
+        let speed = speed(attacker.monster);
+        let energy = starting_energy(formulas.monster_energy, rng)
+            + energy_gained(formulas.monster_energy, rng, speed, time);
+        Self {
+            attacker,
+            distance: attacker.distance,
+            energy,
+            missiles: attacker.missiles.draw(rng),
+            wand: attacker.wands.draw(rng),
+            breath_timeout: 0,
+            acted: false,
+            gone: false,
         }
-        first_action = false;
-        // Whether it would step toward the player this action, which crawl decides before it
-        // tries anything (`_find_best_step`, `mon-act.cc:2280`).
-        let steps = step::steps(formulas.monster_step, rng, monster.watched_step, distance);
-        // A monster tries its spells first, then its wand, then its missiles
-        // (`_mons_take_special_action`, `mon-act.cc:1840`).
-        let can_breathe = breath_timeout == 0;
-        if let Some(cast) = choose_cast(formulas, rng, &attacker.spells, distance, can_breathe) {
-            turn.casts += 1;
-            if cast.reach.strikes >= distance {
-                let firing = Firing {
-                    spell: &cast.spell,
-                    power: cast.power,
-                    nightvision: monster.nightvision,
-                };
-                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                land(&cast.spell, &mut distance, &mut turn);
+    }
+
+    /// The monster it is.
+    pub(crate) fn attacker(&self) -> &'r Attacker<'a> {
+        self.attacker
+    }
+
+    /// Gives it the energy it gains while the player takes another action, lasting `time`.
+    pub(crate) fn gain(&mut self, formulas: Formulas, rng: &mut Rng, time: i32) {
+        let speed = speed(self.attacker.monster);
+        self.energy += energy_gained(formulas.monster_energy, rng, speed, time);
+    }
+
+    /// Plays out its actions, while it has the energy, against `target`, on `hp` as it starts,
+    /// whose shield has `blocks_left` blocks left this action.
+    pub(crate) fn act(
+        &mut self,
+        formulas: Formulas,
+        rng: &mut Rng,
+        target: Target,
+        hp: i32,
+        blocks_left: &mut u32,
+    ) -> Turn {
+        let attacker = self.attacker;
+        let monster = attacker.monster;
+        let fighter = &attacker.fighter;
+        let reach = melee_reach(formulas, fighter, monster);
+        let (missiles, wand) = (self.missiles, self.wand);
+        let shooter = attacker.shooter;
+        let mut turn = Turn::default();
+        while !self.gone
+            && self.energy >= ENERGY_THRESHOLD
+            && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
+        {
+            // It catches its breath after each action (`_post_monster_move`, `mon-act.cc:2569`).
+            if self.acted {
+                self.breath_timeout = self.breath_timeout.saturating_sub(1);
             }
-            if cast.slot.breath {
-                breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
+            self.acted = true;
+            // Whether it would step toward the player this action, which crawl decides before it
+            // tries anything (`_find_best_step`, `mon-act.cc:2280`).
+            let steps = step::steps(
+                formulas.monster_step,
+                rng,
+                monster.watched_step,
+                self.distance,
+            );
+            // A monster tries its spells first, then its wand, then its missiles
+            // (`_mons_take_special_action`, `mon-act.cc:1840`).
+            let can_breathe = self.breath_timeout == 0;
+            if let Some(cast) =
+                choose_cast(formulas, rng, &attacker.spells, self.distance, can_breathe)
+            {
+                turn.casts += 1;
+                if cast.reach.strikes >= self.distance {
+                    let firing = Firing {
+                        spell: &cast.spell,
+                        power: cast.power,
+                        nightvision: monster.nightvision,
+                    };
+                    turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                    land(&cast.spell, &mut self.distance, &mut turn);
+                }
+                if cast.slot.breath {
+                    self.breath_timeout =
+                        spells::breath_timeout(formulas.monster_spell_choice, rng);
+                }
+                // An instant spell takes no time, and the monster goes on to act
+                // (`handle_mon_spell`, `mon-cast.cc:5228`).
+                if !cast.slot.instant {
+                    self.energy -= cost(monster.energy.spell);
+                    continue;
+                }
             }
-            // An instant spell takes no time, and the monster goes on to act
-            // (`handle_mon_spell`, `mon-cast.cc:5228`).
-            if !cast.slot.instant {
-                energy -= cost(monster.energy.spell);
+            // Its tracer must find the player (`_handle_wand`).
+            if let Some(zap) = wand
+                && wands::zaps(formulas.monster_wand, rng)
+                && zap.reach.casts >= self.distance
+            {
+                if zap.reach.strikes >= self.distance {
+                    let firing = Firing {
+                        spell: &zap.spell,
+                        power: zap.power,
+                        nightvision: monster.nightvision,
+                    };
+                    turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                    land(&zap.spell, &mut self.distance, &mut turn);
+                }
+                self.energy -= wands::energy(formulas.monster_wand);
                 continue;
             }
-        }
-        // Its tracer must find the player (`_handle_wand`).
-        if let Some(zap) = wand
-            && wands::zaps(formulas.monster_wand, rng)
-            && zap.reach.casts >= distance
-        {
-            if zap.reach.strikes >= distance {
-                let firing = Firing {
-                    spell: &zap.spell,
-                    power: zap.power,
-                    nightvision: monster.nightvision,
-                };
-                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                land(&zap.spell, &mut distance, &mut turn);
+            if let Some(missiles) = missiles
+                && let Some(missile) = missiles::fires(
+                    formulas.monster_fire,
+                    rng,
+                    missiles,
+                    monster.prefers_ranged,
+                    self.distance,
+                )
+            {
+                let shot =
+                    missiles::shoot(formulas, rng, shooter, missile, target, *blocks_left > 0);
+                if shot.blocked {
+                    *blocks_left -= 1;
+                }
+                turn.damage += shot.damage;
+                self.energy -=
+                    missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
+                continue;
             }
-            energy -= wands::energy(formulas.monster_wand);
-            continue;
-        }
-        if let Some(missiles) = missiles
-            && let Some(missile) = missiles::fires(
-                formulas.monster_fire,
-                rng,
-                missiles,
-                monster.prefers_ranged,
-                distance,
-            )
-        {
-            let shot = missiles::shoot(formulas, rng, shooter, missile, target, *blocks_left > 0);
-            if shot.blocked {
-                *blocks_left -= 1;
+            // Beside the player it attacks by stepping into them; from farther, a reaching attack
+            // needs no step.
+            if reach == 0 || self.distance > reach || (self.distance == 1 && !steps) {
+                // It walks straight at the player, unless it never moves or doesn't step: walls and
+                // other monsters aren't modelled.
+                if steps && !monster.stationary && self.distance > 1 {
+                    self.distance -= 1;
+                    turn.closed += 1;
+                }
+                self.energy -= cost(monster.energy.walk);
+                continue;
             }
-            turn.damage += shot.damage;
-            energy -= missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
-            continue;
-        }
-        // Beside the player it attacks by stepping into them; from farther, a reaching attack
-        // needs no step.
-        if reach == 0 || distance > reach || (distance == 1 && !steps) {
-            // It walks straight at the player, unless it never moves or doesn't step: walls and
-            // other monsters aren't modelled.
-            if steps && !monster.stationary && distance > 1 {
-                distance -= 1;
-                turn.closed += 1;
+            turn.melee += 1;
+            // One that blows up as it dies blows itself up as it attacks, before any roll, and acts
+            // no more (`melee_attack::attack`, `melee-attack.cc:1816`).
+            if monster.torments_as_it_dies {
+                turn.damage += torment::damage(formulas.torment, hp - turn.damage, target.resists);
+                self.gone = true;
+                break;
             }
-            energy -= cost(monster.energy.walk);
-            continue;
-        }
-        turn.melee += 1;
-        // One that blows up as it dies blows itself up as it attacks, before any roll, and acts
-        // no more (`melee_attack::attack`, `melee-attack.cc:1816`).
-        if monster.torments_as_it_dies {
-            turn.damage += torment::damage(formulas.torment, hp - turn.damage, target.resists);
-            break;
-        }
-        // Every attack it makes, as one melee action makes them
-        // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
-        for (_, attack, weapon) in attacks_from(formulas, fighter, monster, distance) {
-            let weapon = weapon.map(|wielded| wielded.weapon);
-            let swing = melee::swing(
+            // Every attack it makes, as one melee action makes them
+            // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
+            for (_, attack, weapon) in attacks_from(formulas, fighter, monster, self.distance) {
+                let weapon = weapon.map(|wielded| wielded.weapon);
+                let swing = melee::swing(
+                    formulas,
+                    rng,
+                    fighter,
+                    attack,
+                    weapon,
+                    target,
+                    *blocks_left > 0,
+                );
+                if swing.blocked {
+                    *blocks_left -= 1;
+                }
+                turn.damage += swing.damage;
+            }
+            self.energy -= melee::melee_energy(
                 formulas,
                 rng,
                 fighter,
-                attack,
-                weapon,
-                target,
-                *blocks_left > 0,
+                first_attack(monster),
+                cost(monster.energy.attack),
             );
-            if swing.blocked {
-                *blocks_left -= 1;
-            }
-            turn.damage += swing.damage;
         }
-        energy -= melee::melee_energy(
-            formulas,
-            rng,
-            fighter,
-            first_attack(monster),
-            cost(monster.energy.attack),
-        );
+        turn
     }
-    turn
 }
 
 /// Moves a monster `distance` squares from the player to where casting `spell` at them leaves

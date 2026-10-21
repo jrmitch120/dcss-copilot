@@ -1,17 +1,20 @@
 //! Crawl's adjustment of the damage the player takes for their resistances, holiness and god,
 //! ported closely (ADR 0002) behind the formula variant a Game Knowledge bundle names:
 //! `check_your_resists` (`ouch.cc:110`) for a beam that hits them, and `resist_adjust_damage`
-//! (`fight.cc:853`), which it and the brands (`brands.rs`) call.
+//! (`fight.cc:853`), which it and the brands (`brands.rs`) call. Also the same for a beam the
+//! player fires at a monster: `mons_adjust_flavoured` (`beam.cc:1488`) and the monster's `res_`
+//! functions.
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1).
 
 use copilot_gk::{
-    Bundle, EnumId, Form, FormHoliness, HolinessSigns, ResistDamage, Species, Torment, Undeadness,
+    Bundle, EnumId, Form, FormHoliness, HolinessSigns, Monster, PlayerBeam, ResistDamage, Species,
+    Torment, Undeadness,
 };
 
 use super::torment::{self, Share};
 
-use crate::crawl_ids::beam_types;
+use crate::crawl_ids::{beam_types, holinesses};
 use crate::screen::{Resistance, Resistances};
 use crate::visible_state::{Religion, Status};
 
@@ -313,6 +316,26 @@ pub(crate) enum Element {
     Holy,
     /// `BEAM_STEAM`, against `rSteam`.
     Steam,
+    /// `BEAM_MERCURY`: seven tenths of it against `rPois`.
+    Mercury,
+}
+
+impl Element {
+    /// The share of its damage a resistance can cut, in percent (`_get_resistible_fraction`,
+    /// `fight.cc:741`); whether its resistance claims to be all or nothing (`_is_boolean_resist`,
+    /// `fight.cc:723`); and whether three pips are immunity to the player (`resist_adjust_damage`,
+    /// `fight.cc:869`). Three pips are always immunity to a monster.
+    fn shape(self) -> (i32, bool, bool) {
+        match self {
+            Self::Fire | Self::Cold | Self::Acid | Self::Steam => (100, false, false),
+            Self::Lava | Self::Ice => (50, false, false),
+            Self::Electricity => (100, true, false),
+            Self::Thunder => (50, true, false),
+            Self::Negative | Self::Holy => (100, false, true),
+            Self::Poison => (100, true, true),
+            Self::PoisonArrow | Self::Mercury => (70, true, true),
+        }
+    }
 }
 
 /// What `check_your_resists` does to the damage of a beam that hits the player.
@@ -454,41 +477,179 @@ pub(crate) fn adjust(
 ) -> i32 {
     match variant {
         ResistDamage::Crawl034 => {
-            // The resistance, the percentage of the damage it can resist
-            // (`_get_resistible_fraction`), whether it claims to be all or nothing
-            // (`_is_boolean_resist`) and whether three pips are immunity.
-            let (res, fraction, boolean, immune_at_3) = match element {
-                Element::Fire => (resists.fire, 100, false, false),
-                Element::Lava => (resists.fire, 50, false, false),
-                Element::Cold => (resists.cold, 100, false, false),
-                Element::Ice => (resists.cold, 50, false, false),
-                Element::Electricity => (resists.electricity, 100, true, false),
-                Element::Thunder => (resists.electricity, 50, true, false),
-                Element::Negative => (resists.negative, 100, false, true),
-                Element::Poison => (resists.poison, 100, true, true),
-                Element::PoisonArrow => (resists.poison, 70, true, true),
-                Element::Acid => (resists.corrosion, 100, false, false),
-                Element::Holy => (resists.holy_energy(), 100, false, true),
-                Element::Steam => (resists.steam(), 100, false, false),
+            let res = match element {
+                Element::Fire | Element::Lava => resists.fire,
+                Element::Cold | Element::Ice => resists.cold,
+                Element::Electricity | Element::Thunder => resists.electricity,
+                Element::Negative => resists.negative,
+                Element::Poison | Element::PoisonArrow | Element::Mercury => resists.poison,
+                Element::Acid => resists.corrosion,
+                Element::Holy => resists.holy_energy(),
+                Element::Steam => resists.steam(),
             };
-            if res == 0 {
-                return damage;
-            }
-            let mut resistible = damage * fraction / 100;
-            let irresistible = damage - resistible;
-            if res > 0 {
-                if immune_at_3 && res >= 3 || res > 3 {
-                    resistible = 0;
-                } else if element == Element::Negative {
-                    resistible /= res * 2;
-                } else {
-                    resistible /= (3 * res + 1) / 2 + i32::from(boolean);
-                }
-            } else {
-                resistible = resistible * 15 / 10;
-            }
-            (resistible + irresistible).max(0)
+            resisted(element, res, false, damage)
         }
+    }
+}
+
+/// `damage` of `element` as it hurts one who resists it at `res` pips, a monster or the player:
+/// `resist_adjust_damage` (`fight.cc:853`).
+fn resisted(element: Element, res: i32, monster: bool, damage: i32) -> i32 {
+    let (fraction, boolean, immune_at_3) = element.shape();
+    if res == 0 {
+        return damage;
+    }
+    let mut resistible = damage * fraction / 100;
+    let irresistible = damage - resistible;
+    if res > 0 {
+        if (monster || immune_at_3) && res >= 3 || res > 3 {
+            resistible = 0;
+        } else if monster {
+            // Monster resistances are stronger than the player's.
+            resistible /= 1 + i32::from(boolean) + res * res;
+        } else if element == Element::Negative {
+            resistible /= res * 2;
+        } else {
+            resistible /= (3 * res + 1) / 2 + i32::from(boolean);
+        }
+    } else {
+        resistible = resistible * 15 / 10;
+    }
+    (resistible + irresistible).max(0)
+}
+
+/// A monster's resistances as a beam the player fires meets them: its kind's, with what its
+/// holiness adds (`_apply_holiness_resists`, `mon-util.cc:270`), as the monster's `res_` functions
+/// read them for one with nothing worn and no statuses (`monster.cc:3620` to `monster.cc:3923`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct MonsterResistances {
+    fire: i32,
+    cold: i32,
+    electricity: i32,
+    poison: i32,
+    negative: i32,
+    corrosion: i32,
+    steam: i32,
+    holy: i32,
+}
+
+impl MonsterResistances {
+    /// A monster of `monster`'s kind, as `variant` reads it.
+    pub(crate) fn of(variant: PlayerBeam, monster: &Monster) -> Self {
+        match variant {
+            PlayerBeam::Crawl034 => {
+                let is = |holiness: &str| monster.holiness.iter().any(|id| id.0 == holiness);
+                let (natural, plant) = (is(holinesses::NATURAL), is(holinesses::PLANT));
+                let (undead, demonic) = (is(holinesses::UNDEAD), is(holinesses::DEMONIC));
+                let resists = monster.resists;
+                // `monster::res_fire` and `monster::res_cold` keep to -3 to 3.
+                let fire = resists.fire.clamp(-3, 3);
+                Self {
+                    fire,
+                    cold: resists.cold.clamp(-3, 3),
+                    electricity: resists.elec,
+                    // The undead and the nonliving resist poison fully.
+                    poison: if undead || is(holinesses::NONLIVING) {
+                        3
+                    } else {
+                        resists.poison
+                    },
+                    // Everything but natural creatures and plants resists negative energy fully.
+                    negative: if natural || plant {
+                        resists.neg.min(3)
+                    } else {
+                        3
+                    },
+                    corrosion: resists.corr.min(3),
+                    // `monster::res_steam`: half its resistance to fire, rounded up, adds.
+                    steam: (resists.steam + (fire + 1) / 2).min(3),
+                    // `monster::res_holy_energy`, for a monster of no god.
+                    holy: if undead || demonic {
+                        -1
+                    } else if is(holinesses::HOLY) {
+                        3
+                    } else {
+                        0
+                    },
+                }
+            }
+        }
+    }
+
+    /// Its pips against `element`.
+    fn against(self, element: Element) -> i32 {
+        match element {
+            Element::Fire | Element::Lava => self.fire,
+            Element::Cold | Element::Ice => self.cold,
+            Element::Electricity | Element::Thunder => self.electricity,
+            Element::Negative => self.negative,
+            Element::Poison | Element::PoisonArrow | Element::Mercury => self.poison,
+            Element::Acid => self.corrosion,
+            Element::Holy => self.holy,
+            Element::Steam => self.steam,
+        }
+    }
+}
+
+/// What `mons_adjust_flavoured` does to the damage of a beam that hits a monster.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum MonsterBeamResist {
+    /// Nothing the monster resists changes it.
+    Unresisted,
+    /// `resist_adjust_damage` adjusts it for this element.
+    Adjusted(Element),
+}
+
+/// What `mons_adjust_flavoured` (`beam.cc:1488`) does to a beam of `flavour`, a `beam_type`
+/// identifier, that hits a monster, as `variant` does it: `None` for a flavour the port doesn't
+/// know.
+pub(crate) fn monster_beam(variant: PlayerBeam, flavour: &EnumId) -> Option<MonsterBeamResist> {
+    match variant {
+        PlayerBeam::Crawl034 => {
+            let element = match flavour.0.as_str() {
+                beam_types::FIRE => Element::Fire,
+                beam_types::LAVA => Element::Lava,
+                beam_types::COLD => Element::Cold,
+                beam_types::ICE => Element::Ice,
+                beam_types::ELECTRICITY | beam_types::STUN_BOLT => Element::Electricity,
+                beam_types::THUNDER => Element::Thunder,
+                beam_types::NEG => Element::Negative,
+                beam_types::POISON => Element::Poison,
+                beam_types::POISON_ARROW => Element::PoisonArrow,
+                beam_types::MERCURY => Element::Mercury,
+                beam_types::ACID => Element::Acid,
+                beam_types::HOLY => Element::Holy,
+                beam_types::STEAM => Element::Steam,
+                // Flavours its switch has no case for, or none that changes damage.
+                beam_types::MISSILE
+                | beam_types::MMISSILE
+                | beam_types::FRAG
+                | beam_types::DEVASTATION
+                | beam_types::BOLAS
+                | beam_types::CRYSTALLISING
+                | beam_types::LIGHT => return Some(MonsterBeamResist::Unresisted),
+                _ => return None,
+            };
+            Some(MonsterBeamResist::Adjusted(element))
+        }
+    }
+}
+
+/// The damage a beam that `resist` adjusts deals a monster that resists as `resistances`,
+/// `damage` after armour: `mons_adjust_flavoured` (`beam.cc:1488`).
+pub(crate) fn monster_beam_damage(
+    variant: PlayerBeam,
+    resist: MonsterBeamResist,
+    resistances: MonsterResistances,
+    damage: i32,
+) -> i32 {
+    match variant {
+        PlayerBeam::Crawl034 => match resist {
+            MonsterBeamResist::Unresisted => damage,
+            MonsterBeamResist::Adjusted(element) => {
+                resisted(element, resistances.against(element), true, damage)
+            }
+        },
     }
 }
 

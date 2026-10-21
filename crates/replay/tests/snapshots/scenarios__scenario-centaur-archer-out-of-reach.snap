@@ -31,6 +31,7 @@ expression: replay
           },
           "worstHit": 22,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "centaur",
@@ -161,6 +162,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -178,7 +187,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 22 of 102 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -192,6 +201,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -234,6 +249,7 @@ expression: replay
           },
           "worstHit": 22,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "centaur",
@@ -364,6 +380,14 @@ expression: replay
             "playerSpeed",
             "hitsOnTheWay"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -381,7 +405,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 22 of 93 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -395,6 +419,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -439,6 +469,7 @@ expression: replay
         },
         "worstHit": 22,
         "hostilesInView": 1,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "centaur",
@@ -569,6 +600,14 @@ expression: replay
           "playerSpeed",
           "hitsOnTheWay"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
       }
     },
     "game": {
@@ -586,7 +625,7 @@ expression: replay
         "detail": "Death under 0.1% · worst hit 22 of 84 HP"
       },
       "focus": {
-        "card": "inView",
+        "card": "fight",
         "monsters": [
           {
             "depiction": {
@@ -600,6 +639,12 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
         ]
       },
       "waysOut": {

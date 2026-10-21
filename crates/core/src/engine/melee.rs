@@ -92,13 +92,13 @@ pub const AUTOMATIC_HIT: i32 = 1500;
 
 /// `MIN_HIT_MISS_PERCENTAGE` (`defines.h:147`): the chance in 100 that an attack ignores
 /// evasion, hitting or missing outright with equal odds.
-const MIN_HIT_MISS_PERCENTAGE: i32 = 5;
+pub(crate) const MIN_HIT_MISS_PERCENTAGE: i32 = 5;
 
 /// `ENERGY_THRESHOLD` (`monster.cc:5353`): a monster acts while it has this much energy.
 pub(crate) const ENERGY_THRESHOLD: i32 = 80;
 
 /// `BASELINE_DELAY` (`defines.h:149`): the time a standard-speed player action takes.
-const BASELINE_DELAY: i32 = 10;
+pub(crate) const BASELINE_DELAY: i32 = 10;
 
 /// The player as a monster's attack meets them: their defences, how the light falls on them, and
 /// what they resist.
@@ -695,13 +695,14 @@ pub(crate) fn starting_energy(variant: MonsterEnergy, rng: &mut Rng) -> i32 {
     }
 }
 
-/// The energy a monster of this speed gains while the player takes a standard-speed action:
-/// `_monster_add_energy` (`mon-act.cc:1653`) with `you.time_taken` at `BASELINE_DELAY`.
-pub(crate) fn energy_gained(variant: MonsterEnergy, rng: &mut Rng, speed: i32) -> i32 {
+/// The energy a monster of this speed gains while the player takes an action lasting `time`, in
+/// crawl's units where a standard-speed action takes [`BASELINE_DELAY`]: `_monster_add_energy`
+/// (`mon-act.cc:1653`) with `you.time_taken` at `time`.
+pub(crate) fn energy_gained(variant: MonsterEnergy, rng: &mut Rng, speed: i32, time: i32) -> i32 {
     match variant {
         MonsterEnergy::Crawl034 => {
             if speed > 0 {
-                rng.div_rand_round(speed * BASELINE_DELAY, 10)
+                rng.div_rand_round(speed * time, 10)
             } else {
                 0
             }
@@ -1036,7 +1037,7 @@ mod tests {
         // Starting at 70..=79 and gaining 14, it acts once at 84..=93, and again only from 90.
         let twice = chance(|rng| {
             let energy = starting_energy(MonsterEnergy::Crawl034, rng)
-                + energy_gained(MonsterEnergy::Crawl034, rng, 14);
+                + energy_gained(MonsterEnergy::Crawl034, rng, 14, BASELINE_DELAY);
             energy - 10 >= ENERGY_THRESHOLD
         });
         assert!((twice - 0.4).abs() < 0.005, "{twice}");

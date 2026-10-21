@@ -31,6 +31,7 @@ expression: replay
           },
           "worstHit": 3,
           "hostilesInView": 1,
+          "bestPlanWin": null,
           "acting": [
             {
               "name": "jackal",
@@ -221,6 +222,14 @@ expression: replay
             "hitsOnTheWay",
             "ownConditions"
           ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
         }
       },
       "game": {
@@ -238,7 +247,7 @@ expression: replay
           "detail": "Death under 0.1% · worst hit 3 of 19 HP"
         },
         "focus": {
-          "card": "inView",
+          "card": "fight",
           "monsters": [
             {
               "depiction": {
@@ -252,6 +261,12 @@ expression: replay
               "detail": null,
               "count": 1
             }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
           ]
         },
         "waysOut": {
@@ -317,6 +332,7 @@ expression: replay
         },
         "worstHit": 3,
         "hostilesInView": 1,
+        "bestPlanWin": null,
         "acting": [
           {
             "name": "jackal",
@@ -524,6 +540,14 @@ expression: replay
           "hitsOnTheWay",
           "ownConditions"
         ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
       }
     },
     "game": {
@@ -541,7 +565,7 @@ expression: replay
         "detail": "Death under 0.1% · worst hit 3 of 28 HP"
       },
       "focus": {
-        "card": "inView",
+        "card": "fight",
         "monsters": [
           {
             "depiction": {
@@ -555,6 +579,12 @@ expression: replay
             "detail": null,
             "count": 1
           }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
         ]
       },
       "waysOut": {

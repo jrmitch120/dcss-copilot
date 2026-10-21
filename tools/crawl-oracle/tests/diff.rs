@@ -1,7 +1,9 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
 //! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
-//! block and reach cases with 33 turn cases and its torment cases (all seed 34).
+//! block and reach cases with 33 turn cases and its torment cases; and 24 cases of the player
+//! attacking monsters in melee, with launchers and thrown missiles and with spells' beams, and of
+//! the hit points monsters are made with (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -453,4 +455,60 @@ fn a_watched_monster_walking_up_as_if_unwatched_is_caught() {
         case["closed"] = serde_json::json!({ "1": 20_000 });
     });
     assert_eq!(caught(&dump), [(754, Measure::Closed)]);
+}
+
+const PLAYER: &str = include_str!("fixtures/player-0.34.1.jsonl");
+
+#[test]
+fn the_engine_agrees_with_crawl_on_every_player_case() {
+    let report = diff(PLAYER).unwrap();
+    assert_eq!(report.cases, 24);
+    assert!(report.mismatches.is_empty(), "{report}");
+}
+
+#[test]
+fn a_heavy_weapon_played_as_plain_is_caught() {
+    // Case 0 swings a +4 heavy weapon: plain, it hits for five ninths as much and sooner.
+    let dump = with_changed(PLAYER, 0, |case| {
+        case["weapon"]["brand"] = "SPWPN_NORMAL".into();
+    });
+    let measures: Vec<Measure> = caught(&dump).into_iter().map(|(_, m)| m).collect();
+    assert!(measures.contains(&Measure::Damage), "{measures:?}");
+    assert!(measures.contains(&Measure::AttackDelay), "{measures:?}");
+}
+
+#[test]
+fn a_thrown_missiles_skill_read_too_low_is_caught() {
+    // Case 1 throws a javelin at Throwing 21.4: at a third of that, it hits less often.
+    let dump = with_changed(PLAYER, 1, |case| {
+        let skill = case["skill"].as_i64().unwrap();
+        case["skill"] = (skill / 3).into();
+    });
+    let measures: Vec<Measure> = caught(&dump).into_iter().map(|(_, m)| m).collect();
+    assert!(measures.contains(&Measure::ToHit), "{measures:?}");
+}
+
+#[test]
+fn a_beam_at_other_power_is_caught() {
+    // Case 6's corrosive bolt at power 40: at 80 its accuracy and dice are both greater.
+    let dump = with_changed(PLAYER, 6, |case| case["power"] = 80.into());
+    let measures: Vec<Measure> = caught(&dump).into_iter().map(|(_, m)| m).collect();
+    assert!(measures.contains(&Measure::BeamToHit), "{measures:?}");
+    assert!(measures.contains(&Measure::Damage), "{measures:?}");
+}
+
+#[test]
+fn a_wand_zapped_with_other_evocations_is_caught() {
+    let dump = with_changed(PLAYER, 10, |case| {
+        let evocations = case["evocations"].as_i64().unwrap();
+        case["evocations"] = (evocations + 179_200 * 4).into();
+    });
+    assert_eq!(caught(&dump), [(10, Measure::WandPower)]);
+}
+
+#[test]
+fn another_kinds_hit_points_are_caught() {
+    // Case 3 makes draconian knights; a jackal has far fewer hit points.
+    let dump = with_changed(PLAYER, 3, |case| case["monster"] = 0.into());
+    assert_eq!(caught(&dump), [(3, Measure::HitPoints)]);
 }

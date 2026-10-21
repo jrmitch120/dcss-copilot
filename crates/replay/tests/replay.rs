@@ -267,6 +267,25 @@ fn the_spell_list_and_the_ability_menu_are_remembered_with_failure_rates_and_cos
 }
 
 #[test]
+fn the_skills_screen_is_remembered_with_each_skills_level() {
+    let mut replayer = replayer(SCREENS);
+    while !replayer.at_end() {
+        replayer.step();
+    }
+    let remembered = replayer.advisor().accumulated().unwrap();
+
+    let skills = remembered.skills.known().unwrap();
+    assert_eq!(
+        skills.tenths,
+        [("Dodging", 21), ("Fighting", 53), ("Maces & Flails", 40)]
+            .into_iter()
+            .map(|(name, tenths)| (name.to_owned(), tenths))
+            .collect()
+    );
+    assert_eq!(skills.tenths("Axes"), 0);
+}
+
+#[test]
 fn crawl_saying_there_is_nothing_to_list_is_remembered_as_no_spells_and_no_abilities() {
     let mut replayer = replayer(include_bytes!(
         "scenarios/monk-has-no-spells-or-abilities.dcssrec"

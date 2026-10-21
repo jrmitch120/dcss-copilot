@@ -314,6 +314,9 @@ const TENTACLE_TABLES: &[(&str, usize)] =
 /// Where crawl's tiles live inside its game source.
 const RLTILES_DIR: &str = "rltiles";
 
+/// The enumerator that ends `skill_type`'s skills.
+const SKILLS_END: &str = "NUM_SKILLS";
+
 /// The enumerator that ends `object_class_type`'s item classes.
 const OBJECT_CLASSES_END: &str = "NUM_OBJECT_CLASSES";
 
@@ -565,6 +568,11 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         ],
     )?;
     crawl.require("object-class-type.h", &["object_class_type"], [gear::WANDS])?;
+    crawl.require(
+        "mon-holy-type.h",
+        &["mon_holy_type_flags"],
+        [yaml::DEFAULT_HOLINESS],
+    )?;
     crawl.require("feature.h", &["feature_flag_type"], [features::SOLID_FLAG])?;
     crawl.require("map-feature.h", &["map_feature"], features::MAP_FEATURES)?;
     crawl.require(
@@ -612,6 +620,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         weapon_brands: crawl.weapon_brands()?,
         holiness: crawl.holiness(series.holiness, &species)?,
         species,
+        skills: crawl.skills()?,
         features: features::features(
             &crawl.parse("feature-data.h")?,
             "feature-data.h",
@@ -795,6 +804,31 @@ impl Crawl {
             );
         }
         Ok(classes)
+    }
+
+    /// Every skill before [`SKILLS_END`], by its `skill_type` identifier, named by the first
+    /// column of its row of `skill_titles` in `skills.cc`, which lists them in the enum's order.
+    fn skills(&self) -> Result<BTreeMap<EnumId, String>, ExtractError> {
+        let file = "skills.cc";
+        let unreadable = |what: &str| ExtractError::Unreadable {
+            file: file.to_owned(),
+            what: what.to_owned(),
+        };
+        let names = self
+            .parse(file)?
+            .entries("skill_titles")?
+            .into_iter()
+            .map(|row| match row.first().map(Vec::as_slice) {
+                Some([Token::Str(name)]) => Ok(name.clone()),
+                _ => Err(unreadable("a row of skill_titles")),
+            })
+            .collect::<Result<Vec<String>, ExtractError>>()?;
+        let skills: BTreeMap<i64, EnumId> =
+            self.values("skill-type.h", "skill_type", SKILLS_END)?;
+        if skills.len() != names.len() {
+            return Err(unreadable("as many rows of skill_titles as skills"));
+        }
+        Ok(skills.into_values().zip(names).collect())
     }
 
     /// The brands a weapon may have, by `brand_type` identifier, with how a weapon's name shows

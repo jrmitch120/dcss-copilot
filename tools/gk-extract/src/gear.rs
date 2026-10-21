@@ -454,21 +454,22 @@ impl Gear {
 ///
 /// A `Weapon_prop` entry's fields are, in order: identifier, name, damage, accuracy, speed and
 /// skill (`struct weapon_def`); a `Missile_prop` entry's: identifier, name, damage, mulch rate
-/// and price (`struct missile_def`).
+/// and price (`struct missile_def`). A launcher keeps its speed, a thrown missile its mulch
+/// rate.
 pub fn missile_weapons(
     item_prop: &Source,
     file: &str,
 ) -> Result<BTreeMap<EnumId, MissileWeapon>, ExtractError> {
     let mut weapons = BTreeMap::new();
     for fields in item_prop.entries("Weapon_prop")? {
-        let [id, name, damage, accuracy, _, skill, ..] = fields.as_slice() else {
+        let [id, name, damage, accuracy, speed, skill, ..] = fields.as_slice() else {
             return Err(unreadable(file, "an entry of Weapon_prop"));
         };
         if identifier(skill) != Some(LAUNCHER_SKILL) {
             continue;
         }
         let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a launcher"))?;
-        let what = format!("the damage or accuracy of {id}");
+        let what = format!("the damage, accuracy or speed of {id}");
         weapons.insert(
             EnumId(id.to_owned()),
             MissileWeapon {
@@ -476,11 +477,13 @@ pub fn missile_weapons(
                 kind: MissileKind::Launcher,
                 damage: integer(damage).ok_or_else(|| unreadable(file, &what))?,
                 accuracy: integer(accuracy).ok_or_else(|| unreadable(file, &what))?,
+                delay: Some(integer(speed).ok_or_else(|| unreadable(file, &what))?),
+                mulch: None,
             },
         );
     }
     for fields in item_prop.entries("Missile_prop")? {
-        let [id, name, damage, ..] = fields.as_slice() else {
+        let [id, name, damage, mulch, ..] = fields.as_slice() else {
             return Err(unreadable(file, "an entry of Missile_prop"));
         };
         let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a missile"))?;
@@ -492,6 +495,11 @@ pub fn missile_weapons(
                 damage: integer(damage)
                     .ok_or_else(|| unreadable(file, &format!("the damage of {id}")))?,
                 accuracy: 0,
+                delay: None,
+                mulch: Some(
+                    integer(mulch)
+                        .ok_or_else(|| unreadable(file, &format!("the mulch rate of {id}")))?,
+                ),
             },
         );
     }
@@ -499,15 +507,15 @@ pub fn missile_weapons(
 }
 
 /// Every melee weapon in `Weapon_prop` (`item-prop.cc`): those trained by neither
-/// [`LAUNCHER_SKILL`] nor [`THROWING_SKILL`], with their damage, accuracy and reach. The entry's
-/// fields are read as [`missile_weapons`] reads them.
+/// [`LAUNCHER_SKILL`] nor [`THROWING_SKILL`], with their damage, accuracy, reach, skill and
+/// speed. The entry's fields are read as [`missile_weapons`] reads them.
 pub fn melee_weapons(
     item_prop: &Source,
     file: &str,
 ) -> Result<BTreeMap<EnumId, MeleeWeapon>, ExtractError> {
     let mut weapons = BTreeMap::new();
     for fields in item_prop.entries("Weapon_prop")? {
-        let [id, name, damage, accuracy, _, skill, ..] = fields.as_slice() else {
+        let [id, name, damage, accuracy, speed, skill, ..] = fields.as_slice() else {
             return Err(unreadable(file, "an entry of Weapon_prop"));
         };
         let skill = identifier(skill).ok_or_else(|| unreadable(file, "a weapon's skill"))?;
@@ -515,7 +523,7 @@ pub fn melee_weapons(
             continue;
         }
         let (id, name) = id_and_name(id, name).ok_or_else(|| unreadable(file, "a weapon"))?;
-        let what = format!("the damage or accuracy of {id}");
+        let what = format!("the damage, accuracy or speed of {id}");
         weapons.insert(
             EnumId(id.to_owned()),
             MeleeWeapon {
@@ -527,6 +535,8 @@ pub fn melee_weapons(
                 } else {
                     MELEE_REACH
                 },
+                skill: EnumId(skill.to_owned()),
+                delay: integer(speed).ok_or_else(|| unreadable(file, &what))?,
             },
         );
     }

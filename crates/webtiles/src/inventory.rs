@@ -98,6 +98,18 @@ impl Inventory {
     }
 }
 
+impl Inventory {
+    /// The inventory letter of the item in `slot`, if it holds one.
+    pub fn letter_of(&self, slot: u16) -> Option<char> {
+        let fields = self.slots.get(&slot)?;
+        fields.quantity.filter(|&quantity| quantity > 0)?;
+        fields
+            .letter
+            .and_then(char::from_u32)
+            .or_else(|| letter(slot))
+    }
+}
+
 impl Slot {
     /// What the item is, through `bundle`: its sub-type only when the player knows it, as they
     /// know a scroll's only once it is identified, by the item or by its kind, which its `name`

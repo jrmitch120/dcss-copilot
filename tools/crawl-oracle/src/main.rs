@@ -3,7 +3,9 @@
 //!
 //! Usage: `crawl-oracle <dump>`, or `crawl-oracle -` to read the dump from standard input.
 //! `crawl-oracle ported-spells <crawl version>` prints the `spell_type` value of each spell the
-//! engine ports, one per line, for the spell harness to draw its cases from.
+//! engine ports, one per line, for the spell harness to draw its cases from, and
+//! `crawl-oracle player-zaps <crawl version>` those it ports as the player casts them, for the
+//! player harness.
 
 use std::io::Read;
 use std::process::ExitCode;
@@ -12,12 +14,18 @@ use anyhow::Context;
 
 fn main() -> anyhow::Result<ExitCode> {
     let usage = "usage: crawl-oracle <dump>, or - for standard input, \
-                 or crawl-oracle ported-spells <crawl version>";
+                 or crawl-oracle ported-spells <crawl version>, \
+                 or crawl-oracle player-zaps <crawl version>";
     let mut args = std::env::args().skip(1);
     let path = args.next().context(usage)?;
-    if path == "ported-spells" {
+    if path == "ported-spells" || path == "player-zaps" {
         let version = args.next().context(usage)?;
-        for spell in crawl_oracle::ported_spells(&version)? {
+        let spells = if path == "ported-spells" {
+            crawl_oracle::ported_spells(&version)?
+        } else {
+            crawl_oracle::player_zaps(&version)?
+        };
+        for spell in spells {
             println!("{spell}");
         }
         return Ok(ExitCode::SUCCESS);

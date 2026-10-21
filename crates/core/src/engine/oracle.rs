@@ -15,6 +15,7 @@ use crate::crawl_ids::monster_types;
 use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
+use super::player_attacks::{self, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Striker};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
@@ -326,6 +327,12 @@ pub enum CaseError {
     /// The engine doesn't port the spell a wand zaps.
     #[error("the engine doesn't port spell {0}, zapped from a wand")]
     WandNotPorted(u16),
+    /// The engine doesn't port the brand on the player's weapon, beyond its damage and delay.
+    #[error("the engine doesn't port the player's brand {0}")]
+    BrandNotPorted(String),
+    /// The engine doesn't port the spell as the player casts it.
+    #[error("the engine doesn't port spell {0} as the player casts it")]
+    PlayerZapNotPorted(u16),
     /// The spell isn't one the engine ports, or not in the monster's spellbook.
     #[error("the engine doesn't port spell {spell} as monster {monster} casts it")]
     NotPorted {
@@ -991,4 +998,279 @@ pub fn torment(bundle: &Bundle, case: &TormentCase, hp: i32) -> Result<i32, Case
         .collect();
     let resists = case.resists.read(bundle, &statuses)?;
     Ok(torment::damage(bundle.formulas.torment, hp, resists))
+}
+
+/// The player as a harness makes them attack: their Strength and Dexterity, and Fighting exactly
+/// as crawl rolls with it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+pub struct StrikerCase {
+    /// Strength.
+    pub strength: i32,
+    /// Dexterity.
+    pub dexterity: i32,
+    /// Fighting, as `you.skill(SK_FIGHTING, 179200)`: fine enough that every scale crawl reads a
+    /// skill at divides it.
+    pub fighting: i32,
+}
+
+impl From<StrikerCase> for Striker {
+    fn from(case: StrikerCase) -> Self {
+        Self {
+            strength: case.strength,
+            dexterity: case.dexterity,
+            fighting: DrawnSkill::exact(case.fighting),
+        }
+    }
+}
+
+/// One melee attack by the player on a monster, in the terms the ported formulas take.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlayerMeleeCase {
+    /// The player.
+    pub striker: StrikerCase,
+    /// The weapon they wield, or none for an unarmed attack.
+    pub weapon: Option<WeaponCase>,
+    /// The skill the attack trains, the weapon's or Unarmed Combat, as `you.skill(sk, 179200)`.
+    pub skill: i32,
+    /// The monster's `monster_type` value, whose Game Knowledge gives its AC and EV.
+    pub monster: u16,
+}
+
+/// One shot or throw by the player at a monster, in the terms the ported formulas take.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlayerShotCase {
+    /// The player.
+    pub striker: StrikerCase,
+    /// The launcher they wield or the missile they throw, by sub-type identifier.
+    pub weapon: EnumId,
+    /// A launcher's enchantment.
+    pub plus: i32,
+    /// A launcher's brand, by `brand_type` identifier.
+    pub brand: EnumId,
+    /// Ranged Weapons or Throwing, as `you.skill(sk, 179200)`.
+    pub skill: i32,
+    /// The monster's `monster_type` value.
+    pub monster: u16,
+}
+
+/// What many of the player's attacks on a monster came to, with how long each took.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PlayerTally {
+    /// How often each to-hit roll came up.
+    pub to_hit: BTreeMap<i32, u32>,
+    /// Attacks that got past the monster's evasion.
+    pub hits: u32,
+    /// How often each amount of damage, after armour, was dealt by an attack that hit.
+    pub damage: BTreeMap<i32, u32>,
+    /// Thrown missiles that broke as they landed.
+    pub broke: u32,
+    /// How often each delay came up.
+    pub delay: BTreeMap<i32, u32>,
+}
+
+impl PlayerTally {
+    fn add(&mut self, blow: player_attacks::Blow, delay: i32) {
+        *self.to_hit.entry(blow.to_hit).or_default() += 1;
+        self.hits += u32::from(blow.hits);
+        if blow.hits {
+            *self.damage.entry(blow.damage).or_default() += 1;
+        }
+        self.broke += u32::from(blow.broke);
+        *self.delay.entry(delay).or_default() += 1;
+    }
+}
+
+/// The monster numbered `monster` as the player's attacks meet it.
+fn defence(bundle: &Bundle, monster: u16) -> Result<Defence, CaseError> {
+    let known = bundle
+        .monster(monster)
+        .ok_or(CaseError::NoMonster(monster))?;
+    Ok(Defence::of(bundle.formulas.player_beam, known))
+}
+
+/// The heft of the player's weapon branded `brand`.
+fn heft(bundle: &Bundle, brand: &EnumId) -> Result<Heft, CaseError> {
+    Heft::of(bundle.formulas.player_attack, brand)
+        .ok_or_else(|| CaseError::BrandNotPorted(brand.0.clone()))
+}
+
+/// Runs `case` `trials` times through the ported formulas, from a generator seeded with
+/// `seed`, rolling the attack's delay as often.
+///
+/// # Errors
+/// If the bundle lacks the monster or the weapon, or the weapon's brand isn't ported.
+pub fn player_melee(
+    bundle: &Bundle,
+    case: &PlayerMeleeCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<PlayerTally, CaseError> {
+    let variant = bundle.formulas.player_attack;
+    let skill = DrawnSkill::exact(case.skill);
+    let hand = match &case.weapon {
+        None => Hand::Unarmed { skill },
+        Some(weapon) => Hand::Weapon {
+            weapon: bundle
+                .melee_weapons
+                .get(&weapon.weapon)
+                .ok_or_else(|| CaseError::NoMeleeWeapon(weapon.weapon.0.clone()))?,
+            plus: weapon.plus,
+            heft: heft(bundle, &weapon.brand)?,
+            skill,
+        },
+    };
+    let defence = defence(bundle, case.monster)?;
+    let striker = case.striker.into();
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = PlayerTally::default();
+    for _ in 0..trials {
+        let blow = player_attacks::swing(variant, &mut rng, striker, hand, defence);
+        let delay = player_attacks::melee_delay(variant, &mut rng, hand);
+        tally.add(blow, delay);
+    }
+    Ok(tally)
+}
+
+/// Runs `case` `trials` times through the ported formulas, from a generator seeded with
+/// `seed`, rolling the shot's delay as often.
+///
+/// # Errors
+/// If the bundle lacks the monster or the launcher or missile, or the launcher's brand isn't
+/// ported.
+pub fn player_shot(
+    bundle: &Bundle,
+    case: &PlayerShotCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<PlayerTally, CaseError> {
+    let variant = bundle.formulas.player_attack;
+    let (id, weapon) = bundle
+        .missile_weapons
+        .get_key_value(&case.weapon)
+        .ok_or_else(|| CaseError::NoMissileWeapon(case.weapon.0.clone()))?;
+    let shot = Shot {
+        weapon,
+        id,
+        plus: case.plus,
+        heft: heft(bundle, &case.brand)?,
+        skill: DrawnSkill::exact(case.skill),
+    };
+    let defence = defence(bundle, case.monster)?;
+    let striker = case.striker.into();
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = PlayerTally::default();
+    for _ in 0..trials {
+        let blow = player_attacks::shoot(variant, &mut rng, striker, shot, defence);
+        let delay = player_attacks::shot_delay(variant, &mut rng, shot);
+        tally.add(blow, delay);
+    }
+    Ok(tally)
+}
+
+/// A beam the player fires at a monster, from a spell or a wand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlayerBeamCase {
+    /// The spell's `spell_type` value.
+    pub spell: u16,
+    /// The power it is fired at.
+    pub power: i32,
+    /// The monster's `monster_type` value.
+    pub monster: u16,
+}
+
+/// What many of the player's beams at a monster came to.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PlayerBeamTally {
+    /// The beam's accuracy, `None` when it never misses.
+    pub to_hit: Option<i32>,
+    /// How often each amount of damage the monster took came up, 0 for a miss.
+    pub damage: BTreeMap<i32, u32>,
+}
+
+/// The `spell_type` value of every spell the engine ports when the player casts it, so a crawl
+/// harness can draw its cases from them.
+#[must_use]
+pub fn player_zaps(bundle: &Bundle) -> Vec<u16> {
+    bundle
+        .spells
+        .iter()
+        .filter(|(_, spell)| PlayerZap::of(bundle.formulas.player_beam, spell).is_some())
+        .map(|(&value, _)| value)
+        .collect()
+}
+
+/// The player's zap of the spell numbered `spell`.
+fn player_zap(bundle: &Bundle, spell: u16) -> Result<PlayerZap<'_>, CaseError> {
+    let known = bundle.spells.get(&spell).ok_or(CaseError::NoSpell(spell))?;
+    PlayerZap::of(bundle.formulas.player_beam, known).ok_or(CaseError::PlayerZapNotPorted(spell))
+}
+
+/// Fires `case`'s beam `trials` times through the ported formulas, from a generator seeded with
+/// `seed`.
+///
+/// # Errors
+/// If the bundle lacks the monster or the spell, or the engine doesn't port the spell.
+pub fn player_beam(
+    bundle: &Bundle,
+    case: &PlayerBeamCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<PlayerBeamTally, CaseError> {
+    let variant = bundle.formulas.player_beam;
+    let zap = player_zap(bundle, case.spell)?;
+    let beam = player_attacks::beam(variant, zap, case.power);
+    let defence = defence(bundle, case.monster)?;
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = PlayerBeamTally {
+        to_hit: zap.accuracy(case.power),
+        ..PlayerBeamTally::default()
+    };
+    for _ in 0..trials {
+        let blow = player_attacks::fire(variant, &mut rng, beam, defence);
+        *tally.damage.entry(blow.damage).or_default() += 1;
+    }
+    Ok(tally)
+}
+
+/// The power the player zaps a wand of the spell numbered `spell` with, at Evocations of
+/// `evocations`, as `you.skill(SK_EVOCATIONS, 179200)`.
+///
+/// # Errors
+/// If the bundle lacks the spell or the engine doesn't port it, or it has no power cap.
+pub fn wand_power(bundle: &Bundle, spell: u16, evocations: i32) -> Result<i32, CaseError> {
+    let cap = player_zap(bundle, spell)?
+        .power_cap()
+        .ok_or(CaseError::PlayerZapNotPorted(spell))?;
+    Ok(player_attacks::wand_power(
+        bundle.formulas.wand_power,
+        DrawnSkill::exact(evocations),
+        cap,
+    ))
+}
+
+/// How often each number of hit points came up for a monster numbered `monster` made `trials`
+/// times, from a generator seeded with `seed`.
+///
+/// # Errors
+/// If the bundle lacks the monster.
+pub fn monster_hit_points(
+    bundle: &Bundle,
+    monster: u16,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<BTreeMap<i32, u32>, CaseError> {
+    let known = bundle
+        .monster(monster)
+        .ok_or(CaseError::NoMonster(monster))?;
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = BTreeMap::new();
+    for _ in 0..trials {
+        let hp = player_attacks::monster_hit_points(
+            bundle.formulas.monster_hit_points,
+            &mut rng,
+            known.hp_10x,
+        );
+        *tally.entry(hp).or_default() += 1;
+    }
+    Ok(tally)
 }

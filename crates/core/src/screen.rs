@@ -1,6 +1,8 @@
 //! Screen reads: the screens the player opens, read as crawl wrote them, and what the core reads
 //! off them.
 
+use std::collections::BTreeMap;
+
 use serde::Serialize;
 
 /// A screen the player has open, read as plain text: crawl's own words, laid out as crawl lays
@@ -88,6 +90,49 @@ pub struct KnownSpell {
     pub level: u32,
 }
 
+/// A spell's power and range as the spell list shows them once the player switches it to its
+/// other columns (`!`): `_spell_extra_description` in crawl's `spl-cast.cc`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpellReach {
+    /// Its name, such as `Magic Dart`.
+    pub name: String,
+    /// The power the character casts it with, `None` for a spell the list gives none.
+    pub power: Option<SpellPower>,
+    /// How many squares it reaches, `None` for a spell the list gives no range.
+    pub range: Option<i32>,
+}
+
+/// The power a spell is cast with, as the spell list shows it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(tag = "shown", content = "value", rename_all = "camelCase")]
+pub enum SpellPower {
+    /// As a percentage of the most power the spell takes, rounded down
+    /// (`spell_power_percent`): a range of powers.
+    PercentOfCap(u32),
+    /// Exactly, as wizard mode shows it beside the most the spell takes
+    /// (`_wizard_spell_power_numeric_string`).
+    Exact(i32),
+}
+
+/// The character's skills, as the skills screen (`m`) or the character dump shows them: each
+/// skill's level in tenths, by the skill's name, such as `Maces & Flails`. A skill they haven't
+/// trained isn't shown, and is at level 0.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Skills {
+    /// Tenths of a level, by name: `you.skill(sk, 10)` as crawl shows it.
+    pub tenths: BTreeMap<String, u32>,
+}
+
+impl Skills {
+    /// The level of the skill named `name` in tenths: 0 when it isn't shown.
+    #[must_use]
+    pub fn tenths(&self, name: &str) -> u32 {
+        self.tenths.get(name).copied().unwrap_or(0)
+    }
+}
+
 /// An ability the character has, as the ability menu shows it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -129,6 +174,62 @@ impl ScreenRead {
                 })
             })
             .collect()
+    }
+
+    /// The power and range of each spell, when this is the spell list showing them rather than
+    /// failure rates: one per row as `a - Magic Dart    100%    1d7    4    Quiet`, the name,
+    /// the power, the damage, the range and the noise (`_spell_extra_description` in crawl's
+    /// `spl-cast.cc`), or with the power as `25 (50)` in wizard mode. `None` when a row reads
+    /// otherwise, as the list's failure rates do.
+    #[must_use]
+    pub fn spell_reaches(&self) -> Option<Vec<SpellReach>> {
+        if self.screen != Screen::Spells {
+            return None;
+        }
+        self.lines
+            .iter()
+            .filter_map(|line| menu_entry(line))
+            .map(|row| {
+                let columns = columns(row);
+                let [name, power, _damage, range, _noise] = columns.as_slice() else {
+                    return None;
+                };
+                Some(SpellReach {
+                    name: (*name).to_owned(),
+                    power: spell_power(power)?,
+                    range: spell_range(range)?,
+                })
+            })
+            .collect()
+    }
+
+    /// The skills, when this is the skills screen or the character dump.
+    ///
+    /// The skills screen draws each as ` a + Fighting        5.3`, a hotkey, whether it is
+    /// trained, its name padded to 15 and its level to one decimal, or whole once mastered,
+    /// and two to a row (`SkillMenuEntry::set_name` and `set_level` in crawl's `skill-menu.cc`);
+    /// other columns, such as the cost, follow the level. The dump writes one a line as
+    /// ` + Level 5.3 Fighting`, with the level in effect in brackets after the trained one when
+    /// they differ, such as `5.3(9.3)` (`dump_skills` in `skills.cc`).
+    ///
+    /// `None` when it shows no skill at all: every character has trained some, so the screen
+    /// isn't drawn yet, or the dump holds no skills section.
+    #[must_use]
+    pub fn skills(&self) -> Option<Skills> {
+        let tenths: BTreeMap<String, u32> = match self.screen {
+            Screen::Skills => self
+                .lines
+                .iter()
+                .flat_map(|line| menu_skills(line))
+                .collect(),
+            Screen::CharacterDump => self
+                .lines
+                .iter()
+                .filter_map(|line| dump_skill(line))
+                .collect(),
+            _ => return None,
+        };
+        (!tenths.is_empty()).then_some(Skills { tenths })
     }
 
     /// The abilities, when this is the ability menu: one per row as `a - Berserk    None    0%`,
@@ -174,6 +275,92 @@ fn columns(row: &str) -> Vec<&str> {
         .map(str::trim)
         .filter(|column| !column.is_empty())
         .collect()
+}
+
+/// A spell's power as the spell list shows it: `85%` of the most it takes, or `25 (50)` in
+/// wizard mode; `Some(None)` for `N/A`, and `None` for anything else.
+fn spell_power(column: &str) -> Option<Option<SpellPower>> {
+    if column == "N/A" {
+        return Some(None);
+    }
+    if let Some(percent) = percent(column) {
+        return Some(Some(SpellPower::PercentOfCap(percent)));
+    }
+    let (power, cap) = column.split_once(' ')?;
+    cap.strip_prefix('(')?
+        .strip_suffix(')')?
+        .parse::<i32>()
+        .ok()?;
+    Some(Some(SpellPower::Exact(power.parse().ok()?)))
+}
+
+/// A spell's range as the spell list shows it (`range_string` in crawl's `spl-cast.cc`): `5`,
+/// `4/7` with the range at the most power after it, or `2-5` with the least range it is cast
+/// at before it, the range now in each case; `Some(None)` for `N/A`, and `None` for anything
+/// else.
+fn spell_range(column: &str) -> Option<Option<i32>> {
+    if column == "N/A" {
+        return Some(None);
+    }
+    let range = column.rsplit_once('-').map_or(column, |(_, range)| range);
+    let range = range.split_once('/').map_or(range, |(now, _)| now);
+    Some(Some(range.parse().ok()?))
+}
+
+/// The skills a row of the skills screen shows, by name, in tenths of a level: each a name of
+/// words and `&` after a hotkey and a training sign, then its level. A number after another
+/// column, such as a cost, names no skill.
+fn menu_skills(line: &str) -> Vec<(String, u32)> {
+    let words: Vec<&str> = line.split_whitespace().collect();
+    let mut skills = Vec::new();
+    let mut name: Vec<&str> = Vec::new();
+    for word in words {
+        if let Some(tenths) = level_tenths(word) {
+            if !name.is_empty() {
+                skills.push((name.join(" "), tenths));
+            }
+            name.clear();
+        } else if is_hotkey(word) || !word.chars().all(|c| c.is_alphabetic() || c == '&') {
+            // A hotkey, a training sign or another column, such as an aptitude, starts afresh.
+            name.clear();
+        } else {
+            name.push(word);
+        }
+    }
+    skills
+}
+
+/// Whether `word` is a hotkey the skills screen draws before a skill: one letter.
+fn is_hotkey(word: &str) -> bool {
+    let mut chars = word.chars();
+    chars.next().is_some_and(|c| c.is_ascii_alphabetic()) && chars.next().is_none()
+}
+
+/// The skill a line of the character dump's skills names, in tenths of a level: the level in
+/// effect, in brackets, when it is written.
+fn dump_skill(line: &str) -> Option<(String, u32)> {
+    let line = line.trim_start();
+    let rest = match line.split_once(' ') {
+        Some((sign, rest)) if sign.len() == 1 && "+-*O".contains(sign) => rest,
+        _ => line,
+    };
+    let (level, name) = rest.strip_prefix("Level ")?.split_once(' ')?;
+    let level = match level.split_once('(') {
+        Some((_, effective)) => effective.strip_suffix(')')?,
+        None => level,
+    };
+    Some((name.trim().to_owned(), level_tenths(level)?))
+}
+
+/// A skill level as crawl writes one, `5.3` or a mastered `27`, in tenths.
+fn level_tenths(word: &str) -> Option<u32> {
+    let (whole, tenth) = word.split_once('.').unwrap_or((word, "0"));
+    if whole.is_empty() || tenth.len() != 1 || !whole.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let whole: u32 = whole.parse().ok()?;
+    let tenth: u32 = tenth.parse().ok()?;
+    Some(whole * 10 + tenth)
 }
 
 /// A failure rate as crawl writes one, such as `4%`.
@@ -283,4 +470,78 @@ fn resistance(text: &str) -> Option<Resistance> {
         any = true;
     }
     any.then_some(Resistance::Pips(pips))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn read(screen: Screen, lines: &[&str]) -> ScreenRead {
+        ScreenRead {
+            screen,
+            title: None,
+            lines: lines.iter().map(|&line| line.to_owned()).collect(),
+        }
+    }
+
+    /// Scenarios are played in wizard mode, which shows exact power, so the percentages a
+    /// played game shows, and ranges with a least or a most, are read here.
+    #[test]
+    fn the_spell_list_shows_power_as_a_percentage_of_the_cap_outside_wizard_mode() {
+        let list = read(
+            Screen::Spells,
+            &[
+                " a - Magic Dart                      100%      1d7       4       Quiet",
+                " b - Stone Arrow                     34%       3d10      4/5     Quiet",
+                " c - Hailstorm                       12%       3d16      2-4/5   Loud",
+                " d - Gloom                           N/A       N/A       N/A     Silent",
+            ],
+        );
+        let reaches: Vec<_> = list
+            .spell_reaches()
+            .unwrap()
+            .into_iter()
+            .map(|reach| (reach.name, reach.power, reach.range))
+            .collect();
+        let percent = |p| Some(SpellPower::PercentOfCap(p));
+        assert_eq!(
+            reaches,
+            [
+                ("Magic Dart".to_owned(), percent(100), Some(4)),
+                ("Stone Arrow".to_owned(), percent(34), Some(4)),
+                ("Hailstorm".to_owned(), percent(12), Some(4)),
+                ("Gloom".to_owned(), None, None),
+            ]
+        );
+    }
+
+    #[test]
+    fn the_spell_lists_failure_rates_are_not_read_as_power() {
+        let list = read(
+            Screen::Spells,
+            &[" a - Magic Dart                      Conjuration               4%       1"],
+        );
+        assert_eq!(list.spell_reaches(), None);
+    }
+
+    /// The dump is a Screen Read like any other, but no Scenario opens it.
+    #[test]
+    fn the_character_dump_gives_each_skills_level_in_effect() {
+        let dump = read(
+            Screen::CharacterDump,
+            &[
+                "Skills:",
+                " + Level 5.3 Fighting",
+                " * Level 4.0(9.0) Maces & Flails",
+                " O Level 27 Dodging",
+                "   Level 1.2 Stealth",
+            ],
+        );
+        let skills = dump.skills().unwrap();
+        assert_eq!(skills.tenths("Fighting"), 53);
+        assert_eq!(skills.tenths("Maces & Flails"), 90);
+        assert_eq!(skills.tenths("Dodging"), 270);
+        assert_eq!(skills.tenths("Stealth"), 12);
+        assert_eq!(skills.tenths.len(), 4);
+    }
 }

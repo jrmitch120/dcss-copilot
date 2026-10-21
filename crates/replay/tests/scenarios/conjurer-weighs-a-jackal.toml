@@ -1,0 +1,22 @@
+description = "A Human Conjurer enters wizard mode on turn 0 of a seeded game and creates a jackal beside them on D:1, opens the skills screen, then the spell list switched to its power and range, and waits a turn"
+recording = "conjurer-weighs-a-jackal.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0]
+
+[setup]
+rc = """
+combo = HuCj
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Create a monster by name beside them: a jackal.
+  "m", "jackal\r", "\u001b",
+  # Open the skills screen, then close it.
+  "m", "\u001b",
+  # Open the spell list, switch it to power, damage and range, then close it.
+  "I", "!", "\u001b",
+  # Wait a turn.
+  ".", "\u001b",
+]

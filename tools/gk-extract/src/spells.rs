@@ -150,13 +150,15 @@ pub fn zaps(
                         per_power: 1,
                         per: 1,
                     }),
+                    player_damage: None,
+                    player_to_hit: None,
                 }
             }
             [
                 id,
                 _,
-                _,
-                _,
+                player_damage,
+                player_to_hit,
                 damage,
                 to_hit,
                 _,
@@ -181,6 +183,10 @@ pub fn zaps(
                         .ok_or_else(|| field("monster damage"))?,
                     monster_to_hit: to_hit_calculator(to_hit, constants, automatic)
                         .ok_or_else(|| field("monster accuracy"))?,
+                    player_damage: damage_calculator(player_damage, constants)
+                        .ok_or_else(|| field("player damage"))?,
+                    player_to_hit: to_hit_calculator(player_to_hit, constants, automatic)
+                        .ok_or_else(|| field("player accuracy"))?,
                 }
             }
             _ => return Err(unreadable(file, "an entry of zap_data")),

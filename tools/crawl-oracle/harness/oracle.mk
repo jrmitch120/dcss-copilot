@@ -40,3 +40,9 @@ crawl-oracle-turns.o: $(ORACLE_DIR)turns.cc $(ORACLE_DIR)common.h | $(GENERATED_
 
 crawl-oracle-turns: crawl-oracle-turns.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
 	$(CXX) $(LDFLAGS) crawl-oracle-turns.o $(filter-out mon-act.o,$(OBJECTS)) $(EXTRA_OBJECTS) -o $@ $(LIBS)
+
+crawl-oracle-player.o: $(ORACLE_DIR)player.cc $(ORACLE_DIR)common.h | $(GENERATED_HEADERS) $(TILEDEFHDRS)
+	$(CXX) $(STDFLAG) $(ALL_CFLAGS) -fno-access-control -c $< -o $@
+
+crawl-oracle-player: crawl-oracle-player.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
+	$(CXX) $(LDFLAGS) crawl-oracle-player.o $(OBJECTS) $(EXTRA_OBJECTS) -o $@ $(LIBS)

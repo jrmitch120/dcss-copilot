@@ -29,7 +29,16 @@
 //! - a turn case (`"kind":"turn"`): a monster playing out the player's next standard-speed
 //!   action many times, run through [`copilot_core::oracle::turn`];
 //! - a torment case (`"kind":"torment"`): the hit points a lurking horror's torment takes from a
-//!   player on each of some hit points, against [`copilot_core::oracle::torment`].
+//!   player on each of some hit points, against [`copilot_core::oracle::torment`];
+//! - a player melee case (`"kind":"player-melee"`): the player attacking a monster in melee many
+//!   times, run through [`copilot_core::oracle::player_melee`];
+//! - a player shot case (`"kind":"player-shot"`): the player shooting or throwing at a monster
+//!   many times, run through [`copilot_core::oracle::player_shot`];
+//! - a player beam case (`"kind":"player-beam"`): the player firing a spell's beam at a monster
+//!   many times, run through [`copilot_core::oracle::player_beam`], with the power a wand of the
+//!   spell is zapped with, against [`copilot_core::oracle::wand_power`];
+//! - a hit points case (`"kind":"hit-points"`): a kind of monster made many times, against
+//!   [`copilot_core::oracle::monster_hit_points`].
 //!
 //! Each case runs with the formula variants the crawl version's Game Knowledge bundle names.
 //! Values the formulas fix, such as a spell's power or a monster's reach, must be equal; each
@@ -41,8 +50,9 @@ use std::fmt;
 
 use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
-    MeleeCase, MeleeTally, MissileCase, PlayerResists, SpellCase, SpellChoiceCase, SpellTally,
-    TormentCase, TurnCase, WandCase, WeaponCase, ZapCase,
+    MeleeCase, MeleeTally, MissileCase, PlayerBeamCase, PlayerMeleeCase, PlayerResists,
+    PlayerShotCase, PlayerTally, SpellCase, SpellChoiceCase, SpellTally, StrikerCase, TormentCase,
+    TurnCase, WandCase, WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -146,6 +156,14 @@ pub enum Measure {
     Nightvision,
     /// The hit points torment took from the player.
     Torment,
+    /// How long one of the player's attacks took.
+    AttackDelay,
+    /// How often a thrown missile broke as it landed.
+    Broke,
+    /// The power the player zaps a wand with.
+    WandPower,
+    /// The hit points a monster was made with.
+    HitPoints,
 }
 
 impl fmt::Display for Measure {
@@ -172,6 +190,10 @@ impl fmt::Display for Measure {
             Self::CanAttack => "whether it can attack",
             Self::Nightvision => "whether it sees through an umbra",
             Self::Torment => "hit points torment took",
+            Self::AttackDelay => "the player's attack delay",
+            Self::Broke => "missiles broken",
+            Self::WandPower => "wand power",
+            Self::HitPoints => "hit points made with",
         })
     }
 }
@@ -204,6 +226,19 @@ pub fn ported_spells(version: &str) -> Result<Vec<u16>, DiffError> {
         .for_version(version)
         .ok_or_else(|| DiffError::NoBundle(version.to_owned()))?;
     Ok(oracle::ported_spells(bundle))
+}
+
+/// The `spell_type` value of every spell the engine ports when the player casts it, as the player
+/// harness reads them, for the shipped bundle of crawl `version`.
+///
+/// # Errors
+/// If the shipped Game Knowledge doesn't read or has no bundle for `version`.
+pub fn player_zaps(version: &str) -> Result<Vec<u16>, DiffError> {
+    let library = Library::shipped()?;
+    let bundle = library
+        .for_version(version)
+        .ok_or_else(|| DiffError::NoBundle(version.to_owned()))?;
+    Ok(oracle::player_zaps(bundle))
 }
 
 /// What diffing a dump found.
@@ -539,6 +574,22 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             Some("turn") => {
                 let case: TurnLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_turn(bundle, seed, &case)?);
+            }
+            Some("player-melee") => {
+                let case: PlayerMeleeLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_player_melee(bundle, seed, &case)?);
+            }
+            Some("player-shot") => {
+                let case: PlayerShotLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_player_shot(bundle, seed, &case)?);
+            }
+            Some("player-beam") => {
+                let case: PlayerBeamLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_player_beam(bundle, seed, &case)?);
+            }
+            Some("hit-points") => {
+                let case: HitPointsLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_hit_points(bundle, seed, &case)?);
             }
             _ => {
                 let case: Case = serde_json::from_value(value).map_err(read)?;
@@ -1212,4 +1263,264 @@ fn mean(counts: &BTreeMap<i32, u32>) -> f64 {
         .map(|(&value, &count)| f64::from(value) * f64::from(count))
         .sum();
     if n == 0.0 { 0.0 } else { sum / n }
+}
+
+/// A player harness's melee case.
+#[derive(Deserialize)]
+struct PlayerMeleeLine {
+    #[serde(rename = "case")]
+    index: u64,
+    striker: StrikerCase,
+    weapon: Option<WeaponLine>,
+    skill: i32,
+    monster: u16,
+    name: String,
+    trials: u32,
+    to_hit: BTreeMap<i32, u32>,
+    hits: u32,
+    damage: BTreeMap<i32, u32>,
+    delay: BTreeMap<i32, u32>,
+}
+
+/// What crawl rolled for many of the player's attacks, as a case line holds it.
+struct PlayerAttackTallies<'a> {
+    to_hit: &'a BTreeMap<i32, u32>,
+    hits: u32,
+    damage: &'a BTreeMap<i32, u32>,
+    delay: &'a BTreeMap<i32, u32>,
+}
+
+/// A measure's tallies, crawl's then the engine's.
+type MeasureTallies = (Measure, BTreeMap<i32, u32>, BTreeMap<i32, u32>);
+
+/// A player harness's shot case.
+#[derive(Deserialize)]
+struct PlayerShotLine {
+    #[serde(rename = "case")]
+    index: u64,
+    striker: StrikerCase,
+    /// As `<object_class_type>:<sub_type>`.
+    weapon: String,
+    plus: i32,
+    brand: String,
+    skill: i32,
+    monster: u16,
+    name: String,
+    trials: u32,
+    to_hit: BTreeMap<i32, u32>,
+    hits: u32,
+    damage: BTreeMap<i32, u32>,
+    broke: u32,
+    delay: BTreeMap<i32, u32>,
+}
+
+/// A player harness's beam case.
+#[derive(Deserialize)]
+struct PlayerBeamLine {
+    #[serde(rename = "case")]
+    index: u64,
+    spell: u16,
+    spell_name: String,
+    power: i32,
+    monster: u16,
+    name: String,
+    to_hit: Option<i32>,
+    trials: u32,
+    damage: BTreeMap<i32, u32>,
+    evocations: i32,
+    wand_power: i32,
+}
+
+/// A player harness's hit points case.
+#[derive(Deserialize)]
+struct HitPointsLine {
+    #[serde(rename = "case")]
+    index: u64,
+    monster: u16,
+    name: String,
+    trials: u32,
+    hp: BTreeMap<i32, u32>,
+}
+
+/// The measures a player's attack tallies on both sides.
+fn player_measures(
+    case: u64,
+    trials: u32,
+    crawl: &PlayerAttackTallies<'_>,
+    engine: PlayerTally,
+) -> Result<Vec<MeasureTallies>, DiffError> {
+    Ok(vec![
+        (Measure::ToHit, crawl.to_hit.clone(), engine.to_hit),
+        (
+            Measure::Hits,
+            rate(case, trials, crawl.hits)?,
+            rate(case, trials, engine.hits)?,
+        ),
+        (Measure::Damage, crawl.damage.clone(), engine.damage),
+        (Measure::AttackDelay, crawl.delay.clone(), engine.delay),
+    ])
+}
+
+/// Every measure of a player melee `case` on which crawl and the engine differ.
+fn compare_player_melee(
+    bundle: &Bundle,
+    seed: u64,
+    case: &PlayerMeleeLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let weapon = case
+        .weapon
+        .as_ref()
+        .map(|weapon| {
+            Ok::<_, DiffError>(WeaponCase {
+                weapon: item_id(bundle, case.index, &weapon.weapon)?,
+                plus: weapon.plus,
+                brand: EnumId(weapon.brand.clone()),
+            })
+        })
+        .transpose()?;
+    let input = PlayerMeleeCase {
+        striker: case.striker,
+        weapon,
+        skill: case.skill,
+        monster: case.monster,
+    };
+    let engine = oracle::player_melee(bundle, &input, (seed, case.index), case.trials).map_err(
+        |source| DiffError::Case {
+            case: case.index,
+            source,
+        },
+    )?;
+    let who = match &case.weapon {
+        Some(weapon) => format!(
+            "the player hitting a {} with a {}",
+            case.name,
+            weapon_name(&weapon.weapon, weapon.plus, &weapon.brand)
+        ),
+        None => format!("the player punching a {}", case.name),
+    };
+    let measures = player_measures(
+        case.index,
+        case.trials,
+        &PlayerAttackTallies {
+            to_hit: &case.to_hit,
+            hits: case.hits,
+            damage: &case.damage,
+            delay: &case.delay,
+        },
+        engine,
+    )?;
+    Ok(differing(case.index, &who, measures))
+}
+
+/// Every measure of a player shot `case` on which crawl and the engine differ.
+fn compare_player_shot(
+    bundle: &Bundle,
+    seed: u64,
+    case: &PlayerShotLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let input = PlayerShotCase {
+        striker: case.striker,
+        weapon: item_id(bundle, case.index, &case.weapon)?,
+        plus: case.plus,
+        brand: EnumId(case.brand.clone()),
+        skill: case.skill,
+        monster: case.monster,
+    };
+    let engine =
+        oracle::player_shot(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    let broke = (
+        rate(case.index, case.trials, case.broke)?,
+        rate(case.index, case.trials, engine.broke)?,
+    );
+    let who = format!(
+        "the player shooting a {} with {}",
+        case.name,
+        weapon_name(&case.weapon, case.plus, &case.brand)
+    );
+    let mut measures = player_measures(
+        case.index,
+        case.trials,
+        &PlayerAttackTallies {
+            to_hit: &case.to_hit,
+            hits: case.hits,
+            damage: &case.damage,
+            delay: &case.delay,
+        },
+        engine,
+    )?;
+    measures.push((Measure::Broke, broke.0, broke.1));
+    Ok(differing(case.index, &who, measures))
+}
+
+/// Every measure of a player beam `case` on which crawl and the engine differ.
+fn compare_player_beam(
+    bundle: &Bundle,
+    seed: u64,
+    case: &PlayerBeamLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let input = PlayerBeamCase {
+        spell: case.spell,
+        power: case.power,
+        monster: case.monster,
+    };
+    let case_error = |source| DiffError::Case {
+        case: case.index,
+        source,
+    };
+    let engine =
+        oracle::player_beam(bundle, &input, (seed, case.index), case.trials).map_err(case_error)?;
+    let wand_power = oracle::wand_power(bundle, case.spell, case.evocations).map_err(case_error)?;
+    let who = format!(
+        "the player's {} at power {} on a {}",
+        case.spell_name, case.power, case.name
+    );
+    let auto = |hit: Option<i32>| hit.unwrap_or(AUTOMATIC_HIT);
+    let mut mismatches: Vec<Mismatch> = [
+        unequal(
+            case.index,
+            &who,
+            Measure::BeamToHit,
+            auto(case.to_hit),
+            auto(engine.to_hit),
+        ),
+        unequal(
+            case.index,
+            &who,
+            Measure::WandPower,
+            case.wand_power,
+            wand_power,
+        ),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    mismatches.extend(differing(
+        case.index,
+        &who,
+        [(Measure::Damage, case.damage.clone(), engine.damage)],
+    ));
+    Ok(mismatches)
+}
+
+/// Every measure of a hit points `case` on which crawl and the engine differ.
+fn compare_hit_points(
+    bundle: &Bundle,
+    seed: u64,
+    case: &HitPointsLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let engine = oracle::monster_hit_points(bundle, case.monster, (seed, case.index), case.trials)
+        .map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
+    Ok(differing(
+        case.index,
+        &case.name,
+        [(Measure::HitPoints, case.hp.clone(), engine)],
+    ))
 }

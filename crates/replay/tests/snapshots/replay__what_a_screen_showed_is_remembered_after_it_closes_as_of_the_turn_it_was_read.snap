@@ -50,6 +50,12 @@ expression: replayer.advisor().accumulated()
   "spells": {
     "state": "missing"
   },
+  "spellReaches": {
+    "state": "missing"
+  },
+  "skills": {
+    "state": "missing"
+  },
   "abilities": {
     "state": "missing"
   },

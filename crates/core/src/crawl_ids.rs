@@ -119,6 +119,7 @@ crawl_identifiers! {
         BOLAS = "BEAM_BOLAS";
         CRYSTALLISING = "BEAM_CRYSTALLISING";
         LIGHT = "BEAM_LIGHT";
+        MERCURY = "BEAM_MERCURY";
     }
 }
 
@@ -157,8 +158,36 @@ crawl_identifiers! {
         DART = "MI_DART";
         THROWING_NET = "MI_THROWING_NET";
         JAVELIN = "MI_JAVELIN";
+        /// Always breaks as it lands, and hits no harder for it (`ammo_always_destroyed` and
+        /// `ranged_attack::mulch_bonus`).
+        STONE = "MI_STONE";
+        /// Comes back to its thrower unless it breaks (`_returning` in `throw.cc`).
+        BOOMERANG = "MI_BOOMERANG";
         /// Crawl doesn't list it among a monster's gear unless it is branded.
         LARGE_ROCK = "MI_LARGE_ROCK";
+    }
+}
+
+crawl_identifiers! {
+    /// `skill_type` identifiers.
+    skill_types {
+        FIGHTING = "SK_FIGHTING";
+        RANGED_WEAPONS = "SK_RANGED_WEAPONS";
+        THROWING = "SK_THROWING";
+        UNARMED_COMBAT = "SK_UNARMED_COMBAT";
+        EVOCATIONS = "SK_EVOCATIONS";
+    }
+}
+
+crawl_identifiers! {
+    /// `mon_holy_type` identifiers.
+    holinesses {
+        NATURAL = "MH_NATURAL";
+        UNDEAD = "MH_UNDEAD";
+        DEMONIC = "MH_DEMONIC";
+        HOLY = "MH_HOLY";
+        NONLIVING = "MH_NONLIVING";
+        PLANT = "MH_PLANT";
     }
 }
 
@@ -192,7 +221,7 @@ mod tests {
     ];
 
     /// The identifiers of each kind a bundle carries.
-    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 11] {
+    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 13] {
         let monsters = || bundle.monsters.values();
         let attacks = || monsters().flat_map(|monster| &monster.attacks);
         let class_sub_types = |class: &str| {
@@ -284,6 +313,19 @@ mod tests {
                 "armour",
                 armour_types::ALL,
                 class_sub_types(object_classes::ARMOUR),
+            ),
+            (
+                "skills",
+                skill_types::ALL,
+                bundle.skills.keys().map(|id| id.0.as_str()).collect(),
+            ),
+            (
+                "holinesses",
+                holinesses::ALL,
+                monsters()
+                    .flat_map(|monster| &monster.holiness)
+                    .map(|id| id.0.as_str())
+                    .collect(),
             ),
         ]
     }
