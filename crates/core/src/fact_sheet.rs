@@ -289,9 +289,9 @@ pub enum NotModelled {
     Paths,
     /// Monsters are assumed awake and hunting the player.
     Awareness,
-    /// A monster in reach has spells the simulation doesn't play out, such as summons, hexes,
+    /// A monster in view has spells the simulation doesn't play out, such as summons, hexes,
     /// self-buffs and spells that aren't a single bolt or explosion: it is assumed never to cast
-    /// them, and to fight instead.
+    /// them, and to fight instead, or, if it can't attack otherwise, to do nothing to the player.
     OtherSpells,
     /// A monster in view is given its own spells when it is made, such as a player ghost, so
     /// which it has isn't known, and none are played out.
@@ -350,10 +350,6 @@ pub enum NotModelled {
     /// A monster that can attack is batty, such as the shard shrike: crawl has it flit away after
     /// it attacks (`_handle_battiness`), and the simulation has it stay and attack again.
     Batty,
-    /// A monster that can attack keeps its range, such as the orb spider: crawl holds it at a
-    /// firing position away from the player (`_decide_monster_firing_position`), and the
-    /// simulation walks it up to fight.
-    KeepsRange,
     /// A monster in view is a tentacle or vine, such as the snaplasher vine, which crawl moves
     /// with its parent (`mons_is_tentacle_or_tentacle_segment`): the simulation walks it on its
     /// own, so it may strike from where it is judged out of reach.
@@ -682,6 +678,8 @@ fn threat<'a>(
     let mut moves: BTreeSet<NotModelled> = BTreeSet::new();
     // Whether a monster in view may fight with a weapon the Advisor hasn't read.
     let mut weapons_unread = false;
+    // Whether a monster in view that can't attack has spells the simulation doesn't play out.
+    let mut other_spells_out_of_reach = false;
     for (seen, monster) in hostile {
         let distance = distance(player, seen.position);
         let attacker = Attacker::new(bundle, monster, distance);
@@ -742,6 +740,7 @@ fn threat<'a>(
                     .into_iter()
                     .filter(|variant| variant.strikes_from_out_of_reach()),
             );
+            other_spells_out_of_reach |= !spells_not_modelled(bundle, &attacker).is_empty();
         }
     }
     not_modelled.extend(moves);
@@ -752,9 +751,10 @@ fn threat<'a>(
     if gear.iter().any(GearPlayed::guessed_shooter) {
         not_modelled.push(NotModelled::CarriedGear);
     }
-    if acting
-        .iter()
-        .any(|monster| !monster.spells_not_modelled.is_empty())
+    if other_spells_out_of_reach
+        || acting
+            .iter()
+            .any(|monster| !monster.spells_not_modelled.is_empty())
     {
         not_modelled.push(NotModelled::OtherSpells);
     }
@@ -985,7 +985,6 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
     };
     [
         (NotModelled::Batty, monster.batty),
-        (NotModelled::KeepsRange, monster.keeps_range),
         (NotModelled::MovesWithParent, monster.tentacle),
         (NotModelled::OwnActions, monster.own_actions),
         (
@@ -1394,7 +1393,6 @@ mod tests {
     fn is_move(variant: NotModelled) -> bool {
         match variant {
             NotModelled::Batty
-            | NotModelled::KeepsRange
             | NotModelled::MovesWithParent
             | NotModelled::OwnActions
             | NotModelled::SwoopOrFlank
@@ -1458,10 +1456,25 @@ mod tests {
     }
 
     #[test]
+    fn a_monster_that_cant_attack_but_casts_spells_not_played_out_is_named() {
+        // An orb spider beside the player backs off rather than bite, and its Orb of
+        // Destruction isn't played out: it has no row, but its spell is said to be left out.
+        let assessment = assessed_with("orb spider", 1);
+        assert!(assessment.acting.is_empty(), "{assessment:?}");
+        assert!(
+            assessment.not_modelled.contains(&NotModelled::OtherSpells),
+            "{assessment:?}"
+        );
+        // A jackal out of reach has no spells to leave out.
+        let jackal = assessed_with("jackal", 7);
+        assert!(jackal.acting.is_empty(), "{jackal:?}");
+        assert!(!jackal.not_modelled.contains(&NotModelled::OtherSpells));
+    }
+
+    #[test]
     fn a_monster_that_moves_as_crawl_moves_it_in_a_way_not_modelled_is_named_with_its_row() {
         for (name, variant) in [
             ("shard shrike", NotModelled::Batty),
-            ("orb spider", NotModelled::KeepsRange),
             ("snaplasher vine", NotModelled::MovesWithParent),
             ("jiangshi", NotModelled::OwnActions),
             ("tengu warrior", NotModelled::SwoopOrFlank),
@@ -1553,7 +1566,6 @@ mod tests {
             HitsOnTheWay,
             OwnConditions,
             Batty,
-            KeepsRange,
             MovesWithParent,
             OwnActions,
             SwoopOrFlank,

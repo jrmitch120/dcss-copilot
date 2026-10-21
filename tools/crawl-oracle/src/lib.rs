@@ -491,6 +491,8 @@ struct TurnLine {
     index: u64,
     monster: u16,
     name: String,
+    /// The kind whose book the monster casts from.
+    book: u16,
     #[serde(rename = "hd")]
     hit_dice: u32,
     speed: u32,
@@ -1031,6 +1033,7 @@ fn compare_reach(bundle: &Bundle, case: &ReachLine) -> Result<Vec<Mismatch>, Dif
 fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Mismatch>, DiffError> {
     let input = TurnCase {
         monster: case.monster,
+        book: case.book,
         hit_dice: case.hit_dice,
         speed: case.speed,
         distance: case.distance,

@@ -3,8 +3,9 @@
 //! crawl's own dice, until one side falls, many times over.
 //!
 //! The player stands where they are: they attack the nearest hostile, wait for one that walks up
-//! to come into reach, and step toward one that never moves. Each of their actions takes as long
-//! as crawl makes it take, and every hostile then gains the energy that time gives it and acts.
+//! to come into reach, and step toward one that never moves or keeps its range. Each of their
+//! actions takes as long as crawl makes it take, and every hostile then gains the energy that
+//! time gives it and acts.
 
 use copilot_gk::{EnumId, Formulas, MeleeWeapon, MissileWeapon, PlayerBeam, SpellRange};
 
@@ -357,10 +358,12 @@ impl<'f, 'a> Side<'f, 'a> {
         if let Some(time) = self.strike(formulas, rng, hostile) {
             return time;
         }
-        // Nothing reaches it: wait for it to walk up, or step toward it if it never will.
+        // Nothing reaches it: wait for it to walk up, or step toward it if it never will. One
+        // that keeps its range comes no nearer than that, out of reach.
         let monster = hostile.engaged.attacker().monster;
         let distance = hostile.engaged.distance;
         let comes = !monster.stationary
+            && !monster.keeps_range
             && step::may_step(formulas.monster_step, monster.watched_step, distance);
         if !comes && distance > 1 {
             hostile.engaged.distance -= 1;
@@ -491,5 +494,65 @@ impl<'f, 'a> Side<'f, 'a> {
         };
         hostile.hp -= blow.damage;
         Some(time)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use copilot_gk::{EnumId, Library};
+
+    use super::*;
+    use crate::engine::lighting::Lighting;
+    use crate::engine::melee::DisplayedDefences;
+    use crate::engine::resists::Resists;
+
+    #[test]
+    fn the_player_steps_toward_a_monster_that_keeps_its_range_out_of_their_reach() {
+        // An orb spider holds three squares from the player; slowed to speed 5, it backs off
+        // too seldom to keep a fighter who steps toward it from reaching it.
+        let library = Library::shipped().unwrap();
+        let bundle = library.for_version("0.34.1").unwrap();
+        let formulas = bundle.formulas;
+        let mut spider = bundle
+            .monsters
+            .values()
+            .find(|m| m.name == "orb spider")
+            .unwrap()
+            .clone();
+        spider.speed = 5;
+        let attacker = Attacker::new(bundle, &spider, 3).without_gear();
+        assert_eq!(attacker.firing_range(formulas), Some(3));
+        let foe = Foe {
+            defence: player_attacks::Defence::of(formulas.player_beam, &spider),
+            attacker,
+        };
+        let defender = Defender {
+            hp: 100,
+            defences: DisplayedDefences {
+                ac: 10,
+                ev: 10,
+                sh: 0,
+            },
+            lighting: Lighting::Plain,
+            shield_blocks: 1,
+            resists: Resists::NONE,
+        };
+        let fighter = Fighter {
+            hp: 100,
+            mp: 0,
+            strength: 20,
+            dexterity: 12,
+            fighting: Skill::shown(150),
+            evocations: Skill::shown(0),
+            base: Base::Weapon {
+                weapon: &bundle.melee_weapons[&EnumId("WPN_WAR_AXE".to_owned())],
+                plus: 0,
+                heft: Heft::Plain,
+                skill: Skill::shown(150),
+            },
+        };
+        let outcome = simulate(formulas, defender, &fighter, None, &[foe]);
+        assert!(outcome.wins > outcome.trials / 2, "{outcome:?}");
+        assert_eq!(outcome.hp_lost, 0, "{outcome:?}");
     }
 }
