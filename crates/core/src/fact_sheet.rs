@@ -14,6 +14,7 @@ use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
+use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::fight_outcome::{self, Fight};
 use crate::screen::{Resistances, Screen};
@@ -681,8 +682,9 @@ fn threat<'a>(
     // Whether a monster in view that can't attack has spells the simulation doesn't play out.
     let mut other_spells_out_of_reach = false;
     for (seen, monster) in hostile {
-        let distance = distance(player, seen.position);
-        let attacker = Attacker::new(bundle, monster, distance);
+        let offset = offset(player, seen.position);
+        let distance = offset.distance();
+        let attacker = Attacker::new(bundle, monster, offset);
         let carried = remembered
             .and_then(|state| state.gear_of(seen, bundle))
             .and_then(|read| match read {
@@ -723,7 +725,7 @@ fn threat<'a>(
             acting.push(ActingMonster {
                 name: seen.name.clone(),
                 position: seen.position,
-                distance: attacker.distance,
+                distance: attacker.distance(),
                 casts: attacker
                     .spells
                     .iter()
@@ -1032,9 +1034,12 @@ fn level(hp: i32, death: Chance, worst_hit: i32, best_plan_win: Option<Chance>) 
     }
 }
 
-/// Squares between two positions, counting a diagonal step as one: crawl's `grid_distance`.
-fn distance(a: Position, b: Position) -> i32 {
-    (a.x - b.x).abs().max((a.y - b.y).abs())
+/// Where a monster at `monster` stands from the player at `player`.
+fn offset(player: Position, monster: Position) -> Offset {
+    Offset {
+        x: monster.x - player.x,
+        y: monster.y - player.y,
+    }
 }
 
 #[cfg(test)]

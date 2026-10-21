@@ -339,7 +339,7 @@ fn foes_in_light(visible: &VisibleState, foes: &[Attacker<'_>]) -> bool {
                 (monster.position.x - player.x)
                     .abs()
                     .max((monster.position.y - player.y).abs())
-                    == foe.distance
+                    == foe.distance()
             })
             .any(|monster| {
                 map.cell(monster.position)

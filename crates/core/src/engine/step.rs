@@ -8,11 +8,62 @@
 //!
 //! Where a monster that keeps its range steps: to a firing position at a distance from the player
 //! it holds to, never into them.
+//!
+//! Where a monster stands is an [`Offset`] from the player. Any monster walks straight at the
+//! player or away, a square at a time, which changes its distance by one.
+
+use std::cmp::Ordering;
 
 use copilot_gk::{FiringPosition, MonsterStep, WatchedStep};
 
 use super::PLAYER_VISION;
 use super::rng::Rng;
+
+/// Where a monster stands from the player: squares east of them, and south, as crawl's
+/// coordinates run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Offset {
+    /// Squares east of the player, or west when negative.
+    pub(crate) x: i32,
+    /// Squares south of the player, or north when negative.
+    pub(crate) y: i32,
+}
+
+impl Offset {
+    /// `distance` squares due east of the player.
+    pub(crate) fn east(distance: i32) -> Self {
+        Self { x: distance, y: 0 }
+    }
+
+    /// Squares between it and the player, counting diagonals as one: crawl's `grid_distance`.
+    pub(crate) fn distance(self) -> i32 {
+        self.x.abs().max(self.y.abs())
+    }
+
+    /// A square straight toward the player, one nearer them.
+    pub(crate) fn nearer(self) -> Self {
+        Self {
+            x: self.x - self.x.signum(),
+            y: self.y - self.y.signum(),
+        }
+    }
+
+    /// A square straight away from the player, one farther from them.
+    pub(crate) fn farther(self) -> Self {
+        Self {
+            x: self.x + self.x.signum(),
+            y: self.y + self.y.signum(),
+        }
+    }
+
+    /// The square beside the player on its side of them.
+    pub(crate) fn beside(self) -> Self {
+        Self {
+            x: self.x.signum(),
+            y: self.y.signum(),
+        }
+    }
+}
 
 /// Whether a monster that steps as `watched` does, `distance` squares from the player, steps
 /// toward them this action: `_fungal_move_check` (`mon-act.cc:483`), rolled each time it would
@@ -66,21 +117,25 @@ pub(crate) fn firing_range(variant: FiringPosition, threat_range: i32) -> i32 {
     }
 }
 
-/// The distance from the player a monster that keeps its range at `range` squares steps to from
-/// `distance` squares, when it steps.
+/// Where a monster that keeps its range at `range` squares steps to from `from`, when it steps.
 ///
 /// Crawl looks for its firing position among the squares around it, never its own
 /// (`_set_firing_pos`, `mon-behv.cc:113`), so it always steps: to one as near `range` as it can,
 /// but no farther from the player than it is unless that is still within `range`. From farther
-/// it closes in a square; at `range` it steps around the player; from nearer, even from beside
-/// them, it backs off a square. It never steps into the player, so it fights them in melee
-/// only with a reaching attack, which it makes before it moves (`_handle_reaching`).
+/// it closes in a square; at `range` it steps around the player, played as staying where it is,
+/// which keeps its distance; from nearer, even from beside them, it backs off a square. It never
+/// steps into the player, so it fights them in melee only with a reaching attack, which it makes
+/// before it moves (`_handle_reaching`).
 ///
 /// Played as on open floor (`NotModelled::Paths`): crawl takes only squares it can stand on and
 /// see the player from, and one hemmed in, with no such square around it, may step toward a
 /// farther one and into the player to fight them.
-pub(crate) fn toward_firing_range(variant: FiringPosition, distance: i32, range: i32) -> i32 {
+pub(crate) fn toward_firing_range(variant: FiringPosition, from: Offset, range: i32) -> Offset {
     match variant {
-        FiringPosition::Crawl034 => distance + (range - distance).signum(),
+        FiringPosition::Crawl034 => match from.distance().cmp(&range) {
+            Ordering::Greater => from.nearer(),
+            Ordering::Less => from.farther(),
+            Ordering::Equal => from,
+        },
     }
 }

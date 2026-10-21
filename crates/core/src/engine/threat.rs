@@ -22,7 +22,8 @@ use super::missiles::{self, MISSILE_RANGE, Missile, Missiles, Shooter};
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::{PLAYER_VISION, step, torment, wands};
+use super::step::{self, Offset};
+use super::{PLAYER_VISION, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
 /// is within about 0.15 percentage points of its true value near the DANGEROUS threshold.
@@ -68,14 +69,14 @@ pub(crate) fn shield_blocks_per_action(formulas: Formulas, shield: Option<Shield
     melee::shield_block_limit(formulas.shield_block, shield)
 }
 
-/// A monster that may attack the player, how far away it is, the melee weapons it fights with,
-/// and the spells, wands and missiles it may use that the engine ports.
+/// A monster that may attack the player, where it stands, the melee weapons it fights with, and
+/// the spells, wands and missiles it may use that the engine ports.
 #[derive(Debug, Clone)]
 pub(crate) struct Attacker<'a> {
     /// Its Game Knowledge.
     pub(crate) monster: &'a Monster,
-    /// Squares between it and the player, counting diagonals as one, as crawl's `grid_distance`.
-    pub(crate) distance: i32,
+    /// Where it stands from the player.
+    pub(crate) offset: Offset,
     /// The damaging spells of its book that the engine ports, in book order, as it casts them.
     pub(crate) spells: Vec<Cast<'a>>,
     /// What it may shoot or throw: its Carried Gear's, or by the odds crawl makes its kind with.
@@ -223,10 +224,10 @@ impl<T: Copy> Draw<T> {
 }
 
 impl<'a> Attacker<'a> {
-    /// `monster`, `distance` squares from the player, with the spells of its book and the gear
+    /// `monster`, standing at `offset` from the player, with the spells of its book and the gear
     /// of its kind the engine ports, its Possible Gear, looked up in `bundle`. A spell, missile or
     /// wand the bundle lacks is left out.
-    pub(crate) fn new(bundle: &'a Bundle, monster: &'a Monster, distance: i32) -> Self {
+    pub(crate) fn new(bundle: &'a Bundle, monster: &'a Monster, offset: Offset) -> Self {
         let formulas = bundle.formulas;
         let hit_dice = hit_dice(monster);
         let book = match &monster.spells {
@@ -265,7 +266,7 @@ impl<'a> Attacker<'a> {
         let wands = Draw::new(&monster.gear.wand, |id| wand_zap(bundle, monster, id));
         let mut attacker = Self {
             monster,
-            distance,
+            offset,
             spells,
             missiles,
             wands,
@@ -325,6 +326,11 @@ impl<'a> Attacker<'a> {
             },
             ..self
         }
+    }
+
+    /// Squares between it and the player.
+    pub(crate) fn distance(&self) -> i32 {
+        self.offset.distance()
     }
 
     /// Whether it may fight in melee with a weapon the Advisor doesn't know: its Carried Gear
@@ -721,8 +727,9 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
     let monster = attacker.monster;
     let firing_range = attacker.firing_range(formulas);
     let mut energy = melee::most_starting_energy(formulas.monster_energy) + speed(monster);
-    let mut distance = attacker.distance;
+    let mut offset = attacker.offset;
     while energy >= ENERGY_THRESHOLD {
+        let distance = offset.distance();
         if attacker.strikes_from(formulas, distance) {
             return true;
         }
@@ -732,14 +739,15 @@ pub(crate) fn can_attack(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
             return false;
         }
         let next = match firing_range {
-            Some(range) => step::toward_firing_range(formulas.firing_position, distance, range),
-            None => (distance - 1).max(1),
+            Some(range) => step::toward_firing_range(formulas.firing_position, offset, range),
+            None if distance > 1 => offset.nearer(),
+            None => offset,
         };
         // Nothing nearer or farther to strike from.
-        if next == distance {
+        if next.distance() == distance {
             return false;
         }
-        distance = next;
+        offset = next;
         energy -= cost(monster.energy.walk);
     }
     false
@@ -846,13 +854,13 @@ pub(crate) fn turn(
     )
 }
 
-/// A monster played out over one player action after another, in one trial: how far it is from
-/// the player, its energy, what it carries this trial and when it can breathe again.
+/// A monster played out over one player action after another, in one trial: where it stands,
+/// its energy, what it carries this trial and when it can breathe again.
 #[derive(Debug, Clone)]
 pub(crate) struct Engaged<'r, 'a> {
     attacker: &'r Attacker<'a>,
-    /// Squares between it and the player.
-    pub(crate) distance: i32,
+    /// Where it stands from the player.
+    offset: Offset,
     energy: i32,
     missiles: Option<Missiles<'a>>,
     wand: Option<WandZap<'a>>,
@@ -881,7 +889,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             + energy_gained(formulas.monster_energy, rng, speed, time);
         Self {
             attacker,
-            distance: attacker.distance,
+            offset: attacker.offset,
             energy,
             missiles: attacker.missiles.draw(rng),
             wand: attacker.wands.draw(rng),
@@ -895,6 +903,16 @@ impl<'r, 'a> Engaged<'r, 'a> {
     /// The monster it is.
     pub(crate) fn attacker(&self) -> &'r Attacker<'a> {
         self.attacker
+    }
+
+    /// Squares between it and the player.
+    pub(crate) fn distance(&self) -> i32 {
+        self.offset.distance()
+    }
+
+    /// The player steps a square straight toward it.
+    pub(crate) fn approached(&mut self) {
+        self.offset = self.offset.nearer();
     }
 
     /// Gives it the energy it gains while the player takes another action, lasting `time`.
@@ -920,6 +938,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
         let (missiles, wand) = (self.missiles, self.wand);
         let shooter = attacker.shooter;
         let mut turn = Turn::default();
+        let from = self.distance();
         while !self.gone
             && self.energy >= ENERGY_THRESHOLD
             && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
@@ -935,23 +954,27 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 formulas.monster_step,
                 rng,
                 monster.watched_step,
-                self.distance,
+                self.distance(),
             );
             // A monster tries its spells first, then its wand, then its missiles
             // (`_mons_take_special_action`, `mon-act.cc:1840`).
             let can_breathe = self.breath_timeout == 0;
-            if let Some(cast) =
-                choose_cast(formulas, rng, &attacker.spells, self.distance, can_breathe)
-            {
+            if let Some(cast) = choose_cast(
+                formulas,
+                rng,
+                &attacker.spells,
+                self.distance(),
+                can_breathe,
+            ) {
                 turn.casts += 1;
-                if cast.reach.strikes >= self.distance {
+                if cast.reach.strikes >= self.distance() {
                     let firing = Firing {
                         spell: &cast.spell,
                         power: cast.power,
                         nightvision: monster.nightvision,
                     };
                     turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                    land(&cast.spell, &mut self.distance, &mut turn);
+                    self.offset = land(&cast.spell, self.offset);
                 }
                 if cast.slot.breath {
                     self.breath_timeout =
@@ -967,16 +990,16 @@ impl<'r, 'a> Engaged<'r, 'a> {
             // Its tracer must find the player (`_handle_wand`).
             if let Some(zap) = wand
                 && wands::zaps(formulas.monster_wand, rng)
-                && zap.reach.casts >= self.distance
+                && zap.reach.casts >= self.distance()
             {
-                if zap.reach.strikes >= self.distance {
+                if zap.reach.strikes >= self.distance() {
                     let firing = Firing {
                         spell: &zap.spell,
                         power: zap.power,
                         nightvision: monster.nightvision,
                     };
                     turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                    land(&zap.spell, &mut self.distance, &mut turn);
+                    self.offset = land(&zap.spell, self.offset);
                 }
                 self.energy -= wands::energy(formulas.monster_wand);
                 continue;
@@ -987,7 +1010,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
                     rng,
                     missiles,
                     monster.prefers_ranged,
-                    self.distance,
+                    self.distance(),
                 )
             {
                 let shot =
@@ -1004,25 +1027,23 @@ impl<'r, 'a> Engaged<'r, 'a> {
             // attack before it moves (`_handle_reaching`, `mon-act.cc:1904`); otherwise it steps
             // toward its firing range.
             if let Some(range) = self.firing_range
-                && !(self.distance > 1 && self.distance <= reach)
+                && !(self.distance() > 1 && self.distance() <= reach)
             {
                 if steps && !monster.stationary {
-                    let next =
-                        step::toward_firing_range(formulas.firing_position, self.distance, range);
-                    turn.closed += self.distance - next;
-                    self.distance = next;
+                    self.offset =
+                        step::toward_firing_range(formulas.firing_position, self.offset, range);
                 }
                 self.energy -= cost(monster.energy.walk);
                 continue;
             }
             // Beside the player it attacks by stepping into them; from farther, a reaching attack
             // needs no step.
-            if reach == 0 || self.distance > reach || (self.distance == 1 && !steps) {
+            let distance = self.distance();
+            if reach == 0 || distance > reach || (distance == 1 && !steps) {
                 // It walks straight at the player, unless it never moves or doesn't step: walls and
                 // other monsters aren't modelled.
-                if steps && !monster.stationary && self.distance > 1 {
-                    self.distance -= 1;
-                    turn.closed += 1;
+                if steps && !monster.stationary && distance > 1 {
+                    self.offset = self.offset.nearer();
                 }
                 self.energy -= cost(monster.energy.walk);
                 continue;
@@ -1037,7 +1058,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             }
             // Every attack it makes, as one melee action makes them
             // (`melee_attack::run_monster_attack_set`, `melee-attack.cc:1569`), each with its weapon.
-            for (_, attack, weapon) in attacks_from(formulas, fighter, monster, self.distance) {
+            for (_, attack, weapon) in attacks_from(formulas, fighter, monster, distance) {
                 let weapon = weapon.map(|wielded| wielded.weapon);
                 let swing = melee::swing(
                     formulas,
@@ -1061,20 +1082,18 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 cost(monster.energy.attack),
             );
         }
+        turn.closed = from - self.distance();
         turn
     }
 }
 
-/// Moves a monster `distance` squares from the player to where casting `spell` at them leaves
-/// it ([`spells::Landing`]), counting the squares it closed in `turn`. Only a beam that reaches
-/// the player lands its caster by them; one that falls short would carry it to its end.
-fn land(spell: &DamagingSpell<'_>, distance: &mut i32, turn: &mut Turn) {
+/// Where casting `spell` at the player leaves a monster standing at `from` ([`spells::Landing`]).
+/// Only a beam that reaches the player lands its caster by them; one that falls short would
+/// carry it to its end.
+fn land(spell: &DamagingSpell<'_>, from: Offset) -> Offset {
     match spell.landing {
-        Landing::Stays => {}
-        Landing::BesideThePlayer => {
-            turn.closed += *distance - 1;
-            *distance = 1;
-        }
+        Landing::Stays => from,
+        Landing::BesideThePlayer => from.beside(),
     }
 }
 
@@ -1209,7 +1228,7 @@ mod tests {
         let bundle = library.for_version("0.34.1").unwrap();
         let formulas = bundle.formulas;
         let ogre = bundle.monsters.values().find(|m| m.name == "ogre").unwrap();
-        let attackers = vec![Attacker::new(bundle, ogre, 1).without_gear(); 2];
+        let attackers = vec![Attacker::new(bundle, ogre, Offset::east(1)).without_gear(); 2];
         let playing: Vec<&Attacker<'_>> = attackers.iter().collect();
         let hp = 15;
         let exact_deaths = |ac, ev, sh| {
@@ -1247,7 +1266,8 @@ mod tests {
     /// The turns `name`, `distance` squares from an undefended player, plays out over 1,000
     /// trials, casting a spell of its book on every action it can.
     fn turns_always_casting(name: &str, distance: i32) -> Vec<Turn> {
-        let mut attacker = Attacker::new(bundle(), monster(name), distance).without_gear();
+        let mut attacker =
+            Attacker::new(bundle(), monster(name), Offset::east(distance)).without_gear();
         assert!(!attacker.spells.is_empty(), "{name} casts no ported spell");
         for cast in &mut attacker.spells {
             cast.slot.frequency = 200;
@@ -1411,7 +1431,7 @@ mod tests {
         distance: i32,
         line: &str,
     ) -> (Attacker<'static>, Vec<Unplayed>) {
-        Attacker::new(bundle(), monster, distance).carrying(bundle(), &look(line))
+        Attacker::new(bundle(), monster, Offset::east(distance)).carrying(bundle(), &look(line))
     }
 
     /// The slots of the attacks `attacker` makes from `distance`, each with the damage of the
@@ -1429,7 +1449,7 @@ mod tests {
 
     /// `monster`, `distance` squares from the player, carrying nothing.
     fn unarmed(monster: &Monster, distance: i32) -> Attacker<'_> {
-        Attacker::new(bundle(), monster, distance).without_gear()
+        Attacker::new(bundle(), monster, Offset::east(distance)).without_gear()
     }
 
     #[test]
@@ -1573,7 +1593,8 @@ mod tests {
         draugr.attacks.clone_from(&monster("ettin").attacks);
         draugr.item_use = ItemUse::StartingEquipment;
         let gear = look("Here: a draugr, wielding a +0 spear");
-        let (armed, _) = Attacker::new(bundle(), &draugr, 1).carrying(bundle(), &gear);
+        let (armed, _) =
+            Attacker::new(bundle(), &draugr, Offset::east(1)).carrying(bundle(), &gear);
         let spear = damage_of("WPN_SPEAR");
         assert_eq!(
             attacks_with_weapons(&armed, 1),
@@ -1585,7 +1606,7 @@ mod tests {
     #[test]
     fn a_monster_known_to_wield_nothing_makes_no_attack_only_a_weapon_makes() {
         let statue = monster("statue");
-        let unread = Attacker::new(bundle(), statue, 1);
+        let unread = Attacker::new(bundle(), statue, Offset::east(1));
         assert_eq!(attacks_with_weapons(&unread, 1), [(0, None)]);
         assert!(unread.weapons_unread(Formulas::CRAWL_0_34));
         let (unarmed, _) = seen(statue, 1, "Here: a statue");
@@ -1606,7 +1627,7 @@ mod tests {
             unlisted: Unlisted::PlainWeaponsAndLargeRocks,
         };
         let (attacker, _) =
-            Attacker::new(bundle(), monster("orc"), 1).carrying(bundle(), &unlisted);
+            Attacker::new(bundle(), monster("orc"), Offset::east(1)).carrying(bundle(), &unlisted);
         assert!(attacker.weapons_unread(Formulas::CRAWL_0_34));
     }
 
