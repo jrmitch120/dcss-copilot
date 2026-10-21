@@ -72004,6 +72004,7 @@
     "monsterWeapon": "crawl-0.34",
     "resistDamage": "crawl-0.34",
     "monsterStep": "crawl-0.34",
+    "firingPosition": "crawl-0.34",
     "torment": "crawl-0.34",
     "playerAttack": "crawl-0.34",
     "playerBeam": "crawl-0.34",
