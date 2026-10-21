@@ -50,3 +50,10 @@ file = "player-0.34.1-seed-14.dcssrec"
 sha256 = "7c563b0787a7d39d1998b7860f7a5b57116c2fdee163238546ec7d8d653d18c0"
 crawl_version = "0.34.1"
 seed = 14
+
+[[game]]
+# A Mountain Dwarf Fighter shot with an arrow by a centaur warrior (25 damage) on D:11 at turn 8994, XL 11.
+file = "player-0.34.1-seed-15.dcssrec"
+sha256 = "d1f7ad21cfb69db067003904568b0900c0ef2eebc32e62680a00e8c61b93ba65"
+crawl_version = "0.34.1"
+seed = 15
