@@ -437,7 +437,7 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **What the engine assumes:** only monsters in view stand in the way of a staircase or race the player to it; the adapter drops detected ones too.
 - **Surfaced as:** `monstersOutOfView`, on the Ways Out whenever there are staircases.
 - **Harness:** none.
-- **Impact and cost:** errs low: a hostile just out of view may cut off a staircase called clear. Reading detected monsters from the map would close part of it.
+- **Impact and cost:** errs low: a hostile just out of view may cut off a staircase called clear, or stand in the way to it. Reading detected monsters from the map would close part of it.
 
 ### Each ability's and spell's own conditions
 

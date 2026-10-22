@@ -504,18 +504,28 @@ mod tests {
         )
     }
 
+    /// `visible` with its map's squares redrawn by `redraw`, which drops one by returning `None`.
+    fn redrawn(
+        mut visible: VisibleState,
+        redraw: impl Fn(Position, &MapCell) -> Option<MapCell>,
+    ) -> VisibleState {
+        let map = visible.map.take().unwrap();
+        visible.map =
+            Some(LevelMap::new(map.cells().filter_map(|(position, cell)| {
+                Some((position, redraw(position, cell)?))
+            })));
+        visible
+    }
+
     /// `visible` with the map's squares at x `out_of_view` out of view, as the game shows
     /// squares it remembers.
-    fn remembering(mut visible: VisibleState, out_of_view: &[i32]) -> VisibleState {
-        let map = visible.map.take().unwrap();
-        visible.map = Some(LevelMap::new(map.cells().map(|(position, cell)| {
-            let cell = MapCell {
+    fn remembering(visible: VisibleState, out_of_view: &[i32]) -> VisibleState {
+        redrawn(visible, |position, cell| {
+            Some(MapCell {
                 in_view: !out_of_view.contains(&position.x),
                 ..cell.clone()
-            };
-            (position, cell)
-        })));
-        visible
+            })
+        })
     }
 
     /// The staircase among `ways_out`.
@@ -654,12 +664,9 @@ mod tests {
                 .not_modelled
                 .contains(&NotModelled::MonstersOutOfView)
         );
-        let mut visible = corridor(&[], 0);
-        let map = visible.map.take().unwrap();
-        let no_stairs = map.cells().filter(|(position, _)| position.x < 10);
-        visible.map = Some(LevelMap::new(
-            no_stairs.map(|(position, cell)| (position, cell.clone())),
-        ));
+        let visible = redrawn(corridor(&[], 0), |position, cell| {
+            (position.x < 10).then(|| cell.clone())
+        });
         let without = ways_out(&visible, "Human", true);
         assert!(without.ground.is_some());
         assert!(without.options.is_empty());
