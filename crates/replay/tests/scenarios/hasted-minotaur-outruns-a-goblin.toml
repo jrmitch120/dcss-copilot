@@ -1,0 +1,31 @@
+description = "A Minotaur Berserker enters wizard mode on turn 0 of a seeded game, maps D:1, blinks into the room south of where they start and turns the floor there into a down staircase, blinks seven squares west, creates a goblin beside them, blinks two squares back east and reads the mutations screen: the goblin, as fast as them, can be beside every staircase by the time they take it. They then pick up and drink a potion of haste: hasted, they reach each first"
+recording = "hasted-minotaur-outruns-a-goblin.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0]
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command: map the level.
+  "&", "wiz\r", "{",
+  # Blink three squares south, into the room.
+  "&", "b", "j", "j", "j", ".",
+  # Make a down staircase on the square they stand on.
+  "&", ".",
+  # Blink seven squares west.
+  "&", "b", "h", "h", "h", "h", "h", "h", "h", ".",
+  # Create a goblin by name beside them: it is made just east of them.
+  "&", "m", "goblin\r",
+  # Blink back east past it, landing two squares east of where they stood.
+  "&", "b", "l", ".",
+  "\u001b",
+  # Read the mutations screen, so the race knows they have no mutation that changes their speed.
+  "A", "\u001b",
+  # Create a potion of haste underfoot, pick it up as d and drink it.
+  "&", "%", "potion of haste\r",
+  "g", "q", "d",
+  "\u001b",
+]

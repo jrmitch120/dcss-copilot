@@ -375,6 +375,67 @@ fn magic_cost(cost: &str) -> u32 {
         .unwrap_or(0)
 }
 
+/// What the mutations screen (`A`) shows: the mutations and banes the character has, as crawl
+/// describes them.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShownMutations {
+    /// Crawl's description of each mutation it lists at the level the character has, such as
+    /// `You cover ground slowly.`, innate and acquired alike: not those it lists as gained at a
+    /// future experience level. One that is transient, shown in brackets, or that their form
+    /// suppresses, in parentheses (`mutation_desc`), is described without them.
+    pub mutations: Vec<String>,
+    /// Each bane, by its description, such as `You cover ground slowly.`
+    pub banes: Vec<String>,
+}
+
+impl ScreenRead {
+    /// The mutations and banes, when this is the mutations screen: one per row, after a hotkey
+    /// or an indent, as `_get_ordered_mutations` and `MutationMenu` in crawl's `mutation.cc` list
+    /// them. A mutation it will gain at a later level is `[description] XL 13`, which isn't one
+    /// the character has, and a bane is `description [3.5]`, with the experience levels until it
+    /// lifts.
+    #[must_use]
+    pub fn mutations(&self) -> Option<ShownMutations> {
+        if self.screen != Screen::Mutations {
+            return None;
+        }
+        let mut shown = ShownMutations::default();
+        for line in &self.lines {
+            let entry = menu_entry(line).unwrap_or(line).trim();
+            if entry.is_empty() || future_level(entry) {
+                continue;
+            }
+            if let Some(bane) = bane(entry) {
+                shown.banes.push(bane.to_owned());
+                continue;
+            }
+            let transient = entry.strip_prefix('[').and_then(|e| e.strip_suffix(']'));
+            let entry = transient.unwrap_or(entry);
+            let suppressed = entry.strip_prefix('(').and_then(|e| e.strip_suffix(')'));
+            shown.mutations.push(suppressed.unwrap_or(entry).to_owned());
+        }
+        Some(shown)
+    }
+}
+
+/// Whether a row of the mutations screen is a mutation gained at a future level, as
+/// `[description] XL 13`.
+fn future_level(entry: &str) -> bool {
+    entry.starts_with('[')
+        && entry
+            .rsplit_once("] XL ")
+            .is_some_and(|(_, xl)| !xl.is_empty() && xl.bytes().all(|b| b.is_ascii_digit()))
+}
+
+/// The description of the bane a row of the mutations screen shows, as `description [3.5]`.
+fn bane(entry: &str) -> Option<&str> {
+    let (description, levels) = entry.rsplit_once(" [")?;
+    let (whole, tenth) = levels.strip_suffix(']')?.split_once('.')?;
+    let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
+    (digits(whole) && digits(tenth)).then_some(description)
+}
+
 impl ScreenRead {
     /// The resistances, when this is the character overview or the character dump, which draws
     /// the same lines (`dump_overview_screen` in crawl's `output.cc`).
@@ -522,6 +583,35 @@ mod tests {
             &[" a - Magic Dart                      Conjuration               4%       1"],
         );
         assert_eq!(list.spell_reaches(), None);
+    }
+
+    #[test]
+    fn the_mutations_screen_lists_each_mutation_and_bane_but_not_those_of_a_future_level() {
+        let screen = read(
+            Screen::Mutations,
+            &[
+                "     Your serpentine skin is tough. (AC +0)",
+                " a - You have supernaturally acute vision. (SInv)",
+                " b - Your snake-like lower body moves slowly.",
+                " c - (You can hop short distances, but move slowly.)",
+                " d - [You cover ground very slowly.]",
+                " e - [Your tail will grow strong enough to constrict your foes.] XL 13",
+                " f - You cover ground slowly. [3.5]",
+            ],
+        );
+        let shown = screen.mutations().unwrap();
+        assert_eq!(
+            shown.mutations,
+            [
+                "Your serpentine skin is tough. (AC +0)",
+                "You have supernaturally acute vision. (SInv)",
+                "Your snake-like lower body moves slowly.",
+                "You can hop short distances, but move slowly.",
+                "You cover ground very slowly.",
+            ]
+        );
+        assert_eq!(shown.banes, ["You cover ground slowly."]);
+        assert_eq!(read(Screen::Abilities, &[]).mutations(), None);
     }
 
     /// The dump is a Screen Read like any other, but no Scenario opens it.

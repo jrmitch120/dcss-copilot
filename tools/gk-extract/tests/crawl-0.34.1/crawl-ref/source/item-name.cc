@@ -123,6 +123,7 @@ const char* special_armour_type_name(special_armour_type ego, bool terse)
         switch (ego)
         {
         case SPARM_NORMAL:            return "";
+        case SPARM_PONDEROUSNESS:     return "ponderousness";
         case SPARM_LIGHT:             return "light";
         default:                      return "bugginess";
         }

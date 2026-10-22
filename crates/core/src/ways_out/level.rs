@@ -5,6 +5,8 @@ use std::collections::{BTreeSet, HashMap};
 
 use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
 
+use super::STANDARD_TIME;
+use super::pace::Pace;
 use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
@@ -19,6 +21,8 @@ const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
     level: Level,
+    /// The explored squares of water.
+    water: BTreeSet<Position>,
     player: Position,
     /// The player's moves to each square they can walk to.
     walks: Moves,
@@ -64,6 +68,11 @@ pub(super) fn on_the_level<'a>(
             .map(|&(position, feature)| (position, feature.terrain)),
     )
     .ok_or_else(|| vec![Gap::Map])?;
+    let water = features
+        .iter()
+        .filter(|(_, feature)| feature.water)
+        .map(|&(position, _)| position)
+        .collect();
     let occupied: Vec<Position> = visible
         .monsters
         .iter()
@@ -78,6 +87,7 @@ pub(super) fn on_the_level<'a>(
     );
     Ok(OnTheLevel {
         level,
+        water,
         player,
         walks,
         occupied,
@@ -87,7 +97,12 @@ pub(super) fn on_the_level<'a>(
     })
 }
 
-impl OnTheLevel<'_> {
+impl<'a> OnTheLevel<'a> {
+    /// The Game Knowledge the level is read through.
+    pub(super) fn bundle(&self) -> &'a Bundle {
+        self.bundle
+    }
+
     /// The squares around `position` a monster could stand on to attack: open ones, closed
     /// doors it could open, and unexplored ones, which may be either.
     fn open_sides(&self, position: Position) -> u32 {
@@ -128,8 +143,8 @@ impl OnTheLevel<'_> {
 
     /// The staircases the player can walk to, nearest first, each blocked by the monsters in
     /// the way and cut off by the hostiles in view that can stand beside it by the time the
-    /// player takes it. A hostile the bundle doesn't know is a Gap in `gaps`.
-    pub(super) fn stairs(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
+    /// player, at their `pace`, takes it. A hostile the bundle doesn't know is a Gap in `gaps`.
+    pub(super) fn stairs(&self, pace: &Pace<'_>, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         let chasers = self.chasers(gaps);
         let mut stairs: Vec<(u32, WayOut)> = self
             .features
@@ -146,7 +161,8 @@ impl OnTheLevel<'_> {
                             .any(|blocking| blocking.position == chaser.seen.position)
                     })
                     .collect();
-                let cut_off = self.interceptors(&chasing, position, steps);
+                let cut_off =
+                    self.interceptors(&chasing, position, &self.times_to(position, pace), pace);
                 let mut because = Vec::new();
                 if !in_the_way.is_empty() {
                     because.push(Blocker::InTheWay { by: in_the_way });
@@ -249,20 +265,38 @@ impl OnTheLevel<'_> {
         chasers
     }
 
+    /// The time each of the player's actions on their path to `stairs` takes at their `pace`:
+    /// a step onto each square, into water or not, and before a step onto a closed door the
+    /// action that opens it.
+    fn times_to(&self, stairs: Position, pace: &Pace<'_>) -> Vec<u32> {
+        let mut times = Vec::new();
+        for square in self.walks.path_to(stairs) {
+            if self.level.terrain(square) == Some(Terrain::ClosedDoor) {
+                times.push(pace.action());
+            }
+            times.push(pace.step(self.water.contains(&square)));
+        }
+        times
+    }
+
     /// The chasers that can stand beside the staircase at `stairs` by the time the player has
-    /// made `steps` moves to it, the first there first.
+    /// taken actions on their way to it that take `times`, the first there first. One that
+    /// moves faster than the player walks at their `pace` is said to be faster.
     fn interceptors(
         &self,
         chasers: &[&Chaser<'_>],
         stairs: Position,
-        steps: u32,
+        times: &[u32],
+        pace: &Pace<'_>,
     ) -> Vec<Interceptor> {
         let energy = self.bundle.formulas.monster_energy;
+        let walk_time = pace.step(false);
         let mut by: Vec<Interceptor> = chasers
             .iter()
             .filter_map(|chaser| {
                 let moves = chaser.moves.to_beside(stairs)?;
-                if paths::monster_moves(energy, chaser.speed, chaser.walk, steps) < moves {
+                let during = times.iter().copied();
+                if paths::monster_moves_during(energy, chaser.speed, chaser.walk, during) < moves {
                     return None;
                 }
                 Some(Interceptor {
@@ -275,7 +309,8 @@ impl OnTheLevel<'_> {
                         chaser.walk,
                         moves,
                     )?,
-                    faster: chaser.speed > chaser.walk,
+                    // A move of its takes `walk / speed` of a standard action's time.
+                    faster: chaser.speed * walk_time > chaser.walk * STANDARD_TIME,
                 })
             })
             .collect();

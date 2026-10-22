@@ -3,7 +3,8 @@
 //! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
 //! block and reach cases with 126 turn cases and its torment cases; and 24 cases of the player
 //! attacking monsters in melee, with launchers and thrown missiles and with spells' beams, and of
-//! the hit points monsters are made with (all seed 34).
+//! the hit points monsters are made with; and 48 players of random species, form, mutations,
+//! statuses, god, gear and footing, timing their actions and moves (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
 #![allow(clippy::unwrap_used)]
@@ -591,4 +592,67 @@ fn another_kinds_hit_points_are_caught() {
     // Case 3 makes draconian knights; a jackal has far fewer hit points.
     let dump = with_changed(PLAYER, 3, |case| case["monster"] = 0.into());
     assert_eq!(caught(&dump), [(3, Measure::HitPoints)]);
+}
+
+const SPEED: &str = include_str!("fixtures/speed-0.34.1.jsonl");
+
+#[test]
+fn the_engine_agrees_with_crawl_on_every_speed_case() {
+    let report = diff(SPEED).unwrap();
+    assert_eq!(report.cases, 48);
+    assert!(report.mismatches.is_empty(), "{report}");
+}
+
+/// `dump` with the status light `light` of case `case` put out.
+fn unlit(dump: &str, case: usize, light: &str) -> String {
+    with_changed(dump, case, |case| {
+        let lights = case["lights"].as_array_mut().unwrap();
+        let before = lights.len();
+        lights.retain(|lit| lit != light);
+        assert_eq!(lights.len(), before - 1, "{light}");
+    })
+}
+
+#[test]
+fn a_hasted_player_read_as_unhasted_is_caught() {
+    // Case 27, a hasted merfolk: its actions take 6 or 7, not 10.
+    let measures: Vec<Measure> = caught(&unlit(SPEED, 27, "Fast"))
+        .into_iter()
+        .map(|(_, m)| m)
+        .collect();
+    assert!(measures.contains(&Measure::ActionTime), "{measures:?}");
+    assert!(measures.contains(&Measure::MoveTime), "{measures:?}");
+}
+
+#[test]
+fn a_slowed_player_read_as_unslowed_is_caught() {
+    // Case 25, a slowed troll: its actions take 15, not 10.
+    let measures: Vec<Measure> = caught(&unlit(SPEED, 25, "Slow"))
+        .into_iter()
+        .map(|(_, m)| m)
+        .collect();
+    assert!(measures.contains(&Measure::ActionTime), "{measures:?}");
+}
+
+#[test]
+fn a_mutation_read_a_level_higher_is_caught() {
+    // Case 20, an armataur that gained one level of speed: two would take one more off its delay.
+    let dump = with_changed(SPEED, 20, |case| {
+        let rows = case["mutations"].as_array_mut().unwrap();
+        let row = rows
+            .iter_mut()
+            .find(|row| *row == "You move with supernatural speed. (Speed+)")
+            .unwrap();
+        *row = "You move with supernatural speed. (Speed++)".into();
+    });
+    let measures: Vec<Measure> = caught(&dump).into_iter().map(|(_, m)| m).collect();
+    assert!(measures.contains(&Measure::MoveDelay), "{measures:?}");
+}
+
+#[test]
+fn a_status_light_the_game_knowledge_doesnt_classify_fails_the_case() {
+    let dump = with_changed(SPEED, 0, |case| {
+        case["lights"] = serde_json::json!(["Zoom"]);
+    });
+    assert!(diff(&dump).is_err());
 }

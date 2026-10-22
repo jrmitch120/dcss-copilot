@@ -9,6 +9,7 @@ mod cpp;
 mod features;
 mod gear;
 mod image;
+mod speed;
 mod spells;
 mod tiles;
 mod ways_out;
@@ -81,6 +82,7 @@ const SERIES: &[Series] = &[Series {
     holiness: &HOLINESS_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
+    speed: &speed::SPEED_RULES_0_34,
     kinds_hidden: &[
         "OBJ_WANDS",
         "OBJ_SCROLLS",
@@ -241,6 +243,8 @@ struct Series {
     features: &'static features::FeatureRules,
     /// What it counts as a Way Out, and what stops each.
     ways_out: &'static ways_out::WayOutRules,
+    /// What it reads of the player's speed.
+    speed: &'static speed::SpeedRules,
     /// The item classes whose items hide their sub-type until identified: crawl's
     /// `item_type_has_ids` (`item-name.cc`), which is code rather than data.
     kinds_hidden: &'static [&'static str],
@@ -625,12 +629,17 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &crawl.parse("feature-data.h")?,
             "feature-data.h",
             &crawl.enumeration("dungeon-feature-type.h", "dungeon_feature_type")?,
+            &crawl.parse("terrain.cc")?,
             series.features,
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
         lighting: crawl.lighting(series.lighting)?,
         ways_out,
+        speed: crawl.speed(
+            series.speed,
+            yaml::unformed(&crawl.source, crawl.tag_major)?,
+        )?,
         formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })

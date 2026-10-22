@@ -33,6 +33,8 @@ enum dungeon_feature_type
     DNGN_LAVA,
 #endif
     DNGN_DEEP_WATER,
+
+    DNGN_SHALLOW_WATER,
     DNGN_FLOOR,
     DNGN_STONE_STAIRS_DOWN_I,
 
@@ -46,7 +48,12 @@ enum dungeon_feature_type
 
 #if TAG_MAJOR_VERSION == 34
     DNGN_SEALED_CLEAR_DOOR,
+    DNGN_TOXIC_BOG,
+    DNGN_MANGROVE,
 #endif
+
+    // (trimmed for the extractor test)
+    DNGN_OPEN_SEA,
 
     NUM_FEATURES
 };

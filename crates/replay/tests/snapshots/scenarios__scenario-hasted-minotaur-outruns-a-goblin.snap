@@ -1,0 +1,585 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz649256070",
+    "character": "wiz649256070",
+    "species": "Minotaur",
+    "firstSeenMs": 1792649257319,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 4,
+          "hostilesInView": 1,
+          "bestPlanWin": null,
+          "acting": [
+            {
+              "name": "goblin",
+              "position": {
+                "x": -6,
+                "y": 3
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "goblin",
+              "position": {
+                "x": -6,
+                "y": 3
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 0,
+                "source": "look",
+                "unlisted": "nothing"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 4
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "goblin",
+                        "position": {
+                          "x": -6,
+                          "y": 3
+                        },
+                        "moves": 4,
+                        "arrivesAfter": 4,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 0,
+                  "y": 3
+                },
+                "steps": 5
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "goblin",
+                        "position": {
+                          "x": -6,
+                          "y": 3
+                        },
+                        "moves": 5,
+                        "arrivesAfter": 5,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 6
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "goblin",
+                        "position": {
+                          "x": -6,
+                          "y": 3
+                        },
+                        "moves": 6,
+                        "arrivesAfter": 6,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -2,
+                  "y": 24
+                },
+                "steps": 34
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "goblin",
+                        "position": {
+                          "x": -6,
+                          "y": 3
+                        },
+                        "moves": 32,
+                        "arrivesAfter": 32,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": 32,
+                  "y": 7
+                },
+                "steps": 38
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "goblin",
+                        "position": {
+                          "x": -6,
+                          "y": 3
+                        },
+                        "moves": 38,
+                        "arrivesAfter": 38,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 3,
+            "nearestCorridor": {
+              "position": {
+                "x": -5,
+                "y": 5
+              },
+              "steps": 4
+            }
+          },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": {
+              "turn": 0,
+              "stale": false
+            }
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "hitsOnTheWay"
+          ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz649256070",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 0
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "Goblin can attack before your next action.",
+          "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+        },
+        "focus": {
+          "card": "fight",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "g",
+                  "colour": "lightGrey"
+                },
+                "tile": "mon/humanoids/goblin"
+              },
+              "name": "goblin",
+              "detail": null,
+              "count": 1
+            }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
+          ]
+        },
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "4 steps",
+              "whyNot": "Goblin can get there first"
+            }
+          ],
+          "ground": "On open ground: 3 sides open · a corridor 4 steps away",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 2,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 4,
+        "hostilesInView": 1,
+        "bestPlanWin": null,
+        "acting": [
+          {
+            "name": "goblin",
+            "position": {
+              "x": -6,
+              "y": 3
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "goblin",
+            "position": {
+              "x": -6,
+              "y": 3
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "look",
+              "unlisted": "nothing"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 4
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 0,
+                "y": 3
+              },
+              "steps": 5
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 6
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -2,
+                "y": 24
+              },
+              "steps": 34
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 32,
+                "y": 7
+              },
+              "steps": 38
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 3,
+          "nearestCorridor": {
+            "position": {
+              "x": -5,
+              "y": 5
+            },
+            "steps": 4
+          }
+        },
+        "pace": {
+          "moveTime": 7,
+          "waterMoveTime": 12,
+          "actionTime": 7,
+          "because": [
+            {
+              "reason": "status",
+              "status": "hasted"
+            }
+          ],
+          "mutationsRead": {
+            "turn": 0,
+            "stale": false
+          }
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz649256070",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 2
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Goblin can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "g",
+                "colour": "lightGrey"
+              },
+              "tile": "mon/humanoids/goblin"
+            },
+            "name": "goblin",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": true,
+            "name": "Stone staircase leading down",
+            "detail": "4 steps",
+            "whyNot": null
+          }
+        ],
+        "ground": "On open ground: 3 sides open · a corridor 4 steps away",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

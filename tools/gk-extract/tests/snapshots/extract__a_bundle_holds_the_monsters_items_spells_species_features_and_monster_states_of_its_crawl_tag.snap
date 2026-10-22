@@ -2380,37 +2380,238 @@ expression: bundle
     {
       "id": "SP_DEMONSPAWN",
       "name": "Demonspawn",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_CENTAUR",
       "name": "Centaur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DEFORMED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FAST",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HOOVES",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TOUGH_SKIN",
+          "levels": 3
+        }
+      ]
     },
     {
       "id": "SP_DJINNI",
       "name": "Djinni",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_VULNERABILITY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FLAT_HP",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FLOAT",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HEAT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HP_CASTING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_INNATE_CASTER",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_GARGOYLE",
       "name": "Gargoyle",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHOCK_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_STONE_BODY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_BIG_WINGS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_HUMAN",
       "name": "Human",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_EXPLORE_REGEN",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_MINOTAUR",
       "name": "Minotaur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_HORNS",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_REFLEXIVE_HEADBUTT",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_MUMMY",
       "name": "Mummy",
-      "undead": "undead"
+      "undead": "undead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACCURSED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FAITH",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HEAT_VULNERABILITY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NECRO_ENHANCER",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_DRINK",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_NECRO_ENHANCER",
+          "levels": 1
+        }
+      ]
+    },
+    {
+      "id": "SP_NAGA",
+      "name": "Naga",
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACUTE_VISION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_CONSTRICTING_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_DEFORMED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_POISON_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SPIT_POISON",
+          "levels": 1
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_CONSTRICTING_TAIL",
+          "levels": 1
+        }
+      ]
     }
   ],
   "skills": {
@@ -2454,79 +2655,99 @@ expression: bundle
       "id": "DNGN_UNSEEN",
       "name": "",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "1": {
       "id": "DNGN_CLOSED_DOOR",
       "name": "closed door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "2": {
       "id": "DNGN_RUNED_DOOR",
       "name": "runed door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "3": {
       "id": "DNGN_SEALED_DOOR",
       "name": "sealed door",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "4": {
       "id": "DNGN_ROCK_WALL",
       "name": "rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "30": {
       "id": "DNGN_LAVA",
       "name": "some lava",
       "terrain": "lava",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "31": {
       "id": "DNGN_DEEP_WATER",
       "name": "some deep water",
       "terrain": "deepWater",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "32": {
+      "id": "DNGN_SHALLOW_WATER",
+      "name": "some shallow water",
+      "terrain": "open",
+      "stairs": null,
+      "water": true
+    },
+    "33": {
       "id": "DNGN_FLOOR",
       "name": "floor",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
-    "33": {
+    "34": {
       "id": "DNGN_STONE_STAIRS_DOWN_I",
       "name": "stone staircase leading down",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
-    "34": {
+    "35": {
       "id": "DNGN_STONE_STAIRS_UP_I",
       "name": "stone staircase leading up",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
-    "35": {
+    "36": {
       "id": "DNGN_EXIT_DUNGEON",
       "name": "staircase leading out of the dungeon",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
-    "36": {
+    "37": {
       "id": "DNGN_SEALED_STAIRS_UP",
       "name": "sealed passage leading up",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
-    "37": {
+    "38": {
       "id": "DNGN_SEALED_STAIRS_DOWN",
       "name": "sealed passage leading down",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     }
   },
   "attitudes": {
@@ -2584,7 +2805,13 @@ expression: bundle
         "holiness": "addsUndead",
         "undead": "semiUndead",
         "negative": 2,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 5,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "death",
@@ -2592,7 +2819,13 @@ expression: bundle
         "holiness": "undead",
         "undead": "undead",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "shadow",
@@ -2600,7 +2833,27 @@ expression: bundle
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": false,
+          "changesAnatomy": false
+        }
+      },
+      {
+        "id": "pig",
+        "light": "Pig",
+        "holiness": "species",
+        "undead": "alive",
+        "negative": 0,
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 7,
+          "size": "small",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "spider",
@@ -2608,7 +2861,13 @@ expression: bundle
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "statue",
@@ -2616,7 +2875,13 @@ expression: bundle
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 1,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "vampire",
@@ -2624,7 +2889,13 @@ expression: bundle
         "holiness": "addsUndead",
         "undead": "semiUndead",
         "negative": 2,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       }
     ],
     "petrifiedLights": [
@@ -2850,6 +3121,208 @@ expression: bundle
     "noSpells": "You don't know any spells.",
     "noAbilities": "Sorry, you're not good enough to have a special ability."
   },
+  "speed": {
+    "lights": [
+      {
+        "light": "Fast",
+        "status": "hasted"
+      },
+      {
+        "light": "Slow",
+        "status": "slowed"
+      },
+      {
+        "light": "Fast+Slow",
+        "status": "hastedAndSlowed"
+      },
+      {
+        "light": "Berserk",
+        "status": "berserk"
+      },
+      {
+        "light": "Swift",
+        "status": "swift"
+      },
+      {
+        "light": "-Swift",
+        "status": "unswift"
+      },
+      {
+        "light": "Frozen",
+        "status": "frozen"
+      },
+      {
+        "light": "Petr",
+        "status": "petrifying"
+      },
+      {
+        "light": "SlowM",
+        "status": "slowedMovement"
+      },
+      {
+        "light": "Fly",
+        "status": "flying"
+      },
+      {
+        "light": "Para",
+        "status": "helpless"
+      },
+      {
+        "light": "Stone",
+        "status": "helpless"
+      },
+      {
+        "light": "Conf",
+        "status": null
+      },
+      {
+        "light": "Corona",
+        "status": null
+      },
+      {
+        "light": "Fire",
+        "status": null
+      },
+      {
+        "light": "Quad",
+        "status": null
+      },
+      {
+        "light": "-Tele",
+        "status": null
+      },
+      {
+        "light": "-Cast",
+        "status": null
+      },
+      {
+        "light": "-Potion",
+        "status": null
+      },
+      {
+        "light": "-Scroll",
+        "status": null
+      },
+      {
+        "light": "Contam",
+        "status": null
+      },
+      {
+        "light": "Fire+",
+        "status": null
+      },
+      {
+        "light": "Fire++",
+        "status": null
+      },
+      {
+        "light": "Sil",
+        "status": null
+      },
+      {
+        "light": "Torch",
+        "status": null
+      }
+    ],
+    "unformed": {
+      "moveSpeed": 10,
+      "size": null,
+      "swims": null,
+      "changesAnatomy": false
+    },
+    "mutations": [
+      {
+        "id": "MUT_FAST",
+        "shown": [
+          "You move with supernatural speed. (Speed+)",
+          "You move with supernatural speed. (Speed++)",
+          "You move with supernatural speed. (Speed+++)"
+        ],
+        "anatomy": false,
+        "messages": [
+          "You feel quick.",
+          "You feel sluggish."
+        ]
+      },
+      {
+        "id": "MUT_SLOW",
+        "shown": [
+          "You cover ground slowly.",
+          "You cover ground very slowly.",
+          "You cover ground extremely slowly."
+        ],
+        "anatomy": false,
+        "messages": [
+          "You feel sluggish.",
+          "You feel quick."
+        ]
+      },
+      {
+        "id": "MUT_FROG_LEGS",
+        "shown": [
+          "You can hop short distances, but move slowly.",
+          "You can hop long distances, but move slowly."
+        ],
+        "anatomy": true,
+        "messages": [
+          "Your legs feel stronger."
+        ]
+      },
+      {
+        "id": "MUT_CONSTRICTING_TAIL",
+        "shown": [
+          "Your snake-like lower body moves slowly.",
+          "Your snake-like lower body moves slowly, but can constrict enemies."
+        ],
+        "anatomy": true,
+        "messages": [
+          "Your lower body turns into a snake tail.",
+          "Your tail grows strong enough to constrict your enemies.",
+          "Your lower body returns to normal.",
+          "Your snake tail weakens and can no longer constrict your enemies."
+        ]
+      },
+      {
+        "id": "MUT_NIMBLE_SWIMMER",
+        "shown": [
+          "You are camouflaged when in or above water. (Stealth+)",
+          "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
+        ],
+        "anatomy": true,
+        "messages": [
+          "You feel comfortable near water.",
+          "You feel very comfortable near water.",
+          "You feel less comfortable near water."
+        ]
+      }
+    ],
+    "banes": [
+      {
+        "id": "BANE_LETHARGY",
+        "shown": "You cover ground slowly.",
+        "messages": [
+          "You are stricken with the Bane of Lethargy.",
+          "Your Bane of Lethargy grows stronger.",
+          "The Bane of Lethargy upon you is lifted."
+        ]
+      }
+    ],
+    "slowingGods": [
+      "Cheibriados"
+    ],
+    "waterWalkingGods": [
+      {
+        "god": "Beogh",
+        "pietyRank": 5
+      }
+    ],
+    "ponderousGear": [
+      "ponderousness"
+    ],
+    "quickeningGear": [
+      "lightning scales"
+    ]
+  },
   "formulas": {
     "monsterToHit": "crawl-0.34",
     "evasionRoll": "crawl-0.34",
@@ -2877,6 +3350,7 @@ expression: bundle
     "playerAttack": "crawl-0.34",
     "playerBeam": "crawl-0.34",
     "wandPower": "crawl-0.34",
-    "monsterHitPoints": "crawl-0.34"
+    "monsterHitPoints": "crawl-0.34",
+    "playerMove": "crawl-0.34"
   }
 }

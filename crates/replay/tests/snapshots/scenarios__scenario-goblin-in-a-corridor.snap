@@ -76,6 +76,13 @@ expression: replay
             "openSides": 5,
             "nearestCorridor": null
           },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
           "gaps": [
             {
               "gap": "abilityMenu"
@@ -238,6 +245,13 @@ expression: replay
         "ground": {
           "ground": "corridor",
           "openSides": 2
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
         },
         "gaps": [
           {

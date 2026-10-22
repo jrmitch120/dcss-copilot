@@ -20,6 +20,7 @@ expression: fact_sheets_by_turn(JACKALS)
       "waysOut": {
         "options": [],
         "ground": null,
+        "pace": null,
         "gaps": [
           {
             "gap": "map"
@@ -119,6 +120,7 @@ expression: fact_sheets_by_turn(JACKALS)
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"
@@ -255,6 +257,7 @@ expression: fact_sheets_by_turn(JACKALS)
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"
@@ -391,6 +394,7 @@ expression: fact_sheets_by_turn(JACKALS)
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"

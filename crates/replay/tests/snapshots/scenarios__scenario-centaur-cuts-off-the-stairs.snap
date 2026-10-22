@@ -250,6 +250,13 @@ expression: replay
               "steps": 4
             }
           },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
           "gaps": [
             {
               "gap": "abilityMenu"
@@ -571,6 +578,13 @@ expression: replay
             },
             "steps": 4
           }
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
         },
         "gaps": [
           {

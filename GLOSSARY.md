@@ -169,8 +169,12 @@ An escape or emergency option, such as a consumable, ability, spell or staircase
 _Avoid_: Escape (when meaning the whole list), panic button
 
 **Cut Off**:
-A staircase is cut off when a hostile in view can stand beside it by the time the player has walked there and takes it, to attack them or follow them off the level: reckoned from the monster's speed at the most energy it could have, over the explored map and the unexplored squares beyond it. A monster standing on the player's path, rather than racing them, is in the way instead; and a staircase the player stands on isn't cut off, as nothing races them to it, but hostiles beside them would follow them off the level.
+A staircase is cut off when a hostile in view can stand beside it by the time the player has walked there at their Pace and takes it, to attack them or follow them off the level: reckoned from the monster's speed at the most energy it could have, over the explored map and the unexplored squares beyond it. A monster standing on the player's path, rather than racing them, is in the way instead; and a staircase the player stands on isn't cut off, as nothing races them to it, but hostiles beside them would follow them off the level.
 _Avoid_: Blocked (when meaning this)
+
+**Pace**:
+How long each of the player's moves takes, as crawl works it out from their statuses, form, species, mutations, banes, god, gear and the water they step into, at the slowest crawl may roll it: a staircase is Cut Off or not at the player's Pace.
+_Avoid_: Speed (crawl's word for a monster's energy), movement speed
 
 **Corridor**:
 A square monsters can attack the player from at most two sides of, so they come at them one or two at a time. Anywhere else is open ground.

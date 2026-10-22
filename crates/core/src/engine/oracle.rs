@@ -1,14 +1,14 @@
 //! The crawl oracle's seam (`CODING_STANDARDS.md`, Testing): the engine's ported melee, spell,
-//! missile and wand formulas, the gear Game Knowledge says monsters are made with, and the
-//! Threat Level's play of a monster's turns before the player's next action, run on the inputs a
-//! crawl harness reports, tallied as the harness tallies crawl's own rolls, so
-//! `tools/crawl-oracle` can diff the two.
+//! missile and wand formulas, the gear Game Knowledge says monsters are made with, the Threat
+//! Level's play of a monster's turns before the player's next action, and the time the player's
+//! actions and moves take, run on the inputs a crawl harness reports, tallied as the harness
+//! tallies crawl's own rolls, so `tools/crawl-oracle` can diff the two.
 
 use std::collections::BTreeMap;
 
 use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
 
-use crate::accumulated_state::Shield;
+use crate::accumulated_state::{MutationsRead, Shield};
 
 use crate::crawl_ids::monster_types;
 
@@ -16,13 +16,14 @@ use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
 use super::player_attacks::{self, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Striker};
+use super::player_move::{self, Unread};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
 use super::step::Offset;
 use super::threat::{self, Attacker, Draw};
 use super::{torment, wands};
-use crate::screen::{Resistance, Resistances};
+use crate::screen::{Resistance, Resistances, Screen, ScreenRead};
 use crate::visible_state::{Religion, Status};
 
 pub use super::lighting::Lighting;
@@ -316,6 +317,13 @@ pub enum CaseError {
     /// The bundle has no form the status pane lights with this text.
     #[error("the Game Knowledge has no form lit {0}")]
     NoForm(String),
+    /// The bundle doesn't classify a status light the status pane lit, as a form or a status that
+    /// changes the player's speed or doesn't.
+    #[error("the Game Knowledge doesn't classify the status light {0}")]
+    UnclassifiedLight(String),
+    /// The bundle has no dungeon feature with this `dungeon_feature_type` value.
+    #[error("the Game Knowledge has no feature numbered {0}")]
+    NoFeature(u16),
     /// The bundle has no melee weapon with this sub-type identifier.
     #[error("the Game Knowledge has no melee weapon {0}")]
     NoMeleeWeapon(String),
@@ -1293,6 +1301,125 @@ pub fn monster_hit_points(
             known.hp_10x,
         );
         *tally.entry(hp).or_default() += 1;
+    }
+    Ok(tally)
+}
+
+/// The player as a speed harness shows them: what the game shows of them that tells how fast
+/// they move.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct MoverCase {
+    /// Their species, as the game names it.
+    pub species: String,
+    /// Their experience level.
+    pub xl: u32,
+    /// The light of each status the status pane lists.
+    pub lights: Vec<String>,
+    /// Their god as the status pane shows them, if any.
+    pub god: Option<GodShown>,
+    /// The rows of the mutations screen (`A`).
+    pub mutations: Vec<String>,
+    /// The items they carry.
+    pub carried: Vec<CarriedShown>,
+    /// The `dungeon_feature_type` value of the square they stand on.
+    pub feature: u16,
+}
+
+/// The player's god as the status pane shows them.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct GodShown {
+    /// The god, as the game names them.
+    pub name: String,
+    /// The stars of piety it shows.
+    pub piety_rank: u32,
+    /// Whether the god is punishing them.
+    pub penance: bool,
+}
+
+/// An item the player carries, by name, with whether they wear it.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct CarriedShown {
+    /// Its name, as the game shows it.
+    pub name: String,
+    /// Whether they wear it.
+    pub worn: bool,
+}
+
+/// How often each time came up for the player of a speed case, tallied as the harness tallies
+/// crawl's.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct MoveTally {
+    /// The time an action takes: `player_speed`.
+    pub action: BTreeMap<i32, u32>,
+    /// The delay a move onto their square adds: `player_movement_speed`.
+    pub delay: BTreeMap<i32, u32>,
+    /// The time a move onto their square takes.
+    pub time: BTreeMap<i32, u32>,
+}
+
+/// The times `case`'s player takes, `trials` times each, from a generator seeded with `seed`,
+/// read as the Advisor reads the status pane, the mutations screen, the character overview's
+/// equipment and the map.
+///
+/// # Errors
+/// If the bundle doesn't know the species, a status light or the feature underfoot.
+pub fn player_move(
+    bundle: &Bundle,
+    case: &MoverCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<MoveTally, CaseError> {
+    let lights: Vec<&str> = case.lights.iter().map(String::as_str).collect();
+    let religion = case.god.as_ref().map(|god| Religion::God {
+        name: god.name.clone(),
+        piety_rank: Some(god.piety_rank),
+        penance: god.penance,
+    });
+    let screen = ScreenRead {
+        screen: Screen::Mutations,
+        title: None,
+        lines: case.mutations.clone(),
+    };
+    let mutations = MutationsRead {
+        shown: screen.mutations().unwrap_or_default(),
+        xl: Some(case.xl),
+    };
+    let carried: Vec<(&str, Option<bool>)> = case
+        .carried
+        .iter()
+        .map(|item| (item.name.as_str(), Some(item.worn)))
+        .collect();
+    let seen = player_move::Seen {
+        lights: Some(&lights),
+        species: Some(&case.species),
+        xl: Some(case.xl),
+        religion: Some(religion.as_ref().unwrap_or(&Religion::NoGod)),
+        mutations: Some(&mutations),
+        carried: Some(&carried),
+    };
+    let read = player_move::read(bundle, &seen)
+        .ok_or_else(|| CaseError::NoSpecies(case.species.clone()))?;
+    if let Some(Unread::Light(light)) = read
+        .unread
+        .iter()
+        .find(|unread| matches!(unread, Unread::Light(_)))
+    {
+        return Err(CaseError::UnclassifiedLight(light.clone()));
+    }
+    let water = bundle
+        .feature(case.feature)
+        .ok_or(CaseError::NoFeature(case.feature))?
+        .water;
+    let variant = bundle.formulas.player_move;
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = MoveTally::default();
+    for _ in 0..trials {
+        let action = player_move::action_time(variant, &read.mover, &mut rng);
+        let delay = player_move::move_delay(variant, &read.mover, water, &mut rng);
+        let time = player_move::move_time(variant, &read.mover, water, &mut rng);
+        *tally.action.entry(action).or_default() += 1;
+        *tally.delay.entry(delay).or_default() += 1;
+        *tally.time.entry(time).or_default() += 1;
     }
     Ok(tally)
 }

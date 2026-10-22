@@ -337,8 +337,15 @@ pub enum NotModelled {
     /// each trial guesses them afresh, any as likely as another, so the chance of death is an
     /// average over what they could be, and the player's own may give more or less.
     DefenceFractions,
-    /// The player is assumed to walk at standard speed, a square an action, and to cast, zap and
-    /// wait at it in a fight, whatever their species, statuses or gear.
+    /// Something the Advisor can't see could change the player's speed. The stair race plays
+    /// their Pace, as crawl works it out from what the Advisor reads, and names this only while:
+    /// the mutations screen (`A`) hasn't been read, so only their species' mutations are known;
+    /// the status pane hasn't been reported, or shows a status or form the Game Knowledge
+    /// doesn't classify; their species isn't known; or they carry armour that changes their
+    /// speed and the Advisor doesn't know whether they wear it, which the character overview
+    /// (`%`) tells. A Stale reading of the mutations screen is played all the same, and labelled
+    /// Stale. A judged fight names it always: the player is assumed to cast, zap, wait and walk
+    /// at standard speed in it, whatever their species, statuses or gear.
     PlayerSpeed,
     /// Everyone is assumed to walk: deep water and lava stop them, even those who swim or fly.
     SwimmingAndFlying,
@@ -511,7 +518,7 @@ impl FactSheet {
         }
         Self {
             threat,
-            ways_out: WaysOut::compute(visible, remembered, knowledge),
+            ways_out: WaysOut::compute(visible, remembered, species, knowledge),
             fight,
         }
     }

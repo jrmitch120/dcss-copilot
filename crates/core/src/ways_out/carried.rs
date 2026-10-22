@@ -5,8 +5,8 @@ use std::collections::BTreeSet;
 
 use copilot_gk::{Bundle, Relief, Use};
 
-use super::{Blocker, Escape, ReadOn, Usable, WayOut};
-use crate::accumulated_state::{AccumulatedState, Remembered};
+use super::{Blocker, Escape, Usable, WayOut, current};
+use crate::accumulated_state::AccumulatedState;
 use crate::crawl_ids::object_classes;
 use crate::fact_sheet::Gap;
 use crate::visible_state::VisibleState;
@@ -200,26 +200,5 @@ impl Carried<'_> {
                 })
             })
             .collect()
-    }
-}
-
-/// A remembered fact's value and when it was read, unless it was never read.
-fn current<T>(remembered: &Remembered<T>) -> Option<(&T, ReadOn)> {
-    match remembered {
-        Remembered::Missing => None,
-        Remembered::Known(fact) => Some((
-            &fact.value,
-            ReadOn {
-                turn: fact.turn,
-                stale: false,
-            },
-        )),
-        Remembered::Stale(fact) => Some((
-            &fact.value,
-            ReadOn {
-                turn: fact.turn,
-                stale: true,
-            },
-        )),
     }
 }

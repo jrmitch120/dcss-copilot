@@ -121,6 +121,8 @@ pub struct Bundle {
     /// Which of the player's items, spells and abilities are Ways Out, and the statuses that stop
     /// them.
     pub ways_out: WayOutSigns,
+    /// What the game shows that tells how fast the player moves.
+    pub speed: SpeedSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
 }
@@ -289,6 +291,155 @@ pub struct Form {
     /// Crawl halves the torment a player in it takes, as the form leaves them only partly
     /// petrified or undead: `torment_player`, which names its forms in code.
     pub halves_torment: bool,
+    /// The body it gives the player, as their moving goes.
+    pub body: FormBody,
+}
+
+/// The body a form gives the player, or the one they have in none, as `player_movement_speed`
+/// reads it, from `dat/forms`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormBody {
+    /// The time a move takes in it before anything else changes it, where 10 is a standard move:
+    /// its `move_speed`, 10 unless set (`Form::base_move_speed`).
+    pub move_speed: i32,
+    /// The size of body it gives, its `size`: `None` for the species' own (`SIZE_CHARACTER`).
+    pub size: Option<BodySize>,
+    /// Whether it lets the player swim, its `can_swim`: `None` to leave it to the species.
+    pub swims: Option<bool>,
+    /// It changes the body so much that mutations of its anatomy stop working, its
+    /// `changes_anatomy` (`form_changes_anatomy`, which `mut_is_compatible` reads).
+    pub changes_anatomy: bool,
+}
+
+/// The size of a body: crawl's `size_type`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BodySize {
+    /// `SIZE_TINY`.
+    Tiny,
+    /// `SIZE_LITTLE`.
+    Little,
+    /// `SIZE_SMALL`.
+    Small,
+    /// `SIZE_MEDIUM`.
+    Medium,
+    /// `SIZE_LARGE`.
+    Large,
+    /// `SIZE_BIG`.
+    Big,
+    /// `SIZE_GIANT`.
+    Giant,
+}
+
+/// What the game shows that tells how fast the player moves, as `player_speed` and
+/// `player_movement_speed` decide it, as this Crawl Version has them. A species' own size,
+/// swimming and mutations are on its [`Species`], and a form's body on its [`Form`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeedSigns {
+    /// Every status light the status pane may show, with what it tells of the player's speed:
+    /// those it lights for a status that changes it, and every other it may show, which tell
+    /// nothing. Forms are among [`HolinessSigns::forms`] instead. A light crawl builds as it
+    /// draws it, such as `Torch (3)`, is listed by the words before what changes, `Torch`.
+    pub lights: Vec<SpeedLight>,
+    /// The body the player has in no form: the form `none`.
+    pub unformed: FormBody,
+    /// The mutations that change how fast the player moves.
+    pub mutations: Vec<SpeedMutation>,
+    /// The banes that change how fast the player moves.
+    pub banes: Vec<SpeedBane>,
+    /// The gods whose followers move slowly for their piety and are never hastened by a
+    /// berserker rage, as the game names them, such as `Cheibriados` (`passive_t::slowed` and
+    /// `passive_t::no_haste`).
+    pub slowing_gods: Vec<String>,
+    /// The gods whose followers walk on water once their piety reaches a rank, so it doesn't
+    /// slow them (`passive_t::water_walk`).
+    pub water_walking_gods: Vec<GodRank>,
+    /// What the name of armour that slows its wearer holds, in lower case: `"ponderousness"`
+    /// (`SPARM_PONDEROUSNESS`).
+    pub ponderous_gear: Vec<String>,
+    /// What the name of armour that quickens its wearer holds, in lower case: the lightning
+    /// scales (`UNRAND_LIGHTNING_SCALES`).
+    pub quickening_gear: Vec<String>,
+}
+
+/// A status light, and what it tells of the player's speed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeedLight {
+    /// The light, such as `Fast`.
+    pub light: String,
+    /// What the status it lights does to the player's speed, `None` for nothing.
+    pub status: Option<SpeedStatus>,
+}
+
+/// A status that changes how fast the player moves, as the status pane lights it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SpeedStatus {
+    /// Hasted (`DUR_HASTE`).
+    Hasted,
+    /// Slowed, or a stat at zero (`DUR_SLOW`, `have_stat_zero`).
+    Slowed,
+    /// Both hasted and slowed.
+    HastedAndSlowed,
+    /// In a berserker rage (`DUR_BERSERK`).
+    Berserk,
+    /// Swift (`DUR_SWIFTNESS` with `ATTR_SWIFTNESS` above zero).
+    Swift,
+    /// Sluggish as swiftness wears off (`DUR_SWIFTNESS` with `ATTR_SWIFTNESS` below zero).
+    Unswift,
+    /// Partly encased in ice (`DUR_FROZEN`).
+    Frozen,
+    /// Turning to stone (`DUR_PETRIFYING`).
+    Petrifying,
+    /// On liquefied ground, or liquefying it (`STATUS_LIQUEFIED`).
+    SlowedMovement,
+    /// Flying, so water doesn't slow them (`player::airborne`).
+    Flying,
+    /// Unable to act, asleep, paralysed or petrified (`player::helpless`).
+    Helpless,
+}
+
+/// A god, from the rank of piety the status pane shows as stars.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GodRank {
+    /// The god, as the game names them, such as `Beogh`.
+    pub god: String,
+    /// The rank, from 1 to 6 stars.
+    pub piety_rank: u32,
+}
+
+/// A mutation that changes how fast the player moves, from `mut_data` in `mutation-data.h`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeedMutation {
+    /// Its `mutation_type` identifier, such as `MUT_FAST`.
+    pub id: EnumId,
+    /// How the mutations screen (`A`) describes it at each of its levels, first level first
+    /// (`have`).
+    pub shown: Vec<String>,
+    /// It is a mutation of the player's anatomy (`mutflag::anatomy`), which stops working in a
+    /// form that changes it.
+    pub anatomy: bool,
+    /// The messages the game gives as the player gains or loses a level of it (`gain` and
+    /// `lose`).
+    pub messages: Vec<String>,
+}
+
+/// A bane that changes how fast the player moves, from `bane_data` in `bane-data.h`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeedBane {
+    /// Its `bane_type` identifier, such as `BANE_LETHARGY`.
+    pub id: EnumId,
+    /// How the mutations screen (`A`) describes it (`description`).
+    pub shown: String,
+    /// The messages the game gives as the player gains it, it grows stronger, or it is lifted
+    /// (`add_bane` and `remove_bane`).
+    pub messages: Vec<String>,
 }
 
 /// The holiness a form gives the player: its `holiness` in `dat/forms`, or, for a form
@@ -468,6 +619,9 @@ pub struct Formulas {
     pub wand_power: WandPower,
     /// A monster's hit points as it is made: `hit_points`.
     pub monster_hit_points: MonsterHitPoints,
+    /// The time a move takes the player: `player_speed`, `player_movement_speed` and the delay
+    /// `move_player_action` gives a move.
+    pub player_move: PlayerMove,
 }
 
 /// The variants of a monster's melee accuracy.
@@ -689,6 +843,14 @@ pub enum MonsterHitPoints {
     Crawl034,
 }
 
+/// The variants of the time a move takes the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PlayerMove {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 impl Formulas {
     /// The variants crawl 0.34 uses.
     pub const CRAWL_0_34: Self = Self {
@@ -719,6 +881,7 @@ impl Formulas {
         player_beam: PlayerBeam::Crawl034,
         wand_power: WandPower::Crawl034,
         monster_hit_points: MonsterHitPoints::Crawl034,
+        player_move: PlayerMove::Crawl034,
     };
 }
 
@@ -1335,6 +1498,8 @@ pub struct Feature {
     /// Which way it takes the player to another level, when it is a staircase they can take:
     /// drawn as one, and neither sealed nor leading out of the dungeon.
     pub stairs: Option<StairDirection>,
+    /// It is water, shallow or deep, which slows a player wading through it (`feat_is_water`).
+    pub water: bool,
 }
 
 /// What a dungeon feature is to someone walking onto it, from its `feat_defs` flags and
@@ -1374,4 +1539,23 @@ pub struct Species {
     pub name: String,
     /// How undead it is: its `undead_type`.
     pub undead: Undeadness,
+    /// The size of its body, its `size`, medium unless set (`species::size` of `PSIZE_BODY`).
+    pub size: BodySize,
+    /// It swims, its `can_swim`: its habitat is water (`species::can_swim`).
+    pub swims: bool,
+    /// The mutations it has from the start or grows as it gains experience levels, its
+    /// `mutations`, by experience level, then by identifier.
+    pub mutations: Vec<InnateMutation>,
+}
+
+/// Levels of a mutation a species has from an experience level on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InnateMutation {
+    /// The experience level it comes at: 1 for one the species starts with.
+    pub xl: u32,
+    /// Its `mutation_type` identifier, such as `MUT_CONSTRICTING_TAIL`.
+    pub mutation: EnumId,
+    /// The levels of it that come then.
+    pub levels: u32,
 }

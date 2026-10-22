@@ -35,6 +35,11 @@ pub struct FeatureRules {
     /// The features drawn as staircases that take the player to no other level: sealed stairs
     /// (`feat_is_sealed`), and the staircase out of the dungeon, which ends the game.
     pub not_stairs: &'static [&'static str],
+    /// The water, shallow or deep (`feat_is_water`), each named by one of `water_functions` in
+    /// `terrain.cc`.
+    pub water: &'static [&'static str],
+    /// The functions of `terrain.cc` that name the water.
+    pub water_functions: &'static [&'static str],
 }
 
 /// What crawl 0.34 decides about features in code.
@@ -45,25 +50,56 @@ pub const FEATURE_RULES_0_34: FeatureRules = FeatureRules {
         "DNGN_SEALED_STAIRS_DOWN",
         "DNGN_EXIT_DUNGEON",
     ],
+    water: &[
+        "DNGN_SHALLOW_WATER",
+        "DNGN_TOXIC_BOG",
+        "DNGN_MANGROVE",
+        "DNGN_DEEP_WATER",
+        "DNGN_OPEN_SEA",
+    ],
+    water_functions: &["feat_is_shallow_water", "feat_is_deep_water"],
 };
 
+/// The file whose functions name the water.
+const TERRAIN_FILE: &str = "terrain.cc";
+
 /// Every feature `feat_defs` defines, by its value in `dungeon_feature_type`, whose enumerators
-/// are `enumeration`.
+/// are `enumeration`, with `terrain`, `terrain.cc`, to check the water against.
 pub fn features(
     source: &Source,
     file: &str,
     enumeration: &[(String, i64)],
+    terrain: &Source,
     rules: &FeatureRules,
 ) -> Result<BTreeMap<u16, Feature>, ExtractError> {
     let values: HashMap<&str, i64> = enumeration
         .iter()
         .map(|(id, value)| (id.as_str(), *value))
         .collect();
-    for &id in rules.sealed_doors.iter().chain(rules.not_stairs) {
+    for &id in rules
+        .sealed_doors
+        .iter()
+        .chain(rules.not_stairs)
+        .chain(rules.water)
+    {
         if !values.contains_key(id) {
             return Err(ExtractError::Missing {
                 file: "dungeon-feature-type.h".to_owned(),
                 what: id.to_owned(),
+            });
+        }
+    }
+    let water_bodies = rules
+        .water_functions
+        .iter()
+        .map(|function| terrain.function_body(function))
+        .collect::<Result<Vec<_>, _>>()?;
+    for &id in rules.water {
+        let ident = Token::Ident(id.to_owned());
+        if !water_bodies.iter().any(|body| body.contains(&ident)) {
+            return Err(ExtractError::Missing {
+                file: TERRAIN_FILE.to_owned(),
+                what: format!("{id}, in {}", rules.water_functions.join(" or ")),
             });
         }
     }
@@ -134,6 +170,7 @@ pub fn features(
                 name: name.clone(),
                 terrain,
                 stairs,
+                water: rules.water.contains(&id.as_str()),
             },
         );
     }
