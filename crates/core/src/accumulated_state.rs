@@ -9,7 +9,7 @@ use serde::Serialize;
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, object_classes};
 use crate::screen::{
-    KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, Skills, SpellReach,
+    KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations, Skills, SpellReach,
 };
 use crate::visible_state::{
     GameMessage, InventoryItem, Sighting, Status, VisibleMonster, VisibleState,
@@ -56,6 +56,12 @@ pub struct AccumulatedState {
     /// For each of these, the inventory changes when what is carried does: crawl greying an
     /// item out or not, which follows the character's statuses, isn't a change.
     pub abilities: Remembered<Vec<KnownAbility>>,
+    /// The mutations and banes the character has, as the mutations screen (`A`) last showed
+    /// them, with the experience level they had then. It goes Stale when the experience level
+    /// changes, as banes lift and a species grows mutations with it, or the game gives a message
+    /// of a mutation or bane that changes the character's speed coming or going. Any other
+    /// mutation coming or going goes unnoticed.
+    pub mutations: Remembered<MutationsRead>,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
     /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
     /// its name picking up, dropping or wielding something.
@@ -119,6 +125,17 @@ pub struct AsOf<T, S = Screen> {
     pub turn: Option<u32>,
     /// What it was read off: the screen the player opened, or, for Carried Gear, the message.
     pub source: S,
+}
+
+/// What the mutations screen showed, and the experience level the character had then, which
+/// tells which of the mutations it lists their species gave them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MutationsRead {
+    /// What it showed.
+    pub shown: ShownMutations,
+    /// The character's experience level, if the game had reported it.
+    pub xl: Option<u32>,
 }
 
 /// A shield the character can wear, by how many attacks it can block before their next action.
@@ -218,6 +235,13 @@ impl AccumulatedState {
         if let Some(abilities) = read.abilities() {
             self.abilities = Remembered::read(abilities, read, visible);
         }
+        if let Some(shown) = read.mutations() {
+            let mutations = MutationsRead {
+                shown,
+                xl: visible.stats.xl,
+            };
+            self.mutations = Remembered::read(mutations, read, visible);
+        }
     }
 
     /// Notes what changed between the Visible State the game reported before and what it
@@ -264,11 +288,17 @@ impl AccumulatedState {
         {
             self.abilities.go_stale();
         }
+        if was.xl != is.xl {
+            self.mutations.go_stale();
+        }
         let Some(bundle) = knowledge else { return };
         let signs = &bundle.ways_out;
         self.notice_comings_and_goings(before, now, bundle);
         for message in new_messages(before, now) {
             let turn = message.turn.or(now.turn);
+            if changes_speed(&message.text, bundle) {
+                self.mutations.go_stale();
+            }
             if message.text == signs.no_spells {
                 self.spells = Remembered::nothing_on(Screen::Spells, turn);
                 self.spell_reaches = Remembered::nothing_on(Screen::Spells, turn);
@@ -485,6 +515,18 @@ impl<T> Remembered<Vec<T>> {
     }
 }
 
+/// Whether `message` tells of a mutation or bane that changes the character's speed coming or
+/// going, as `bundle` gives their messages.
+fn changes_speed(message: &str, bundle: &Bundle) -> bool {
+    let speed = &bundle.speed;
+    speed
+        .mutations
+        .iter()
+        .flat_map(|mutation| &mutation.messages)
+        .chain(speed.banes.iter().flat_map(|bane| &bane.messages))
+        .any(|said| said == message)
+}
+
 /// Whether the player carries the same in `before` and `now`, by letters, names, quantities and
 /// kinds: not whether crawl greys an item out, which changes with their statuses rather than
 /// what they carry.
@@ -654,6 +696,95 @@ mod tests {
         let mut levelled = character();
         levelled.stats.xl = Some(6);
         assert!(goes_stale(&character(), &levelled));
+    }
+
+    /// The mutations screen as a naga with a lethargy bane shows it.
+    fn mutations_screen() -> ScreenRead {
+        ScreenRead {
+            screen: Screen::Mutations,
+            title: Some("Innate Abilities, Weirdness & Mutations".to_owned()),
+            lines: vec![
+                " a - Your snake-like lower body moves slowly.".to_owned(),
+                " b - You cover ground slowly. [3.5]".to_owned(),
+            ],
+        }
+    }
+
+    /// The shipped 0.34.1 bundle.
+    fn bundle() -> &'static Bundle {
+        static LIBRARY: std::sync::OnceLock<copilot_gk::Library> = std::sync::OnceLock::new();
+        LIBRARY
+            .get_or_init(|| copilot_gk::Library::shipped().unwrap())
+            .for_version("0.34.1")
+            .unwrap()
+    }
+
+    /// The mutations read off the mutations screen in `before`, once the game reports `now`.
+    fn mutations_after(before: &VisibleState, now: &VisibleState) -> Remembered<MutationsRead> {
+        let mut remembered = AccumulatedState::default();
+        remembered.read(&mutations_screen(), before);
+        remembered.update(before, now, Some(bundle()));
+        remembered.mutations
+    }
+
+    #[test]
+    fn the_mutations_screen_is_known_as_of_the_turn_and_level_it_was_read() {
+        let mut remembered = AccumulatedState::default();
+        assert_eq!(remembered.mutations, Remembered::Missing);
+        remembered.read(&mutations_screen(), &character());
+        let Remembered::Known(read) = &remembered.mutations else {
+            panic!("{:?}", remembered.mutations);
+        };
+        assert_eq!(read.turn, Some(40));
+        assert_eq!(read.value.xl, Some(5));
+        assert_eq!(read.value.shown.banes, ["You cover ground slowly."]);
+        let next_turn = VisibleState {
+            turn: Some(41),
+            ..character()
+        };
+        assert!(matches!(
+            mutations_after(&character(), &next_turn),
+            Remembered::Known(_)
+        ));
+    }
+
+    #[test]
+    fn the_mutations_go_stale_when_the_experience_level_changes() {
+        let mut levelled = character();
+        levelled.stats.xl = Some(6);
+        assert!(matches!(
+            mutations_after(&character(), &levelled),
+            Remembered::Stale(_)
+        ));
+    }
+
+    #[test]
+    fn the_mutations_go_stale_when_the_game_says_a_mutation_or_bane_that_changes_speed_came_or_went()
+     {
+        for message in [
+            "You feel sluggish.",
+            "Your lower body returns to normal.",
+            "The Bane of Lethargy upon you is lifted.",
+        ] {
+            let mut said = character();
+            said.messages.push(GameMessage {
+                text: message.to_owned(),
+                turn: Some(40),
+            });
+            assert!(
+                matches!(mutations_after(&character(), &said), Remembered::Stale(_)),
+                "{message}"
+            );
+        }
+        let mut other = character();
+        other.messages.push(GameMessage {
+            text: "You feel a little pissed off.".to_owned(),
+            turn: Some(40),
+        });
+        assert!(matches!(
+            mutations_after(&character(), &other),
+            Remembered::Known(_)
+        ));
     }
 
     #[test]

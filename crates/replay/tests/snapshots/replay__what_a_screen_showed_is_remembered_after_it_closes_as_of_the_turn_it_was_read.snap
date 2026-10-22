@@ -59,6 +59,9 @@ expression: replayer.advisor().accumulated()
   "abilities": {
     "state": "missing"
   },
+  "mutations": {
+    "state": "missing"
+  },
   "carriedGear": {},
   "uniquesGear": {}
 }

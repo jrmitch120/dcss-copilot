@@ -14,7 +14,9 @@ mod view_model;
 mod visible_state;
 mod ways_out;
 
-pub use accumulated_state::{AccumulatedState, AsOf, GearSource, Remembered, Shield};
+pub use accumulated_state::{
+    AccumulatedState, AsOf, GearSource, MutationsRead, Remembered, Shield,
+};
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
 pub use engine::oracle;
@@ -25,8 +27,8 @@ pub use fact_sheet::{
 pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{
-    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, Skills, SpellPower,
-    SpellReach,
+    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutation,
+    ShownMutations, Skills, SpellPower, SpellReach,
 };
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
