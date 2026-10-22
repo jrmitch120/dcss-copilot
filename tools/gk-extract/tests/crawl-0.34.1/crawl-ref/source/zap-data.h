@@ -81,6 +81,36 @@ static const zap_info zap_data[] =
     TILE_BOLT_DEFAULT_RED,
 },
 
+{
+    ZAP_MIASMA_BREATH,
+    "foul vapour",
+    nullptr,
+    nullptr,
+    new dicedef_calculator<3, 5, 1, 24>,
+    new tohit_calculator<17, 1, 20>,
+    DARKGREY,
+    false,
+    BEAM_MIASMA,
+    DCHAR_FIRED_ZAP,
+    true,
+    false,
+},
+
+{
+    ZAP_HOLY_BREATH,
+    "blast of cleansing flame",
+    nullptr,
+    nullptr,
+    new dicedef_calculator<3, 0, 1, 12>,
+    new tohit_calculator<18, 1, 25>,
+    ETC_HOLY,
+    false,
+    BEAM_HOLY,
+    DCHAR_FIRED_ZAP,
+    true,
+    false,
+},
+
 _mon_hex_zap(ZAP_SLOW, BEAM_SLOW),
 
 // (trimmed for the extractor test)

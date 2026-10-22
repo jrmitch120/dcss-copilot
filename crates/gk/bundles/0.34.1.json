@@ -59439,14 +59439,16 @@
       "name": "nonexistent spell",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "1": {
       "id": "SPELL_TELEPORT_SELF",
       "name": "Teleport Self",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "2": {
       "id": "SPELL_CAUSE_FEAR",
@@ -59459,7 +59461,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "3": {
       "id": "SPELL_MAGIC_DART",
@@ -59498,7 +59501,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "4": {
       "id": "SPELL_FIREBALL",
@@ -59544,7 +59548,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "5": {
       "id": "SPELL_APPORTATION",
@@ -59557,28 +59562,32 @@
         "max": 8,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "6": {
       "id": "SPELL_DELAYED_FIREBALL",
       "name": "Delayed Fireball",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "7": {
       "id": "SPELL_STRIKING",
       "name": "Striking",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "8": {
       "id": "SPELL_CONJURE_FLAME",
       "name": "Conjure Flame",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "9": {
       "id": "SPELL_DIG",
@@ -59601,7 +59610,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "10": {
       "id": "SPELL_BOLT_OF_FIRE",
@@ -59647,7 +59657,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "11": {
       "id": "SPELL_BOLT_OF_COLD",
@@ -59693,7 +59704,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "12": {
       "id": "SPELL_LIGHTNING_BOLT",
@@ -59739,7 +59751,8 @@
           "perPower": 1,
           "per": 40
         }
-      }
+      },
+      "cloud": null
     },
     "13": {
       "id": "SPELL_BOLT_OF_MAGMA",
@@ -59786,7 +59799,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "14": {
       "id": "SPELL_POLYMORPH",
@@ -59815,7 +59829,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "15": {
       "id": "SPELL_SLOW",
@@ -59843,7 +59858,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "16": {
       "id": "SPELL_HASTE",
@@ -59862,7 +59878,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "17": {
       "id": "SPELL_PARALYSE",
@@ -59890,7 +59907,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "18": {
       "id": "SPELL_CONFUSE",
@@ -59918,7 +59936,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "19": {
       "id": "SPELL_INVISIBILITY",
@@ -59927,7 +59946,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "20": {
       "id": "SPELL_THROW_FLAME",
@@ -59973,7 +59993,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "21": {
       "id": "SPELL_THROW_FROST",
@@ -60019,14 +60040,16 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "22": {
       "id": "SPELL_CONTROLLED_BLINK",
       "name": "Controlled Blink",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "23": {
       "id": "SPELL_FREEZING_CLOUD",
@@ -60041,7 +60064,8 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "24": {
       "id": "SPELL_MEPHITIC_CLOUD",
@@ -60068,14 +60092,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "25": {
       "id": "SPELL_RING_OF_FLAMES",
       "name": "Ring of Flames",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "26": {
       "id": "SPELL_VENOM_BOLT",
@@ -60121,7 +60147,8 @@
           "perPower": 1,
           "per": 20
         }
-      }
+      },
+      "cloud": null
     },
     "27": {
       "id": "SPELL_OLGREBS_TOXIC_RADIANCE",
@@ -60130,7 +60157,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "28": {
       "id": "SPELL_TELEPORT_OTHER",
@@ -60163,21 +60191,24 @@
           "perPower": 3,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "29": {
       "id": "SPELL_MINOR_HEALING",
       "name": "Minor Healing",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "30": {
       "id": "SPELL_MAJOR_HEALING",
       "name": "Major Healing",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "31": {
       "id": "SPELL_DEATHS_DOOR",
@@ -60186,7 +60217,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "32": {
       "id": "SPELL_MASS_CONFUSION",
@@ -60195,7 +60227,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "33": {
       "id": "SPELL_SMITING",
@@ -60206,7 +60239,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "34": {
       "id": "SPELL_SUMMON_SMALL_MAMMAL",
@@ -60215,7 +60249,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "35": {
       "id": "SPELL_ABJURATION",
@@ -60228,7 +60263,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "36": {
       "id": "SPELL_SUMMON_SCORPIONS",
@@ -60238,7 +60274,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "37": {
       "id": "SPELL_BOLT_OF_DRAINING",
@@ -60284,7 +60321,8 @@
           "perPower": 1,
           "per": 20
         }
-      }
+      },
+      "cloud": null
     },
     "38": {
       "id": "SPELL_LEHUDIBS_CRYSTAL_SPEAR",
@@ -60330,14 +60368,16 @@
           "perPower": 1,
           "per": 15
         }
-      }
+      },
+      "cloud": null
     },
     "39": {
       "id": "SPELL_BOLT_OF_INACCURACY",
       "name": "Bolt of Inaccuracy",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "40": {
       "id": "SPELL_POISONOUS_CLOUD",
@@ -60373,6 +60413,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_POISON",
+        "opaque": false,
+        "trail": true
       }
     },
     "41": {
@@ -60419,7 +60464,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "42": {
       "id": "SPELL_BLINK",
@@ -60428,7 +60474,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "43": {
       "id": "SPELL_ISKENDERUNS_MYSTIC_BLAST",
@@ -60460,14 +60507,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "44": {
       "id": "SPELL_SUMMON_SWARM",
       "name": "Summon swarm",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "45": {
       "id": "SPELL_SUMMON_HORRIBLE_THINGS",
@@ -60476,7 +60525,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "46": {
       "id": "SPELL_CHARMING",
@@ -60504,7 +60554,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "47": {
       "id": "SPELL_ANIMATE_DEAD",
@@ -60513,7 +60564,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "48": {
       "id": "SPELL_PAIN",
@@ -60547,21 +60599,24 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "49": {
       "id": "SPELL_CONTROL_UNDEAD",
       "name": "Control Undead",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "50": {
       "id": "SPELL_ANIMATE_SKELETON",
       "name": "Animate Skeleton",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "51": {
       "id": "SPELL_VAMPIRIC_DRAINING",
@@ -60600,7 +60655,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "52": {
       "id": "SPELL_HAUNT",
@@ -60614,7 +60670,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "53": {
       "id": "SPELL_BORGNJORS_REVIVIFICATION",
@@ -60623,7 +60680,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "54": {
       "id": "SPELL_FREEZE",
@@ -60662,14 +60720,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "55": {
       "id": "SPELL_SUMMON_ELEMENTAL",
       "name": "Summon Elemental",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "56": {
       "id": "SPELL_OZOCUBUS_REFRIGERATION",
@@ -60704,7 +60764,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "57": {
       "id": "SPELL_STICKY_FLAME",
@@ -60744,7 +60805,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "58": {
       "id": "SPELL_SUMMON_ICE_BEAST",
@@ -60754,7 +60816,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "59": {
       "id": "SPELL_OZOCUBUS_ARMOUR",
@@ -60763,7 +60826,8 @@
         "ice"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "60": {
       "id": "SPELL_CALL_IMP",
@@ -60772,7 +60836,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "61": {
       "id": "SPELL_DEFLECT_MISSILES",
@@ -60781,7 +60846,8 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "62": {
       "id": "SPELL_BERSERKER_RAGE",
@@ -60790,7 +60856,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "63": {
       "id": "SPELL_DISPEL_UNDEAD",
@@ -60832,14 +60899,16 @@
           "perPower": 3,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "64": {
       "id": "SPELL_FULSOME_DISTILLATION",
       "name": "Fulsome Distillation",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "65": {
       "id": "SPELL_POISON_ARROW",
@@ -60885,21 +60954,24 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "66": {
       "id": "SPELL_TWISTED_RESURRECTION",
       "name": "Twisted Resurrection",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "67": {
       "id": "SPELL_REGENERATION",
       "name": "Regeneration",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "68": {
       "id": "SPELL_BANISHMENT",
@@ -60927,14 +60999,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "69": {
       "id": "SPELL_CIGOTUVIS_DEGENERATION",
       "name": "Cigotuvi's Degeneration",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "70": {
       "id": "SPELL_STING",
@@ -60980,7 +61054,8 @@
           "perPower": 1,
           "per": 5
         }
-      }
+      },
+      "cloud": null
     },
     "71": {
       "id": "SPELL_SUBLIMATION_OF_BLOOD",
@@ -60989,7 +61064,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "72": {
       "id": "SPELL_TUKIMAS_DANCE",
@@ -61017,7 +61093,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "73": {
       "id": "SPELL_HURL_DAMNATION",
@@ -61062,7 +61139,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "74": {
       "id": "SPELL_SUMMON_DEMON",
@@ -61071,14 +61149,16 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "75": {
       "id": "SPELL_DEMONIC_HORDE",
       "name": "Demonic Horde",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "76": {
       "id": "SPELL_SUMMON_GREATER_DEMON",
@@ -61087,35 +61167,40 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "77": {
       "id": "SPELL_CORPSE_ROT",
       "name": "Corpse Rot",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "78": {
       "id": "SPELL_FIRE_BRAND",
       "name": "Fire Brand",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "79": {
       "id": "SPELL_FREEZING_AURA",
       "name": "Freezing Aura",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "80": {
       "id": "SPELL_LETHAL_INFUSION",
       "name": "Lethal Infusion",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "81": {
       "id": "SPELL_IRON_SHOT",
@@ -61161,7 +61246,8 @@
           "perPower": 1,
           "per": 15
         }
-      }
+      },
+      "cloud": null
     },
     "82": {
       "id": "SPELL_STONE_ARROW",
@@ -61207,7 +61293,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "83": {
       "id": "SPELL_SHOCK",
@@ -61253,7 +61340,8 @@
           "perPower": 1,
           "per": 7
         }
-      }
+      },
+      "cloud": null
     },
     "84": {
       "id": "SPELL_SWIFTNESS",
@@ -61262,42 +61350,48 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "85": {
       "id": "SPELL_FLY",
       "name": "Flight",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "86": {
       "id": "SPELL_INSULATION",
       "name": "Insulation",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "87": {
       "id": "SPELL_CURE_POISON",
       "name": "Cure Poison",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "88": {
       "id": "SPELL_CONTROL_TELEPORT",
       "name": "Control Teleport",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "89": {
       "id": "SPELL_POISON_WEAPON",
       "name": "Poison Weapon",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "90": {
       "id": "SPELL_DEBUGGING_RAY",
@@ -61328,14 +61422,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "91": {
       "id": "SPELL_RECALL",
       "name": "Recall",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "92": {
       "id": "SPELL_AGONISING_TOUCH",
@@ -61368,14 +61464,16 @@
           "perPower": 5,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "93": {
       "id": "SPELL_SPIDER_FORM",
       "name": "Spider Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "94": {
       "id": "SPELL_MINDBURST",
@@ -61420,42 +61518,48 @@
           "perPower": 5,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "95": {
       "id": "SPELL_BLADE_HANDS",
       "name": "Blade Hands",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "96": {
       "id": "SPELL_STATUE_FORM",
       "name": "Statue Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "97": {
       "id": "SPELL_ICE_FORM",
       "name": "Ice Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "98": {
       "id": "SPELL_DRAGON_FORM",
       "name": "Dragon Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "99": {
       "id": "SPELL_NECROMUTATION",
       "name": "Necromutation",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "100": {
       "id": "SPELL_DEATH_CHANNEL",
@@ -61464,7 +61568,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "101": {
       "id": "SPELL_SYMBOL_OF_TORMENT",
@@ -61473,14 +61578,16 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "102": {
       "id": "SPELL_OLD_DEFLECT_MISSILES",
       "name": "Old Deflect Missiles",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "103": {
       "id": "SPELL_THROW_ICICLE",
@@ -61526,7 +61633,8 @@
           "perPower": 1,
           "per": 12
         }
-      }
+      },
+      "cloud": null
     },
     "104": {
       "id": "SPELL_GLACIATE",
@@ -61540,7 +61648,8 @@
         "max": 6,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "105": {
       "id": "SPELL_AIRSTRIKE",
@@ -61553,7 +61662,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "106": {
       "id": "SPELL_SHADOW_CREATURES",
@@ -61562,7 +61672,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "107": {
       "id": "SPELL_CONFUSING_TOUCH",
@@ -61571,21 +61682,24 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "108": {
       "id": "SPELL_SURE_BLADE",
       "name": "Sure Blade",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "109": {
       "id": "SPELL_FLAME_TONGUE",
       "name": "Flame Tongue",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "110": {
       "id": "SPELL_PASSWALL",
@@ -61598,7 +61712,8 @@
         "max": 3,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "111": {
       "id": "SPELL_IGNITE_POISON",
@@ -61608,7 +61723,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "112": {
       "id": "SPELL_STICKS_TO_SNAKES",
@@ -61617,7 +61733,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "113": {
       "id": "SPELL_CALL_CANINE_FAMILIAR",
@@ -61626,7 +61743,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "114": {
       "id": "SPELL_SUMMON_DRAGON",
@@ -61635,7 +61753,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "115": {
       "id": "SPELL_HIBERNATION",
@@ -61664,7 +61783,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "116": {
       "id": "SPELL_ENGLACIATION",
@@ -61674,35 +61794,40 @@
         "ice"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "117": {
       "id": "SPELL_SEE_INVISIBLE",
       "name": "See Invisible",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "118": {
       "id": "SPELL_PHASE_SHIFT",
       "name": "Phase Shift",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "119": {
       "id": "SPELL_SUMMON_BUTTERFLIES",
       "name": "Summon Butterflies",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "120": {
       "id": "SPELL_WARP_BRAND",
       "name": "Warp Weapon",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "121": {
       "id": "SPELL_SILENCE",
@@ -61712,7 +61837,8 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "122": {
       "id": "SPELL_SHATTER",
@@ -61721,7 +61847,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "123": {
       "id": "SPELL_DISPERSAL",
@@ -61734,7 +61861,8 @@
         "max": 4,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "124": {
       "id": "SPELL_DISCHARGE",
@@ -61748,7 +61876,8 @@
         "max": 1,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "125": {
       "id": "SPELL_CORONA",
@@ -61776,7 +61905,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "126": {
       "id": "SPELL_INTOXICATE",
@@ -61785,14 +61915,16 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "127": {
       "id": "SPELL_EVAPORATE",
       "name": "Evaporate",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "128": {
       "id": "SPELL_LRD",
@@ -61805,7 +61937,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "129": {
       "id": "SPELL_SANDBLAST",
@@ -61850,21 +61983,24 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "130": {
       "id": "SPELL_CONDENSATION_SHIELD",
       "name": "Condensation Shield",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "131": {
       "id": "SPELL_STONESKIN",
       "name": "Stoneskin",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "132": {
       "id": "SPELL_SIMULACRUM",
@@ -61878,7 +62014,8 @@
         "max": 1,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "133": {
       "id": "SPELL_CONJURE_BALL_LIGHTNING",
@@ -61888,7 +62025,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "134": {
       "id": "SPELL_CHAIN_LIGHTNING",
@@ -61924,14 +62062,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "135": {
       "id": "SPELL_EXCRUCIATING_WOUNDS",
       "name": "Excruciating Wounds",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "136": {
       "id": "SPELL_PORTAL_PROJECTILE",
@@ -61944,7 +62084,8 @@
         "max": 8,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "137": {
       "id": "SPELL_MONSTROUS_MENAGERIE",
@@ -61953,7 +62094,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "138": {
       "id": "SPELL_PETRIFY",
@@ -61982,7 +62124,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "139": {
       "id": "SPELL_GOLUBRIAS_PASSAGE",
@@ -61995,7 +62138,8 @@
         "max": 8,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "140": {
       "id": "SPELL_CALL_DOWN_DAMNATION",
@@ -62029,14 +62173,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "141": {
       "id": "SPELL_VAMPIRE_SUMMON",
       "name": "Vampire Summon",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "142": {
       "id": "SPELL_BRAIN_BITE",
@@ -62050,14 +62196,16 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "143": {
       "id": "SPELL_FAKE_RAKSHASA_SUMMON",
       "name": "Rakshasa Summon",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "144": {
       "id": "SPELL_STEAM_BALL",
@@ -62102,7 +62250,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "145": {
       "id": "SPELL_SUMMON_UFETUBUS",
@@ -62111,7 +62260,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "146": {
       "id": "SPELL_SUMMON_SIN_BEAST",
@@ -62120,7 +62270,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "147": {
       "id": "SPELL_BOLT_OF_DEVASTATION",
@@ -62154,7 +62305,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "148": {
       "id": "SPELL_SPIT_POISON",
@@ -62199,7 +62351,8 @@
           "perPower": 1,
           "per": 6
         }
-      }
+      },
+      "cloud": null
     },
     "149": {
       "id": "SPELL_SUMMON_UNDEAD",
@@ -62209,14 +62362,16 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "150": {
       "id": "SPELL_CANTRIP",
       "name": "Cantrip",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "151": {
       "id": "SPELL_QUICKSILVER_BOLT",
@@ -62261,7 +62416,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "152": {
       "id": "SPELL_METAL_SPLINTERS",
@@ -62295,7 +62451,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "153": {
       "id": "SPELL_MIASMA_BREATH",
@@ -62329,6 +62486,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_MIASMA",
+        "opaque": false,
+        "trail": true
       }
     },
     "154": {
@@ -62339,7 +62501,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "155": {
       "id": "SPELL_BLINK_OTHER",
@@ -62352,7 +62515,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "156": {
       "id": "SPELL_SUMMON_MUSHROOMS",
@@ -62361,7 +62525,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "157": {
       "id": "SPELL_SPIT_ACID",
@@ -62395,7 +62560,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "158": {
       "id": "SPELL_CAUSTIC_BREATH",
@@ -62441,7 +62607,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "159": {
       "id": "SPELL_FIRE_BREATH",
@@ -62476,7 +62643,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "160": {
       "id": "SPELL_COLD_BREATH",
@@ -62511,14 +62679,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "161": {
       "id": "SPELL_DRACONIAN_BREATH",
       "name": "Draconian Breath",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "162": {
       "id": "SPELL_WATER_ELEMENTALS",
@@ -62527,7 +62697,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "163": {
       "id": "SPELL_PORKALATOR",
@@ -62556,21 +62727,24 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "164": {
       "id": "SPELL_CREATE_TENTACLES",
       "name": "Spawn Tentacles",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "165": {
       "id": "SPELL_TOMB_OF_DOROKLOHE",
       "name": "Tomb of Doroklohe",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "166": {
       "id": "SPELL_SUMMON_EYEBALLS",
@@ -62579,7 +62753,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "167": {
       "id": "SPELL_HASTE_OTHER",
@@ -62592,7 +62767,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "168": {
       "id": "SPELL_FIRE_ELEMENTALS",
@@ -62601,7 +62777,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "169": {
       "id": "SPELL_EARTH_ELEMENTALS",
@@ -62610,7 +62787,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "170": {
       "id": "SPELL_AIR_ELEMENTALS",
@@ -62619,7 +62797,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "171": {
       "id": "SPELL_SLEEP",
@@ -62647,7 +62826,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "172": {
       "id": "SPELL_BLINK_OTHER_CLOSE",
@@ -62660,7 +62840,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "173": {
       "id": "SPELL_BLINK_CLOSE",
@@ -62673,7 +62854,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "174": {
       "id": "SPELL_BLINK_RANGE",
@@ -62682,7 +62864,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "175": {
       "id": "SPELL_BLINK_AWAY",
@@ -62691,14 +62874,16 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "176": {
       "id": "SPELL_MISLEAD",
       "name": "Mislead",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "177": {
       "id": "SPELL_FAKE_MARA_SUMMON",
@@ -62707,14 +62892,16 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "178": {
       "id": "SPELL_SUMMON_RAKSHASA",
       "name": "Summon Rakshasa",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "179": {
       "id": "SPELL_SUMMON_ILLUSION",
@@ -62727,7 +62914,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "180": {
       "id": "SPELL_PRIMAL_WAVE",
@@ -62773,7 +62961,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "181": {
       "id": "SPELL_CALL_TIDE",
@@ -62782,7 +62971,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "182": {
       "id": "SPELL_IOOD",
@@ -62795,7 +62985,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "183": {
       "id": "SPELL_INK_CLOUD",
@@ -62805,7 +62996,8 @@
         "ice"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "184": {
       "id": "SPELL_MIGHT",
@@ -62814,14 +63006,16 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "185": {
       "id": "SPELL_SUNRAY",
       "name": "Sunray",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "186": {
       "id": "SPELL_AWAKEN_FOREST",
@@ -62835,7 +63029,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "187": {
       "id": "SPELL_DRUIDS_CALL",
@@ -62844,14 +63039,16 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "188": {
       "id": "SPELL_IRON_ELEMENTALS",
       "name": "Summon Iron Elementals",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "189": {
       "id": "SPELL_VANQUISHED_VANGUARD",
@@ -62865,28 +63062,32 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "190": {
       "id": "SPELL_RESURRECT",
       "name": "Resurrect",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "191": {
       "id": "SPELL_HOLY_LIGHT",
       "name": "Holy Light",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "192": {
       "id": "SPELL_HOLY_WORD",
       "name": "Holy word",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "193": {
       "id": "SPELL_SUMMON_HOLIES",
@@ -62895,7 +63096,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "194": {
       "id": "SPELL_HEAL_OTHER",
@@ -62906,14 +63108,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "195": {
       "id": "SPELL_SACRIFICE",
       "name": "Sacrifice",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "196": {
       "id": "SPELL_HOLY_FLAMES",
@@ -62924,7 +63128,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "197": {
       "id": "SPELL_HOLY_BREATH",
@@ -62958,6 +63163,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_HOLY",
+        "opaque": true,
+        "trail": true
       }
     },
     "198": {
@@ -62965,7 +63175,8 @@
       "name": "Trog's Hand",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "199": {
       "id": "SPELL_BROTHERS_IN_ARMS",
@@ -62974,14 +63185,16 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "200": {
       "id": "SPELL_INJURY_MIRROR",
       "name": "Injury Mirror",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "201": {
       "id": "SPELL_DRAIN_LIFE",
@@ -63011,35 +63224,40 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "202": {
       "id": "SPELL_MIASMA_CLOUD",
       "name": "Miasma cloud",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "203": {
       "id": "SPELL_POISON_CLOUD",
       "name": "Poison cloud",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "204": {
       "id": "SPELL_FIRE_CLOUD",
       "name": "Fire cloud",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "205": {
       "id": "SPELL_STEAM_CLOUD",
       "name": "Steam cloud",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "206": {
       "id": "SPELL_MALIGN_GATEWAY",
@@ -63049,7 +63267,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "207": {
       "id": "SPELL_NOXIOUS_CLOUD",
@@ -63082,6 +63301,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_MEPHITIC",
+        "opaque": false,
+        "trail": false
       }
     },
     "208": {
@@ -63095,7 +63319,8 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "209": {
       "id": "SPELL_PYRE_ARROW",
@@ -63130,7 +63355,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "210": {
       "id": "SPELL_LEDAS_LIQUEFACTION",
@@ -63140,14 +63366,16 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "211": {
       "id": "SPELL_HOMUNCULUS",
       "name": "Homunculus",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "212": {
       "id": "SPELL_SUMMON_HYDRA",
@@ -63156,14 +63384,16 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "213": {
       "id": "SPELL_DARKNESS",
       "name": "Darkness",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "214": {
       "id": "SPELL_MESMERISE",
@@ -63176,14 +63406,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "215": {
       "id": "SPELL_MELEE",
       "name": "Melee",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "216": {
       "id": "SPELL_HELLFIRE_COURT",
@@ -63193,14 +63425,16 @@
         "fire"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "217": {
       "id": "SPELL_SHROUD_OF_GOLUBRIA",
       "name": "Shroud of Golubria",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "218": {
       "id": "SPELL_INNER_FLAME",
@@ -63229,7 +63463,8 @@
           "perPower": 3,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "219": {
       "id": "SPELL_PETRIFYING_CLOUD",
@@ -63262,28 +63497,32 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "220": {
       "id": "SPELL_AURA_OF_ABJURATION",
       "name": "Aura of Abjuration",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "221": {
       "id": "SPELL_BEASTLY_APPENDAGE",
       "name": "Beastly Appendage",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "222": {
       "id": "SPELL_SILVER_BLAST",
       "name": "Silver Blast",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "223": {
       "id": "SPELL_ENSNARE",
@@ -63297,7 +63536,8 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "224": {
       "id": "SPELL_THUNDERBOLT",
@@ -63311,7 +63551,8 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "225": {
       "id": "SPELL_SUMMON_MINOR_DEMON",
@@ -63320,7 +63561,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "226": {
       "id": "SPELL_DISJUNCTION",
@@ -63333,7 +63575,8 @@
         "max": 4,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "227": {
       "id": "SPELL_CHAOS_BREATH",
@@ -63365,6 +63608,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_CHAOS",
+        "opaque": false,
+        "trail": false
       }
     },
     "228": {
@@ -63372,14 +63620,16 @@
       "name": "Frenzy",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "229": {
       "id": "SPELL_SUMMON_TWISTER",
       "name": "Summon Twister",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "230": {
       "id": "SPELL_BATTLESPHERE",
@@ -63389,7 +63639,8 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "231": {
       "id": "SPELL_FULMINANT_PRISM",
@@ -63403,7 +63654,8 @@
         "max": 4,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "232": {
       "id": "SPELL_GLOOM",
@@ -63417,7 +63669,8 @@
         "max": 3,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "233": {
       "id": "SPELL_FORCE_LANCE",
@@ -63463,7 +63716,8 @@
           "perPower": 1,
           "per": 7
         }
-      }
+      },
+      "cloud": null
     },
     "234": {
       "id": "SPELL_MALMUTATE",
@@ -63477,7 +63731,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "235": {
       "id": "SPELL_MIGHT_OTHER",
@@ -63490,7 +63745,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "236": {
       "id": "SPELL_SENTINEL_MARK",
@@ -63518,7 +63774,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "237": {
       "id": "SPELL_WORD_OF_RECALL",
@@ -63528,7 +63785,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "238": {
       "id": "SPELL_INJURY_BOND",
@@ -63541,7 +63799,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "239": {
       "id": "SPELL_SPECTRAL_CLOUD",
@@ -63555,7 +63814,12 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": {
+        "kind": "CLOUD_SPECTRAL",
+        "opaque": false,
+        "trail": true
+      }
     },
     "240": {
       "id": "SPELL_GHOSTLY_FIREBALL",
@@ -63590,7 +63854,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "241": {
       "id": "SPELL_CALL_LOST_SOULS",
@@ -63600,7 +63865,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "242": {
       "id": "SPELL_DIMENSION_ANCHOR",
@@ -63629,7 +63895,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "243": {
       "id": "SPELL_BLINK_ALLIES_ENCIRCLE",
@@ -63642,7 +63909,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "244": {
       "id": "SPELL_AWAKEN_VINES",
@@ -63656,14 +63924,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "245": {
       "id": "SPELL_CONTROL_WINDS",
       "name": "Control Winds",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "246": {
       "id": "SPELL_THORN_VOLLEY",
@@ -63698,7 +63968,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "247": {
       "id": "SPELL_WALL_OF_BRAMBLES",
@@ -63712,7 +63983,8 @@
         "max": 8,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "248": {
       "id": "SPELL_WATERSTRIKE",
@@ -63725,14 +63997,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "249": {
       "id": "SPELL_HASTE_PLANTS",
       "name": "Haste Plants",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "250": {
       "id": "SPELL_WIND_BLAST",
@@ -63745,7 +64019,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "251": {
       "id": "SPELL_STRIP_WILLPOWER",
@@ -63773,14 +64048,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "252": {
       "id": "SPELL_INFUSION",
       "name": "Infusion",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "253": {
       "id": "SPELL_FUGUE_OF_THE_FALLEN",
@@ -63789,21 +64066,24 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "254": {
       "id": "SPELL_SPECTRAL_WEAPON",
       "name": "Spectral Weapon",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "255": {
       "id": "SPELL_SONG_OF_SHIELDING",
       "name": "Song of Shielding",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "256": {
       "id": "SPELL_SUMMON_VERMIN",
@@ -63812,7 +64092,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "257": {
       "id": "SPELL_MALIGN_OFFERING",
@@ -63841,7 +64122,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "258": {
       "id": "SPELL_SEARING_RAY",
@@ -63886,7 +64168,8 @@
           "perPower": 1,
           "per": 8
         }
-      }
+      },
+      "cloud": null
     },
     "259": {
       "id": "SPELL_DISCORD",
@@ -63895,14 +64178,16 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "260": {
       "id": "SPELL_SHAFT_SELF",
       "name": "Shaft Self",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "261": {
       "id": "SPELL_BLINKBOLT",
@@ -63948,7 +64233,8 @@
           "perPower": 1,
           "per": 4
         }
-      }
+      },
+      "cloud": null
     },
     "262": {
       "id": "SPELL_INVISIBILITY_OTHER",
@@ -63961,7 +64247,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "263": {
       "id": "SPELL_VIRULENCE",
@@ -63990,14 +64277,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "264": {
       "id": "SPELL_IGNITE_POISON_SINGLE",
       "name": "Localized Ignite Poison",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "265": {
       "id": "SPELL_ORB_OF_ELECTRICITY",
@@ -64043,14 +64332,16 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "266": {
       "id": "SPELL_EXPLOSIVE_BOLT",
       "name": "Explosive Bolt",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "267": {
       "id": "SPELL_FLASH_FREEZE",
@@ -64085,7 +64376,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "268": {
       "id": "SPELL_LEGENDARY_DESTRUCTION",
@@ -64098,14 +64390,16 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "269": {
       "id": "SPELL_EPHEMERAL_INFUSION",
       "name": "Ephemeral Infusion",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "270": {
       "id": "SPELL_FORCEFUL_INVITATION",
@@ -64114,7 +64408,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "271": {
       "id": "SPELL_PLANEREND",
@@ -64123,7 +64418,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "272": {
       "id": "SPELL_CHAIN_OF_CHAOS",
@@ -64132,7 +64428,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "273": {
       "id": "SPELL_CALL_OF_CHAOS",
@@ -64145,7 +64442,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "274": {
       "id": "SPELL_SIGN_OF_RUIN",
@@ -64154,14 +64452,16 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "275": {
       "id": "SPELL_GRAND_AVATAR",
       "name": "Grand Avatar",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "276": {
       "id": "SPELL_SAP_MAGIC",
@@ -64189,21 +64489,24 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "277": {
       "id": "SPELL_CORRUPT_BODY",
       "name": "Corrupt Body",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "278": {
       "id": "SPELL_REARRANGE_PIECES",
       "name": "Rearrange the Pieces",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "279": {
       "id": "SPELL_MAJOR_DESTRUCTION",
@@ -64216,7 +64519,8 @@
         "max": 6,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "280": {
       "id": "SPELL_BLINK_ALLIES_AWAY",
@@ -64229,7 +64533,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "281": {
       "id": "SPELL_SHADOW_SHARD",
@@ -64263,7 +64568,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "282": {
       "id": "SPELL_SHADOW_BEAM",
@@ -64297,7 +64603,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "283": {
       "id": "SPELL_REBOUNDING_CHILL",
@@ -64343,7 +64650,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "284": {
       "id": "SPELL_SUMMON_FOREST",
@@ -64353,7 +64661,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "285": {
       "id": "SPELL_FORGE_LIGHTNING_SPIRE",
@@ -64363,7 +64672,8 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "286": {
       "id": "SPELL_FORGE_BLAZEHEART_GOLEM",
@@ -64373,28 +64683,32 @@
         "fire"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "287": {
       "id": "SPELL_RANDOM_BOLT",
       "name": "Random Bolt",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "288": {
       "id": "SPELL_CLOUD_CONE",
       "name": "Cloud Cone",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "289": {
       "id": "SPELL_WEAVE_SHADOWS",
       "name": "Weave Shadows",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "290": {
       "id": "SPELL_DRAGON_CALL",
@@ -64403,7 +64717,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "291": {
       "id": "SPELL_SPELLSPARK_SERVITOR",
@@ -64413,14 +64728,16 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "292": {
       "id": "SPELL_FORCEFUL_DISMISSAL",
       "name": "Forceful Dismissal",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "293": {
       "id": "SPELL_SUMMON_MANA_VIPER",
@@ -64430,7 +64747,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "294": {
       "id": "SPELL_PHANTOM_MIRROR",
@@ -64439,14 +64757,16 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "295": {
       "id": "SPELL_DRAIN_MAGIC",
       "name": "Drain Magic",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "296": {
       "id": "SPELL_CORROSIVE_BOLT",
@@ -64492,14 +64812,16 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "297": {
       "id": "SPELL_SERPENT_OF_HELL_BREATH_REMOVED",
       "name": "Old serpent of hell breath",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "298": {
       "id": "SPELL_SUMMON_EMPEROR_SCORPIONS",
@@ -64509,14 +64831,16 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "299": {
       "id": "SPELL_HYDRA_FORM",
       "name": "Hydra Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "300": {
       "id": "SPELL_IRRADIATE",
@@ -64530,7 +64854,8 @@
         "max": 1,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "301": {
       "id": "SPELL_SPIT_LAVA",
@@ -64566,7 +64891,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "302": {
       "id": "SPELL_ELECTRICAL_BOLT",
@@ -64601,7 +64927,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "303": {
       "id": "SPELL_FLAMING_CLOUD",
@@ -64633,6 +64960,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_FIRE",
+        "opaque": false,
+        "trail": true
       }
     },
     "304": {
@@ -64667,7 +64999,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "305": {
       "id": "SPELL_BATTLECRY",
@@ -64676,7 +65009,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "306": {
       "id": "SPELL_WARNING_CRY",
@@ -64685,7 +65019,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "307": {
       "id": "SPELL_SEAL_DOORS",
@@ -64694,7 +65029,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "308": {
       "id": "SPELL_FLAY",
@@ -64707,7 +65043,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "309": {
       "id": "SPELL_BERSERK_OTHER",
@@ -64720,14 +65057,16 @@
         "max": 3,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "310": {
       "id": "SPELL_THROW",
       "name": "Throw",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "311": {
       "id": "SPELL_CORRUPTING_PULSE",
@@ -64741,7 +65080,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "312": {
       "id": "SPELL_SIREN_SONG",
@@ -64754,7 +65094,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "313": {
       "id": "SPELL_AVATAR_SONG",
@@ -64767,7 +65108,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "314": {
       "id": "SPELL_PARALYSIS_GAZE",
@@ -64780,7 +65122,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "315": {
       "id": "SPELL_CONFUSION_GAZE",
@@ -64793,7 +65136,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "316": {
       "id": "SPELL_ANTIMAGIC_GAZE",
@@ -64806,7 +65150,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "317": {
       "id": "SPELL_DEATH_RATTLE",
@@ -64821,7 +65166,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "318": {
       "id": "SPELL_SUMMON_SCARABS",
@@ -64831,14 +65177,16 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "319": {
       "id": "SPELL_HUNTING_CRY",
       "name": "Hunting Cry",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "320": {
       "id": "SPELL_SEARING_BREATH",
@@ -64873,7 +65221,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "321": {
       "id": "SPELL_GLACIAL_BREATH",
@@ -64908,21 +65257,24 @@
           "perPower": 1,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "322": {
       "id": "SPELL_SCATTERSHOT",
       "name": "Scattershot",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "323": {
       "id": "SPELL_CLEANSING_FLAME",
       "name": "Cleansing Flame",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "324": {
       "id": "SPELL_THROW_ALLY",
@@ -64935,21 +65287,24 @@
         "max": 8,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "325": {
       "id": "SPELL_CIGOTUVIS_EMBRACE",
       "name": "Cigotuvi's Embrace",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "326": {
       "id": "SPELL_SINGULARITY",
       "name": "Singularity",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "327": {
       "id": "SPELL_GRAVITAS",
@@ -64980,14 +65335,16 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "328": {
       "id": "SPELL_CHANT_FIRE_STORM",
       "name": "Chant Fire Storm",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "329": {
       "id": "SPELL_ENTROPIC_WEAVE",
@@ -65000,7 +65357,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "330": {
       "id": "SPELL_SUMMON_EXECUTIONERS",
@@ -65009,7 +65367,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "331": {
       "id": "SPELL_VIOLENT_UNRAVELLING",
@@ -65044,7 +65403,8 @@
           "perPower": 1,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "332": {
       "id": "SPELL_OBLIVION_HOWL",
@@ -65058,14 +65418,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "333": {
       "id": "SPELL_AWAKEN_EARTH",
       "name": "Awaken Earth",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "334": {
       "id": "SPELL_PRAYER_OF_BRILLIANCE",
@@ -65074,7 +65436,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "335": {
       "id": "SPELL_ICEBLAST",
@@ -65120,7 +65483,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "336": {
       "id": "SPELL_SLUG_DART",
@@ -65154,7 +65518,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "337": {
       "id": "SPELL_FLEETFOOT",
@@ -65163,7 +65528,8 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "338": {
       "id": "SPELL_GREATER_SERVANT_MAKHLEB",
@@ -65172,7 +65538,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "339": {
       "id": "SPELL_SERPENT_OF_HELL_GEH_BREATH",
@@ -65185,7 +65552,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "340": {
       "id": "SPELL_SERPENT_OF_HELL_COC_BREATH",
@@ -65198,7 +65566,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "341": {
       "id": "SPELL_SERPENT_OF_HELL_TAR_BREATH",
@@ -65211,7 +65580,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "342": {
       "id": "SPELL_SERPENT_OF_HELL_DIS_BREATH",
@@ -65224,7 +65594,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "343": {
       "id": "SPELL_BIND_SOULS",
@@ -65234,7 +65605,8 @@
         "ice"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "344": {
       "id": "SPELL_INFESTATION",
@@ -65247,7 +65619,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "345": {
       "id": "SPELL_STILL_WINDS",
@@ -65257,7 +65630,8 @@
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "346": {
       "id": "SPELL_RESONANCE_STRIKE",
@@ -65270,7 +65644,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "347": {
       "id": "SPELL_GHOSTLY_SACRIFICE",
@@ -65304,7 +65679,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "348": {
       "id": "SPELL_DREAM_DUST",
@@ -65317,7 +65693,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "349": {
       "id": "SPELL_BECKONING",
@@ -65340,7 +65717,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "350": {
       "id": "SPELL_UPHEAVAL",
@@ -65353,14 +65731,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "351": {
       "id": "SPELL_RANDOM_EFFECTS",
       "name": "Random Effects",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "352": {
       "id": "SPELL_MERCURY_ARROW",
@@ -65406,14 +65786,16 @@
           "perPower": 1,
           "per": 5
         }
-      }
+      },
+      "cloud": null
     },
     "353": {
       "id": "SPELL_RING_OF_THUNDER",
       "name": "Ring of Thunder",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "354": {
       "id": "SPELL_IGNITION",
@@ -65443,14 +65825,16 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "355": {
       "id": "SPELL_VORTEX",
       "name": "Vortex",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "356": {
       "id": "SPELL_BORGNJORS_VILE_CLUTCH",
@@ -65474,7 +65858,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "357": {
       "id": "SPELL_HARPOON_SHOT",
@@ -65509,7 +65894,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "358": {
       "id": "SPELL_GRASPING_ROOTS",
@@ -65522,7 +65908,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "359": {
       "id": "SPELL_SONIC_WAVE",
@@ -65561,7 +65948,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "360": {
       "id": "SPELL_THROW_PIE",
@@ -65596,7 +65984,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "361": {
       "id": "SPELL_SPORULATE",
@@ -65606,7 +65995,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "362": {
       "id": "SPELL_STARBURST",
@@ -65652,7 +66042,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "363": {
       "id": "SPELL_FOXFIRE",
@@ -65688,7 +66079,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "364": {
       "id": "SPELL_HAILSTORM",
@@ -65723,7 +66115,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "365": {
       "id": "SPELL_NOXIOUS_BOG",
@@ -65736,7 +66129,8 @@
         "max": 4,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "366": {
       "id": "SPELL_AGONY",
@@ -65769,7 +66163,8 @@
           "perPower": 5,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "367": {
       "id": "SPELL_DISPEL_UNDEAD_RANGE",
@@ -65811,7 +66206,8 @@
           "perPower": 3,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "368": {
       "id": "SPELL_FROZEN_RAMPARTS",
@@ -65824,7 +66220,8 @@
         "max": 2,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "369": {
       "id": "SPELL_MAXWELLS_COUPLING",
@@ -65837,7 +66234,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "370": {
       "id": "SPELL_ROLL",
@@ -65846,7 +66244,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "371": {
       "id": "SPELL_SPLINTERSPRAY",
@@ -65880,7 +66279,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "372": {
       "id": "SPELL_WOODWEAL",
@@ -65891,7 +66291,8 @@
         "max": 1,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "373": {
       "id": "SPELL_HURL_SLUDGE",
@@ -65926,7 +66327,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "374": {
       "id": "SPELL_MARSHLIGHT",
@@ -65962,7 +66364,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "375": {
       "id": "SPELL_SUMMON_TZITZIMITL",
@@ -65972,7 +66375,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "376": {
       "id": "SPELL_SUMMON_HELL_SENTINEL",
@@ -65981,7 +66385,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "377": {
       "id": "SPELL_AWAKEN_ARMOUR",
@@ -65991,7 +66396,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "378": {
       "id": "SPELL_MANIFOLD_ASSAULT",
@@ -66000,7 +66406,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "379": {
       "id": "SPELL_CREEPING_FROST",
@@ -66035,7 +66442,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "380": {
       "id": "SPELL_CALL_DOWN_LIGHTNING",
@@ -66081,14 +66489,16 @@
           "perPower": 1,
           "per": 40
         }
-      }
+      },
+      "cloud": null
     },
     "381": {
       "id": "SPELL_GOAD_BEASTS",
       "name": "Goad Beasts",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "382": {
       "id": "SPELL_CONCENTRATE_VENOM",
@@ -66101,7 +66511,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "383": {
       "id": "SPELL_ERUPTION",
@@ -66116,7 +66527,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "384": {
       "id": "SPELL_PYROCLASTIC_SURGE",
@@ -66163,7 +66575,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "385": {
       "id": "SPELL_WEAKENING_GAZE",
@@ -66176,14 +66589,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "386": {
       "id": "SPELL_STORM_FORM",
       "name": "Storm Form",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "387": {
       "id": "SPELL_STUNNING_BURST",
@@ -66218,7 +66633,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "388": {
       "id": "SPELL_CORRUPT_LOCALE",
@@ -66227,7 +66643,8 @@
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "389": {
       "id": "SPELL_SUMMON_CACTUS",
@@ -66236,7 +66653,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "390": {
       "id": "SPELL_STOKE_FLAMES",
@@ -66246,7 +66664,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "391": {
       "id": "SPELL_SERACFALL",
@@ -66292,7 +66711,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "392": {
       "id": "SPELL_SCORCH",
@@ -66305,7 +66725,8 @@
         "max": 3,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "393": {
       "id": "SPELL_FLAME_WAVE",
@@ -66340,7 +66761,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "394": {
       "id": "SPELL_CONJURE_LIVING_SPELLS",
@@ -66349,7 +66771,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "395": {
       "id": "SPELL_ENFEEBLE",
@@ -66382,7 +66805,8 @@
           "perPower": 4,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "396": {
       "id": "SPELL_SUMMON_SPIDERS",
@@ -66392,7 +66816,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "397": {
       "id": "SPELL_ANGUISH",
@@ -66406,7 +66831,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "398": {
       "id": "SPELL_SHEZAS_DANCE",
@@ -66416,7 +66842,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "399": {
       "id": "SPELL_SOUL_SPLINTER",
@@ -66449,7 +66876,8 @@
           "perPower": 1,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "400": {
       "id": "SPELL_BOLT_OF_LIGHT",
@@ -66496,7 +66924,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "401": {
       "id": "SPELL_HUNTING_CALL",
@@ -66505,7 +66934,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "402": {
       "id": "SPELL_FASTROOT",
@@ -66529,7 +66959,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "403": {
       "id": "SPELL_BLASTMOTE",
@@ -66560,7 +66991,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "404": {
       "id": "SPELL_PUTREFACTION",
@@ -66574,7 +67006,8 @@
         "max": 5,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "405": {
       "id": "SPELL_ARCJOLT",
@@ -66588,7 +67021,8 @@
         "max": 2,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "406": {
       "id": "SPELL_KISS_OF_DEATH",
@@ -66628,7 +67062,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "407": {
       "id": "SPELL_MOMENTUM_STRIKE",
@@ -66663,7 +67098,8 @@
           "perPower": 1,
           "per": 12
         }
-      }
+      },
+      "cloud": null
     },
     "408": {
       "id": "SPELL_ELECTRIC_CHARGE",
@@ -66677,7 +67113,8 @@
         "max": 4,
         "powerCap": 50
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "409": {
       "id": "SPELL_NOXIOUS_BREATH",
@@ -66710,7 +67147,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "410": {
       "id": "SPELL_PLASMA_BEAM",
@@ -66756,7 +67194,8 @@
           "perPower": 1,
           "per": 40
         }
-      }
+      },
+      "cloud": null
     },
     "411": {
       "id": "SPELL_UNLEASH_DESTRUCTION",
@@ -66790,7 +67229,8 @@
           "perPower": 1,
           "per": 7
         }
-      }
+      },
+      "cloud": null
     },
     "412": {
       "id": "SPELL_BOMBARD",
@@ -66836,7 +67276,8 @@
           "perPower": 1,
           "per": 15
         }
-      }
+      },
+      "cloud": null
     },
     "413": {
       "id": "SPELL_JINXBITE",
@@ -66845,7 +67286,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "414": {
       "id": "SPELL_SIGIL_OF_BINDING",
@@ -66854,7 +67296,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "415": {
       "id": "SPELL_DIMENSIONAL_BULLSEYE",
@@ -66868,7 +67311,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "416": {
       "id": "SPELL_BOULDER",
@@ -66882,7 +67326,8 @@
         "max": 8,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "417": {
       "id": "SPELL_VITRIFY",
@@ -66910,7 +67355,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "418": {
       "id": "SPELL_VITRIFYING_GAZE",
@@ -66923,7 +67369,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "419": {
       "id": "SPELL_TREMORSTONE",
@@ -66953,7 +67400,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "420": {
       "id": "SPELL_MOURNING_WAIL",
@@ -66966,7 +67414,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "421": {
       "id": "SPELL_FUNERAL_DIRGE",
@@ -66975,7 +67424,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "422": {
       "id": "SPELL_MARCH_OF_SORROWS",
@@ -66990,7 +67440,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "423": {
       "id": "SPELL_MARTYRS_KNELL",
@@ -67000,7 +67451,8 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "424": {
       "id": "SPELL_CURSE_OF_AGONY",
@@ -67033,7 +67485,8 @@
           "perPower": 5,
           "per": 2
         }
-      }
+      },
+      "cloud": null
     },
     "425": {
       "id": "SPELL_ELECTROLUNGE",
@@ -67047,7 +67500,8 @@
         "max": 5,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "426": {
       "id": "SPELL_REGENERATE_OTHER",
@@ -67058,7 +67512,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "427": {
       "id": "SPELL_DIVINE_ARMAMENT",
@@ -67067,7 +67522,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "428": {
       "id": "SPELL_HURL_TORCHLIGHT",
@@ -67113,7 +67569,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "429": {
       "id": "SPELL_CRYSTALLISING_SHOT",
@@ -67149,7 +67606,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "430": {
       "id": "SPELL_REBOUNDING_BLAZE",
@@ -67195,7 +67653,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "431": {
       "id": "SPELL_WARP_SPACE",
@@ -67240,7 +67699,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "432": {
       "id": "SPELL_COMBUSTION_BREATH",
@@ -67272,7 +67732,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "433": {
       "id": "SPELL_NULLIFYING_BREATH",
@@ -67303,7 +67764,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "434": {
       "id": "SPELL_STEAM_BREATH",
@@ -67348,7 +67810,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "435": {
       "id": "SPELL_MUD_BREATH",
@@ -67383,7 +67846,8 @@
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "436": {
       "id": "SPELL_GALVANIC_BREATH",
@@ -67415,7 +67879,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "437": {
       "id": "SPELL_PERMAFROST_ERUPTION",
@@ -67455,7 +67920,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "438": {
       "id": "SPELL_PILEDRIVER",
@@ -67468,7 +67934,8 @@
         "max": 5,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "439": {
       "id": "SPELL_GELLS_GAVOTTE",
@@ -67481,7 +67948,8 @@
         "max": 1,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "440": {
       "id": "SPELL_MAGNAVOLT",
@@ -67516,7 +67984,8 @@
           "perPower": 1,
           "per": 20
         }
-      }
+      },
+      "cloud": null
     },
     "441": {
       "id": "SPELL_FULSOME_FUSILLADE",
@@ -67548,7 +68017,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "442": {
       "id": "SPELL_RIMEBLIGHT",
@@ -67582,7 +68052,8 @@
           "perPower": 1,
           "per": 3
         }
-      }
+      },
+      "cloud": null
     },
     "443": {
       "id": "SPELL_HOARFROST_CANNONADE",
@@ -67592,7 +68063,8 @@
         "ice"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "444": {
       "id": "SPELL_SEISMIC_STOMP",
@@ -67623,7 +68095,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "445": {
       "id": "SPELL_HOARFROST_BULLET",
@@ -67658,7 +68131,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "446": {
       "id": "SPELL_BESTOW_ARMS",
@@ -67671,7 +68145,8 @@
         "max": 6,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "447": {
       "id": "SPELL_FLASHING_BALESTRA",
@@ -67705,7 +68180,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "448": {
       "id": "SPELL_HELLFIRE_MORTAR",
@@ -67730,7 +68206,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "449": {
       "id": "SPELL_GREATER_ENSNARE",
@@ -67744,7 +68221,8 @@
         "max": 5,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "450": {
       "id": "SPELL_MASS_REGENERATION",
@@ -67755,7 +68233,8 @@
         "max": 8,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "451": {
       "id": "SPELL_SHADOW_BALL",
@@ -67786,7 +68265,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "452": {
       "id": "SPELL_CREEPING_SHADOW",
@@ -67817,7 +68297,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "453": {
       "id": "SPELL_SHADOW_TEMPEST",
@@ -67851,7 +68332,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "454": {
       "id": "SPELL_SHADOW_PRISM",
@@ -67864,7 +68346,8 @@
         "max": 4,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "455": {
       "id": "SPELL_SHADOW_PUPPET",
@@ -67877,7 +68360,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "456": {
       "id": "SPELL_SHADOW_BIND",
@@ -67890,7 +68374,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "457": {
       "id": "SPELL_SHADOW_TORPOR",
@@ -67923,7 +68408,8 @@
           "perPower": 1,
           "per": 3
         }
-      }
+      },
+      "cloud": null
     },
     "458": {
       "id": "SPELL_SHADOW_DRAINING",
@@ -67936,7 +68422,8 @@
         "max": 2,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "459": {
       "id": "SPELL_GRAVE_CLAW",
@@ -67975,7 +68462,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "460": {
       "id": "SPELL_SUMMON_MORTAL_CHAMPION",
@@ -67984,7 +68472,8 @@
         "summoning"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "461": {
       "id": "SPELL_PHANTOM_BLITZ",
@@ -68019,7 +68508,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "462": {
       "id": "SPELL_CLOCKWORK_BEE",
@@ -68032,7 +68522,8 @@
         "max": 8,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "463": {
       "id": "SPELL_SPIKE_LAUNCHER",
@@ -68062,7 +68553,8 @@
           "perPower": 1,
           "per": 10
         }
-      }
+      },
+      "cloud": null
     },
     "464": {
       "id": "SPELL_KINETIC_GRAPNEL",
@@ -68096,7 +68588,8 @@
           "perPower": 1,
           "per": 5
         }
-      }
+      },
+      "cloud": null
     },
     "465": {
       "id": "SPELL_DIAMOND_SAWBLADES",
@@ -68105,7 +68598,8 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "466": {
       "id": "SPELL_SHRED",
@@ -68136,7 +68630,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "467": {
       "id": "SPELL_SURPRISING_CROCODILE",
@@ -68149,7 +68644,8 @@
         "max": 1,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "468": {
       "id": "SPELL_PLATINUM_PARAGON",
@@ -68188,7 +68684,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "469": {
       "id": "SPELL_WALKING_ALEMBIC",
@@ -68198,7 +68695,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "470": {
       "id": "SPELL_MONARCH_BOMB",
@@ -68234,7 +68732,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "471": {
       "id": "SPELL_DEPLOY_BOMBLET",
@@ -68269,7 +68768,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "472": {
       "id": "SPELL_SPLINTERFROST_SHELL",
@@ -68315,7 +68815,8 @@
           "perPower": 1,
           "per": 25
         }
-      }
+      },
+      "cloud": null
     },
     "473": {
       "id": "SPELL_PERCUSSIVE_TEMPERING",
@@ -68354,7 +68855,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "474": {
       "id": "SPELL_FORTRESS_BLAST",
@@ -68367,7 +68869,8 @@
         "max": 3,
         "powerCap": 75
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "475": {
       "id": "SPELL_SUMMON_SEISMOSAURUS_EGG",
@@ -68377,7 +68880,8 @@
         "earth"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "476": {
       "id": "SPELL_PHALANX_BEETLE",
@@ -68386,7 +68890,8 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "477": {
       "id": "SPELL_RENDING_BLADE",
@@ -68396,7 +68901,8 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "478": {
       "id": "SPELL_MAGMA_BARRAGE",
@@ -68432,7 +68938,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "479": {
       "id": "SPELL_SHADOW_TURRET",
@@ -68441,7 +68948,8 @@
         "forgecraft"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "480": {
       "id": "SPELL_SHADOW_SHOT",
@@ -68475,7 +68983,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "481": {
       "id": "SPELL_THROW_BOLAS",
@@ -68509,7 +69018,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "482": {
       "id": "SPELL_SIPHON_ESSENCE",
@@ -68522,7 +69032,8 @@
         "max": 2,
         "powerCap": 0
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "483": {
       "id": "SPELL_POISONOUS_VAPOURS",
@@ -68536,7 +69047,8 @@
         "max": 3,
         "powerCap": 25
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "484": {
       "id": "SPELL_SOJOURNING_BOLT",
@@ -68571,7 +69083,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "485": {
       "id": "SPELL_VEX",
@@ -68599,7 +69112,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "486": {
       "id": "SPELL_RAVENOUS_SWARM",
@@ -68630,6 +69144,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_BATS",
+        "opaque": false,
+        "trail": true
       }
     },
     "487": {
@@ -68640,14 +69159,16 @@
         "necromancy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "488": {
       "id": "SPELL_PYRRHIC_RECOLLECTION",
       "name": "Pyrrhic Recollection",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "489": {
       "id": "SPELL_DETONATION_CATALYST",
@@ -68657,7 +69178,8 @@
         "alchemy"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "490": {
       "id": "SPELL_RUST_BREATH",
@@ -68684,7 +69206,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "491": {
       "id": "SPELL_GOLDEN_BREATH",
@@ -68721,7 +69244,8 @@
           "perPower": 1,
           "per": 5
         }
-      }
+      },
+      "cloud": null
     },
     "492": {
       "id": "SPELL_BECKONING_GALE",
@@ -68750,7 +69274,8 @@
         "monsterToHit": null,
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "493": {
       "id": "SPELL_ALL_PURPOSE_TEMPERING",
@@ -68789,7 +69314,8 @@
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "494": {
       "id": "SPELL_SPHINX_SISTERS",
@@ -68799,7 +69325,8 @@
         "hexes"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "495": {
       "id": "SPELL_BOLT_OF_FLESH",
@@ -68835,7 +69362,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "496": {
       "id": "SPELL_AWAKEN_FLESH",
@@ -68868,7 +69396,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "497": {
       "id": "SPELL_ILL_OMEN",
@@ -68896,7 +69425,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "498": {
       "id": "SPELL_DOOM_BOLT",
@@ -68931,7 +69461,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "499": {
       "id": "SPELL_WARP_BODY",
@@ -68965,7 +69496,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "500": {
       "id": "SPELL_OSTRACISE",
@@ -68978,7 +69510,8 @@
         "max": 3,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "501": {
       "id": "SPELL_MUTAGENIC_GAZE",
@@ -68991,14 +69524,16 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "502": {
       "id": "SPELL_PLANAR_OVERLAY",
       "name": "Planar Overlay",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "503": {
       "id": "SPELL_ACID_BALL",
@@ -69033,14 +69568,16 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "504": {
       "id": "SPELL_DOOMSAYING",
       "name": "Doomsaying",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "505": {
       "id": "SPELL_SLEETSTRIKE",
@@ -69054,7 +69591,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "506": {
       "id": "SPELL_DIMINISH_SPELLS",
@@ -69082,7 +69620,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     },
     "507": {
       "id": "SPELL_DRAINING_GAZE",
@@ -69095,7 +69634,8 @@
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "508": {
       "id": "SPELL_LAUNCH_SPORANGIUM",
@@ -69104,7 +69644,8 @@
         "conjuration"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "509": {
       "id": "SPELL_FREEZING_GUST",
@@ -69140,6 +69681,11 @@
         },
         "playerDamage": null,
         "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_COLD",
+        "opaque": false,
+        "trail": false
       }
     },
     "510": {
@@ -69171,7 +69717,8 @@
         },
         "playerDamage": null,
         "playerToHit": null
-      }
+      },
+      "cloud": null
     }
   },
   "missileWeapons": {
@@ -72006,6 +72553,7 @@
     "monsterStep": "crawl-0.34",
     "firingPosition": "crawl-0.34",
     "battyFlight": "crawl-0.34",
+    "monsterClouds": "crawl-0.34",
     "torment": "crawl-0.34",
     "playerAttack": "crawl-0.34",
     "playerBeam": "crawl-0.34",

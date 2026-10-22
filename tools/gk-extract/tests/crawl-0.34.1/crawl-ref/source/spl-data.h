@@ -103,6 +103,31 @@ static const struct spell_desc spelldata[] =
     TILEG_PASSAGE_OF_GOLUBRIA,
 },
 
+{
+    SPELL_MIASMA_BREATH, "Miasma Breath",
+    spschool::conjuration,
+    spflag::dir_or_target | spflag::unclean | spflag::monster
+        | spflag::needs_tracer | spflag::cloud,
+    6,
+    0,
+    5, 5,
+    2,
+    TILEG_MIASMA_BREATH,
+},
+
+{
+    SPELL_HOLY_BREATH, "Holy Breath",
+    spschool::conjuration,
+    spflag::dir_or_target | spflag::needs_tracer | spflag::cloud
+        | spflag::holy | spflag::monster,
+    5,
+    200,
+    5, 5,
+    2,
+    TILEG_HOLY_BREATH,
+},
+
+
 // (trimmed for the extractor test)
 
 #if TAG_MAJOR_VERSION == 34

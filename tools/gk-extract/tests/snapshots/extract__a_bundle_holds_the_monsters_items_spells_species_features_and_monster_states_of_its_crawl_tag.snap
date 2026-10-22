@@ -1939,7 +1939,8 @@ expression: bundle
         "max": 8,
         "powerCap": 200
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "3": {
       "id": "SPELL_MAGIC_DART",
@@ -1978,7 +1979,8 @@ expression: bundle
         "playerToHit": {
           "kind": "automatic"
         }
-      }
+      },
+      "cloud": null
     },
     "4": {
       "id": "SPELL_FIREBALL",
@@ -2024,14 +2026,16 @@ expression: bundle
           "perPower": 0,
           "per": 1
         }
-      }
+      },
+      "cloud": null
     },
     "39": {
       "id": "SPELL_BOLT_OF_INACCURACY",
       "name": "Bolt of Inaccuracy",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "42": {
       "id": "SPELL_BLINK",
@@ -2040,7 +2044,8 @@ expression: bundle
         "translocation"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "84": {
       "id": "SPELL_SWIFTNESS",
@@ -2049,7 +2054,8 @@ expression: bundle
         "air"
       ],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "110": {
       "id": "SPELL_PASSWALL",
@@ -2062,7 +2068,8 @@ expression: bundle
         "max": 3,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "139": {
       "id": "SPELL_GOLUBRIAS_PASSAGE",
@@ -2075,21 +2082,102 @@ expression: bundle
         "max": 8,
         "powerCap": 100
       },
-      "zap": null
+      "zap": null,
+      "cloud": null
+    },
+    "153": {
+      "id": "SPELL_MIASMA_BREATH",
+      "name": "Miasma Breath",
+      "schools": [
+        "conjuration"
+      ],
+      "range": {
+        "min": 5,
+        "max": 5,
+        "powerCap": 0
+      },
+      "zap": {
+        "id": "ZAP_MIASMA_BREATH",
+        "flavour": "BEAM_MIASMA",
+        "enchantment": false,
+        "pierces": true,
+        "explodes": false,
+        "monsterDamage": {
+          "dice": 3,
+          "adder": 5,
+          "perPower": 1,
+          "per": 24,
+          "spread": false
+        },
+        "monsterToHit": {
+          "kind": "byPower",
+          "adder": 17,
+          "perPower": 1,
+          "per": 20
+        },
+        "playerDamage": null,
+        "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_MIASMA",
+        "opaque": false,
+        "trail": true
+      }
+    },
+    "197": {
+      "id": "SPELL_HOLY_BREATH",
+      "name": "Holy Breath",
+      "schools": [
+        "conjuration"
+      ],
+      "range": {
+        "min": 5,
+        "max": 5,
+        "powerCap": 200
+      },
+      "zap": {
+        "id": "ZAP_HOLY_BREATH",
+        "flavour": "BEAM_HOLY",
+        "enchantment": false,
+        "pierces": true,
+        "explodes": false,
+        "monsterDamage": {
+          "dice": 3,
+          "adder": 0,
+          "perPower": 1,
+          "per": 12,
+          "spread": false
+        },
+        "monsterToHit": {
+          "kind": "byPower",
+          "adder": 18,
+          "perPower": 1,
+          "per": 25
+        },
+        "playerDamage": null,
+        "playerToHit": null
+      },
+      "cloud": {
+        "kind": "CLOUD_HOLY",
+        "opaque": true,
+        "trail": true
+      }
     },
     "220": {
       "id": "SPELL_AURA_OF_ABJURATION",
       "name": "Aura of Abjuration",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     },
     "328": {
       "id": "SPELL_CHANT_FIRE_STORM",
       "name": "Chant Fire Storm",
       "schools": [],
       "range": null,
-      "zap": null
+      "zap": null,
+      "cloud": null
     }
   },
   "missileWeapons": {
@@ -2784,6 +2872,7 @@ expression: bundle
     "monsterStep": "crawl-0.34",
     "firingPosition": "crawl-0.34",
     "battyFlight": "crawl-0.34",
+    "monsterClouds": "crawl-0.34",
     "torment": "crawl-0.34",
     "playerAttack": "crawl-0.34",
     "playerBeam": "crawl-0.34",

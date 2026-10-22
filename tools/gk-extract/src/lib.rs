@@ -20,7 +20,7 @@ use std::process::Command;
 
 use copilot_gk::{
     Bundle, CrawlSource, EnumId, Form, FormHoliness, Formulas, HolinessSigns, ItemClass,
-    ItemSubType, LightingSigns, MonsterSpell, Species, Spell, Undeadness, WeaponBrand,
+    ItemSubType, LightingSigns, MonsterSpell, Species, Spell, SpellCloud, Undeadness, WeaponBrand,
 };
 
 use crate::cpp::{Source, Token};
@@ -904,6 +904,11 @@ impl Crawl {
         let spell_zaps = spells::spell_zaps(&self.parse("spl-zap.cc")?, "spl-zap.cc")?;
         let mut spells = BTreeMap::new();
         let entries = spells::spell_entries(&self.parse("spl-data.h")?, "spl-data.h", &constants)?;
+        let beam = self.parse("beam.cc")?;
+        let cloud_types = spells::cloud_types(&beam, "beam.cc")?;
+        let trails = spells::Trails::read(&beam, "beam.cc")?;
+        let clouds = self.enumeration("cloud-type.h", "cloud_type")?;
+        let opaque = spells::opaque_clouds(&self.parse("cloud.cc")?, "cloud.cc", &clouds)?;
         for entry in entries {
             let value = *values.get(&entry.id).ok_or_else(|| ExtractError::Missing {
                 file: "spell-type.h".to_owned(),
@@ -918,6 +923,23 @@ impl Crawl {
                     })
                 })
                 .transpose()?;
+            let cloud = cloud_types
+                .get(&entry.id)
+                .map(|kind| {
+                    if !clouds.iter().any(|(name, _)| name == kind) {
+                        return Err(ExtractError::Missing {
+                            file: "cloud-type.h".to_owned(),
+                            what: format!("{kind}, which beam.cc gives {}", entry.id),
+                        });
+                    }
+                    let flavour = zap.as_ref().map(|zap| zap.flavour.0.as_str());
+                    Ok(SpellCloud {
+                        kind: EnumId(kind.clone()),
+                        opaque: opaque.contains(kind),
+                        trail: trails.leaves(&entry.id, flavour, kind),
+                    })
+                })
+                .transpose()?;
             spells.insert(
                 in_range(&entry.id, value)?,
                 Spell {
@@ -926,6 +948,7 @@ impl Crawl {
                     schools: entry.schools,
                     range: entry.range,
                     zap,
+                    cloud,
                 },
             );
         }
