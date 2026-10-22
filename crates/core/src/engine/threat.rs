@@ -921,6 +921,94 @@ impl<'r, 'a> Engaged<'r, 'a> {
         self.energy += energy_gained(formulas.monster_energy, rng, speed, time);
     }
 
+    /// Takes its action, if it can, with a spell, its wand or its missiles, which it tries in
+    /// that order (`_mons_take_special_action`, `mon-act.cc:1840`), against `target`, whose
+    /// shield has `blocks_left` blocks left, counting what it did in `turn`: whether it did. An
+    /// instant spell takes no time, so it goes on to try the rest.
+    fn special_action(
+        &mut self,
+        formulas: Formulas,
+        rng: &mut Rng,
+        target: Target,
+        blocks_left: &mut u32,
+        turn: &mut Turn,
+    ) -> bool {
+        let attacker = self.attacker;
+        let monster = attacker.monster;
+        let (missiles, wand) = (self.missiles, self.wand);
+        let can_breathe = self.breath_timeout == 0;
+        if let Some(cast) = choose_cast(
+            formulas,
+            rng,
+            &attacker.spells,
+            self.distance(),
+            can_breathe,
+        ) {
+            turn.casts += 1;
+            if cast.reach.strikes >= self.distance() {
+                let firing = Firing {
+                    spell: &cast.spell,
+                    power: cast.power,
+                    nightvision: monster.nightvision,
+                };
+                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                self.offset = land(&cast.spell, self.offset);
+            }
+            if cast.slot.breath {
+                self.breath_timeout = spells::breath_timeout(formulas.monster_spell_choice, rng);
+            }
+            // An instant spell takes no time, and the monster goes on to act
+            // (`handle_mon_spell`, `mon-cast.cc:5228`).
+            if !cast.slot.instant {
+                self.energy -= cost(monster.energy.spell);
+                return true;
+            }
+        }
+        // Its tracer must find the player (`_handle_wand`).
+        if let Some(zap) = wand
+            && wands::zaps(formulas.monster_wand, rng)
+            && zap.reach.casts >= self.distance()
+        {
+            if zap.reach.strikes >= self.distance() {
+                let firing = Firing {
+                    spell: &zap.spell,
+                    power: zap.power,
+                    nightvision: monster.nightvision,
+                };
+                turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
+                self.offset = land(&zap.spell, self.offset);
+            }
+            self.energy -= wands::energy(formulas.monster_wand);
+            return true;
+        }
+        if let Some(missiles) = missiles
+            && let Some(missile) = missiles::fires(
+                formulas.monster_fire,
+                rng,
+                missiles,
+                monster.prefers_ranged,
+                self.distance(),
+            )
+        {
+            let shot = missiles::shoot(
+                formulas,
+                rng,
+                attacker.shooter,
+                missile,
+                target,
+                *blocks_left > 0,
+            );
+            if shot.blocked {
+                *blocks_left -= 1;
+            }
+            turn.damage += shot.damage;
+            self.energy -=
+                missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
+            return true;
+        }
+        false
+    }
+
     /// Plays out its actions, while it has the energy, against `target`, on `hp` as it starts,
     /// whose shield has `blocks_left` blocks left this action.
     pub(crate) fn act(
@@ -936,7 +1024,6 @@ impl<'r, 'a> Engaged<'r, 'a> {
         let fighter = &attacker.fighter;
         let reach = melee_reach(formulas, fighter, monster);
         let (missiles, wand) = (self.missiles, self.wand);
-        let shooter = attacker.shooter;
         let mut turn = Turn::default();
         let from = self.distance();
         while !self.gone
@@ -956,71 +1043,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 monster.watched_step,
                 self.distance(),
             );
-            // A monster tries its spells first, then its wand, then its missiles
-            // (`_mons_take_special_action`, `mon-act.cc:1840`).
-            let can_breathe = self.breath_timeout == 0;
-            if let Some(cast) = choose_cast(
-                formulas,
-                rng,
-                &attacker.spells,
-                self.distance(),
-                can_breathe,
-            ) {
-                turn.casts += 1;
-                if cast.reach.strikes >= self.distance() {
-                    let firing = Firing {
-                        spell: &cast.spell,
-                        power: cast.power,
-                        nightvision: monster.nightvision,
-                    };
-                    turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                    self.offset = land(&cast.spell, self.offset);
-                }
-                if cast.slot.breath {
-                    self.breath_timeout =
-                        spells::breath_timeout(formulas.monster_spell_choice, rng);
-                }
-                // An instant spell takes no time, and the monster goes on to act
-                // (`handle_mon_spell`, `mon-cast.cc:5228`).
-                if !cast.slot.instant {
-                    self.energy -= cost(monster.energy.spell);
-                    continue;
-                }
-            }
-            // Its tracer must find the player (`_handle_wand`).
-            if let Some(zap) = wand
-                && wands::zaps(formulas.monster_wand, rng)
-                && zap.reach.casts >= self.distance()
-            {
-                if zap.reach.strikes >= self.distance() {
-                    let firing = Firing {
-                        spell: &zap.spell,
-                        power: zap.power,
-                        nightvision: monster.nightvision,
-                    };
-                    turn.damage += fire_beam(formulas, rng, firing, target, blocks_left);
-                    self.offset = land(&zap.spell, self.offset);
-                }
-                self.energy -= wands::energy(formulas.monster_wand);
-                continue;
-            }
-            if let Some(missiles) = missiles
-                && let Some(missile) = missiles::fires(
-                    formulas.monster_fire,
-                    rng,
-                    missiles,
-                    monster.prefers_ranged,
-                    self.distance(),
-                )
-            {
-                let shot =
-                    missiles::shoot(formulas, rng, shooter, missile, target, *blocks_left > 0);
-                if shot.blocked {
-                    *blocks_left -= 1;
-                }
-                turn.damage += shot.damage;
-                self.energy -=
-                    missiles::fire_energy(formulas, rng, missile, cost(monster.energy.missile));
+            if self.special_action(formulas, rng, target, blocks_left, &mut turn) {
                 continue;
             }
             // One that keeps its range never steps into the player to fight, but makes a reaching
