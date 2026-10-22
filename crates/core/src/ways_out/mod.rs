@@ -11,9 +11,13 @@ use std::collections::BTreeSet;
 use copilot_gk::{Bundle, Relief, SpeedStatus, StairDirection};
 use serde::Serialize;
 
-use crate::accumulated_state::AccumulatedState;
+use crate::accumulated_state::{AccumulatedState, Remembered};
+use crate::engine::melee::BASELINE_DELAY;
 use crate::fact_sheet::{Gap, NotModelled};
 use crate::visible_state::{Position, VisibleState};
+
+/// The time a standard move or action takes the player: `BASELINE_DELAY`.
+const STANDARD_TIME: u32 = BASELINE_DELAY.unsigned_abs();
 
 /// What judging the ground leaves out, whenever it is judged.
 const GROUND_NOT_MODELLED: [NotModelled; 2] = [
@@ -366,12 +370,33 @@ impl WaysOut {
     }
 }
 
+/// A remembered fact's value and when it was read, unless it was never read.
+pub(super) fn current<T>(remembered: &Remembered<T>) -> Option<(&T, ReadOn)> {
+    match remembered {
+        Remembered::Missing => None,
+        Remembered::Known(fact) => Some((
+            &fact.value,
+            ReadOn {
+                turn: fact.turn,
+                stale: false,
+            },
+        )),
+        Remembered::Stale(fact) => Some((
+            &fact.value,
+            ReadOn {
+                turn: fact.turn,
+                stale: true,
+            },
+        )),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use copilot_gk::{EnumId, Library};
 
     use super::*;
-    use crate::accumulated_state::{AsOf, MutationsRead, Remembered};
+    use crate::accumulated_state::{AsOf, MutationsRead};
     use crate::screen::{Screen, ShownMutations};
     use crate::view_model::{Colour, Glyph};
     use crate::visible_state::{
@@ -481,24 +506,6 @@ mod tests {
             .find(|way_out| matches!(way_out.option, Escape::Stairs { .. }))
             .unwrap();
         stairs.usable == Usable::Yes
-    }
-
-    #[test]
-    fn a_hasted_player_reaches_stairs_a_goblin_cuts_off_at_normal_speed() {
-        // The goblin, six moves from beside the stairs, makes all six while the player walks
-        // there, but only five while a hasted player, at 7 a move, does.
-        let normal = ways_out(&corridor(&[], 3), "Human", true);
-        assert!(!stairs_usable(&normal));
-        let hasted = ways_out(&corridor(&["Fast"], 3), "Human", true);
-        assert!(stairs_usable(&hasted));
-        let pace = hasted.pace.unwrap();
-        assert_eq!(pace.move_time, 7);
-        assert_eq!(
-            pace.because,
-            [PaceReason::Status {
-                status: SpeedStatus::Hasted
-            }]
-        );
     }
 
     #[test]

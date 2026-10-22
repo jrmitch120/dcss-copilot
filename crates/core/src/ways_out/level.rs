@@ -5,6 +5,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
 
+use super::STANDARD_TIME;
 use super::pace::Pace;
 use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
@@ -16,9 +17,6 @@ use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
 /// so they come at the player one or two at a time. A starting rule from #35, to be tuned on the
 /// corpus.
 const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
-
-/// The time a standard move takes.
-const STANDARD_MOVE: u32 = 10;
 
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
@@ -312,7 +310,7 @@ impl<'a> OnTheLevel<'a> {
                         moves,
                     )?,
                     // A move of its takes `walk / speed` of a standard action's time.
-                    faster: chaser.speed * walk_time > chaser.walk * STANDARD_MOVE,
+                    faster: chaser.speed * walk_time > chaser.walk * STANDARD_TIME,
                 })
             })
             .collect();

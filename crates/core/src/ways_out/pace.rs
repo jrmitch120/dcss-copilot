@@ -3,13 +3,10 @@
 
 use copilot_gk::{Bundle, PlayerMove};
 
-use super::{PaceReason, PlayerPace, ReadOn};
+use super::{PaceReason, PlayerPace, ReadOn, STANDARD_TIME, current};
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::engine::player_move::{self, Read, Seen, Slowest};
 use crate::visible_state::{Religion, VisibleState};
-
-/// The time a standard move or action takes.
-const STANDARD: u32 = 10;
 
 /// The player's Pace, as the Advisor reads it.
 pub(super) struct Pace<'a> {
@@ -58,17 +55,7 @@ impl<'a> Pace<'a> {
             carried: carried.as_deref(),
         };
         let read = player_move::read(bundle, &seen);
-        let mutations = mutations.and_then(|mutations| match mutations {
-            Remembered::Missing => None,
-            Remembered::Known(read) => Some(ReadOn {
-                turn: read.turn,
-                stale: false,
-            }),
-            Remembered::Stale(read) => Some(ReadOn {
-                turn: read.turn,
-                stale: true,
-            }),
-        });
+        let mutations = mutations.and_then(current).map(|(_, read)| read);
         let slowing_god = match &visible.religion {
             Some(Religion::God {
                 name, piety_rank, ..
@@ -86,18 +73,18 @@ impl<'a> Pace<'a> {
     /// The time a step onto a square takes them, onto water or not, the slowest crawl may roll
     /// it.
     pub(super) fn step(&self, water: bool) -> u32 {
-        self.read.as_ref().map_or(STANDARD, |read| {
+        self.read.as_ref().map_or(STANDARD_TIME, |read| {
             let time = player_move::move_time(self.variant, &read.mover, water, &mut Slowest);
-            u32::try_from(time).unwrap_or(STANDARD)
+            u32::try_from(time).unwrap_or(STANDARD_TIME)
         })
     }
 
     /// The time an action other than a move takes them, such as opening a door, the slowest
     /// crawl may roll it.
     pub(super) fn action(&self) -> u32 {
-        self.read.as_ref().map_or(STANDARD, |read| {
+        self.read.as_ref().map_or(STANDARD_TIME, |read| {
             let time = player_move::action_time(self.variant, &read.mover, &mut Slowest);
-            u32::try_from(time).unwrap_or(STANDARD)
+            u32::try_from(time).unwrap_or(STANDARD_TIME)
         })
     }
 
