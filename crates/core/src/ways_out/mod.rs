@@ -14,6 +14,7 @@ use serde::Serialize;
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::engine::melee::BASELINE_DELAY;
 use crate::fact_sheet::{Gap, NotModelled};
+use crate::screen::KnownAbility;
 use crate::visible_state::{Position, VisibleState};
 
 /// The time a standard move or action takes the player: `BASELINE_DELAY`.
@@ -191,6 +192,12 @@ pub enum Blocker {
     /// Crawl greys the item out as of no use to the player right now, for a reason the
     /// Advisor doesn't see.
     Useless,
+    /// The ability menu greyed the ability out as one that can't be used now, for a reason the
+    /// Advisor couldn't see, such as an empty deck, a sanctuary already in place or stasis.
+    GreyedOut {
+        /// When the menu showed it so.
+        read: ReadOn,
+    },
 }
 
 /// The player's Pace: the time each of their moves to a staircase takes, at the speed crawl gives
@@ -361,11 +368,11 @@ impl WaysOut {
             ways_out.options.extend(carried.items());
             ways_out.options.extend(carried.abilities(&mut gaps));
             ways_out.options.extend(carried.spells(&mut gaps));
-            if ways_out.options.iter().any(|way_out| {
-                matches!(
-                    way_out.option,
-                    Escape::Ability { .. } | Escape::Spell { .. }
-                )
+            // Crawl itself checked an ability the menu showed while the list is Known.
+            if ways_out.options.iter().any(|way_out| match way_out.option {
+                Escape::Ability { read, .. } => read.stale,
+                Escape::Spell { .. } => true,
+                _ => false,
             }) {
                 ways_out.not_modelled.push(NotModelled::OwnConditions);
             }
@@ -373,6 +380,26 @@ impl WaysOut {
         ways_out.gaps = gaps.into_iter().collect();
         ways_out
     }
+}
+
+/// Whether what `visible` shows explains crawl greying out `ability` in the ability menu, as
+/// `bundle` tells: a status that stops it, or too little magic for it. Only a Way Out's can be
+/// explained.
+pub(crate) fn explains_greying(
+    visible: &VisibleState,
+    bundle: &Bundle,
+    ability: &KnownAbility,
+) -> bool {
+    let carried = carried::Carried {
+        visible,
+        remembered: None,
+        bundle,
+    };
+    carried.escape_ability(&ability.name).is_some_and(|escape| {
+        !carried
+            .ability_stopped(escape, ability.magic_cost)
+            .is_empty()
+    })
 }
 
 /// A remembered fact's value and when it was read, unless it was never read.
@@ -402,8 +429,8 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
-    use crate::screen::{Screen, ShownMutations};
-    use crate::view_model::{Colour, Glyph};
+    use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
+    use crate::view_model::{Colour, Glyph, WayOutRow};
     use crate::visible_state::{
         Attitude, LevelMap, MapCell, Religion, SquareLight, Stats, Status, VisibleMonster,
     };
@@ -492,6 +519,66 @@ mod tests {
             });
         }
         remembered
+    }
+
+    /// The ability menu as crawl draws it showing `abilities`, each costing no magic, and drawn
+    /// in the colour crawl greys an ability out in when it is.
+    fn ability_menu(abilities: &[(&str, bool)]) -> ScreenRead {
+        let greyed = Colour::from_crawl(bundle().ways_out.inapplicable_colour).unwrap();
+        ScreenRead {
+            screen: Screen::Abilities,
+            title: None,
+            lines: abilities
+                .iter()
+                .map(|(name, _)| format!(" a - {name:<30} None            0%"))
+                .collect(),
+            colours: abilities
+                .iter()
+                .enumerate()
+                .filter(|(_, (_, greyed_out))| *greyed_out)
+                .map(|(index, _)| (index, greyed))
+                .collect(),
+        }
+    }
+
+    /// What the Advisor remembers once it read `menu` as `visible` shows the game.
+    fn read_on(menu: &ScreenRead, visible: &VisibleState) -> AccumulatedState {
+        let mut remembered = remembered(true);
+        remembered.read(menu, visible, Some(bundle()));
+        remembered
+    }
+
+    /// The Ways Out of `visible` for a human, as the Advisor remembers the game in `remembered`.
+    fn remembering_menu(visible: &VisibleState, remembered: &AccumulatedState) -> WaysOut {
+        WaysOut::compute(visible, Some(remembered), Some("Human"), Some(bundle()))
+    }
+
+    /// The panel's row for the ability named `name` among the Ways Out of `visible`, as the
+    /// Advisor remembers the game in `remembered`.
+    fn ability_row(visible: &VisibleState, remembered: &AccumulatedState, name: &str) -> WayOutRow {
+        remembering_menu(visible, remembered)
+            .list()
+            .rows
+            .into_iter()
+            .find(|row| row.name == name)
+            .unwrap()
+    }
+
+    /// Whether the ability named `name` among the Ways Out of `visible` can be used, as the
+    /// Advisor remembers the game in `remembered`.
+    fn ability_usable(visible: &VisibleState, remembered: &AccumulatedState, name: &str) -> Usable {
+        remembering_menu(visible, remembered)
+            .options
+            .into_iter()
+            .find(|way_out| matches!(&way_out.option, Escape::Ability { name: listed, .. } if listed == name))
+            .unwrap()
+            .usable
+    }
+
+    /// `visible` on turn `turn`.
+    fn on_turn(mut visible: VisibleState, turn: u32) -> VisibleState {
+        visible.turn = Some(turn);
+        visible
     }
 
     /// The Ways Out of `visible` for a character of `species`, the mutations screen read or not.
@@ -675,5 +762,127 @@ mod tests {
                 .not_modelled
                 .contains(&NotModelled::MonstersOutOfView)
         );
+    }
+
+    #[test]
+    fn an_ability_is_stopped_by_the_statuses_that_stop_it_in_particular() {
+        let menu = ability_menu(&[
+            ("Evoke Blink", false),
+            ("Hop", false),
+            ("Blinkbolt", false),
+            ("Berserk", false),
+        ]);
+        let remembered = read_on(&menu, &corridor(&[], 0));
+        for (ability, light) in [
+            ("Evoke Blink", "-Blink"),
+            ("Hop", "-Hop"),
+            ("Blinkbolt", "-Bbolt"),
+            ("Berserk", "-Berserk"),
+        ] {
+            assert_eq!(
+                ability_usable(&corridor(&[], 0), &remembered, ability),
+                Usable::Yes,
+                "{ability}"
+            );
+            assert_eq!(
+                ability_usable(&corridor(&[light], 0), &remembered, ability),
+                Usable::No {
+                    because: vec![Blocker::Status {
+                        status: light.to_owned()
+                    }]
+                },
+                "{ability}"
+            );
+        }
+        assert_eq!(
+            ability_usable(&corridor(&["-Hop"], 0), &remembered, "Evoke Blink"),
+            Usable::Yes
+        );
+    }
+
+    #[test]
+    fn an_ability_greyed_out_for_no_reason_in_view_is_stopped_and_goes_stale_with_the_list() {
+        let visible = on_turn(corridor(&[], 0), 5);
+        let mut remembered = read_on(&ability_menu(&[("Berserk", true)]), &visible);
+        let known = ability_row(&visible, &remembered, "Berserk");
+        assert!(!known.usable);
+        assert_eq!(
+            known.why_not.as_deref(),
+            Some("greyed out in the ability menu as of turn 5")
+        );
+        let mut levelled = visible.clone();
+        levelled.stats.xl = Some(2);
+        remembered.update(&visible, &levelled, Some(bundle()));
+        let stale = ability_row(&levelled, &remembered, "Berserk");
+        assert!(!stale.usable);
+        assert_eq!(
+            stale.why_not.as_deref(),
+            Some("~greyed out in the ability menu as of turn 5")
+        );
+    }
+
+    #[test]
+    fn an_ability_greyed_out_by_a_status_in_view_is_usable_once_the_status_ends() {
+        let cooling_down = on_turn(corridor(&["-Berserk"], 0), 5);
+        let remembered = read_on(&ability_menu(&[("Berserk", true)]), &cooling_down);
+        assert_eq!(
+            ability_row(&cooling_down, &remembered, "Berserk")
+                .why_not
+                .as_deref(),
+            Some("you're -Berserk")
+        );
+        let recovered = on_turn(corridor(&[], 0), 30);
+        assert_eq!(
+            ability_usable(&recovered, &remembered, "Berserk"),
+            Usable::Yes
+        );
+    }
+
+    #[test]
+    fn an_ability_greyed_out_for_too_little_magic_is_usable_once_the_player_has_it() {
+        let mut drained = on_turn(corridor(&[], 0), 5);
+        drained.stats.mp = Some(0);
+        let mut menu = ability_menu(&[("Evoke Blink", true)]);
+        menu.lines = vec![format!(" a - {:<30} 1 MP            0%", "Evoke Blink")];
+        let remembered = read_on(&menu, &drained);
+        assert_eq!(
+            ability_usable(&drained, &remembered, "Evoke Blink"),
+            Usable::No {
+                because: vec![Blocker::Magic { needs: 1, has: 0 }]
+            }
+        );
+        let mut rested = drained;
+        rested.stats.mp = Some(3);
+        assert_eq!(
+            ability_usable(&rested, &remembered, "Evoke Blink"),
+            Usable::Yes
+        );
+    }
+
+    #[test]
+    fn crawls_own_conditions_are_named_for_a_stale_ability_list_or_a_spell() {
+        let visible = corridor(&[], 0);
+        let mut remembered = read_on(&ability_menu(&[("Berserk", false)]), &visible);
+        let own_conditions = |remembered: &AccumulatedState, visible: &VisibleState| {
+            remembering_menu(visible, remembered)
+                .not_modelled
+                .contains(&NotModelled::OwnConditions)
+        };
+        assert!(!own_conditions(&remembered, &visible));
+        let mut levelled = visible.clone();
+        levelled.stats.xl = Some(2);
+        remembered.update(&visible, &levelled, Some(bundle()));
+        assert!(own_conditions(&remembered, &levelled));
+        let mut with_a_spell = read_on(&ability_menu(&[("Berserk", false)]), &visible);
+        with_a_spell.spells = Remembered::Known(AsOf {
+            value: vec![KnownSpell {
+                name: "Blink".to_owned(),
+                failure_percent: 10,
+                level: 2,
+            }],
+            turn: Some(1),
+            source: Screen::Spells,
+        });
+        assert!(own_conditions(&with_a_spell, &visible));
     }
 }

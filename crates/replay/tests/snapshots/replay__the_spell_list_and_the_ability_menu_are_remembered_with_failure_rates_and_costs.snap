@@ -24,7 +24,8 @@ expression: "serde_json::json!({\n    \"spells\": remembered.spells, \"abilities
         "name": "Berserk",
         "cost": "None",
         "magicCost": 0,
-        "failurePercent": 0
+        "failurePercent": 0,
+        "greyedOut": true
       }
     ],
     "turn": 1234,

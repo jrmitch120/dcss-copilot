@@ -165,7 +165,7 @@ Each Attack Plan played out many times against the hostiles in view, in a small 
 _Avoid_: Fight odds, combat sim, win rate
 
 **Way Out**:
-An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is.
+An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is. An ability is stopped by the statuses that stop it in particular as soon as the status pane shows them; one the ability menu greyed out for a reason the Advisor couldn't see stays stopped as of the turn the menu was read, and approximate once the ability list is Stale.
 _Avoid_: Escape (when meaning the whole list), panic button
 
 **Cut Off**:

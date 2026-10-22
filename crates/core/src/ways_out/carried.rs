@@ -56,7 +56,7 @@ impl Carried<'_> {
                     if escape.translocation {
                         uses.push(Use::Translocating);
                     }
-                    let mut because = self.stopped(&uses);
+                    let mut because = self.stopped(&uses, &[]);
                     if because.is_empty() {
                         let stats = &self.visible.stats;
                         let full_health = stats.hp.is_some() && stats.hp == stats.hp_max;
@@ -85,7 +85,8 @@ impl Carried<'_> {
     }
 
     /// The abilities that are Ways Out, as the ability menu last showed them, each stopped by
-    /// the player's statuses or their magic. Never having read the menu is a Gap in `gaps`:
+    /// the player's statuses or their magic, or greyed out in the menu for a reason the Advisor
+    /// couldn't see. Never having read the menu is a Gap in `gaps`:
     /// abilities come from gods, species, mutations and gear alike, and crawl answers the menu
     /// key even when there are none.
     pub(super) fn abilities(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
@@ -107,7 +108,12 @@ impl Carried<'_> {
                         failure_percent: ability.failure_percent,
                         read,
                     },
-                    usable: usable(self.ability_stopped(escape, ability.magic_cost)),
+                    usable: usable(
+                        self.ability_stopped(escape, ability.magic_cost)
+                            .into_iter()
+                            .chain(ability.greyed_out.then_some(Blocker::GreyedOut { read }))
+                            .collect(),
+                    ),
                 })
             })
             .collect()
@@ -123,7 +129,8 @@ impl Carried<'_> {
     }
 
     /// What stops `escape`, which costs `magic` points, now: the statuses that stop using
-    /// abilities, invoking or translocating as it does, and too little magic.
+    /// abilities, invoking or translocating as it does, those that stop it in particular, and
+    /// too little magic.
     pub(super) fn ability_stopped(&self, escape: &EscapeAbility, magic: u32) -> Vec<Blocker> {
         let mut uses = vec![Use::UsingAbilities];
         if escape.invocation {
@@ -132,7 +139,7 @@ impl Carried<'_> {
         if escape.translocation {
             uses.push(Use::Translocating);
         }
-        let mut because = self.stopped(&uses);
+        let mut because = self.stopped(&uses, &escape.stopped_by);
         because.extend(self.short_of_magic(magic));
         because
     }
@@ -172,7 +179,7 @@ impl Carried<'_> {
                     },
                     // A spell costs as many magic points as its level.
                     usable: usable(
-                        self.stopped(&uses)
+                        self.stopped(&uses, &[])
                             .into_iter()
                             .chain(self.short_of_magic(spell.level))
                             .collect(),
@@ -189,19 +196,23 @@ impl Carried<'_> {
             .then_some(Blocker::Magic { needs: magic, has })
     }
 
-    /// The player's statuses that stop any of `uses`, in the order the status pane lists them.
-    fn stopped(&self, uses: &[Use]) -> Vec<Blocker> {
+    /// The player's statuses that stop any of `uses`, or that are among `own`, the statuses
+    /// that stop one thing in particular, in the order the status pane lists them.
+    fn stopped(&self, uses: &[Use], own: &[String]) -> Vec<Blocker> {
         let stops = &self.bundle.ways_out.stops;
         self.visible
             .statuses
             .iter()
             .flatten()
             .filter(|status| {
-                stops.iter().any(|stop| {
-                    let shown = |shown: &Option<String>| shown.as_ref() == Some(&stop.status);
-                    (shown(&status.light) || shown(&status.text))
-                        && stop.stops.iter().any(|stopped| uses.contains(stopped))
-                })
+                let shows = |shown: &String| {
+                    status.light.as_ref() == Some(shown) || status.text.as_ref() == Some(shown)
+                };
+                own.iter().any(shows)
+                    || stops.iter().any(|stop| {
+                        shows(&stop.status)
+                            && stop.stops.iter().any(|stopped| uses.contains(stopped))
+                    })
             })
             .filter_map(|status| {
                 Some(Blocker::Status {

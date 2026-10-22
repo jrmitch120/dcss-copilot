@@ -167,6 +167,13 @@ fn blocker(blocker: &Blocker) -> String {
         Blocker::Magic { needs, has } => format!("needs {needs} MP, you have {has}"),
         Blocker::FullHealth => "you're at full health".to_owned(),
         Blocker::Useless => "no use right now".to_owned(),
+        Blocker::GreyedOut { read } => {
+            let stale = if read.stale { "~" } else { "" };
+            match read.turn {
+                Some(turn) => format!("{stale}greyed out in the ability menu as of turn {turn}"),
+                None => format!("{stale}greyed out in the ability menu"),
+            }
+        }
     }
 }
 

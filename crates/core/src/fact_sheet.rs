@@ -358,9 +358,11 @@ pub enum NotModelled {
     /// Only monsters in view are reckoned with on the way to a staircase: one out of view may
     /// cut it off or stand in the way.
     MonstersOutOfView,
-    /// Abilities and spells are judged only by their cost in magic and the statuses that stop
-    /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
-    /// free square to blink to, isn't checked.
+    /// A spell, or an ability read only from a Stale ability list, is among the Ways Out. A spell
+    /// is judged only by its cost in magic and the statuses that stop casting: what it needs of
+    /// its own, such as a free square to blink to, isn't checked. An ability the ability menu
+    /// showed while the list is Known was checked by crawl itself, which greys out one it can't
+    /// use; one from a Stale list may since have been greyed out, or no longer be.
     OwnConditions,
     /// A monster in view is a tentacle or vine, such as the snaplasher vine, which crawl moves
     /// with its parent (`mons_is_tentacle_or_tentacle_segment`): the simulation walks it on its
