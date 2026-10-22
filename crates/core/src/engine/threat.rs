@@ -870,6 +870,9 @@ pub(crate) struct Engaged<'r, 'a> {
     breath_timeout: u32,
     /// It has taken an action, after which it catches its breath.
     acted: bool,
+    /// While it flits, as a batty monster does after it attacks or casts, the actions it has
+    /// taken since, counting that one.
+    flight: Option<i32>,
     /// It blew itself up, and acts no more.
     pub(crate) gone: bool,
 }
@@ -896,6 +899,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             firing_range: attacker.firing_range(formulas),
             breath_timeout: 0,
             acted: false,
+            flight: None,
             gone: false,
         }
     }
@@ -961,6 +965,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             // (`handle_mon_spell`, `mon-cast.cc:5228`).
             if !cast.slot.instant {
                 self.energy -= cost(monster.energy.spell);
+                self.after_striking();
                 return true;
             }
         }
@@ -1009,6 +1014,14 @@ impl<'r, 'a> Engaged<'r, 'a> {
         false
     }
 
+    /// It has attacked the player or cast a spell: a batty monster starts to flit
+    /// (`_handle_battiness`, `mon-act.cc:474`).
+    fn after_striking(&mut self) {
+        if self.attacker.monster.batty {
+            self.flight = Some(0);
+        }
+    }
+
     /// Plays out its actions, while it has the energy, against `target`, on `hp` as it starts,
     /// whose shield has `blocks_left` blocks left this action.
     pub(crate) fn act(
@@ -1030,9 +1043,13 @@ impl<'r, 'a> Engaged<'r, 'a> {
             && self.energy >= ENERGY_THRESHOLD
             && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
         {
-            // It catches its breath after each action (`_post_monster_move`, `mon-act.cc:2569`).
+            // After each action it catches its breath, and a flitting monster flits on or hunts
+            // the player again (`_post_monster_move`, `mon-act.cc:2569`).
             if self.acted {
                 self.breath_timeout = self.breath_timeout.saturating_sub(1);
+                self.flight = self.flight.map(|actions| actions + 1).filter(|&actions| {
+                    !step::flight_ends(formulas.batty_flight, rng, speed(monster), actions)
+                });
             }
             self.acted = true;
             // Whether it would step toward the player this action, which crawl decides before it
@@ -1043,34 +1060,57 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 monster.watched_step,
                 self.distance(),
             );
-            if self.special_action(formulas, rng, target, blocks_left, &mut turn) {
+            // A flitting monster casts, zaps and shoots nothing (`_mons_take_special_action`,
+            // `mon-act.cc:1833`).
+            if self.flight.is_none()
+                && self.special_action(formulas, rng, target, blocks_left, &mut turn)
+            {
                 continue;
             }
-            // One that keeps its range never steps into the player to fight, but makes a reaching
-            // attack before it moves (`_handle_reaching`, `mon-act.cc:1904`); otherwise it steps
-            // toward its firing range.
-            if let Some(range) = self.firing_range
+            if self.flight.is_some() {
+                // A flitting monster attacks the player only when its flight takes it into them.
+                let next = if steps && !monster.stationary {
+                    self.offset + step::flit(formulas.batty_flight, rng)
+                } else {
+                    self.offset
+                };
+                if next != Offset::PLAYER {
+                    self.offset = next;
+                    self.energy -= cost(monster.energy.walk);
+                    continue;
+                }
+                // One with no damaging attack bumps into them to no effect.
+                if reach == 0 {
+                    self.energy -= cost(monster.energy.walk);
+                    continue;
+                }
+            } else if let Some(range) = self.firing_range
                 && !(self.distance() > 1 && self.distance() <= reach)
             {
+                // One that keeps its range never steps into the player to fight, but makes a
+                // reaching attack before it moves (`_handle_reaching`, `mon-act.cc:1904`);
+                // otherwise it steps toward its firing range.
                 if steps && !monster.stationary {
                     self.offset =
                         step::toward_firing_range(formulas.firing_position, self.offset, range);
                 }
                 self.energy -= cost(monster.energy.walk);
                 continue;
-            }
-            // Beside the player it attacks by stepping into them; from farther, a reaching attack
-            // needs no step.
-            let distance = self.distance();
-            if reach == 0 || distance > reach || (distance == 1 && !steps) {
-                // It walks straight at the player, unless it never moves or doesn't step: walls and
-                // other monsters aren't modelled.
-                if steps && !monster.stationary && distance > 1 {
-                    self.offset = self.offset.nearer();
+            } else if reach == 0 || self.distance() > reach || (self.distance() == 1 && !steps) {
+                // Beside the player it attacks by stepping into them; from farther, a reaching
+                // attack needs no step. It walks at the player, unless it never moves or doesn't
+                // step: walls and other monsters aren't modelled.
+                if steps && !monster.stationary && self.distance() > 1 {
+                    self.offset = if monster.batty {
+                        self.offset + step::step_toward(formulas.batty_flight, rng, -self.offset)
+                    } else {
+                        self.offset.nearer()
+                    };
                 }
                 self.energy -= cost(monster.energy.walk);
                 continue;
             }
+            let distance = self.distance();
             turn.melee += 1;
             // One that blows up as it dies blows itself up as it attacks, before any roll, and acts
             // no more (`melee_attack::attack`, `melee-attack.cc:1816`).
@@ -1104,6 +1144,11 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 first_attack(monster),
                 cost(monster.energy.attack),
             );
+            // A reaching attack is a special action, after which it doesn't flit
+            // (`_handle_reaching`, `mon-act.cc:1904`).
+            if distance == 1 {
+                self.after_striking();
+            }
         }
         turn.closed = from - self.distance();
         turn
@@ -1418,6 +1463,70 @@ mod tests {
         let beside = turns_of(&unarmed(&spider, 1), 1_000);
         assert!(beside.iter().all(|turn| turn.closed == -1), "{beside:?}");
         assert!(beside.iter().any(|turn| turn.melee == 1));
+    }
+
+    /// A shard shrike that only bites: its Throw Icicle left out of its book.
+    fn biting_shrike() -> Monster {
+        let mut shrike = monster("shard shrike").clone();
+        shrike.spells = MonsterSpells::Book { spells: Vec::new() };
+        shrike
+    }
+
+    /// The share of `turns` in which it took `melee` melee actions.
+    fn share_with_melee(turns: &[Turn], melee: i32) -> f64 {
+        let with = turns.iter().filter(|turn| turn.melee == melee).count();
+        f64::from(u32::try_from(with).unwrap()) / f64::from(u32::try_from(turns.len()).unwrap())
+    }
+
+    #[test]
+    fn a_batty_monster_beside_the_player_bites_then_flits_away() {
+        // At speed 30 a shard shrike has three actions: it bites, then flits for the two left,
+        // as it flits for three actions in all. A flit steps toward a square up to six off at
+        // random, and into the player, to bite again, about one time in ten, so it bites more
+        // than once about one time in six.
+        let shrike = biting_shrike();
+        let turns = turns_of(&unarmed(&shrike, 1), 10_000);
+        assert!(turns.iter().all(|turn| (1..=3).contains(&turn.melee)));
+        let once = share_with_melee(&turns, 1);
+        assert!((0.80..0.86).contains(&once), "bit once in {once} of trials");
+        assert!(turns.iter().any(|turn| turn.closed == -2));
+        assert!(turns.iter().all(|turn| (-2..=0).contains(&turn.closed)));
+    }
+
+    #[test]
+    fn a_batty_monster_closes_in_and_bites_then_flits_away() {
+        // From two squares away a shard shrike steps up, bites and flits once.
+        let shrike = biting_shrike();
+        let afar = unarmed(&shrike, 2);
+        assert!(can_attack(bundle().formulas, &afar));
+        let turns = turns_of(&afar, 10_000);
+        assert!(turns.iter().all(|turn| (1..=2).contains(&turn.melee)));
+        let once = share_with_melee(&turns, 1);
+        assert!((0.87..0.92).contains(&once), "bit once in {once} of trials");
+        assert!(turns.iter().any(|turn| turn.closed == 0));
+        assert!(turns.iter().all(|turn| (0..=1).contains(&turn.closed)));
+    }
+
+    #[test]
+    fn a_batty_monster_hunts_the_player_again_once_its_flight_is_over() {
+        // A shard shrike beside the player flits no farther than three squares in its first
+        // action's two flits, and in its next three actions it comes back to bite.
+        let shrike = biting_shrike();
+        let beside = unarmed(&shrike, 1);
+        let formulas = bundle().formulas;
+        let target = Target {
+            defences: Defences::exact(0, 0, 0),
+            lighting: Lighting::Plain,
+            resists: Resists::NONE,
+        };
+        let mut rng = Rng::new(SEED.0, SEED.1);
+        for _ in 0..1_000 {
+            let mut engaged = Engaged::new(formulas, &mut rng, &beside, BASELINE_DELAY);
+            let first = engaged.act(formulas, &mut rng, target, 400, &mut 0);
+            engaged.gain(formulas, &mut rng, BASELINE_DELAY);
+            let second = engaged.act(formulas, &mut rng, target, 400, &mut 0);
+            assert!(first.melee + second.melee >= 2, "{first:?} then {second:?}");
+        }
     }
 
     /// The shipped 0.34.1 bundle.

@@ -39,18 +39,18 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Paths
 
-- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall. A monster that keeps its range, such as the orb spider, steps to a square around it that it can stand on and see the player from (`_set_firing_pos`); hemmed in, with none, it may step toward a farther one, and into the player to fight them.
-- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing. A monster that keeps its range always has a square to step to, so it never steps into the player to fight them.
+- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall. A monster that keeps its range, such as the orb spider, steps to a square around it that it can stand on and see the player from (`_set_firing_pos`); hemmed in, with none, it may step toward a farther one, and into the player to fight them. A batty monster, such as the shard shrike, flitting after it attacks or casts, steps toward a square nearby it picks at random, only one it can stand on (`set_random_target`), and round what stands in its way: hemmed in beside the player, it more often steps into them, attacking them again.
+- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing. A monster that keeps its range always has a square to step to, so it never steps into the player to fight them. A batty monster flits as on open floor, where every square nearby is one it may pick.
 - **Surfaced as:** `paths`, on every rated Threat Level.
 - **Harness:** the turn harness lays open floor around the player for each trial, and walls the square behind them for a caster of a blinkbolt, so crawl lands it beside them too.
-- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. It errs low only for a monster that keeps its range hemmed in beside the player, which seldom happens. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
+- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. It errs low only for a monster hemmed in beside the player that keeps its range, which seldom happens, or that is batty, which in a corridor often flits back into the player. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
 
 ### Awareness
 
 - **What crawl does:** a monster may be asleep, wandering or not yet aware of the player (`handle_behaviour`), and doesn't come for them until it notices them.
-- **What the engine assumes:** monsters are awake and hunting the player.
+- **What the engine assumes:** monsters are awake and hunting the player, and a batty one not already flitting away.
 - **Surfaced as:** `awareness`, on every rated Threat Level.
-- **Harness:** the turn harness makes its monsters awake and hunting the player.
+- **Harness:** the turn harness makes its monsters awake and hunting the player, and has a batty one stop flitting before each play.
 - **Impact and cost:** errs high, and that is mostly the right way to err for a monster in view. The game shows sleeping and wandering monsters, so reading that is cheap; what a sleeping monster does when it wakes isn't.
 
 ### Spells not played out
@@ -216,15 +216,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Surfaced as:** `swoopOrFlank`, when such a monster is in view, whether or not it can attack, as a swoop can let it strike from farther than the simulation judges it can; its row names it.
 - **Harness:** the turn harness leaves out kinds whose first attack swoops or flanks.
 - **Impact and cost:** either way: a swoop can let a monster attack from farther than the simulation judges, a flank spends an action moving round the player. A port needs the free squares round the player, which the simulation, with no paths, doesn't know.
-
-### Batty monsters
-
-- **What crawl does:** a batty monster, such as the shard shrike, flits away after it attacks (`_handle_battiness`).
-- **What the engine assumes:** it stays beside the player and attacks with every action.
-- **Surfaced as:** `batty`, when a monster that can attack is batty; its row names it.
-- **Harness:** the turn harness leaves out batty kinds.
-- **Impact and cost:** errs high, badly for fast batty monsters.
-- **Issue:** [#103]
 
 ### Moving with a parent
 
@@ -466,7 +457,6 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#103]: https://github.com/jrmitch120/dcss-copilot/issues/103
 [#104]: https://github.com/jrmitch120/dcss-copilot/issues/104
 [#106]: https://github.com/jrmitch120/dcss-copilot/issues/106
 [#108]: https://github.com/jrmitch120/dcss-copilot/issues/108

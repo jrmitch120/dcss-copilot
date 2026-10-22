@@ -15,17 +15,18 @@
  *   main hand, and when it wields two weapons a +0 dagger in its off hand.
  * - turn: a random monster a few squares from the player, awake, hunting them, with no items
  *   and no statuses and with its book cut down to the spells the engine ports, plays out the
- *   player's next standard-speed action many times. Each time it starts with the energy crawl
- *   leaves a monster that has acted (monster::drain_action_energy), with its hit points and its
- *   hit dice, which a spore attack spends, the player is restored and the floor around them
- *   laid again, and crawl's own handle_monsters runs its turns with you.time_taken at
+ *   player's next standard-speed action many times. Each time it starts hunting the player,
+ *   with the energy crawl leaves a monster that has acted (monster::drain_action_energy), with
+ *   its hit points and its hit dice, which a spore attack spends, the player is restored and
+ *   the floor around them laid again, and crawl's own handle_monsters runs its turns with you.time_taken at
  *   BASELINE_DELAY, attacking and casting for real. It tallies the melee
  *   actions it took against the player, the spells it cast and the squares it closed, less
  *   those it backed off. Turn cases take turns at drawing from kinds of monster that
  *   each exercise a rule: the slowest and the fastest that act, any, faster or slower than the
  *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
  *   cloud, casting a blinkbolt, watched, stepping toward the player only from beside them
- *   or only by chance (_fungal_move_check), and keeping its range (_set_firing_pos). A kind
+ *   or only by chance (_fungal_move_check), keeping its range (_set_firing_pos), and batty,
+ *   flitting away after it attacks or casts (_handle_battiness), near enough to attack. A kind
  *   that keeps its range is drawn for that rule with its own book or with the book of another
  *   kind that casts a spell the engine ports, as none that keeps its range casts one in 0.34.1:
  *   such a book holds it at a firing position three squares from the player, from which it
@@ -38,7 +39,8 @@
  * draconians, whose breath their book doesn't hold, books crawl fills when a monster is made
  * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind that
  * dies in its own turns, moves the player (NotModelled::MovesThePlayer, BlinksWithThePlayer) or
- * moves away from them (NotModelled::BlinksAway) is left out of the case it is found in, and
+ * moves away from them (NotModelled::BlinksAway), but for one that keeps its range or is batty,
+ * which moves away on purpose, is left out of the case it is found in, and
  * said so on standard error. A caster of an explosion or a cloud starts three squares or more
  * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
  * doesn't port. A kind that blows itself up into torment as it attacks (mons_self_destructs,
@@ -437,8 +439,6 @@ static bool _walks_as_engine_does(monster_type type)
            && !mons_is_seeker(type)
            // MovesWithParent.
            && !mons_is_tentacle_or_tentacle_segment(type)
-           // Batty: it flits away after it attacks.
-           && !mons_class_flag(type, M_BATTY)
            // BoundToTerrain: a monster of lava or water can't leave it.
            && monster_habitable_feat(type, DNGN_FLOOR);
 }
@@ -509,11 +509,18 @@ struct turn_rule
 {
     const char *name;
     vector<const turn_kind *> kinds;
+    // The farthest from the player its monster starts.
+    int farthest;
 };
 
+// The farthest from the player a batty kind starts for its rule: near enough that the fastest,
+// at speed 30, attacks before the player's next action and flits after it (_handle_battiness).
+static const int BATTY_FARTHEST = 2;
+
 // The rules some kind of monster exercises, drawing from `kinds` and, for the rule of keeping
-// range, from the kinds in `borrowing` too. A rule no kind exercises, such as an instant spell
-// when the engine ports none, is left out, and said so.
+// range, from the kinds in `borrowing` too. A batty kind starts for its rule no farther than
+// BATTY_FARTHEST. A rule no kind exercises, such as an instant spell when the engine ports none,
+// is left out, and said so.
 static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
                                      const vector<turn_kind> &borrowing)
 {
@@ -528,7 +535,8 @@ static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
             fastest = max(fastest, kind.speed);
         }
     }
-    turn_rule slow = { "slowest", {} }, fast = { "fastest", {} };
+    turn_rule slow = { "slowest", {}, LOS_DEFAULT_RANGE };
+    turn_rule fast = { "fastest", {}, LOS_DEFAULT_RANGE };
     for (const turn_kind &kind : kinds)
     {
         if (kind.speed == slowest)
@@ -539,7 +547,7 @@ static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
     vector<turn_rule> rules = { slow, fast };
     for (const auto &rule : TURN_RULES)
     {
-        turn_rule drawn = { rule.first, {} };
+        turn_rule drawn = { rule.first, {}, LOS_DEFAULT_RANGE };
         for (const turn_kind &kind : kinds)
             if (rule.second(kind))
                 drawn.kinds.push_back(&kind);
@@ -549,7 +557,7 @@ static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
             rules.push_back(drawn);
     }
     // Kinds that keep their range, drawn with their own book as often as with one they borrow.
-    turn_rule keeping = { "keeps range", {} };
+    turn_rule keeping = { "keeps range", {}, LOS_DEFAULT_RANGE };
     for (const turn_kind &kind : kinds)
     {
         if (!mons_class_flag(kind.type, M_MAINTAIN_RANGE))
@@ -568,6 +576,14 @@ static vector<turn_rule> _turn_rules(const vector<turn_kind> &kinds,
         fprintf(stderr, "no kind of monster exercises the %s rule: left out\n", keeping.name);
     else
         rules.push_back(keeping);
+    turn_rule batty = { "batty", {}, BATTY_FARTHEST };
+    for (const turn_kind &kind : kinds)
+        if (mons_class_flag(kind.type, M_BATTY))
+            batty.kinds.push_back(&kind);
+    if (batty.kinds.empty())
+        fprintf(stderr, "no kind of monster exercises the %s rule: left out\n", batty.name);
+    else
+        rules.push_back(batty);
     return rules;
 }
 
@@ -606,10 +622,13 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         // A spore attack costs its attacker a hit die (melee_attack::mons_apply_attack_flavour).
         // Set directly: monster::set_hit_dice also resets an oklob plant's spitting frequency.
         mon->hit_dice = hit_dice;
+        mon->behaviour = BEH_SEEK;
         mon->foe = MHITYOU;
         mon->target = you.pos();
         // One that keeps its range finds its firing position afresh.
         mon->firing_pos.reset();
+        // A batty one that flitted after it attacked hunts the player again.
+        mon->props.erase(BATTY_TURNS_KEY);
         // As crawl leaves a monster that has acted.
         mon->speed_increment = 200;
         mon->drain_action_energy();
@@ -635,9 +654,11 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         }
         if (you.pos() != player)
             return "moves the player";
-        // One that keeps its range backs off to its firing position, as the engine plays it.
+        // One that keeps its range backs off to its firing position, and a batty one flits
+        // away, as the engine plays them.
         if (grid_distance(mon->pos(), you.pos()) > distance
-            && !mons_class_flag(kind.type, M_MAINTAIN_RANGE))
+            && !mons_class_flag(kind.type, M_MAINTAIN_RANGE)
+            && !mons_class_flag(kind.type, M_BATTY))
         {
             return "moves away from the player";
         }
@@ -676,7 +697,8 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
         const turn_kind &kind = *kinds[random2(kinds.size())];
         // Farther than any blast reaches back, where the weighing doesn't arise.
         const int nearest = _book_may_catch_caster(kind.book) ? 3 : 1;
-        const int distance = nearest + random2(LOS_DEFAULT_RANGE - nearest + 1);
+        const int farthest = max(nearest, rule.farthest);
+        const int distance = nearest + random2(farthest - nearest + 1);
         monster *mon = _place(kind.type, distance);
         if (!mon)
             continue;

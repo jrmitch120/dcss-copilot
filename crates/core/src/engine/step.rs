@@ -9,15 +9,28 @@
 //! Where a monster that keeps its range steps: to a firing position at a distance from the player
 //! it holds to, never into them.
 //!
+//! Where a batty monster steps: after it attacks the player in melee or casts a spell that takes
+//! time, it flits (`_handle_battiness`, `mon-act.cc:474`) for `div_rand_round(speed, 10)` of its
+//! actions but at least two, counting that one ([`flight_ends`]), then hunts the player again.
+//! Flitting, it wanders (`mons_is_wandering`), so it casts, zaps and shoots nothing
+//! (`_mons_take_special_action`, `mon-act.cc:1833`): each action it steps toward a square picked
+//! at random ([`flit`]), and attacks the player only when that step is into them, which starts
+//! its flight afresh. A shard shrike beside the player, at speed 30, bites in the first of its
+//! three actions before their next, then flits for the other two, biting again about one time in
+//! six.
+//!
 //! Where a monster stands is an [`Offset`] from the player. Any monster walks straight at the
-//! player or away, a square at a time, which changes its distance by one.
+//! player or away, a square at a time, which changes its distance by one; only a batty monster's
+//! steps are drawn as crawl's are, as only its flight depends on the square it stands on.
 
 use std::cmp::Ordering;
+use std::ops::{Add, Neg};
 
-use copilot_gk::{FiringPosition, MonsterStep, WatchedStep};
+use copilot_gk::{BattyFlight, FiringPosition, MonsterStep, WatchedStep};
 
 use super::PLAYER_VISION;
 use super::rng::Rng;
+use crate::visible_state::Position;
 
 /// Where a monster stands from the player: squares east of them, and south, as crawl's
 /// coordinates run.
@@ -30,6 +43,17 @@ pub(crate) struct Offset {
 }
 
 impl Offset {
+    /// The player's own square.
+    pub(crate) const PLAYER: Self = Self { x: 0, y: 0 };
+
+    /// Where a monster at `monster` stands from the player at `player`.
+    pub(crate) fn between(player: Position, monster: Position) -> Self {
+        Self {
+            x: monster.x - player.x,
+            y: monster.y - player.y,
+        }
+    }
+
     /// `distance` squares due east of the player.
     pub(crate) fn east(distance: i32) -> Self {
         Self { x: distance, y: 0 }
@@ -56,11 +80,34 @@ impl Offset {
         }
     }
 
-    /// The square beside the player on its side of them.
+    /// The square beside the player on its side of them: as a step, a square straight toward
+    /// where it stands.
     pub(crate) fn beside(self) -> Self {
         Self {
             x: self.x.signum(),
             y: self.y.signum(),
+        }
+    }
+}
+
+impl Add for Offset {
+    type Output = Self;
+
+    fn add(self, step: Self) -> Self {
+        Self {
+            x: self.x + step.x,
+            y: self.y + step.y,
+        }
+    }
+}
+
+impl Neg for Offset {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self {
+            x: -self.x,
+            y: -self.y,
         }
     }
 }
@@ -137,5 +184,67 @@ pub(crate) fn toward_firing_range(variant: FiringPosition, from: Offset, range: 
             Ordering::Less => from.farther(),
             Ordering::Equal => from,
         },
+    }
+}
+
+/// How far a flitting batty monster looks for a square to flit toward, each way:
+/// `set_random_target` (`mon-movetarget.cc:697`).
+const FLIGHT_REACH: i32 = 6;
+
+/// The farthest off a square a monster heads straight for, rather than sometimes along the line
+/// it is farthest off along alone: `_find_best_step` (`mon-act.cc:532`).
+const STRAIGHT_FOR: i32 = 3;
+
+/// The step a batty monster takes as it flits: toward a square up to [`FLIGHT_REACH`] off from
+/// it each way, any but its own as likely as another (`set_random_target`, `mon-movetarget.cc:697`,
+/// which picks it afresh every action, `check_wander_target`), as [`step_toward`] steps. A step
+/// into the player is an attack on them (`handle_monster_move`, `mon-act.cc:2306`).
+///
+/// Played as on open floor (`NotModelled::Paths`), where crawl may pick any such square: it
+/// picks only one it can stand on, and steps round what stands in its way.
+pub(crate) fn flit(variant: BattyFlight, rng: &mut Rng) -> Offset {
+    match variant {
+        BattyFlight::Crawl034 => {
+            let toward = loop {
+                let toward = Offset {
+                    x: rng.random2(2 * FLIGHT_REACH + 1) - FLIGHT_REACH,
+                    y: rng.random2(2 * FLIGHT_REACH + 1) - FLIGHT_REACH,
+                };
+                if toward != Offset::PLAYER {
+                    break toward;
+                }
+            };
+            step_toward(variant, rng, toward)
+        }
+    }
+}
+
+/// The step a batty monster takes toward a square `toward` off from it: `_find_best_step`
+/// (`mon-act.cc:501`) on open floor. It heads straight for it, but from more than
+/// [`STRAIGHT_FOR`] squares off, half the time along the line it is farthest off along alone.
+pub(crate) fn step_toward(variant: BattyFlight, rng: &mut Rng, toward: Offset) -> Offset {
+    match variant {
+        BattyFlight::Crawl034 => {
+            let mut step = toward.beside();
+            if toward.distance() > STRAIGHT_FOR {
+                if toward.x.abs() > toward.y.abs() && rng.one_chance_in(2) {
+                    step.y = 0;
+                }
+                if toward.y.abs() > toward.x.abs() && rng.one_chance_in(2) {
+                    step.x = 0;
+                }
+            }
+            step
+        }
+    }
+}
+
+/// Whether a batty monster of `speed` stops flitting after the `actions`th of its actions since
+/// it last attacked or cast, counting that one: `_post_monster_move` (`mon-act.cc:2652`) rolls
+/// how long it flits after each, `div_rand_round(speed, 10)` actions but at least two, then has it
+/// hunt the player again.
+pub(crate) fn flight_ends(variant: BattyFlight, rng: &mut Rng, speed: i32, actions: i32) -> bool {
+    match variant {
+        BattyFlight::Crawl034 => actions >= rng.div_rand_round(speed, 10).max(2),
     }
 }
