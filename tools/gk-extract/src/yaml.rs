@@ -5,8 +5,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use copilot_gk::{
-    Energy, EnumId, Form, FormHoliness, Habitat, Intelligence, ItemUse, Monster, MonsterAttack,
-    MonsterResists, MonsterSpell, MonsterSpells, Species, Undeadness, WatchedStep, Will,
+    BodySize, Energy, EnumId, Form, FormBody, FormHoliness, Habitat, InnateMutation, Intelligence,
+    ItemUse, Monster, MonsterAttack, MonsterResists, MonsterSpell, MonsterSpells, Species,
+    Undeadness, WatchedStep, Will,
 };
 use serde::Deserialize;
 
@@ -162,6 +163,12 @@ struct SpeciesFile {
     /// `undead` or `semi_undead`, as `undead_state_type` names it without `US_`: alive unless
     /// set.
     undead_type: Option<String>,
+    /// As `size_type` names it without `SIZE_`, in lower case: medium unless set.
+    size: Option<String>,
+    /// Its habitat is water: not unless set.
+    can_swim: Option<bool>,
+    /// The levels of each mutation it gains, by the experience level it gains them at.
+    mutations: Option<BTreeMap<u32, BTreeMap<String, u32>>>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
 }
@@ -175,9 +182,26 @@ struct FormFile {
     /// As `mon_holy_type` names it without `MH_`: none unless set.
     holiness: Option<String>,
     resists: Option<FormResists>,
+    /// The time a move takes in it: 10 unless set.
+    move_speed: Option<i32>,
+    /// As `size_type` names it without `SIZE_`, in lower case: the character's own unless set.
+    size: Option<String>,
+    /// Whether it lets the player swim: left to the species unless set.
+    can_swim: Option<bool>,
+    /// It suppresses mutations of the player's anatomy: not unless set.
+    changes_anatomy: Option<bool>,
     #[serde(rename = "TAG_MAJOR_VERSION")]
     tag_major: Option<i64>,
 }
+
+/// `util/form-gen.py`'s default `move_speed`.
+const DEFAULT_MOVE_SPEED: i32 = 10;
+
+/// `util/species-gen.py`'s default `size`.
+const DEFAULT_SPECIES_SIZE: &str = "medium";
+
+/// The form the player is in when in none: `transformation::none`.
+const NO_FORM: &str = "none";
 
 /// A form's `resists`: those the bundle keeps, each 0 unless set.
 #[derive(Deserialize)]
@@ -518,10 +542,32 @@ pub fn species(source: &Path, tag_major: i64) -> Result<Vec<Species>, ExtractErr
                     });
                 }
             };
+            let size = species.size.as_deref().unwrap_or(DEFAULT_SPECIES_SIZE);
+            let size = body_size(size).ok_or_else(|| ExtractError::Unreadable {
+                file: file.clone(),
+                what: format!("size {size}"),
+            })?;
+            let mutations = species
+                .mutations
+                .unwrap_or_default()
+                .into_iter()
+                .flat_map(|(xl, mutations)| {
+                    mutations
+                        .into_iter()
+                        .map(move |(mutation, levels)| InnateMutation {
+                            xl,
+                            mutation: EnumId(mutation),
+                            levels,
+                        })
+                })
+                .collect();
             Ok(Species {
                 id: EnumId(species.id),
                 name: species.name,
                 undead,
+                size,
+                swims: species.can_swim.unwrap_or(false),
+                mutations,
             })
         })
         .collect()
@@ -532,11 +578,11 @@ pub fn species(source: &Path, tag_major: i64) -> Result<Vec<Species>, ExtractErr
 /// its `enum` capitalised, and it gives no holiness of its own unless it sets one. None of them
 /// is undead here: the series' holiness rules mark those `player::undead_state` names.
 pub fn forms(source: &Path, tag_major: i64) -> Result<Vec<Form>, ExtractError> {
-    yaml_files::<FormFile>(&source.join("dat/forms"))?
+    form_files(source, tag_major)?
         .into_iter()
-        .filter(|(_, form)| form.tag_major.is_none_or(|tag| tag == tag_major))
         .filter(|(_, form)| form.short_name.as_deref() != Some(""))
         .map(|(file, form)| {
+            let body = form_body(&file, &form)?;
             let holiness = match form.holiness.as_deref() {
                 None => FormHoliness::Species,
                 Some("natural") => FormHoliness::Natural,
@@ -559,9 +605,64 @@ pub fn forms(source: &Path, tag_major: i64) -> Result<Vec<Form>, ExtractError> {
                 undead: Undeadness::Alive,
                 negative: form.resists.and_then(|resists| resists.neg).unwrap_or(0),
                 halves_torment: false,
+                body,
             })
         })
         .collect()
+}
+
+/// The body the player has in no form: the form `none` in `dat/forms`.
+pub fn unformed(source: &Path, tag_major: i64) -> Result<FormBody, ExtractError> {
+    let (file, form) = form_files(source, tag_major)?
+        .into_iter()
+        .find(|(_, form)| form.id == NO_FORM)
+        .ok_or_else(|| ExtractError::Missing {
+            file: "dat/forms".to_owned(),
+            what: NO_FORM.to_owned(),
+        })?;
+    form_body(&file, &form)
+}
+
+/// Every form file in `dat/forms` for this build, in file name order, with its file name.
+fn form_files(source: &Path, tag_major: i64) -> Result<Vec<(String, FormFile)>, ExtractError> {
+    Ok(yaml_files::<FormFile>(&source.join("dat/forms"))?
+        .into_iter()
+        .filter(|(_, form)| form.tag_major.is_none_or(|tag| tag == tag_major))
+        .collect())
+}
+
+/// The body `form`, from `file`, gives the player, as `util/form-gen.py` reads it.
+fn form_body(file: &str, form: &FormFile) -> Result<FormBody, ExtractError> {
+    let size = form
+        .size
+        .as_deref()
+        .map(|size| {
+            body_size(size).ok_or_else(|| ExtractError::Unreadable {
+                file: file.to_owned(),
+                what: format!("size {size}"),
+            })
+        })
+        .transpose()?;
+    Ok(FormBody {
+        move_speed: form.move_speed.unwrap_or(DEFAULT_MOVE_SPEED),
+        size,
+        swims: form.can_swim,
+        changes_anatomy: form.changes_anatomy.unwrap_or(false),
+    })
+}
+
+/// The size `size_type` names `SIZE_` and `size` in upper case.
+fn body_size(size: &str) -> Option<BodySize> {
+    Some(match size {
+        "tiny" => BodySize::Tiny,
+        "little" => BodySize::Little,
+        "small" => BodySize::Small,
+        "medium" => BodySize::Medium,
+        "large" => BodySize::Large,
+        "big" => BodySize::Big,
+        "giant" => BodySize::Giant,
+        _ => return None,
+    })
 }
 
 /// `word` as Python's `str.capitalize` gives it: its first letter upper case, the rest lower.

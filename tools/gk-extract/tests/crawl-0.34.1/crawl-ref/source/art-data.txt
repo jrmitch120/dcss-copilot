@@ -1,4 +1,5 @@
-# Trimmed from crawl 0.34.1 for the extractor test: the unrandarts that give a halo.
+# Trimmed from crawl 0.34.1 for the extractor test: the unrandarts that give a halo, and the one
+# that quickens its wearer.
 
 NAME:    morningstar "Eos"
 OBJ:     OBJ_WEAPONS/WPN_MORNINGSTAR
@@ -8,3 +9,9 @@ OBJ:     OBJ_WEAPONS/WPN_MORNINGSTAR
 ENUM:    VAINGLORY
 NAME:    crown of vainglory
 OBJ:     OBJ_ARMOUR/ARM_HAT
+
+# (trimmed for the extractor test)
+
+NAME:     lightning scales
+INSCRIP:  swift,
+OBJ:      OBJ_ARMOUR/ARM_BARDING

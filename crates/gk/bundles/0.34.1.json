@@ -70449,237 +70449,1240 @@
     {
       "id": "SP_ARMATAUR",
       "name": "Armataur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_DEFORMED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_ROLLPAGE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TOUGH_SKIN",
+          "levels": 3
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_ROLLPAGE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_BARACHI",
       "name": "Barachi",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": true,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DAYSTALKER",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FROG_LEGS",
+          "levels": 1
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_FROG_LEGS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_COGLIN",
       "name": "Coglin",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_JEWELLERY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SLOW_WIELD",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_WARMUP_STRIKES",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_WIELD_OFFHAND",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_DEEP_ELF",
       "name": "Deep Elf",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_MANA_REGENERATION",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_DEMIGOD",
       "name": "Demigod",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DIVINE_ATTRS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FORLORN",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HIGH_MAGIC",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_DEMONSPAWN",
       "name": "Demonspawn",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_CENTAUR",
       "name": "Centaur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DEFORMED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FAST",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HOOVES",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TOUGH_SKIN",
+          "levels": 3
+        }
+      ]
     },
     {
       "id": "SP_DEEP_DWARF",
       "name": "Deep Dwarf",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        },
+        {
+          "xl": 9,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_MOTTLED_DRACONIAN",
       "name": "Mottled Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_GHOUL",
       "name": "Ghoul",
-      "undead": "undead"
+      "undead": "undead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_CLAWS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_DEVOUR_ON_KILL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_INHIBITED_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 2
+        }
+      ]
     },
     {
       "id": "SP_HALFLING",
       "name": "Halfling",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "small",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_MUTATION_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_HIGH_ELF",
       "name": "High Elf",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_HILL_ORC",
       "name": "Hill Orc",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_LAVA_ORC",
       "name": "Lava Orc",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_MAYFLYTAUR",
       "name": "Mayflytaur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_BIG_WINGS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHORT_LIFESPAN",
+          "levels": 1
+        },
+        {
+          "xl": 6,
+          "mutation": "MUT_MANA_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 9,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        },
+        {
+          "xl": 12,
+          "mutation": "MUT_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_METEORAN",
       "name": "Meteoran",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_EXPLORE_REGEN",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHORT_LIFESPAN",
+          "levels": 1
+        },
+        {
+          "xl": 9,
+          "mutation": "MUT_PASSIVE_MAPPING",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_SLUDGE_ELF",
       "name": "Sludge Elf",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": []
     },
     {
       "id": "SP_VAMPIRE",
       "name": "Vampire",
-      "undead": "semiUndead"
+      "undead": "semiUndead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACUTE_VISION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FANGS",
+          "levels": 3
+        }
+      ]
     },
     {
       "id": "SP_DJINNI",
       "name": "Djinni",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_VULNERABILITY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FLAT_HP",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FLOAT",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HEAT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HP_CASTING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_INNATE_CASTER",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_BASE_DRACONIAN",
       "name": "Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_BLACK_DRACONIAN",
       "name": "Black Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_SHOCK_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_BIG_WINGS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_GREEN_DRACONIAN",
       "name": "Green Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_POISON_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_STINGER",
+          "levels": 2
+        }
+      ]
     },
     {
       "id": "SP_GREY_DRACONIAN",
       "name": "Grey Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": true,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_IRON_FUSED_SCALES",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_PALE_DRACONIAN",
       "name": "Pale Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_STEAM_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_PURPLE_DRACONIAN",
       "name": "Purple Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_STRONG_WILLED",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_INVIOLATE_MAGIC",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_RED_DRACONIAN",
       "name": "Red Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_HEAT_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_WHITE_DRACONIAN",
       "name": "White Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_YELLOW_DRACONIAN",
       "name": "Yellow Draconian",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARMOURED_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_BLOODED",
+          "levels": 1
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_ACID_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_ACIDIC_BITE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_FELID",
       "name": "Felid",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "little",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACUTE_VISION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_CLAWS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FANGS",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_MULTILIVED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_ARMOUR",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_GRASPING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_PAWS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHAGGY_FUR",
+          "levels": 1
+        },
+        {
+          "xl": 6,
+          "mutation": "MUT_SHAGGY_FUR",
+          "levels": 1
+        },
+        {
+          "xl": 12,
+          "mutation": "MUT_SHAGGY_FUR",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_FORMICID",
       "name": "Formicid",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ANTENNAE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_QUADRUMANOUS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_GARGOYLE",
       "name": "Gargoyle",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHOCK_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_STONE_BODY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 14,
+          "mutation": "MUT_BIG_WINGS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_GNOLL",
       "name": "Gnoll",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DISTRIBUTED_TRAINING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FANGS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TREASURE_SENSE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_HUMAN",
       "name": "Human",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_EXPLORE_REGEN",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_KOBOLD",
       "name": "Kobold",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "small",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_NIGHTSTALKER",
+          "levels": 3
+        }
+      ]
     },
     {
       "id": "SP_MERFOLK",
       "name": "Merfolk",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": true,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_MERTAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NIMBLE_SWIMMER",
+          "levels": 2
+        }
+      ]
     },
     {
       "id": "SP_MINOTAUR",
       "name": "Minotaur",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_HORNS",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_REFLEXIVE_HEADBUTT",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_MOUNTAIN_DWARF",
       "name": "Mountain Dwarf",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ARTEFACT_ENCHANTING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_RUNIC_MAGIC",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_MUMMY",
       "name": "Mummy",
-      "undead": "undead"
+      "undead": "undead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACCURSED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FAITH",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HEAT_VULNERABILITY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NECRO_ENHANCER",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_DRINK",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_NECRO_ENHANCER",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_NAGA",
       "name": "Naga",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACUTE_VISION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_CONSTRICTING_TAIL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_DEFORMED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_POISON_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SPIT_POISON",
+          "levels": 1
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_CONSTRICTING_TAIL",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_OCTOPODE",
       "name": "Octopode",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": true,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_CAMOUFLAGE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_GELATINOUS_BODY",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NIMBLE_SWIMMER",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TENTACLE_ARMS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_ONI",
       "name": "Oni",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_DOUBLE_POTION_HEAL",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_DRUNKEN_BRAWLING",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_HORNS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TOUGH_SKIN",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_POLTERGEIST",
       "name": "Poltergeist",
-      "undead": "undead"
+      "undead": "undead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACCURSED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FLOAT",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FORMLESS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TRICKSTER",
+          "levels": 1
+        },
+        {
+          "xl": 13,
+          "mutation": "MUT_FORMLESS",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_REVENANT",
       "name": "Revenant",
-      "undead": "undead"
+      "undead": "undead",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACCURSED",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_CLAWS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_COLD_RESISTANCE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_LOW_MAGIC",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SPELLCLAWS",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TORMENT_RESISTANCE",
+          "levels": 2
+        },
+        {
+          "xl": 3,
+          "mutation": "MUT_MNEMOPHAGE",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_SPRIGGAN",
       "name": "Spriggan",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "little",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACUTE_VISION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FAST",
+          "levels": 3
+        }
+      ]
     },
     {
       "id": "SP_TENGU",
       "name": "Tengu",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ACROBATIC",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_BEAK",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TALONS",
+          "levels": 3
+        },
+        {
+          "xl": 7,
+          "mutation": "MUT_TENGU_FLIGHT",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_TROLL",
       "name": "Troll",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "large",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_CLAWS",
+          "levels": 3
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_SHAGGY_FUR",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_TOUGH_SKIN",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "SP_VINE_STALKER",
       "name": "Vine Stalker",
-      "undead": "alive"
+      "undead": "alive",
+      "size": "medium",
+      "swims": false,
+      "mutations": [
+        {
+          "xl": 1,
+          "mutation": "MUT_ANTIMAGIC_BITE",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_FANGS",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_MANA_SHIELD",
+          "levels": 1
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_NO_POTION_HEAL",
+          "levels": 2
+        },
+        {
+          "xl": 1,
+          "mutation": "MUT_REGENERATION",
+          "levels": 1
+        },
+        {
+          "xl": 8,
+          "mutation": "MUT_FANGS",
+          "levels": 1
+        }
+      ]
     }
   ],
   "skills": {
@@ -70723,1267 +71726,1478 @@
       "id": "DNGN_UNSEEN",
       "name": "",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "1": {
       "id": "DNGN_CLOSED_DOOR",
       "name": "closed door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "2": {
       "id": "DNGN_RUNED_DOOR",
       "name": "runed door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "3": {
       "id": "DNGN_SEALED_DOOR",
       "name": "sealed door",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "4": {
       "id": "DNGN_TREE",
       "name": "tree",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "5": {
       "id": "DNGN_METAL_WALL",
       "name": "metal wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "6": {
       "id": "DNGN_CRYSTAL_WALL",
       "name": "crystal wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "7": {
       "id": "DNGN_ROCK_WALL",
       "name": "rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "8": {
       "id": "DNGN_SLIMY_WALL",
       "name": "slime covered rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "9": {
       "id": "DNGN_STONE_WALL",
       "name": "stone wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "10": {
       "id": "DNGN_PERMAROCK_WALL",
       "name": "unnaturally hard rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "11": {
       "id": "DNGN_CLEAR_ROCK_WALL",
       "name": "translucent rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "12": {
       "id": "DNGN_CLEAR_STONE_WALL",
       "name": "translucent stone wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "13": {
       "id": "DNGN_CLEAR_PERMAROCK_WALL",
       "name": "translucent unnaturally hard rock wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "14": {
       "id": "DNGN_GRATE",
       "name": "iron grate",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "15": {
       "id": "DNGN_OPEN_SEA",
       "name": "the open sea",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "16": {
       "id": "DNGN_LAVA_SEA",
       "name": "the endless lava",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "17": {
       "id": "DNGN_ORCISH_IDOL",
       "name": "orcish idol",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "18": {
       "id": "DNGN_GRANITE_STATUE",
       "name": "granite statue",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "19": {
       "id": "DNGN_MALIGN_GATEWAY",
       "name": "portal to somewhere",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "30": {
       "id": "DNGN_LAVA",
       "name": "some lava",
       "terrain": "lava",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "31": {
       "id": "DNGN_DEEP_WATER",
       "name": "some deep water",
       "terrain": "deepWater",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "32": {
       "id": "DNGN_SHALLOW_WATER",
       "name": "some shallow water",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "33": {
       "id": "DNGN_FLOOR",
       "name": "floor",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "34": {
       "id": "DNGN_OPEN_DOOR",
       "name": "open door",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "35": {
       "id": "DNGN_TRAP_MECHANICAL",
       "name": "mechanical trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "36": {
       "id": "DNGN_TRAP_TELEPORT",
       "name": "teleport trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "37": {
       "id": "DNGN_TRAP_SHAFT",
       "name": "shaft",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "38": {
       "id": "DNGN_TRAP_WEB",
       "name": "web",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "39": {
       "id": "DNGN_UNDISCOVERED_TRAP",
       "name": "floor",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "40": {
       "id": "DNGN_ENTER_SHOP",
       "name": "shop",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "41": {
       "id": "DNGN_ABANDONED_SHOP",
       "name": "abandoned shop",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "42": {
       "id": "DNGN_STONE_STAIRS_DOWN_I",
       "name": "stone staircase leading down",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "43": {
       "id": "DNGN_STONE_STAIRS_DOWN_II",
       "name": "stone staircase leading down",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "44": {
       "id": "DNGN_STONE_STAIRS_DOWN_III",
       "name": "stone staircase leading down",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "45": {
       "id": "DNGN_ESCAPE_HATCH_DOWN",
       "name": "escape hatch in the floor",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "46": {
       "id": "DNGN_STONE_STAIRS_UP_I",
       "name": "stone staircase leading up",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "47": {
       "id": "DNGN_STONE_STAIRS_UP_II",
       "name": "stone staircase leading up",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "48": {
       "id": "DNGN_STONE_STAIRS_UP_III",
       "name": "stone staircase leading up",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "49": {
       "id": "DNGN_ESCAPE_HATCH_UP",
       "name": "escape hatch in the ceiling",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "50": {
       "id": "DNGN_ENTER_DIS",
       "name": "gateway to the Iron City of Dis",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "51": {
       "id": "DNGN_ENTER_GEHENNA",
       "name": "gateway to the ashen valley of Gehenna",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "52": {
       "id": "DNGN_ENTER_COCYTUS",
       "name": "gateway to the freezing wastes of Cocytus",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "53": {
       "id": "DNGN_ENTER_TARTARUS",
       "name": "gateway to the decaying netherworld of Tartarus",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "54": {
       "id": "DNGN_ENTER_ABYSS",
       "name": "one-way gate to the infinite horrors of the Abyss",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "55": {
       "id": "DNGN_EXIT_ABYSS",
       "name": "gateway leading out of the Abyss",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "56": {
       "id": "DNGN_STONE_ARCH",
       "name": "empty arch of ancient stone",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "57": {
       "id": "DNGN_ENTER_PANDEMONIUM",
       "name": "one-way gate leading to the halls of Pandemonium",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "58": {
       "id": "DNGN_EXIT_PANDEMONIUM",
       "name": "gate leading out of Pandemonium",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "59": {
       "id": "DNGN_TRANSIT_PANDEMONIUM",
       "name": "gate leading to another region of Pandemonium",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "60": {
       "id": "DNGN_EXIT_DUNGEON",
       "name": "staircase leading out of the dungeon",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "61": {
       "id": "DNGN_EXIT_THROUGH_ABYSS",
       "name": "exit through the horrors of the Abyss",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "62": {
       "id": "DNGN_EXIT_HELL",
       "name": "gateway back to the Dungeon",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "63": {
       "id": "DNGN_ENTER_HELL",
       "name": "gateway to Hell",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "64": {
       "id": "DNGN_ENTER_LABYRINTH",
       "name": "labyrinth entrance",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "65": {
       "id": "DNGN_TELEPORTER",
       "name": "short-range portal",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "66": {
       "id": "DNGN_ENTER_PORTAL_VAULT",
       "name": "gate leading to a distant place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "67": {
       "id": "DNGN_EXIT_PORTAL_VAULT",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "68": {
       "id": "DNGN_EXPIRED_PORTAL",
       "name": "collapsed entrance",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "69": {
       "id": "DNGN_ENTER_DWARF",
       "name": "staircase to the Dwarven Hall",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "70": {
       "id": "DNGN_ENTER_ORC",
       "name": "staircase to the Orcish Mines",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "71": {
       "id": "DNGN_ENTER_LAIR",
       "name": "staircase to the Lair",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "72": {
       "id": "DNGN_ENTER_SLIME",
       "name": "staircase to the Slime Pits",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "73": {
       "id": "DNGN_ENTER_VAULTS",
       "name": "gate to the Vaults",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "74": {
       "id": "DNGN_ENTER_CRYPT",
       "name": "staircase to the Crypt",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "75": {
       "id": "DNGN_ENTER_BLADE",
       "name": "staircase to the Hall of Blades",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "76": {
       "id": "DNGN_ENTER_ZOT",
       "name": "gate to the Realm of Zot",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "77": {
       "id": "DNGN_ENTER_TEMPLE",
       "name": "staircase to the Ecumenical Temple",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "78": {
       "id": "DNGN_ENTER_SNAKE",
       "name": "staircase to the Snake Pit",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "79": {
       "id": "DNGN_ENTER_ELF",
       "name": "staircase to the Elven Halls",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "80": {
       "id": "DNGN_ENTER_TOMB",
       "name": "staircase to the Tomb",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "81": {
       "id": "DNGN_ENTER_SWAMP",
       "name": "staircase to the Swamp",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "82": {
       "id": "DNGN_ENTER_SHOALS",
       "name": "staircase to the Shoals",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "83": {
       "id": "DNGN_ENTER_SPIDER",
       "name": "hole to the Spider Nest",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "84": {
       "id": "DNGN_ENTER_FOREST",
       "name": "staircase to the Enchanted Forest",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "85": {
       "id": "DNGN_ENTER_DEPTHS",
       "name": "staircase to the Depths",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "86": {
       "id": "DNGN_EXIT_DWARF",
       "name": "staircase back to the Vaults",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "87": {
       "id": "DNGN_EXIT_ORC",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "88": {
       "id": "DNGN_EXIT_LAIR",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "89": {
       "id": "DNGN_EXIT_SLIME",
       "name": "staircase back to the Lair",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "90": {
       "id": "DNGN_EXIT_VAULTS",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "91": {
       "id": "DNGN_EXIT_CRYPT",
       "name": "staircase back to the Vaults",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "92": {
       "id": "DNGN_EXIT_BLADE",
       "name": "staircase back to the Vaults",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "93": {
       "id": "DNGN_EXIT_ZOT",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "94": {
       "id": "DNGN_EXIT_TEMPLE",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "95": {
       "id": "DNGN_EXIT_SNAKE",
       "name": "staircase back to the Lair",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "96": {
       "id": "DNGN_EXIT_ELF",
       "name": "staircase back to the Mines",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "97": {
       "id": "DNGN_EXIT_TOMB",
       "name": "staircase back to the Crypt",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "98": {
       "id": "DNGN_EXIT_SWAMP",
       "name": "staircase back to the Lair",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "99": {
       "id": "DNGN_EXIT_SHOALS",
       "name": "staircase back to the Lair",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "100": {
       "id": "DNGN_EXIT_SPIDER",
       "name": "crawl-hole back to the Lair",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "101": {
       "id": "DNGN_EXIT_FOREST",
       "name": "staircase back to the Vaults",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "102": {
       "id": "DNGN_EXIT_DEPTHS",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "103": {
       "id": "DNGN_ALTAR_ZIN",
       "name": "glowing silver altar of Zin",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "104": {
       "id": "DNGN_ALTAR_SHINING_ONE",
       "name": "glowing golden altar of the Shining One",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "105": {
       "id": "DNGN_ALTAR_KIKUBAAQUDGHA",
       "name": "ancient bone altar of Kikubaaqudgha",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "106": {
       "id": "DNGN_ALTAR_YREDELEMNUL",
       "name": "basalt altar of Yredelemnul",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "107": {
       "id": "DNGN_ALTAR_XOM",
       "name": "shimmering altar of Xom",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "108": {
       "id": "DNGN_ALTAR_VEHUMET",
       "name": "radiant altar of Vehumet",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "109": {
       "id": "DNGN_ALTAR_OKAWARU",
       "name": "iron altar of Okawaru",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "110": {
       "id": "DNGN_ALTAR_MAKHLEB",
       "name": "burning altar of Makhleb",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "111": {
       "id": "DNGN_ALTAR_SIF_MUNA",
       "name": "shimmering blue altar of Sif Muna",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "112": {
       "id": "DNGN_ALTAR_TROG",
       "name": "bloodstained altar of Trog",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "113": {
       "id": "DNGN_ALTAR_NEMELEX_XOBEH",
       "name": "sparkling altar of Nemelex Xobeh",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "114": {
       "id": "DNGN_ALTAR_ELYVILON",
       "name": "white marble altar of Elyvilon",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "115": {
       "id": "DNGN_ALTAR_LUGONU",
       "name": "corrupted altar of Lugonu",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "116": {
       "id": "DNGN_ALTAR_BEOGH",
       "name": "roughly hewn altar of Beogh",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "117": {
       "id": "DNGN_ALTAR_JIYVA",
       "name": "viscous altar of Jiyva",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "118": {
       "id": "DNGN_ALTAR_FEDHAS",
       "name": "blossoming altar of Fedhas",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "119": {
       "id": "DNGN_ALTAR_CHEIBRIADOS",
       "name": "snail-covered altar of Cheibriados",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "120": {
       "id": "DNGN_ALTAR_ASHENZARI",
       "name": "broken altar of Ashenzari",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "121": {
       "id": "DNGN_ALTAR_DITHMENOS",
       "name": "shadowy altar of Dithmenos",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "122": {
       "id": "DNGN_FOUNTAIN_BLUE",
       "name": "fountain of clear blue water",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "123": {
       "id": "DNGN_FOUNTAIN_SPARKLING",
       "name": "fountain of sparkling water",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "124": {
       "id": "DNGN_FOUNTAIN_BLOOD",
       "name": "fountain of blood",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "125": {
       "id": "DNGN_DRY_FOUNTAIN_BLUE",
       "name": "dry fountain",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "126": {
       "id": "DNGN_DRY_FOUNTAIN_SPARKLING",
       "name": "dry fountain",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "127": {
       "id": "DNGN_DRY_FOUNTAIN_BLOOD",
       "name": "dry fountain",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "128": {
       "id": "DNGN_DRY_FOUNTAIN",
       "name": "dry fountain",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "129": {
       "id": "DNGN_EXPLORE_HORIZON",
       "name": "explore horizon",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "130": {
       "id": "DNGN_UNKNOWN_ALTAR",
       "name": "detected altar",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "131": {
       "id": "DNGN_UNKNOWN_PORTAL",
       "name": "detected shop or portal",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "132": {
       "id": "DNGN_ABYSSAL_STAIR",
       "name": "gateway leading deeper into the Abyss",
       "terrain": "open",
-      "stairs": "down"
+      "stairs": "down",
+      "water": false
     },
     "133": {
       "id": "DNGN_BADLY_SEALED_DOOR",
       "name": "",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "134": {
       "id": "DNGN_SEALED_STAIRS_UP",
       "name": "sealed passage leading up",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "135": {
       "id": "DNGN_SEALED_STAIRS_DOWN",
       "name": "sealed passage leading down",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "136": {
       "id": "DNGN_TRAP_ALARM",
       "name": "alarm trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "137": {
       "id": "DNGN_TRAP_ZOT",
       "name": "Zot trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "138": {
       "id": "DNGN_PASSAGE_OF_GOLUBRIA",
       "name": "passage of Golubria",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "139": {
       "id": "DNGN_ENTER_ZIGGURAT",
       "name": "one-way gateway to a ziggurat",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "140": {
       "id": "DNGN_ENTER_BAZAAR",
       "name": "gateway to a bazaar",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "141": {
       "id": "DNGN_ENTER_TROVE",
       "name": "portal to a secret trove of treasure",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "142": {
       "id": "DNGN_ENTER_SEWER",
       "name": "glowing drain",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "143": {
       "id": "DNGN_ENTER_OSSUARY",
       "name": "sand-covered staircase",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "144": {
       "id": "DNGN_ENTER_BAILEY",
       "name": "flagged portal",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "145": {
       "id": "DNGN_ENTER_ICE_CAVE",
       "name": "frozen archway",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "146": {
       "id": "DNGN_ENTER_VOLCANO",
       "name": "dark tunnel",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "147": {
       "id": "DNGN_ENTER_WIZLAB",
       "name": "magical portal",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "148": {
       "id": "DNGN_ENTER_DESOLATION",
       "name": "crumbling gateway",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "149": {
       "id": "DNGN_EXIT_ZIGGURAT",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "150": {
       "id": "DNGN_EXIT_BAZAAR",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "151": {
       "id": "DNGN_EXIT_TROVE",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "152": {
       "id": "DNGN_EXIT_SEWER",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "153": {
       "id": "DNGN_EXIT_OSSUARY",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "154": {
       "id": "DNGN_EXIT_BAILEY",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "155": {
       "id": "DNGN_EXIT_ICE_CAVE",
       "name": "ice covered gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "156": {
       "id": "DNGN_EXIT_VOLCANO",
       "name": "rocky tunnel leading out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "157": {
       "id": "DNGN_EXIT_WIZLAB",
       "name": "portal leading out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "158": {
       "id": "DNGN_EXIT_LABYRINTH",
       "name": "escape hatch in the ceiling",
       "terrain": "open",
-      "stairs": "up"
+      "stairs": "up",
+      "water": false
     },
     "159": {
       "id": "DNGN_EXIT_DESOLATION",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "160": {
       "id": "DNGN_ALTAR_GOZAG",
       "name": "opulent altar of Gozag",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "161": {
       "id": "DNGN_ALTAR_QAZLAL",
       "name": "stormy altar of Qazlal",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "162": {
       "id": "DNGN_ALTAR_RU",
       "name": "sacrificial altar of Ru",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "163": {
       "id": "DNGN_TRAP_SHADOW",
       "name": "shadow trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "164": {
       "id": "DNGN_TRAP_SHADOW_DORMANT",
       "name": "dormant shadow trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "165": {
       "id": "DNGN_ALTAR_ECUMENICAL",
       "name": "faded altar of an unknown god",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "166": {
       "id": "DNGN_ALTAR_PAKELLAS",
       "name": "oddly glowing altar of Pakellas",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "167": {
       "id": "DNGN_ALTAR_USKAYAW",
       "name": "hide-covered altar of Uskayaw",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "168": {
       "id": "DNGN_ALTAR_HEPLIAKLQANA",
       "name": "hazy altar of Hepliaklqana",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "169": {
       "id": "DNGN_ENDLESS_SALT",
       "name": "endless expanse of salt",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "170": {
       "id": "DNGN_ALTAR_WU_JIAN",
       "name": "ornate altar of the Wu Jian Council",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "171": {
       "id": "DNGN_TRANSPORTER",
       "name": "transporter",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "172": {
       "id": "DNGN_TRANSPORTER_LANDING",
       "name": "transporter landing site",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "173": {
       "id": "DNGN_TRAP_DISPERSAL",
       "name": "dispersal trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "174": {
       "id": "DNGN_ENTER_GAUNTLET",
       "name": "gate leading to a gauntlet",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "175": {
       "id": "DNGN_EXIT_GAUNTLET",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "176": {
       "id": "DNGN_CLOSED_CLEAR_DOOR",
       "name": "closed translucent door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "177": {
       "id": "DNGN_OPEN_CLEAR_DOOR",
       "name": "open translucent door",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "178": {
       "id": "DNGN_RUNED_CLEAR_DOOR",
       "name": "runed translucent door",
       "terrain": "closedDoor",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "179": {
       "id": "DNGN_SEALED_CLEAR_DOOR",
       "name": "sealed translucent door",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "180": {
       "id": "DNGN_TOXIC_BOG",
       "name": "a toxic bog",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "181": {
       "id": "DNGN_TRAP_ARCHMAGE",
       "name": "archmage's trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "182": {
       "id": "DNGN_TRAP_SPEAR",
       "name": "spear trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "183": {
       "id": "DNGN_TRAP_TYRANT",
       "name": "tyrant's trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "184": {
       "id": "DNGN_TRAP_HARLEQUIN",
       "name": "harlequin's trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "185": {
       "id": "DNGN_TRAP_BOLT",
       "name": "bolt trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "186": {
       "id": "DNGN_TRAP_NET",
       "name": "net trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "187": {
       "id": "DNGN_TRAP_PLATE",
       "name": "pressure plate",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "188": {
       "id": "DNGN_TRAP_TELEPORT_PERMANENT",
       "name": "permanent teleport trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "189": {
       "id": "DNGN_TRAVEL_TRAIL",
       "name": "travel trail",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "190": {
       "id": "DNGN_PETRIFIED_TREE",
       "name": "petrified tree",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "191": {
       "id": "DNGN_MANGROVE",
       "name": "mangrove",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": true
     },
     "192": {
       "id": "DNGN_DEMONIC_TREE",
       "name": "demonic tree",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "193": {
       "id": "DNGN_ENTER_ARENA",
       "name": "gate leading to Okawaru's Arena",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "194": {
       "id": "DNGN_EXIT_ARENA",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "195": {
       "id": "DNGN_ALTAR_IGNIS",
       "name": "candlelit altar of Ignis",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "196": {
       "id": "DNGN_BROKEN_DOOR",
       "name": "broken door",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "197": {
       "id": "DNGN_BROKEN_CLEAR_DOOR",
       "name": "broken translucent door",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "198": {
       "id": "DNGN_EXIT_DIS",
       "name": "gateway leading out of Dis",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "199": {
       "id": "DNGN_EXIT_GEHENNA",
       "name": "gateway leading out of Gehenna",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "200": {
       "id": "DNGN_EXIT_COCYTUS",
       "name": "gateway leading out of Cocytus",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "201": {
       "id": "DNGN_EXIT_TARTARUS",
       "name": "gateway leading out of Tartarus",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "202": {
       "id": "DNGN_RUNELIGHT",
       "name": "runelight",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "203": {
       "id": "DNGN_MUD",
       "name": "some mud",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "204": {
       "id": "DNGN_BINDING_SIGIL",
       "name": "a binding sigil",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "205": {
       "id": "DNGN_METAL_STATUE",
       "name": "metal statue",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "206": {
       "id": "DNGN_CACHE_OF_FRUIT",
       "name": "cache of fruit",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "207": {
       "id": "DNGN_CACHE_OF_MEAT",
       "name": "cache of meat",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "208": {
       "id": "DNGN_ORB_DAIS",
       "name": "the orb dais",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "209": {
       "id": "DNGN_ENTER_CRUCIBLE",
       "name": "gate leading to the Crucible of Flesh",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "210": {
       "id": "DNGN_EXIT_CRUCIBLE",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "211": {
       "id": "DNGN_FOUNTAIN_EYES",
       "name": "fountain of eyes",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "212": {
       "id": "DNGN_CACHE_OF_BAKED_GOODS",
       "name": "cache of baked goods",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "213": {
       "id": "DNGN_DECORATIVE_FLOOR",
       "name": "decorative floor",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "214": {
       "id": "DNGN_SPIKE_LAUNCHER",
       "name": "spike launcher",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "215": {
       "id": "DNGN_TRAP_DEVOURER",
       "name": "devourer's trap",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "216": {
       "id": "DNGN_ENTER_NECROPOLIS",
       "name": "phantasmal passage",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "217": {
       "id": "DNGN_EXIT_NECROPOLIS",
       "name": "gate leading back out of this place",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "218": {
       "id": "DNGN_FRIGID_WALL",
       "name": "frigid wall",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "219": {
       "id": "DNGN_ZOT_STATUE",
       "name": "zot statue",
       "terrain": "solid",
-      "stairs": null
+      "stairs": null,
+      "water": false
     },
     "220": {
       "id": "DNGN_TRAP_DISPERSAL_INACTIVE",
       "name": "dispersal trap (recharging)",
       "terrain": "open",
-      "stairs": null
+      "stairs": null,
+      "water": false
     }
   },
   "attitudes": {
@@ -72041,7 +73255,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": true,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "bat_swarm",
@@ -72049,7 +73269,13 @@
         "holiness": "addsUndead",
         "undead": "semiUndead",
         "negative": 2,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 5,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "bat",
@@ -72057,7 +73283,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 5,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "blade",
@@ -72065,7 +73297,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "death",
@@ -72073,7 +73311,13 @@
         "holiness": "undead",
         "undead": "undead",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "appendage",
@@ -72081,7 +73325,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "hydra",
@@ -72089,7 +73339,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "giant",
+          "swims": true,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "porcupine",
@@ -72097,7 +73353,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "shadow",
@@ -72105,7 +73367,13 @@
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": false,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "dragon",
@@ -72113,7 +73381,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "giant",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "eel_hands",
@@ -72121,7 +73395,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "flux",
@@ -72129,7 +73409,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "fortress_crab",
@@ -72137,7 +73423,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": true,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "fungus",
@@ -72145,7 +73437,13 @@
         "holiness": "plant",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "hive",
@@ -72153,7 +73451,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "jelly",
@@ -72161,7 +73465,13 @@
         "holiness": "natural",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": true,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "maw",
@@ -72169,7 +73479,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "medusa",
@@ -72177,7 +73493,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "pig",
@@ -72185,7 +73507,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 7,
+          "size": "small",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "quill",
@@ -72193,7 +73521,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "rime_yak",
@@ -72201,7 +73535,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "large",
+          "swims": true,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "serpent",
@@ -72209,7 +73549,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "large",
+          "swims": true,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "slaughter",
@@ -72217,7 +73563,13 @@
         "holiness": "demonic",
         "undead": "alive",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": false,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "sphinx",
@@ -72225,7 +73577,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "spider",
@@ -72233,7 +73591,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "spore",
@@ -72241,7 +73605,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "statue",
@@ -72249,7 +73619,13 @@
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 1,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "storm",
@@ -72257,7 +73633,13 @@
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "sun_scarab",
@@ -72265,7 +73647,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "small",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "tree",
@@ -72273,7 +73661,13 @@
         "holiness": "plant",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "vampire",
@@ -72281,7 +73675,13 @@
         "holiness": "addsUndead",
         "undead": "semiUndead",
         "negative": 2,
-        "halvesTorment": true
+        "halvesTorment": true,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "walking_scroll",
@@ -72289,7 +73689,13 @@
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       },
       {
         "id": "werewolf",
@@ -72297,7 +73703,13 @@
         "holiness": "species",
         "undead": "alive",
         "negative": 0,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": null,
+          "swims": null,
+          "changesAnatomy": false
+        }
       },
       {
         "id": "wisp",
@@ -72305,7 +73717,13 @@
         "holiness": "nonliving",
         "undead": "alive",
         "negative": 3,
-        "halvesTorment": false
+        "halvesTorment": false,
+        "body": {
+          "moveSpeed": 10,
+          "size": "tiny",
+          "swims": false,
+          "changesAnatomy": true
+        }
       }
     ],
     "petrifiedLights": [
@@ -72531,6 +73949,836 @@
     "noSpells": "You don't know any spells.",
     "noAbilities": "Sorry, you're not good enough to have a special ability."
   },
+  "speed": {
+    "lights": [
+      {
+        "light": "Fast",
+        "status": "hasted"
+      },
+      {
+        "light": "Slow",
+        "status": "slowed"
+      },
+      {
+        "light": "Fast+Slow",
+        "status": "hastedAndSlowed"
+      },
+      {
+        "light": "Berserk",
+        "status": "berserk"
+      },
+      {
+        "light": "Swift",
+        "status": "swift"
+      },
+      {
+        "light": "-Swift",
+        "status": "unswift"
+      },
+      {
+        "light": "Frozen",
+        "status": "frozen"
+      },
+      {
+        "light": "Petr",
+        "status": "petrifying"
+      },
+      {
+        "light": "SlowM",
+        "status": "slowedMovement"
+      },
+      {
+        "light": "Fly",
+        "status": "flying"
+      },
+      {
+        "light": "Para",
+        "status": "helpless"
+      },
+      {
+        "light": "Stone",
+        "status": "helpless"
+      },
+      {
+        "light": "Agi",
+        "status": null
+      },
+      {
+        "light": "-Berserk",
+        "status": null
+      },
+      {
+        "light": "-Breath",
+        "status": null
+      },
+      {
+        "light": "Brill",
+        "status": null
+      },
+      {
+        "light": "Dim",
+        "status": null
+      },
+      {
+        "light": "Conf",
+        "status": null
+      },
+      {
+        "light": "Touch",
+        "status": null
+      },
+      {
+        "light": "Corona",
+        "status": null
+      },
+      {
+        "light": "DChan",
+        "status": null
+      },
+      {
+        "light": "Vit",
+        "status": null
+      },
+      {
+        "light": "Exh",
+        "status": null
+      },
+      {
+        "light": "Fire",
+        "status": null
+      },
+      {
+        "light": "Will/2",
+        "status": null
+      },
+      {
+        "light": "Might",
+        "status": null
+      },
+      {
+        "light": "Vexed",
+        "status": null
+      },
+      {
+        "light": "Fragile",
+        "status": null
+      },
+      {
+        "light": "Resist",
+        "status": null
+      },
+      {
+        "light": "Slime",
+        "status": null
+      },
+      {
+        "light": "Ooze",
+        "status": null
+      },
+      {
+        "light": "Tele",
+        "status": null
+      },
+      {
+        "light": "DDoor",
+        "status": null
+      },
+      {
+        "light": "-DDoor",
+        "status": null
+      },
+      {
+        "light": "Quad",
+        "status": null
+      },
+      {
+        "light": "Stealth",
+        "status": null
+      },
+      {
+        "light": "Fear",
+        "status": null
+      },
+      {
+        "light": "Vortex",
+        "status": null
+      },
+      {
+        "light": "Fusillade",
+        "status": null
+      },
+      {
+        "light": "Pray",
+        "status": null
+      },
+      {
+        "light": "Shackles",
+        "status": null
+      },
+      {
+        "light": "Liquid",
+        "status": null
+      },
+      {
+        "light": "Hero",
+        "status": null
+      },
+      {
+        "light": "Finesse",
+        "status": null
+      },
+      {
+        "light": "-Vortex",
+        "status": null
+      },
+      {
+        "light": "Disjoin",
+        "status": null
+      },
+      {
+        "light": "Mark",
+        "status": null
+      },
+      {
+        "light": "Fugue",
+        "status": null
+      },
+      {
+        "light": "Flay",
+        "status": null
+      },
+      {
+        "light": "Weak",
+        "status": null
+      },
+      {
+        "light": "-Tele",
+        "status": null
+      },
+      {
+        "light": "-Move",
+        "status": null
+      },
+      {
+        "light": "Vainglory",
+        "status": null
+      },
+      {
+        "light": "Will+",
+        "status": null
+      },
+      {
+        "light": "Toxic",
+        "status": null
+      },
+      {
+        "light": "Recite",
+        "status": null
+      },
+      {
+        "light": "-Recite",
+        "status": null
+      },
+      {
+        "light": "rF-",
+        "status": null
+      },
+      {
+        "light": "Barbs",
+        "status": null
+      },
+      {
+        "light": "rP-",
+        "status": null
+      },
+      {
+        "light": "Bullseye",
+        "status": null
+      },
+      {
+        "light": "Forest",
+        "status": null
+      },
+      {
+        "light": "Dragoncall",
+        "status": null
+      },
+      {
+        "light": "-Dragoncall",
+        "status": null
+      },
+      {
+        "light": "rF+",
+        "status": null
+      },
+      {
+        "light": "rC+",
+        "status": null
+      },
+      {
+        "light": "rElec+",
+        "status": null
+      },
+      {
+        "light": "Corr",
+        "status": null
+      },
+      {
+        "light": "Horr",
+        "status": null
+      },
+      {
+        "light": "Cleave",
+        "status": null
+      },
+      {
+        "light": "Ambros",
+        "status": null
+      },
+      {
+        "light": "Channel",
+        "status": null
+      },
+      {
+        "light": "Howl",
+        "status": null
+      },
+      {
+        "light": "Vertigo",
+        "status": null
+      },
+      {
+        "light": "Blood",
+        "status": null
+      },
+      {
+        "light": "-Hop",
+        "status": null
+      },
+      {
+        "light": "-Bbolt",
+        "status": null
+      },
+      {
+        "light": "Attr",
+        "status": null
+      },
+      {
+        "light": "Elixir",
+        "status": null
+      },
+      {
+        "light": "-Word",
+        "status": null
+      },
+      {
+        "light": "Sap",
+        "status": null
+      },
+      {
+        "light": "-Cast",
+        "status": null
+      },
+      {
+        "light": "Rise",
+        "status": null
+      },
+      {
+        "light": "Sick",
+        "status": null
+      },
+      {
+        "light": "-Blink",
+        "status": null
+      },
+      {
+        "light": "-Gavotte",
+        "status": null
+      },
+      {
+        "light": "-Hellfire",
+        "status": null
+      },
+      {
+        "light": "Reap",
+        "status": null
+      },
+      {
+        "light": "-Siphon",
+        "status": null
+      },
+      {
+        "light": "-Bloodrite",
+        "status": null
+      },
+      {
+        "light": "-Swarm",
+        "status": null
+      },
+      {
+        "light": "-Star",
+        "status": null
+      },
+      {
+        "light": "-Mesm",
+        "status": null
+      },
+      {
+        "light": "-Lithotox",
+        "status": null
+      },
+      {
+        "light": "-Jolt",
+        "status": null
+      },
+      {
+        "light": "Jinx",
+        "status": null
+      },
+      {
+        "light": "-Dog",
+        "status": null
+      },
+      {
+        "light": "Recruit",
+        "status": null
+      },
+      {
+        "light": "Nightfall",
+        "status": null
+      },
+      {
+        "light": "Blind",
+        "status": null
+      },
+      {
+        "light": "Ruin",
+        "status": null
+      },
+      {
+        "light": "Legion",
+        "status": null
+      },
+      {
+        "light": "Execution",
+        "status": null
+      },
+      {
+        "light": "Destr",
+        "status": null
+      },
+      {
+        "light": "Unstable",
+        "status": null
+      },
+      {
+        "light": "Cacophony",
+        "status": null
+      },
+      {
+        "light": "Enkindled",
+        "status": null
+      },
+      {
+        "light": "Catalyst",
+        "status": null
+      },
+      {
+        "light": "Shroud",
+        "status": null
+      },
+      {
+        "light": "Slay",
+        "status": null
+      },
+      {
+        "light": "Devious",
+        "status": null
+      },
+      {
+        "light": "Engorged",
+        "status": null
+      },
+      {
+        "light": "Flooded",
+        "status": null
+      },
+      {
+        "light": "Bog",
+        "status": null
+      },
+      {
+        "light": "Ramparts",
+        "status": null
+      },
+      {
+        "light": "Challenge",
+        "status": null
+      },
+      {
+        "light": "Vengeance",
+        "status": null
+      },
+      {
+        "light": "Drowsy",
+        "status": null
+      },
+      {
+        "light": "Slimifying",
+        "status": null
+      },
+      {
+        "light": "OozeRegen",
+        "status": null
+      },
+      {
+        "light": " Gem (*)",
+        "status": null
+      },
+      {
+        "light": "!Tele!",
+        "status": null
+      },
+      {
+        "light": "-Clouds",
+        "status": null
+      },
+      {
+        "light": "-GClaw",
+        "status": null
+      },
+      {
+        "light": "-Potion",
+        "status": null
+      },
+      {
+        "light": "-Regen",
+        "status": null
+      },
+      {
+        "light": "-Scroll",
+        "status": null
+      },
+      {
+        "light": "Aug",
+        "status": null
+      },
+      {
+        "light": "Bearserk",
+        "status": null
+      },
+      {
+        "light": "Beogh",
+        "status": null
+      },
+      {
+        "light": "Blast",
+        "status": null
+      },
+      {
+        "light": "Breath",
+        "status": null
+      },
+      {
+        "light": "Bribe",
+        "status": null
+      },
+      {
+        "light": "Charge-",
+        "status": null
+      },
+      {
+        "light": "Charge/",
+        "status": null
+      },
+      {
+        "light": "Charge\\",
+        "status": null
+      },
+      {
+        "light": "Charge|",
+        "status": null
+      },
+      {
+        "light": "Cloud",
+        "status": null
+      },
+      {
+        "light": "Constr",
+        "status": null
+      },
+      {
+        "light": "Contam",
+        "status": null
+      },
+      {
+        "light": "Crippled",
+        "status": null
+      },
+      {
+        "light": "Dig",
+        "status": null
+      },
+      {
+        "light": "Dog",
+        "status": null
+      },
+      {
+        "light": "Drain",
+        "status": null
+      },
+      {
+        "light": "Duel",
+        "status": null
+      },
+      {
+        "light": "Escape!",
+        "status": null
+      },
+      {
+        "light": "Fire+",
+        "status": null
+      },
+      {
+        "light": "Fire++",
+        "status": null
+      },
+      {
+        "light": "Gem",
+        "status": null
+      },
+      {
+        "light": "Heavenly",
+        "status": null
+      },
+      {
+        "light": "Held",
+        "status": null
+      },
+      {
+        "light": "Invis",
+        "status": null
+      },
+      {
+        "light": "Lash",
+        "status": null
+      },
+      {
+        "light": "Lava",
+        "status": null
+      },
+      {
+        "light": "MPRegen",
+        "status": null
+      },
+      {
+        "light": "Memories",
+        "status": null
+      },
+      {
+        "light": "Mesm",
+        "status": null
+      },
+      {
+        "light": "Missing",
+        "status": null
+      },
+      {
+        "light": "Orb",
+        "status": null
+      },
+      {
+        "light": "Orb?",
+        "status": null
+      },
+      {
+        "light": "Ostracised",
+        "status": null
+      },
+      {
+        "light": "Pact",
+        "status": null
+      },
+      {
+        "light": "Peek",
+        "status": null
+      },
+      {
+        "light": "Phobia",
+        "status": null
+      },
+      {
+        "light": "Pois",
+        "status": null
+      },
+      {
+        "light": "Protected",
+        "status": null
+      },
+      {
+        "light": "Ray",
+        "status": null
+      },
+      {
+        "light": "Regen",
+        "status": null
+      },
+      {
+        "light": "Regen Will++",
+        "status": null
+      },
+      {
+        "light": "Rev",
+        "status": null
+      },
+      {
+        "light": "Rev*",
+        "status": null
+      },
+      {
+        "light": "Rev+",
+        "status": null
+      },
+      {
+        "light": "Shield",
+        "status": null
+      },
+      {
+        "light": "Sil",
+        "status": null
+      },
+      {
+        "light": "Sunder",
+        "status": null
+      },
+      {
+        "light": "Tesseract",
+        "status": null
+      },
+      {
+        "light": "Torch",
+        "status": null
+      },
+      {
+        "light": "Water",
+        "status": null
+      },
+      {
+        "light": "Wave",
+        "status": null
+      },
+      {
+        "light": "Winding",
+        "status": null
+      },
+      {
+        "light": "Zot",
+        "status": null
+      },
+      {
+        "light": "rF0",
+        "status": null
+      }
+    ],
+    "unformed": {
+      "moveSpeed": 10,
+      "size": null,
+      "swims": null,
+      "changesAnatomy": false
+    },
+    "mutations": [
+      {
+        "id": "MUT_FAST",
+        "shown": [
+          "You move with supernatural speed. (Speed+)",
+          "You move with supernatural speed. (Speed++)",
+          "You move with supernatural speed. (Speed+++)"
+        ],
+        "anatomy": false,
+        "messages": [
+          "You feel quick.",
+          "You feel sluggish."
+        ]
+      },
+      {
+        "id": "MUT_SLOW",
+        "shown": [
+          "You cover ground slowly.",
+          "You cover ground very slowly.",
+          "You cover ground extremely slowly."
+        ],
+        "anatomy": false,
+        "messages": [
+          "You feel sluggish.",
+          "You feel quick."
+        ]
+      },
+      {
+        "id": "MUT_FROG_LEGS",
+        "shown": [
+          "You can hop short distances, but move slowly.",
+          "You can hop long distances, but move slowly."
+        ],
+        "anatomy": true,
+        "messages": [
+          "Your legs feel stronger."
+        ]
+      },
+      {
+        "id": "MUT_CONSTRICTING_TAIL",
+        "shown": [
+          "Your snake-like lower body moves slowly.",
+          "Your snake-like lower body moves slowly, but can constrict enemies."
+        ],
+        "anatomy": true,
+        "messages": [
+          "Your lower body turns into a snake tail.",
+          "Your tail grows strong enough to constrict your enemies.",
+          "Your lower body returns to normal.",
+          "Your snake tail weakens and can no longer constrict your enemies."
+        ]
+      },
+      {
+        "id": "MUT_NIMBLE_SWIMMER",
+        "shown": [
+          "You are camouflaged when in or above water. (Stealth+)",
+          "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
+        ],
+        "anatomy": true,
+        "messages": [
+          "You feel comfortable near water.",
+          "You feel very comfortable near water.",
+          "You feel less comfortable near water."
+        ]
+      }
+    ],
+    "banes": [
+      {
+        "id": "BANE_LETHARGY",
+        "shown": "You cover ground slowly.",
+        "messages": [
+          "You are stricken with the Bane of Lethargy.",
+          "Your Bane of Lethargy grows stronger.",
+          "The Bane of Lethargy upon you is lifted."
+        ]
+      }
+    ],
+    "slowingGods": [
+      "Cheibriados"
+    ],
+    "waterWalkingGods": [
+      {
+        "god": "Beogh",
+        "pietyRank": 5
+      }
+    ],
+    "ponderousGear": [
+      "ponderousness"
+    ],
+    "quickeningGear": [
+      "lightning scales"
+    ]
+  },
   "formulas": {
     "monsterToHit": "crawl-0.34",
     "evasionRoll": "crawl-0.34",
@@ -72558,6 +74806,7 @@
     "playerAttack": "crawl-0.34",
     "playerBeam": "crawl-0.34",
     "wandPower": "crawl-0.34",
-    "monsterHitPoints": "crawl-0.34"
+    "monsterHitPoints": "crawl-0.34",
+    "playerMove": "crawl-0.34"
   }
 }

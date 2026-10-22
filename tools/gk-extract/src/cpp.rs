@@ -43,6 +43,11 @@ impl Source {
         })
     }
 
+    /// Every token of the file, preprocessed and expanded.
+    pub fn tokens(&self) -> &[Token] {
+        &self.tokens
+    }
+
     /// The enumerators of `enum <name>`, with their values, in declaration order.
     pub fn enumeration(&self, name: &str) -> Result<Vec<(String, i64)>, ExtractError> {
         let mut values: Vec<(String, i64)> = Vec::new();
