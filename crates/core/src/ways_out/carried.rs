@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, Relief, Use};
+use copilot_gk::{Bundle, EscapeAbility, Relief, Use};
 
 use super::{Blocker, Escape, Usable, WayOut, current};
 use crate::accumulated_state::AccumulatedState;
@@ -96,21 +96,10 @@ impl Carried<'_> {
             gaps.insert(Gap::AbilityMenu);
             return Vec::new();
         };
-        let signs = &self.bundle.ways_out;
         abilities
             .iter()
             .filter_map(|ability| {
-                let escape = signs
-                    .abilities
-                    .iter()
-                    .find(|escape| escape.name == ability.name)?;
-                let mut uses = vec![Use::UsingAbilities];
-                if escape.invocation {
-                    uses.push(Use::Invoking);
-                }
-                if escape.translocation {
-                    uses.push(Use::Translocating);
-                }
+                let escape = self.escape_ability(&ability.name)?;
                 Some(WayOut {
                     option: Escape::Ability {
                         name: ability.name.clone(),
@@ -118,10 +107,34 @@ impl Carried<'_> {
                         failure_percent: ability.failure_percent,
                         read,
                     },
-                    usable: self.usable(&uses, ability.magic_cost),
+                    usable: usable(self.ability_stopped(escape, ability.magic_cost)),
                 })
             })
             .collect()
+    }
+
+    /// The ability named `name`, as the ability menu lists it, if it is a Way Out.
+    pub(super) fn escape_ability(&self, name: &str) -> Option<&EscapeAbility> {
+        self.bundle
+            .ways_out
+            .abilities
+            .iter()
+            .find(|escape| escape.name == name)
+    }
+
+    /// What stops `escape`, which costs `magic` points, now: the statuses that stop using
+    /// abilities, invoking or translocating as it does, and too little magic.
+    pub(super) fn ability_stopped(&self, escape: &EscapeAbility, magic: u32) -> Vec<Blocker> {
+        let mut uses = vec![Use::UsingAbilities];
+        if escape.invocation {
+            uses.push(Use::Invoking);
+        }
+        if escape.translocation {
+            uses.push(Use::Translocating);
+        }
+        let mut because = self.stopped(&uses);
+        because.extend(self.short_of_magic(magic));
+        because
     }
 
     /// The spells that are Ways Out, as the spell list last showed them, each stopped by the
@@ -158,26 +171,22 @@ impl Carried<'_> {
                         read,
                     },
                     // A spell costs as many magic points as its level.
-                    usable: self.usable(&uses, spell.level),
+                    usable: usable(
+                        self.stopped(&uses)
+                            .into_iter()
+                            .chain(self.short_of_magic(spell.level))
+                            .collect(),
+                    ),
                 })
             })
             .collect()
     }
 
-    /// Whether something used in `uses` that costs `magic` points can be used now.
-    fn usable(&self, uses: &[Use], magic: u32) -> Usable {
-        let mut because = self.stopped(uses);
-        if let Some(has) = self.visible.stats.mp
-            && magic > 0
-            && i64::from(has) < i64::from(magic)
-        {
-            because.push(Blocker::Magic { needs: magic, has });
-        }
-        if because.is_empty() {
-            Usable::Yes
-        } else {
-            Usable::No { because }
-        }
+    /// Too little magic for something that costs `magic` points, if the player has.
+    fn short_of_magic(&self, magic: u32) -> Option<Blocker> {
+        let has = self.visible.stats.mp?;
+        (magic > 0 && i64::from(has) < i64::from(magic))
+            .then_some(Blocker::Magic { needs: magic, has })
     }
 
     /// The player's statuses that stop any of `uses`, in the order the status pane lists them.
@@ -200,5 +209,14 @@ impl Carried<'_> {
                 })
             })
             .collect()
+    }
+}
+
+/// Usable unless something in `because` stops it.
+fn usable(because: Vec<Blocker>) -> Usable {
+    if because.is_empty() {
+        Usable::Yes
+    } else {
+        Usable::No { because }
     }
 }
