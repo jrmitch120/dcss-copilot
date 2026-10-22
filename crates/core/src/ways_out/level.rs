@@ -152,7 +152,8 @@ impl<'a> OnTheLevel<'a> {
             .filter_map(|&(position, feature)| {
                 let direction = feature.stairs?;
                 let steps = self.walks.to(position)?;
-                let in_the_way = self.in_the_way(position);
+                let path = self.walks.path_to(position);
+                let in_the_way = self.in_the_way(&path);
                 let chasing: Vec<&Chaser<'_>> = chasers
                     .iter()
                     .filter(|chaser| {
@@ -162,7 +163,7 @@ impl<'a> OnTheLevel<'a> {
                     })
                     .collect();
                 let cut_off =
-                    self.interceptors(&chasing, position, &self.times_to(position, pace), pace);
+                    self.interceptors(&chasing, position, &self.times_along(&path, pace), pace);
                 let mut because = Vec::new();
                 if !in_the_way.is_empty() {
                     because.push(Blocker::InTheWay { by: in_the_way });
@@ -191,13 +192,11 @@ impl<'a> OnTheLevel<'a> {
         stairs.into_iter().map(|(_, way_out)| way_out).collect()
     }
 
-    /// The monsters on the player's path to `stairs`, or on it, other than allies they could
-    /// swap places with, nearest the player first.
-    fn in_the_way(&self, stairs: Position) -> Vec<InTheWay> {
-        self.walks
-            .path_to(stairs)
-            .into_iter()
-            .filter_map(|square| {
+    /// The monsters on the player's `path` to a staircase, the staircase's square last, other
+    /// than allies they could swap places with, nearest the player first.
+    fn in_the_way(&self, path: &[Position]) -> Vec<InTheWay> {
+        path.iter()
+            .filter_map(|&square| {
                 let monster = self
                     .visible
                     .monsters
@@ -265,12 +264,12 @@ impl<'a> OnTheLevel<'a> {
         chasers
     }
 
-    /// The time each of the player's actions on their path to `stairs` takes at their `pace`:
-    /// a step onto each square, into water or not, and before a step onto a closed door the
-    /// action that opens it.
-    fn times_to(&self, stairs: Position, pace: &Pace<'_>) -> Vec<u32> {
+    /// The time each of the player's actions along their `path` to a staircase takes at their
+    /// `pace`: a step onto each square, into water or not, and before a step onto a closed door
+    /// the action that opens it.
+    fn times_along(&self, path: &[Position], pace: &Pace<'_>) -> Vec<u32> {
         let mut times = Vec::new();
-        for square in self.walks.path_to(stairs) {
+        for &square in path {
             if self.level.terrain(square) == Some(Terrain::ClosedDoor) {
                 times.push(pace.action());
             }
