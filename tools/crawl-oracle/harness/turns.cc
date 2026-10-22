@@ -25,22 +25,24 @@
  *   each exercise a rule: the slowest and the fastest that act, any, faster or slower than the
  *   player, stationary, reaching, breathing, casting an instant spell, casting a blast or
  *   cloud, casting a blinkbolt, faster than the player and casting a cloud, which it may cast
- *   again before the player's next action but for the clouds its last cast left, watched, stepping toward the player only from beside them
- *   or only by chance (_fungal_move_check), keeping its range (_set_firing_pos), and batty,
- *   flitting away after it attacks or casts (_handle_battiness), near enough to attack. A kind
- *   that keeps its range is drawn for that rule with its own book or with the book of another
- *   kind that casts a spell the engine ports, as none that keeps its range casts one in 0.34.1:
- *   such a book holds it at a firing position three squares from the player, from which it
- *   backs off when it starts nearer. A rule no kind exercises is left out.
+ *   again before the player's next action but for the clouds its last cast left, watched,
+ *   stepping toward the player only from beside them or only by chance (_fungal_move_check),
+ *   keeping its range (_set_firing_pos), and batty, flitting away after it attacks or casts
+ *   (_handle_battiness), near enough to attack. A kind that keeps its range is drawn for that
+ *   rule with its own book or with the book of another kind that casts a spell the engine
+ *   ports, as none that keeps its range casts one in 0.34.1: such a book holds it at a firing
+ *   position three squares from the player, from which it backs off when it starts nearer. A
+ *   rule no kind exercises is left out.
  *
  * It switches off monster special abilities (mon_special_ability; NotModelled::SpecialAbilities),
  * which the engine doesn't port, and leaves out monsters that crawl moves otherwise than the
  * engine does, each named by the NotModelled variant the Fact Sheet gives it
- * (_walks_as_engine_does), draconians, whose breath their book doesn't hold, books crawl fills when a monster is made
- * (MST_GHOST), and shapeshifters, which take another kind's shape as they are made. Any kind that
- * dies in its own turns, moves the player (NotModelled::MovesThePlayer, BlinksWithThePlayer) or
- * moves away from them (NotModelled::BlinksAway), but for one that keeps its range or is batty,
- * which moves away on purpose, is left out of the case it is found in, and
+ * (_walks_as_engine_does), draconians, whose breath their book doesn't hold, books crawl
+ * fills when a monster is made (MST_GHOST), and shapeshifters, which take another kind's shape
+ * as they are made. Any kind that dies in its own turns, moves the player
+ * (NotModelled::MovesThePlayer, BlinksWithThePlayer) or moves away from them
+ * (NotModelled::BlinksAway), but for one that keeps its range or is batty, which moves away on
+ * purpose, is left out of the case it is found in, and
  * said so on standard error. A caster of an explosion or a cloud starts three squares or more
  * away: crawl's tracer weighs a caster's harm to itself (mons_should_fire), which the engine
  * doesn't port. A kind that blows itself up into torment as it attacks (mons_self_destructs,

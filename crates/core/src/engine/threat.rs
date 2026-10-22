@@ -961,7 +961,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             &self.clouds,
         ) {
             turn.casts += 1;
-            self.clouds.cast(
+            self.clouds.note_cast(
                 formulas.monster_clouds,
                 &cast.spell,
                 cast.reach,
@@ -999,7 +999,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             )
         {
             self.clouds
-                .cast(formulas.monster_clouds, &zap.spell, zap.reach, self.offset);
+                .note_cast(formulas.monster_clouds, &zap.spell, zap.reach, self.offset);
             if zap.reach.strikes >= self.distance() {
                 let firing = Firing {
                     spell: &zap.spell,
