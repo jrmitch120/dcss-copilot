@@ -846,8 +846,12 @@ int main(int argc, char *argv[])
         _start_case(run, index);
         _turn_case(index, run.trials, rules[i % rules.size()]);
     }
-    // After the turn cases, which keep their numbers; the same every run.
+    // After the turn cases, which keep their numbers; the same every run. They start with the
+    // player as crawl was set up, as a turn case may leave their maximum hit points lowered.
     if (run.shard == 0)
+    {
+        _start_case(run, index);
         _torment_cases(index);
+    }
     return 0;
 }
