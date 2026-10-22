@@ -7,12 +7,15 @@ use std::collections::{BTreeMap, BinaryHeap};
 
 use copilot_gk::{MonsterEnergy, Terrain};
 
-use crate::engine::melee::{ENERGY_THRESHOLD, most_starting_energy};
+use crate::engine::melee::{BASELINE_DELAY, ENERGY_THRESHOLD, most_starting_energy};
 use crate::visible_state::Position;
 
 /// The moves a closed door costs: one to open it and one to step through (`open_door`,
 /// `monster::move_to_pos`).
 const DOOR_MOVES: u32 = 2;
+
+/// The time a standard-speed action takes the player: `BASELINE_DELAY`.
+const STANDARD_ACTION: u32 = BASELINE_DELAY.unsigned_abs();
 
 /// The eight steps from a square: crawl moves diagonally as freely as straight.
 const STEPS: [(i32, i32); 8] = [
@@ -224,22 +227,37 @@ impl Moves {
 }
 
 /// The most moves a monster of `speed` that spends `walk` energy a move makes while the player
-/// makes `actions` standard-speed actions: as `can_attack` reckons it, starting with the most
-/// energy it could have and gaining its speed each action (`_monster_add_energy`,
-/// `mon-act.cc:1653`).
-pub(crate) fn monster_moves(variant: MonsterEnergy, speed: u32, walk: u32, actions: u32) -> u32 {
+/// takes actions that each take as long as `times` says, where 10 is a standard action: as
+/// `can_attack` reckons it, starting with the most energy it could have and gaining
+/// `div_rand_round(speed * time, 10)` each action (`_monster_add_energy`, `mon-act.cc:1653`),
+/// rounded up, the most it could.
+pub(crate) fn monster_moves_during(
+    variant: MonsterEnergy,
+    speed: u32,
+    walk: u32,
+    times: impl IntoIterator<Item = u32>,
+) -> u32 {
     let speed = i64::from(speed);
     let walk = i64::from(walk.max(1));
+    let standard = i64::from(STANDARD_ACTION);
     let mut energy = i64::from(most_starting_energy(variant));
     let mut moves = 0;
-    for _ in 0..actions {
-        energy += speed;
+    for time in times {
+        let gained = speed * i64::from(time);
+        energy += gained / standard + i64::from(gained % standard != 0);
         while energy >= i64::from(ENERGY_THRESHOLD) {
             energy -= walk;
             moves += 1;
         }
     }
     moves
+}
+
+/// The most moves a monster of `speed` that spends `walk` energy a move makes while the player
+/// makes `actions` standard-speed actions, as [`monster_moves_during`] reckons them.
+fn monster_moves(variant: MonsterEnergy, speed: u32, walk: u32, actions: u32) -> u32 {
+    let times = std::iter::repeat_n(STANDARD_ACTION, usize::try_from(actions).unwrap_or(0));
+    monster_moves_during(variant, speed, walk, times)
 }
 
 /// The fewest standard-speed player actions in which a monster of `speed` that spends `walk`
@@ -291,5 +309,15 @@ mod tests {
         assert_eq!(monster_moves(ENERGY, 5, 10, 3), 2);
         assert_eq!(actions_to_move(ENERGY, 5, 10, 3), Some(5));
         assert_eq!(actions_to_move(ENERGY, 0, 10, 1), None);
+    }
+
+    #[test]
+    fn a_monster_moves_less_while_a_hasted_player_moves_and_more_while_a_slow_one_does() {
+        // Hasted, a move takes 7: from 79 energy it gains 7, so 86, 83 and 80 act and 77 waits.
+        assert_eq!(monster_moves_during(ENERGY, 10, 10, [7; 4]), 3);
+        // A naga's move takes 14: 93 acts twice, 87 once, 91 twice.
+        assert_eq!(monster_moves_during(ENERGY, 10, 10, [14; 3]), 5);
+        // Energy is rounded up, as the most it could gain: 15 in 7 is 10.5, so 11.
+        assert_eq!(monster_moves_during(ENERGY, 15, 10, [7; 1]), 2);
     }
 }

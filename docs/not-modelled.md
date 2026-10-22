@@ -401,12 +401,11 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 
 ### The player's speed
 
-- **What crawl does:** the player moves at the speed their form, species, statuses and gear give (`player_movement_speed`).
-- **What the engine assumes:** the player walks a square an action. The Threat Level assumes the same: its simulation plays out one standard-speed action, as the turn harness does, but doesn't list it.
-- **Surfaced as:** `playerSpeed`, on the Ways Out whenever there are staircases, and on every judged fight, where the player casts, zaps and waits at standard speed too and their attacks take crawl's delays at it.
-- **Harness:** the turn harness plays the player's next action at standard speed.
-- **Impact and cost:** a hasted player sees staircases cut off that they could reach first; in the Threat Level, a hasted player faces fewer attacks before acting; in a fight, a fast player gets more free shots and a slow one fewer. Needs the player's speed read from the game.
-- **Issue:** [#106]
+- **What crawl does:** an action takes the player `player_speed()` and a step onto a square `div_rand_round(player_speed() * player_movement_speed(), BASELINE_DELAY)`, the delay that of the square stepped onto (`move_player_action`): their statuses, form, species and acquired mutations, banes, god, gear and the water underfoot change them.
+- **What the engine assumes:** the stair race plays the player's Pace, ported from those functions and proved by the crawl oracle's speed harness, at the slowest crawl may roll it, and reads it from what the Advisor sees: the status lights, a form by its light, the species' mutations by experience level and the rest off the mutations screen (`A`), a Stale reading as it was read, the god and stars of piety, the worn armour by name and the water on each square of the path. It can't see, and plays as absent: Cheibriados' slowing of a player under his penance who worships another god; water walking that lasts only until solid ground (`TEMP_WATERWALK_KEY`); an ego on armour the game hasn't named; and whether liquefied ground lies beyond the player's own square, taken to cover the whole path while the status pane shows slowed movement. The Threat Level plays one standard-speed action, as the turn harness does, but doesn't list it; the Fight Outcome plays the player's casts, zaps and waits at standard speed.
+- **Surfaced as:** `playerSpeed`, on the Ways Out when there are staircases and the mutations screen hasn't been read, the status pane hasn't been reported or shows a status or form Game Knowledge doesn't classify, the species isn't known, or the player carries armour that changes their speed and the Advisor doesn't know whether they wear it; and on every judged fight.
+- **Harness:** the speed harness checks the Pace against crawl's `player_speed` and `player_movement_speed`; the turn harness plays the player's next action at standard speed.
+- **Impact and cost:** in the Threat Level, a hasted player faces fewer attacks before acting; in a fight, a fast player gets more free shots and a slow one fewer. Both could play the Pace the stair race does.
 
 ### Swimming and flying
 
@@ -448,7 +447,6 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#106]: https://github.com/jrmitch120/dcss-copilot/issues/106
 [#108]: https://github.com/jrmitch120/dcss-copilot/issues/108
 [#120]: https://github.com/jrmitch120/dcss-copilot/issues/120
 [#121]: https://github.com/jrmitch120/dcss-copilot/issues/121

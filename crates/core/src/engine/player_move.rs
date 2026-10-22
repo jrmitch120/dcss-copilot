@@ -68,6 +68,17 @@ impl Rounding for Rng {
     }
 }
 
+/// Rounding always up: the slowest crawl can roll a player's moves, each of its rounds slowing
+/// them as it rounds up.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct Slowest;
+
+impl Rounding for Slowest {
+    fn div_rand_round(&mut self, num: i32, den: i32) -> i32 {
+        num / den + i32::from(num % den != 0)
+    }
+}
+
 /// The player, as the time their moves take goes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Mover<'a> {
@@ -483,6 +494,13 @@ mod tests {
                 assert!(known, "{} lacks {id}", bundle.crawl.tag);
             }
         }
+    }
+
+    #[test]
+    fn rounding_up_is_the_slowest_crawl_can_roll() {
+        assert_eq!(Slowest.div_rand_round(20, 3), 7);
+        assert_eq!(Slowest.div_rand_round(30, 2), 15);
+        assert_eq!(Slowest.div_rand_round(0, 20), 0);
     }
 
     #[test]

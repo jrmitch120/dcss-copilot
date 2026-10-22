@@ -214,6 +214,13 @@ expression: replay
             "openSides": 5,
             "nearestCorridor": null
           },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
           "gaps": [],
           "notModelled": [
             "swimmingAndFlying",
@@ -402,7 +409,7 @@ expression: replay
                       },
                       "moves": 0,
                       "arrivesAfter": 0,
-                      "faster": true
+                      "faster": false
                     }
                   ]
                 }
@@ -434,7 +441,7 @@ expression: replay
                       },
                       "moves": 0,
                       "arrivesAfter": 0,
-                      "faster": true
+                      "faster": false
                     }
                   ]
                 }
@@ -531,6 +538,18 @@ expression: replay
           "ground": "openGround",
           "openSides": 5,
           "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 7,
+          "waterMoveTime": 12,
+          "actionTime": 7,
+          "because": [
+            {
+              "reason": "status",
+              "status": "berserk"
+            }
+          ],
+          "mutationsRead": null
         },
         "gaps": [],
         "notModelled": [

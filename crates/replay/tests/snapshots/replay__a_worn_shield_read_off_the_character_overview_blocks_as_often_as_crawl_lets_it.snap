@@ -21,6 +21,7 @@ expression: by_turn
       "waysOut": {
         "options": [],
         "ground": null,
+        "pace": null,
         "gaps": [
           {
             "gap": "map"
@@ -161,6 +162,7 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"
@@ -337,6 +339,7 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"
@@ -514,6 +517,7 @@ expression: by_turn
           "openSides": 5,
           "nearestCorridor": null
         },
+        "pace": null,
         "gaps": [
           {
             "gap": "abilityMenu"

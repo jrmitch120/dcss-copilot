@@ -4,10 +4,11 @@
 mod carried;
 mod level;
 mod list;
+mod pace;
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, Relief, StairDirection};
+use copilot_gk::{Bundle, Relief, SpeedStatus, StairDirection};
 use serde::Serialize;
 
 use crate::accumulated_state::AccumulatedState;
@@ -21,7 +22,7 @@ const GROUND_NOT_MODELLED: [NotModelled; 2] = [
 ];
 
 /// What the staircase Ways Out leave out besides, whenever there are any.
-const STAIRS_NOT_MODELLED: [NotModelled; 2] = [NotModelled::PlayerSpeed, NotModelled::HitsOnTheWay];
+const STAIRS_NOT_MODELLED: [NotModelled; 1] = [NotModelled::HitsOnTheWay];
 
 /// The player's Ways Out at a moment, and the ground they stand on.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -33,6 +34,8 @@ pub struct WaysOut {
     pub options: Vec<WayOut>,
     /// Whether the player stands in a corridor or on open ground, once the Advisor can tell.
     pub ground: Option<Ground>,
+    /// The player's Pace, which the staircases were judged by, when there are any.
+    pub pace: Option<PlayerPace>,
     /// What kept the Advisor from listing more, or from judging what it lists.
     pub gaps: Vec<Gap>,
     /// What the judgement of the Ways Out leaves out, so it is read for what it is.
@@ -181,6 +184,78 @@ pub enum Blocker {
     Useless,
 }
 
+/// The player's Pace: the time each of their moves to a staircase takes, at the speed crawl gives
+/// them, the slowest it may roll it, which the race to a staircase plays them at.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayerPace {
+    /// The time a move onto dry ground takes, where 10 is a standard move.
+    pub move_time: u32,
+    /// The time a move into water takes, where it differs from one onto dry ground.
+    pub water_move_time: Option<u32>,
+    /// The time opening a door takes.
+    pub action_time: u32,
+    /// What the Advisor read that makes it other than standard.
+    pub because: Vec<PaceReason>,
+    /// When the mutations screen it read the player's mutations off was read, `None` while it
+    /// hasn't been, which leaves only those of their species.
+    pub mutations_read: Option<ReadOn>,
+}
+
+/// What makes the player's Pace other than standard.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(
+    tag = "reason",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum PaceReason {
+    /// A status they have, such as haste.
+    Status {
+        /// What it is.
+        status: SpeedStatus,
+    },
+    /// The form they are in.
+    Form {
+        /// The status light it shows, such as `Bat`.
+        light: String,
+        /// The time a move takes in it, before anything else changes it.
+        move_speed: i32,
+    },
+    /// A mutation they have that changes their speed.
+    Mutation {
+        /// Its `mutation_type` identifier, such as `MUT_CONSTRICTING_TAIL`.
+        mutation: String,
+        /// Their level of it.
+        level: u32,
+        /// Their species has it.
+        from_species: bool,
+        /// Their form stops it working.
+        suppressed: bool,
+    },
+    /// A bane they have that changes their speed.
+    Bane {
+        /// Its `bane_type` identifier, such as `BANE_LETHARGY`.
+        bane: String,
+    },
+    /// They follow a god who slows them, taken at the most piety their stars hold.
+    God {
+        /// The god, such as `Cheibriados`.
+        god: String,
+        /// The stars of piety the status pane shows, if it has.
+        piety_rank: Option<u32>,
+    },
+    /// They wear armour of ponderousness.
+    Ponderous {
+        /// How many pieces.
+        pieces: u32,
+    },
+    /// They wear the lightning scales.
+    Quickened,
+    /// Their god lets them walk on water.
+    WaterWalking,
+}
+
 /// A monster on the player's path to a staircase.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -204,7 +279,7 @@ pub struct Interceptor {
     /// The fewest of the player's standard-speed actions it needs to make them, at the most
     /// energy it could have.
     pub arrives_after: u32,
-    /// It moves faster than the player walks.
+    /// It moves faster than the player walks at their Pace.
     pub faster: bool,
 }
 
@@ -241,22 +316,29 @@ pub struct CorridorSquare {
 }
 
 impl WaysOut {
-    /// The Ways Out the engine finds in `visible` and what the Advisor remembers of the game,
-    /// with `knowledge` for the game's Crawl Version if the Advisor has it.
+    /// The Ways Out the engine finds in `visible`, what the Advisor remembers of the game and
+    /// the character's `species`, as the game names it, with `knowledge` for the game's Crawl
+    /// Version if the Advisor has it.
     pub(crate) fn compute(
         visible: &VisibleState,
         remembered: Option<&AccumulatedState>,
+        species: Option<&str>,
         knowledge: Option<&Bundle>,
     ) -> Self {
         let mut gaps = BTreeSet::new();
         let mut ways_out = Self::default();
         match level::on_the_level(visible, knowledge) {
             Ok(here) => {
+                let pace = pace::Pace::of(visible, remembered, species, here.bundle());
                 ways_out.ground = Some(here.ground());
                 ways_out.not_modelled.extend(GROUND_NOT_MODELLED);
-                ways_out.options.extend(here.stairs(&mut gaps));
+                ways_out.options.extend(here.stairs(&pace, &mut gaps));
                 if !ways_out.options.is_empty() {
+                    if pace.unseen() {
+                        ways_out.not_modelled.push(NotModelled::PlayerSpeed);
+                    }
                     ways_out.not_modelled.extend(STAIRS_NOT_MODELLED);
+                    ways_out.pace = Some(pace.record());
                 }
             }
             Err(missing) => gaps.extend(missing),
@@ -281,5 +363,206 @@ impl WaysOut {
         }
         ways_out.gaps = gaps.into_iter().collect();
         ways_out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use copilot_gk::{EnumId, Library};
+
+    use super::*;
+    use crate::accumulated_state::{AsOf, MutationsRead, Remembered};
+    use crate::screen::{Screen, ShownMutations};
+    use crate::view_model::{Colour, Glyph};
+    use crate::visible_state::{
+        Attitude, LevelMap, MapCell, Religion, SquareLight, Stats, Status, VisibleMonster,
+    };
+
+    /// The shipped 0.34.1 bundle.
+    fn bundle() -> &'static Bundle {
+        static LIBRARY: std::sync::OnceLock<Library> = std::sync::OnceLock::new();
+        LIBRARY
+            .get_or_init(|| Library::shipped().unwrap())
+            .for_version("0.34.1")
+            .unwrap()
+    }
+
+    /// A corridor of floor from x 0 to 10 with a staircase down at its east end, the player at x
+    /// 4, six steps from it, lit with `lights`, and a hostile goblin at x `goblin`, west of them.
+    fn corridor(lights: &[&str], goblin: i32) -> VisibleState {
+        let cell = |feature: &str, glyph: &str| MapCell {
+            glyph: Glyph {
+                text: glyph.to_owned(),
+                colour: Colour::White,
+            },
+            feature: Some(EnumId(feature.to_owned())),
+            in_view: true,
+            light: SquareLight::Plain,
+        };
+        let map = LevelMap::new((0..=10).map(|x| {
+            let square = if x == 10 {
+                cell("DNGN_STONE_STAIRS_DOWN_I", ">")
+            } else {
+                cell("DNGN_FLOOR", ".")
+            };
+            (Position { x, y: 0 }, square)
+        }));
+        let monster = bundle()
+            .monsters
+            .values()
+            .find(|monster| monster.name == "goblin")
+            .unwrap();
+        VisibleState {
+            stats: Stats {
+                xl: Some(1),
+                ..Stats::default()
+            },
+            religion: Some(Religion::NoGod),
+            position: Some(Position { x: 4, y: 0 }),
+            statuses: Some(
+                lights
+                    .iter()
+                    .map(|&light| Status {
+                        light: Some(light.to_owned()),
+                        text: None,
+                        colour: None,
+                    })
+                    .collect(),
+            ),
+            monsters: Some(vec![VisibleMonster {
+                name: "goblin".to_owned(),
+                glyph: Glyph {
+                    text: "g".to_owned(),
+                    colour: Colour::White,
+                },
+                id: Some(monster.id.clone()),
+                position: Position { x: goblin, y: 0 },
+                attitude: Some(Attitude::Hostile),
+                crawl_threat: None,
+                sighting: None,
+            }]),
+            inventory: Some(Vec::new()),
+            map: Some(map),
+            ..VisibleState::default()
+        }
+    }
+
+    /// What the Advisor remembers once the mutations screen showed nothing beyond the species'
+    /// own mutations, or, unless `read`, nothing.
+    fn remembered(read: bool) -> AccumulatedState {
+        let mut remembered = AccumulatedState::default();
+        if read {
+            remembered.mutations = Remembered::Known(AsOf {
+                value: MutationsRead {
+                    shown: ShownMutations::default(),
+                    xl: Some(1),
+                },
+                turn: Some(1),
+                source: Screen::Mutations,
+            });
+        }
+        remembered
+    }
+
+    /// The Ways Out of `visible` for a character of `species`, the mutations screen read or not.
+    fn ways_out(visible: &VisibleState, species: &str, read: bool) -> WaysOut {
+        WaysOut::compute(
+            visible,
+            Some(&remembered(read)),
+            Some(species),
+            Some(bundle()),
+        )
+    }
+
+    fn stairs_usable(ways_out: &WaysOut) -> bool {
+        let stairs = ways_out
+            .options
+            .iter()
+            .find(|way_out| matches!(way_out.option, Escape::Stairs { .. }))
+            .unwrap();
+        stairs.usable == Usable::Yes
+    }
+
+    #[test]
+    fn a_hasted_player_reaches_stairs_a_goblin_cuts_off_at_normal_speed() {
+        // The goblin, six moves from beside the stairs, makes all six while the player walks
+        // there, but only five while a hasted player, at 7 a move, does.
+        let normal = ways_out(&corridor(&[], 3), "Human", true);
+        assert!(!stairs_usable(&normal));
+        let hasted = ways_out(&corridor(&["Fast"], 3), "Human", true);
+        assert!(stairs_usable(&hasted));
+        let pace = hasted.pace.unwrap();
+        assert_eq!(pace.move_time, 7);
+        assert_eq!(
+            pace.because,
+            [PaceReason::Status {
+                status: SpeedStatus::Hasted
+            }]
+        );
+    }
+
+    #[test]
+    fn a_naga_is_cut_off_from_stairs_a_human_reaches() {
+        // The goblin is nine moves from beside the stairs: a human walks there in six standard
+        // actions, a naga, at 14 a move, in as long as the goblin takes for nine.
+        let visible = corridor(&[], 0);
+        assert!(stairs_usable(&ways_out(&visible, "Human", true)));
+        let naga = ways_out(&visible, "Naga", true);
+        assert!(!stairs_usable(&naga));
+        let pace = naga.pace.unwrap();
+        assert_eq!(pace.move_time, 14);
+        assert_eq!(
+            pace.because,
+            [PaceReason::Mutation {
+                mutation: "MUT_CONSTRICTING_TAIL".to_owned(),
+                level: 1,
+                from_species: true,
+                suppressed: false,
+            }]
+        );
+    }
+
+    #[test]
+    fn player_speed_is_named_until_the_mutations_screen_is_read() {
+        let visible = corridor(&["Fast"], 0);
+        let unread = ways_out(&visible, "Human", false);
+        assert!(unread.not_modelled.contains(&NotModelled::PlayerSpeed));
+        assert_eq!(unread.pace.unwrap().mutations_read, None);
+        let read = ways_out(&visible, "Human", true);
+        assert!(!read.not_modelled.contains(&NotModelled::PlayerSpeed));
+    }
+
+    #[test]
+    fn player_speed_is_named_for_a_status_light_the_game_knowledge_doesnt_classify() {
+        let classified = ways_out(
+            &corridor(&["Fast", "Pois", "Torch (3)", "Bat"], 0),
+            "Human",
+            true,
+        );
+        assert!(!classified.not_modelled.contains(&NotModelled::PlayerSpeed));
+        let unclassified = ways_out(&corridor(&["Fast", "Zoom"], 0), "Human", true);
+        assert!(
+            unclassified
+                .not_modelled
+                .contains(&NotModelled::PlayerSpeed)
+        );
+    }
+
+    #[test]
+    fn a_stale_mutations_screen_is_played_and_labelled_stale() {
+        let mut remembered = remembered(true);
+        if let Remembered::Known(read) = std::mem::take(&mut remembered.mutations) {
+            remembered.mutations = Remembered::Stale(read);
+        }
+        let visible = corridor(&[], 0);
+        let ways_out = WaysOut::compute(&visible, Some(&remembered), Some("Human"), Some(bundle()));
+        assert!(!ways_out.not_modelled.contains(&NotModelled::PlayerSpeed));
+        assert_eq!(
+            ways_out.pace.unwrap().mutations_read,
+            Some(ReadOn {
+                turn: Some(1),
+                stale: true
+            })
+        );
     }
 }
