@@ -449,6 +449,11 @@ pub struct Formulas {
     /// its foe again: `_handle_battiness`, `set_random_target`, `_find_best_step` and
     /// `BATTY_TURNS_KEY` in `_post_monster_move`.
     pub batty_flight: BattyFlight,
+    /// What the clouds a monster's own casts leave change before the player's next action:
+    /// whether it sees the player through opaque ones (`opacity_default`, `monster::near_foe`),
+    /// and whether a cloud spell's tracer finds a player its cloud must spread to
+    /// (`targeter_cloud::set_aim`).
+    pub monster_clouds: MonsterClouds,
     /// The hit points torment takes from the player: `torment_player` and `player::res_torment`.
     pub torment: Torment,
     /// The player's melee, launcher and thrown attacks on a monster: their accuracy, damage
@@ -628,6 +633,14 @@ pub enum BattyFlight {
     Crawl034,
 }
 
+/// The variants of what the clouds a monster's own casts leave change.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterClouds {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of the hit points torment takes from the player.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Torment {
@@ -700,6 +713,7 @@ impl Formulas {
         monster_step: MonsterStep::Crawl034,
         firing_position: FiringPosition::Crawl034,
         batty_flight: BattyFlight::Crawl034,
+        monster_clouds: MonsterClouds::Crawl034,
         torment: Torment::Crawl034,
         player_attack: PlayerAttack::Crawl034,
         player_beam: PlayerBeam::Crawl034,
@@ -1213,6 +1227,21 @@ pub struct Spell {
     pub range: Option<SpellRange>,
     /// The zap it fires, from `_spl_zaps` in `spl-zap.cc`, when it fires one.
     pub zap: Option<Zap>,
+    /// The cloud its beam leaves, when it leaves one.
+    pub cloud: Option<SpellCloud>,
+}
+
+/// The cloud a spell's beam leaves: round where it ends, as crawl's `bolt::affect_endpoint` and
+/// `bolt::get_cloud_type` in `beam.cc` place it, and along the way when it leaves a trail.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpellCloud {
+    /// Its `cloud_type` identifier, such as `CLOUD_HOLY`.
+    pub kind: EnumId,
+    /// Two of its squares or more block sight, as `clouds` in `cloud.cc` marks it opaque.
+    pub opaque: bool,
+    /// It is left on every square the beam passes, too (`bolt::affect_place_clouds`).
+    pub trail: bool,
 }
 
 /// How far a spell reaches, from `spl-data.h`: between `min` and `max` squares, rising with

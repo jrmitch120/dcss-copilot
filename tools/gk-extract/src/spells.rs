@@ -1,8 +1,9 @@
-//! Spells, the zaps they fire and monster spellbooks, from crawl's C++ tables: `spelldata` in
-//! `spl-data.h`, `_spl_zaps` in `spl-zap.cc`, `zap_data` in `zap-data.h` and `mspell_list` in
-//! `mon-spell.h`.
+//! Spells, the zaps they fire, the clouds they leave and monster spellbooks, from crawl's C++
+//! tables and code: `spelldata` in `spl-data.h`, `_spl_zaps` in `spl-zap.cc`, `zap_data` in
+//! `zap-data.h`, `bolt::get_cloud_type` and `bolt::affect_place_clouds` in `beam.cc`, `clouds` in
+//! `cloud.cc` and `mspell_list` in `mon-spell.h`.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use copilot_gk::{EnumId, MonsterSpell, SpellRange, Zap, ZapDamage, ZapToHit};
 
@@ -194,6 +195,132 @@ pub fn zaps(
         zaps.insert(zap.id.0.clone(), zap);
     }
     Ok(zaps)
+}
+
+/// The cloud each spell's beam leaves where it ends, by spell: each
+/// `if (origin_spell == SPELL_X) return CLOUD_Y;` in `bolt::get_cloud_type`, read from `beam`.
+pub fn cloud_types(beam: &Source, file: &str) -> Result<HashMap<String, String>, ExtractError> {
+    let clouds: HashMap<String, String> = beam
+        .function_body("get_cloud_type")?
+        .windows(9)
+        .filter_map(|window| match window {
+            [
+                Token::Ident(test),
+                Token::Punct('('),
+                Token::Ident(subject),
+                Token::Punct('='),
+                Token::Punct('='),
+                Token::Ident(spell),
+                Token::Punct(')'),
+                Token::Ident(ret),
+                Token::Ident(cloud),
+            ] if test == "if" && subject == "origin_spell" && ret == "return" => {
+                Some((spell.clone(), cloud.clone()))
+            }
+            _ => None,
+        })
+        .collect();
+    if clouds.is_empty() {
+        return Err(unreadable(file, "the clouds of bolt::get_cloud_type"));
+    }
+    Ok(clouds)
+}
+
+/// The clouds `bolt::affect_place_clouds` leaves on every square a beam passes, read from
+/// `beam`: each `if (origin_spell == SPELL_X) place_cloud(CLOUD_Y, ...)`, by spell, and each
+/// `if (flavour == BEAM_X) place_cloud(CLOUD_Y, ...)`, by the beam's flavour. A cloud left only
+/// under a further condition, such as over water, isn't one.
+pub struct Trails {
+    by_spell: HashMap<String, String>,
+    by_flavour: HashMap<String, String>,
+}
+
+impl Trails {
+    /// The trails of `bolt::affect_place_clouds`.
+    pub fn read(beam: &Source, file: &str) -> Result<Self, ExtractError> {
+        let mut trails = Self {
+            by_spell: HashMap::new(),
+            by_flavour: HashMap::new(),
+        };
+        for window in beam.function_body("affect_place_clouds")?.windows(10) {
+            if let [
+                Token::Ident(test),
+                Token::Punct('('),
+                Token::Ident(subject),
+                Token::Punct('='),
+                Token::Punct('='),
+                Token::Ident(value),
+                Token::Punct(')'),
+                Token::Ident(place),
+                Token::Punct('('),
+                Token::Ident(cloud),
+            ] = window
+                && test == "if"
+                && place == "place_cloud"
+            {
+                let by = match subject.as_str() {
+                    "origin_spell" => &mut trails.by_spell,
+                    "flavour" => &mut trails.by_flavour,
+                    _ => continue,
+                };
+                by.entry(value.clone()).or_insert_with(|| cloud.clone());
+            }
+        }
+        if trails.by_spell.is_empty() || trails.by_flavour.is_empty() {
+            return Err(unreadable(file, "the clouds of bolt::affect_place_clouds"));
+        }
+        Ok(trails)
+    }
+
+    /// Whether a beam of `spell`, of `flavour`, leaves its cloud, `cloud`, on every square it
+    /// passes.
+    pub fn leaves(&self, spell: &str, flavour: Option<&str>, cloud: &str) -> bool {
+        self.by_spell.get(spell).is_some_and(|left| left == cloud)
+            || flavour
+                .and_then(|flavour| self.by_flavour.get(flavour))
+                .is_some_and(|left| left == cloud)
+    }
+}
+
+/// The `cloud_type` value one past the last cloud: the number of entries in `clouds`.
+const NUM_CLOUD_TYPES: &str = "NUM_CLOUD_TYPES";
+
+/// The cloud types the `clouds` table in `cloud.cc`, read from `table`, marks opaque: an entry's
+/// seventh field, `opaque`, which an entry may leave out. Its entries are in `cloud_type` order,
+/// `cloud_types` with their values.
+pub fn opaque_clouds(
+    table: &Source,
+    file: &str,
+    cloud_types: &[(String, i64)],
+) -> Result<BTreeSet<String>, ExtractError> {
+    let count = cloud_types
+        .iter()
+        .find(|(name, _)| name == NUM_CLOUD_TYPES)
+        .map(|&(_, value)| value)
+        .ok_or_else(|| ExtractError::Missing {
+            file: "cloud-type.h".to_owned(),
+            what: NUM_CLOUD_TYPES.to_owned(),
+        })?;
+    let entries = table.entries("clouds")?;
+    if i64::try_from(entries.len()).ok() != Some(count) {
+        return Err(unreadable(
+            file,
+            &format!("clouds, which must have {NUM_CLOUD_TYPES} entries"),
+        ));
+    }
+    let mut opaque = BTreeSet::new();
+    for (value, fields) in (0..).zip(&entries) {
+        let marked = match fields.get(6).map(Vec::as_slice) {
+            None | Some([]) => false,
+            Some(field) => {
+                boolean(field).ok_or_else(|| unreadable(file, "the opacity of a cloud"))?
+            }
+        };
+        if marked && let Some((name, _)) = cloud_types.iter().find(|&&(_, v)| v == value) {
+            opaque.insert(name.clone());
+        }
+    }
+    Ok(opaque)
 }
 
 /// Every monster spellbook in `mspell_list`, by its `mon_spellbook_type` identifier.

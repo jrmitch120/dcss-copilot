@@ -248,7 +248,8 @@ impl Source {
         Ok(&self.tokens[open + 1..self.matching_brace(open)?])
     }
 
-    /// `name ( ... ) {` starts at `i`, with no `;` between: a definition, not a call.
+    /// `name ( ... ) {` or, for a member function, `name ( ... ) const {` starts at `i`, with no
+    /// `;` between: a definition, not a call.
     fn is_definition_of(&self, i: usize, name: &str) -> bool {
         if self.tokens[i] != Token::Ident(name.into())
             || self.tokens.get(i + 1) != Some(&Token::Punct('('))
@@ -259,7 +260,11 @@ impl Source {
         else {
             return false;
         };
-        self.tokens.get(close + 1) == Some(&Token::Punct('{'))
+        let body = match self.tokens.get(close + 1) {
+            Some(Token::Ident(qualifier)) if qualifier == "const" => close + 2,
+            _ => close + 1,
+        };
+        self.tokens.get(body) == Some(&Token::Punct('{'))
     }
 
     /// A constant initializer: a literal, a negative literal or an earlier enumerator.

@@ -13,6 +13,7 @@ use crate::carried_gear::{
 use crate::crawl_ids::{missile_types, monster_types, object_classes};
 
 use super::brands::{Brand, Necromancy};
+use super::clouds::CloudsLeft;
 use super::lighting::Lighting;
 use super::melee::{
     self, Attack, BASELINE_DELAY, Defences, DisplayedDefences, ENERGY_THRESHOLD, Fighter, Hands,
@@ -873,6 +874,8 @@ pub(crate) struct Engaged<'r, 'a> {
     /// While it flits, as a batty monster does after it attacks or casts, the actions it has
     /// taken since, counting that one.
     flight: Option<i32>,
+    /// The clouds its spells have left since the player's last action.
+    clouds: CloudsLeft,
     /// It blew itself up, and acts no more.
     pub(crate) gone: bool,
 }
@@ -900,6 +903,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             breath_timeout: 0,
             acted: false,
             flight: None,
+            clouds: CloudsLeft::default(),
             gone: false,
         }
     }
@@ -928,7 +932,8 @@ impl<'r, 'a> Engaged<'r, 'a> {
     /// Takes its action, if it can, with a spell, its wand or its missiles, which it tries in
     /// that order (`_mons_take_special_action`, `mon-act.cc:1840`), against `target`, whose
     /// shield has `blocks_left` blocks left, counting what it did in `turn`: whether it did. An
-    /// instant spell takes no time, so it goes on to try the rest.
+    /// instant spell takes no time, so it goes on to try the rest. It takes none while the
+    /// clouds it left hide the player from it ([`CloudsLeft::sees_player`]).
     fn special_action(
         &mut self,
         formulas: Formulas,
@@ -937,6 +942,12 @@ impl<'r, 'a> Engaged<'r, 'a> {
         blocks_left: &mut u32,
         turn: &mut Turn,
     ) -> bool {
+        if !self
+            .clouds
+            .sees_player(formulas.monster_clouds, self.offset)
+        {
+            return false;
+        }
         let attacker = self.attacker;
         let monster = attacker.monster;
         let (missiles, wand) = (self.missiles, self.wand);
@@ -947,8 +958,15 @@ impl<'r, 'a> Engaged<'r, 'a> {
             &attacker.spells,
             self.distance(),
             can_breathe,
+            &self.clouds,
         ) {
             turn.casts += 1;
+            self.clouds.note_cast(
+                formulas.monster_clouds,
+                &cast.spell,
+                cast.reach,
+                self.offset,
+            );
             if cast.reach.strikes >= self.distance() {
                 let firing = Firing {
                     spell: &cast.spell,
@@ -973,7 +991,15 @@ impl<'r, 'a> Engaged<'r, 'a> {
         if let Some(zap) = wand
             && wands::zaps(formulas.monster_wand, rng)
             && zap.reach.casts >= self.distance()
+            && self.clouds.tracer_finds_player(
+                formulas.monster_clouds,
+                &zap.spell,
+                zap.reach,
+                self.distance(),
+            )
         {
+            self.clouds
+                .note_cast(formulas.monster_clouds, &zap.spell, zap.reach, self.offset);
             if zap.reach.strikes >= self.distance() {
                 let firing = Firing {
                     spell: &zap.spell,
@@ -1039,6 +1065,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
         let (missiles, wand) = (self.missiles, self.wand);
         let mut turn = Turn::default();
         let from = self.distance();
+        self.clouds = CloudsLeft::default();
         while !self.gone
             && self.energy >= ENERGY_THRESHOLD
             && (reach > 0 || !attacker.spells.is_empty() || missiles.is_some() || wand.is_some())
@@ -1184,13 +1211,15 @@ fn fire_beam(
 
 /// The spell `attacker` casts this action, if any, `distance` squares from the player. A breath
 /// can't be cast while it is catching its breath: crawl drops it from the usable spells
-/// (`_find_usable_spells`).
+/// (`_find_usable_spells`). A spell is in range when it reaches the player and its tracer finds
+/// them past the clouds `clouds` it left ([`CloudsLeft::tracer_finds_player`]).
 fn choose_cast<'c, 'a>(
     formulas: Formulas,
     rng: &mut Rng,
     casts: &'c [Cast<'a>],
     distance: i32,
     can_breathe: bool,
+    clouds: &CloudsLeft,
 ) -> Option<&'c Cast<'a>> {
     let usable: Vec<&Cast<'a>> = casts
         .iter()
@@ -1205,7 +1234,13 @@ fn choose_cast<'c, 'a>(
         .map(|cast| Prospect {
             frequency: cast.slot.frequency,
             when: cast.slot.when,
-            in_range: cast.reach.casts >= distance,
+            in_range: cast.reach.casts >= distance
+                && clouds.tracer_finds_player(
+                    formulas.monster_clouds,
+                    &cast.spell,
+                    cast.reach,
+                    distance,
+                ),
         })
         .collect();
     spells::choose(formulas.monster_spell_choice, rng, &prospects, distance)
@@ -1463,6 +1498,65 @@ mod tests {
         let beside = turns_of(&unarmed(&spider, 1), 1_000);
         assert!(beside.iter().all(|turn| turn.closed == -1), "{beside:?}");
         assert!(beside.iter().any(|turn| turn.melee == 1));
+    }
+
+    /// `name` at speed 30, with the three actions that gives before the player's next, standing
+    /// at `offset` from them: it casts its spells whenever it can and its breath needs no
+    /// catching, so only the clouds it leaves hold it back.
+    fn fast_cloud_caster(name: &str, offset: Offset) -> Vec<Turn> {
+        let mut fast = monster(name).clone();
+        fast.speed = 30;
+        let mut attacker = Attacker::new(bundle(), &fast, offset).without_gear();
+        assert!(
+            attacker
+                .spells
+                .iter()
+                .any(|cast| cast.spell.spell.cloud.is_some()),
+            "{name} casts no ported cloud spell"
+        );
+        for cast in &mut attacker.spells {
+            cast.slot.frequency = 200;
+            cast.slot.breath = false;
+        }
+        turns_of(&attacker, 1_000)
+    }
+
+    #[test]
+    fn a_monster_doesnt_cast_again_through_the_opaque_clouds_it_left() {
+        // A pearl dragon's Holy Breath leaves blessed fire on each square to the player, and two
+        // squares of it block its sight: four squares away it breathes, then walks to two before
+        // it sees them again.
+        let turns = fast_cloud_caster("pearl dragon", Offset::east(4));
+        assert!(turns.iter().all(|turn| turn.casts <= 1), "{turns:?}");
+        assert!(turns.iter().any(|turn| turn.casts == 1 && turn.closed == 2));
+    }
+
+    #[test]
+    fn a_monster_sees_the_player_through_one_square_of_its_opaque_clouds() {
+        // Two squares away only one square of blessed fire lies between it and the player.
+        let turns = fast_cloud_caster("pearl dragon", Offset::east(2));
+        assert!(turns.iter().any(|turn| turn.casts >= 2), "{turns:?}");
+    }
+
+    #[test]
+    fn a_monster_off_a_straight_line_to_the_player_is_assumed_to_see_through_its_clouds() {
+        // Off a row, column or diagonal through the player, the beam's path and the lines of
+        // sight aren't known (`NotModelled::Paths`): the dragon breathes again, erring high.
+        let turns = fast_cloud_caster("pearl dragon", Offset { x: 4, y: 1 });
+        assert!(turns.iter().any(|turn| turn.casts >= 2), "{turns:?}");
+    }
+
+    #[test]
+    fn a_cloud_cast_from_past_its_beams_range_isnt_cast_again_at_a_player_in_its_cloud() {
+        // A death drake's Miasma Breath reaches five squares, and from six its cloud spreads to
+        // the player. Its next tracer finds the cloud already on their square, so it doesn't
+        // breathe from six again, but walks to five, from where its beam reaches them.
+        let turns = fast_cloud_caster("death drake", Offset::east(6));
+        assert!(turns.iter().any(|turn| turn.casts >= 2), "{turns:?}");
+        assert!(
+            turns.iter().all(|turn| turn.casts <= 1 || turn.closed >= 1),
+            "{turns:?}"
+        );
     }
 
     /// A shard shrike that only bites: its Throw Icicle left out of its book.
