@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use copilot_core::{Screen, ScreenRead};
+use copilot_core::{Colour, Screen, ScreenRead};
 use serde_json::Value;
 
 use crate::json::{flag, int, string};
@@ -36,7 +36,7 @@ enum Frame {
     Menu {
         tag: String,
         title: String,
-        items: Vec<String>,
+        items: Vec<Item>,
     },
     /// A console-style screen, drawn into the text area. Crawl sends the text after it opens
     /// the screen, so until then the text area still holds whatever was drawn before.
@@ -48,6 +48,14 @@ enum Frame {
         title: String,
         text: String,
     },
+}
+
+/// A menu entry: its text, and the colour crawl draws it in when it isn't the menu's own
+/// (`Menu::webtiles_write_item` leaves the colour out then).
+#[derive(Debug, Clone)]
+struct Item {
+    text: String,
+    colour: Option<Colour>,
 }
 
 impl Screens {
@@ -114,7 +122,12 @@ impl Screens {
                     tag => Screen::Other(tag.to_owned()),
                 },
                 title: non_empty(title),
-                lines: items.clone(),
+                lines: items.iter().map(|item| item.text.clone()).collect(),
+                colours: items
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(index, item)| Some((index, item.colour?)))
+                    .collect(),
             },
             Frame::Crt { drawn: false, .. } => return None,
             Frame::Crt { tag, .. } => ScreenRead {
@@ -124,6 +137,7 @@ impl Screens {
                 },
                 title: None,
                 lines: self.crt_lines(),
+                colours: BTreeMap::new(),
             },
             Frame::Layout {
                 kind,
@@ -150,6 +164,7 @@ impl Screens {
                     },
                     title: non_empty(title),
                     lines,
+                    colours: BTreeMap::new(),
                 }
             }
         })
@@ -254,15 +269,18 @@ fn title_text(msg: &Value) -> Option<String> {
         .map(|text| plain(text).trim_end().to_owned())
 }
 
-/// A menu message's entries, as plain text.
-fn entries(msg: &Value) -> Vec<String> {
+/// A menu message's entries, as plain text, each with its colour.
+fn entries(msg: &Value) -> Vec<Item> {
     msg.get("items")
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .map(|item| {
             let text = item.get("text").and_then(Value::as_str).unwrap_or_default();
-            plain(text).trim_end().to_owned()
+            Item {
+                text: plain(text).trim_end().to_owned(),
+                colour: int::<u8>(item, "colour").and_then(Colour::from_crawl),
+            }
         })
         .collect()
 }

@@ -58,7 +58,10 @@ export type Character = {
 	turn: number | null,
 };
 
-/**  The sixteen colours DCSS draws glyphs in, named as crawl names them, in crawl's order. */
+/**
+ *  The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
+ *  them, in crawl's order.
+ */
 export type Colour = "black" | "blue" | "green" | "cyan" | "red" | "magenta" | "brown" | "lightGrey" | "darkGrey" | "lightBlue" | "lightGreen" | "lightCyan" | "lightRed" | "lightMagenta" | "yellow" | "white";
 
 /**  How the app is connected to the browser extension. */

@@ -625,6 +625,7 @@ mod tests {
             screen: Screen::CharacterOverview,
             title: None,
             lines: vec!["rFire   + . .".to_owned()],
+            colours: BTreeMap::new(),
         };
         let mut remembered = AccumulatedState::default();
         remembered.read(&overview, before);
@@ -707,6 +708,7 @@ mod tests {
                 " a - Your snake-like lower body moves slowly.".to_owned(),
                 " b - You cover ground slowly. [3.5]".to_owned(),
             ],
+            colours: BTreeMap::new(),
         }
     }
 

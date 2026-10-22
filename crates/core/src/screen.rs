@@ -5,8 +5,11 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use crate::view_model::Colour;
+
 /// A screen the player has open, read as plain text: crawl's own words, laid out as crawl lays
-/// them out, so the core reads it the same whichever Game Source it came from.
+/// them out, so the core reads it the same whichever Game Source it came from, with the colour
+/// crawl gives a menu's entries.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScreenRead {
@@ -17,6 +20,11 @@ pub struct ScreenRead {
     /// Its text, line by line, without colours: the rows of a text screen, or one line per
     /// entry of a menu.
     pub lines: Vec<String>,
+    /// The colour of each entry of a menu crawl draws in a colour of its own, rather than the
+    /// menu's, by its index in `lines`: such as an ability crawl greys out as one that can't be
+    /// used now. Empty for a text screen.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub colours: BTreeMap<usize, Colour>,
 }
 
 /// Which screen the player has open.
@@ -542,6 +550,7 @@ mod tests {
             screen,
             title: None,
             lines: lines.iter().map(|&line| line.to_owned()).collect(),
+            colours: BTreeMap::new(),
         }
     }
 
