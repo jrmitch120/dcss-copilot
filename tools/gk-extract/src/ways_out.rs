@@ -390,60 +390,51 @@ impl Crawl {
         ability: &str,
         durations: &BTreeMap<String, String>,
     ) -> Result<Vec<String>, ExtractError> {
-        let mut read = Read::default();
+        let mut checked = Checked::default();
         if let Some(arm) = cpp::case_arm(source.function_body(checks.possible)?, ability) {
-            read.checks(arm, checks);
+            checked.checks(arm, checks);
         }
         if let Some(arm) = cpp::case_arm(source.function_body(checks.used)?, ability) {
-            read.calls(arm, checks);
+            checked.calls(arm, checks);
         }
         let mut followed = BTreeSet::new();
-        while let Some(helper) = read.helpers.pop() {
+        while let Some((helper, file)) = checked.helpers.pop() {
             if !followed.insert(helper) {
                 continue;
             }
-            let (_, file) = checks
-                .helpers
-                .iter()
-                .find(|(name, _)| *name == helper)
-                .ok_or_else(|| ExtractError::Missing {
-                    file: ABILITY_FILE.to_owned(),
-                    what: format!("the helper {helper}"),
-                })?;
             let source = self.parse(file)?;
             let bodies = source.function_bodies(helper)?;
             if bodies.is_empty() {
                 return Err(ExtractError::Missing {
-                    file: (*file).to_owned(),
+                    file: file.to_owned(),
                     what: format!("the function {helper}"),
                 });
             }
             for body in bodies {
-                read.checks(body, checks);
+                checked.checks(body, checks);
             }
         }
         let mut stopped_by = Vec::new();
-        for duration in read.durations {
+        for duration in checked.durations {
             let status = durations
                 .get(&duration)
                 .ok_or_else(|| ExtractError::Missing {
                     file: DURATION_FILE.to_owned(),
                     what: format!("the light or words of {duration}"),
                 })?;
-            stopped_by.push(status.clone());
+            push_new(&mut stopped_by, status);
         }
-        for test in read.tests {
-            let (_, shown) = checks
+        for test in checked.tests {
+            let shown = checks
                 .tests
                 .iter()
-                .find(|(name, _)| *name == test)
+                .find_map(|(name, shown)| (*name == test).then_some(shown))
                 .ok_or_else(|| ExtractError::Missing {
                     file: ABILITY_FILE.to_owned(),
                     what: format!("the test {test}"),
                 })?;
-            stopped_by.push(self.shown(shown)?);
+            push_new(&mut stopped_by, &self.shown(shown)?);
         }
-        stopped_by.dedup();
         Ok(stopped_by)
     }
 
@@ -514,16 +505,16 @@ impl Crawl {
     }
 }
 
-/// What the checks on one ability read: the durations and tests that stop it, in the order they
-/// are read, and the helpers still to follow.
+/// What the checks on one ability were found to read: the durations and tests that stop it, in
+/// the order they are read, and the helpers still to follow, each with its file.
 #[derive(Default)]
-struct Read {
+struct Checked {
     durations: Vec<String>,
     tests: Vec<String>,
-    helpers: Vec<&'static str>,
+    helpers: Vec<(&'static str, &'static str)>,
 }
 
-impl Read {
+impl Checked {
     /// Reads `tokens`, code that checks an ability: each duration and test it reads without
     /// negating it, and each helper it calls.
     fn checks(&mut self, tokens: &[Token], checks: &AbilityChecks) {
@@ -554,7 +545,7 @@ impl Read {
     fn calls(&mut self, tokens: &[Token], checks: &AbilityChecks) {
         for window in tokens.windows(2) {
             if let [Token::Ident(ident), Token::Punct('(')] = window
-                && let Some((helper, _)) = checks.helpers.iter().find(|(name, _)| name == ident)
+                && let Some(&helper) = checks.helpers.iter().find(|(name, _)| name == ident)
             {
                 self.helpers.push(helper);
             }

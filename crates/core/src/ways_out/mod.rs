@@ -382,10 +382,10 @@ impl WaysOut {
     }
 }
 
-/// Whether what `visible` shows explains crawl greying out `ability` in the ability menu, as
-/// `bundle` tells: a status that stops it, or too little magic for it. Only a Way Out's can be
-/// explained.
-pub(crate) fn explains_greying(
+/// Whether crawl greyed out `ability` in the ability menu for a reason the Advisor can't see,
+/// given that it did: it is a Way Out, as `bundle` tells, and nothing `visible` shows explains
+/// it, neither a status that stops it nor too little magic for it.
+pub(crate) fn greyed_out_unseen(
     visible: &VisibleState,
     bundle: &Bundle,
     ability: &KnownAbility,
@@ -396,7 +396,7 @@ pub(crate) fn explains_greying(
         bundle,
     };
     carried.escape_ability(&ability.name).is_some_and(|escape| {
-        !carried
+        carried
             .ability_stopped(escape, ability.magic_cost)
             .is_empty()
     })

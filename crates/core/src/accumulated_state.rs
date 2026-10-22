@@ -249,7 +249,7 @@ impl AccumulatedState {
         if let Some(mut abilities) = read.abilities(greyed_out) {
             if let Some(bundle) = knowledge {
                 for ability in &mut abilities {
-                    ability.greyed_out &= !ways_out::explains_greying(visible, bundle, ability);
+                    ability.greyed_out &= ways_out::greyed_out_unseen(visible, bundle, ability);
                 }
             }
             self.abilities = Remembered::read(abilities, read, visible);
