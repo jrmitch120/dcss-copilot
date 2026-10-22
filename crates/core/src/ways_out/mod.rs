@@ -26,7 +26,8 @@ const GROUND_NOT_MODELLED: [NotModelled; 2] = [
 ];
 
 /// What the staircase Ways Out leave out besides, whenever there are any.
-const STAIRS_NOT_MODELLED: [NotModelled; 1] = [NotModelled::HitsOnTheWay];
+const STAIRS_NOT_MODELLED: [NotModelled; 2] =
+    [NotModelled::HitsOnTheWay, NotModelled::MonstersOutOfView];
 
 /// The player's Ways Out at a moment, and the ground they stand on.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -75,6 +76,10 @@ pub enum Escape {
         /// The player's moves to it over the explored map, counting the move that opens each
         /// door: none when they stand on it.
         steps: u32,
+        /// Its square, or a square on the player's path to it, is out of view, so the Advisor
+        /// judges it by what the map remembers there: a door may have closed since, or a monster
+        /// may stand there now. Never so for one the player stands on.
+        over_remembered_squares: bool,
     },
     /// Items the player carries, all of one kind in one inventory slot.
     Item {
@@ -499,13 +504,42 @@ mod tests {
         )
     }
 
-    fn stairs_usable(ways_out: &WaysOut) -> bool {
-        let stairs = ways_out
+    /// `visible` with the map's squares at x `out_of_view` out of view, as the game shows
+    /// squares it remembers.
+    fn remembering(mut visible: VisibleState, out_of_view: &[i32]) -> VisibleState {
+        let map = visible.map.take().unwrap();
+        visible.map = Some(LevelMap::new(map.cells().map(|(position, cell)| {
+            let cell = MapCell {
+                in_view: !out_of_view.contains(&position.x),
+                ..cell.clone()
+            };
+            (position, cell)
+        })));
+        visible
+    }
+
+    /// The staircase among `ways_out`.
+    fn stairs(ways_out: &WaysOut) -> &WayOut {
+        ways_out
             .options
             .iter()
             .find(|way_out| matches!(way_out.option, Escape::Stairs { .. }))
-            .unwrap();
-        stairs.usable == Usable::Yes
+            .unwrap()
+    }
+
+    /// Whether the staircase among `ways_out` is over remembered squares.
+    fn over_remembered_squares(ways_out: &WaysOut) -> bool {
+        match stairs(ways_out).option {
+            Escape::Stairs {
+                over_remembered_squares,
+                ..
+            } => over_remembered_squares,
+            _ => unreachable!(),
+        }
+    }
+
+    fn stairs_usable(ways_out: &WaysOut) -> bool {
+        stairs(ways_out).usable == Usable::Yes
     }
 
     #[test]
@@ -570,6 +604,69 @@ mod tests {
                 turn: Some(1),
                 stale: true
             })
+        );
+    }
+
+    #[test]
+    fn a_staircase_over_squares_in_view_is_not_marked() {
+        let in_view = ways_out(&corridor(&[], 0), "Human", true);
+        assert!(!over_remembered_squares(&in_view));
+        assert_eq!(in_view.list().rows[0].detail.as_deref(), Some("6 steps"));
+    }
+
+    #[test]
+    fn a_staircase_whose_path_crosses_a_remembered_square_is_marked_and_judged_alike() {
+        let visible = corridor(&[], 0);
+        for species in ["Human", "Naga"] {
+            let in_view = ways_out(&visible, species, true);
+            let remembered = ways_out(&remembering(visible.clone(), &[7]), species, true);
+            assert!(over_remembered_squares(&remembered), "{species}");
+            assert_eq!(
+                stairs(&remembered).usable,
+                stairs(&in_view).usable,
+                "{species}"
+            );
+            assert_eq!(
+                remembered.list().rows[0].detail.as_deref(),
+                Some("~6 steps · partly out of view")
+            );
+        }
+    }
+
+    #[test]
+    fn a_staircase_on_a_remembered_square_is_marked() {
+        let remembered = ways_out(&remembering(corridor(&[], 0), &[10]), "Human", true);
+        assert!(over_remembered_squares(&remembered));
+    }
+
+    #[test]
+    fn a_staircase_the_player_stands_on_is_never_marked() {
+        let mut visible = remembering(corridor(&[], 0), &(0..=10).collect::<Vec<_>>());
+        visible.position = Some(Position { x: 10, y: 0 });
+        assert!(!over_remembered_squares(&ways_out(&visible, "Human", true)));
+    }
+
+    #[test]
+    fn monsters_out_of_view_are_named_only_while_a_staircase_is_listed() {
+        let with_stairs = ways_out(&corridor(&[], 0), "Human", true);
+        assert!(
+            with_stairs
+                .not_modelled
+                .contains(&NotModelled::MonstersOutOfView)
+        );
+        let mut visible = corridor(&[], 0);
+        let map = visible.map.take().unwrap();
+        let no_stairs = map.cells().filter(|(position, _)| position.x < 10);
+        visible.map = Some(LevelMap::new(
+            no_stairs.map(|(position, cell)| (position, cell.clone())),
+        ));
+        let without = ways_out(&visible, "Human", true);
+        assert!(without.ground.is_some());
+        assert!(without.options.is_empty());
+        assert!(
+            !without
+                .not_modelled
+                .contains(&NotModelled::MonstersOutOfView)
         );
     }
 }

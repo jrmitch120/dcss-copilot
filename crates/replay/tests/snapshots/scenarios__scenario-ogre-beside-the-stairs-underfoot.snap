@@ -85,7 +85,8 @@ expression: replay
                   "x": 0,
                   "y": 0
                 },
-                "steps": 0
+                "steps": 0,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -117,7 +118,8 @@ expression: replay
                   "x": -1,
                   "y": 0
                 },
-                "steps": 1
+                "steps": 1,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -149,7 +151,8 @@ expression: replay
                   "x": -1,
                   "y": -2
                 },
-                "steps": 2
+                "steps": 2,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -194,7 +197,8 @@ expression: replay
             "swimmingAndFlying",
             "unexploredSquares",
             "playerSpeed",
-            "hitsOnTheWay"
+            "hitsOnTheWay",
+            "monstersOutOfView"
           ]
         },
         "fight": {
@@ -338,7 +342,8 @@ expression: replay
                 "x": 0,
                 "y": 0
               },
-              "steps": 0
+              "steps": 0,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -370,7 +375,8 @@ expression: replay
                 "x": -1,
                 "y": 0
               },
-              "steps": 1
+              "steps": 1,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -402,7 +408,8 @@ expression: replay
                 "x": -1,
                 "y": -2
               },
-              "steps": 2
+              "steps": 2,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -447,7 +454,8 @@ expression: replay
           "swimmingAndFlying",
           "unexploredSquares",
           "playerSpeed",
-          "hitsOnTheWay"
+          "hitsOnTheWay",
+          "monstersOutOfView"
         ]
       },
       "fight": {

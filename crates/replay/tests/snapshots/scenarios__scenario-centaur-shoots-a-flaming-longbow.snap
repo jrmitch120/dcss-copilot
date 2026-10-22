@@ -88,7 +88,8 @@ expression: replay
                   "x": -1,
                   "y": 0
                 },
-                "steps": 4
+                "steps": 4,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -120,7 +121,8 @@ expression: replay
                   "x": -1,
                   "y": -2
                 },
-                "steps": 6
+                "steps": 6,
+                "overRememberedSquares": true
               },
               "usable": {
                 "state": "no",
@@ -168,7 +170,8 @@ expression: replay
             "swimmingAndFlying",
             "unexploredSquares",
             "playerSpeed",
-            "hitsOnTheWay"
+            "hitsOnTheWay",
+            "monstersOutOfView"
           ]
         },
         "fight": {
@@ -314,7 +317,8 @@ expression: replay
                   "x": -1,
                   "y": 0
                 },
-                "steps": 4
+                "steps": 4,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -346,7 +350,8 @@ expression: replay
                   "x": -1,
                   "y": -2
                 },
-                "steps": 6
+                "steps": 6,
+                "overRememberedSquares": true
               },
               "usable": {
                 "state": "no",
@@ -394,7 +399,8 @@ expression: replay
             "swimmingAndFlying",
             "unexploredSquares",
             "playerSpeed",
-            "hitsOnTheWay"
+            "hitsOnTheWay",
+            "monstersOutOfView"
           ]
         },
         "fight": {
@@ -542,7 +548,8 @@ expression: replay
                 "x": -1,
                 "y": 0
               },
-              "steps": 4
+              "steps": 4,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -574,7 +581,8 @@ expression: replay
                 "x": -1,
                 "y": -2
               },
-              "steps": 6
+              "steps": 6,
+              "overRememberedSquares": true
             },
             "usable": {
               "state": "no",
@@ -622,7 +630,8 @@ expression: replay
           "swimmingAndFlying",
           "unexploredSquares",
           "playerSpeed",
-          "hitsOnTheWay"
+          "hitsOnTheWay",
+          "monstersOutOfView"
         ]
       },
       "fight": {

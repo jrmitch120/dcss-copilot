@@ -11,7 +11,7 @@ use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usab
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
 use crate::fact_sheet::{Gap, attacks_player};
-use crate::visible_state::{Attitude, Position, VisibleMonster, VisibleState};
+use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, VisibleState};
 
 /// A square is corridor when monsters can stand on at most this many of the squares around it,
 /// so they come at the player one or two at a time. A starting rule from #35, to be tuned on the
@@ -21,6 +21,8 @@ const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
     level: Level,
+    /// The map the level is read from, which says which squares are in view.
+    map: &'a LevelMap,
     /// The explored squares of water.
     water: BTreeSet<Position>,
     player: Position,
@@ -87,6 +89,7 @@ pub(super) fn on_the_level<'a>(
     );
     Ok(OnTheLevel {
         level,
+        map,
         water,
         player,
         walks,
@@ -184,6 +187,7 @@ impl<'a> OnTheLevel<'a> {
                     direction,
                     position,
                     steps,
+                    over_remembered_squares: self.leaves_view(&path),
                 };
                 Some((steps, WayOut { option, usable }))
             })
@@ -213,6 +217,13 @@ impl<'a> OnTheLevel<'a> {
                 })
             })
             .collect()
+    }
+
+    /// Whether any square of the player's `path` to a staircase, the staircase's square last, is
+    /// out of view.
+    fn leaves_view(&self, path: &[Position]) -> bool {
+        path.iter()
+            .any(|&square| !self.map.cell(square).is_some_and(|cell| cell.in_view))
     }
 
     /// The hostiles in view that can move, each with its kind and its moves to every square it

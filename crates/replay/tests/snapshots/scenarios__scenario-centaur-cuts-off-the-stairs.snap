@@ -87,7 +87,8 @@ expression: replay
                   "x": -1,
                   "y": 0
                 },
-                "steps": 2
+                "steps": 2,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -119,7 +120,8 @@ expression: replay
                   "x": 0,
                   "y": 0
                 },
-                "steps": 3
+                "steps": 3,
+                "overRememberedSquares": false
               },
               "usable": {
                 "state": "no",
@@ -151,7 +153,8 @@ expression: replay
                   "x": -1,
                   "y": -2
                 },
-                "steps": 4
+                "steps": 4,
+                "overRememberedSquares": true
               },
               "usable": {
                 "state": "no",
@@ -183,7 +186,8 @@ expression: replay
                   "x": -2,
                   "y": 24
                 },
-                "steps": 35
+                "steps": 35,
+                "overRememberedSquares": true
               },
               "usable": {
                 "state": "no",
@@ -215,7 +219,8 @@ expression: replay
                   "x": 32,
                   "y": 7
                 },
-                "steps": 36
+                "steps": 36,
+                "overRememberedSquares": true
               },
               "usable": {
                 "state": "no",
@@ -269,7 +274,8 @@ expression: replay
             "swimmingAndFlying",
             "unexploredSquares",
             "playerSpeed",
-            "hitsOnTheWay"
+            "hitsOnTheWay",
+            "monstersOutOfView"
           ]
         },
         "fight": {
@@ -416,7 +422,8 @@ expression: replay
                 "x": -1,
                 "y": 0
               },
-              "steps": 2
+              "steps": 2,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -448,7 +455,8 @@ expression: replay
                 "x": 0,
                 "y": 0
               },
-              "steps": 3
+              "steps": 3,
+              "overRememberedSquares": false
             },
             "usable": {
               "state": "no",
@@ -480,7 +488,8 @@ expression: replay
                 "x": -1,
                 "y": -2
               },
-              "steps": 4
+              "steps": 4,
+              "overRememberedSquares": true
             },
             "usable": {
               "state": "no",
@@ -512,7 +521,8 @@ expression: replay
                 "x": -2,
                 "y": 24
               },
-              "steps": 35
+              "steps": 35,
+              "overRememberedSquares": true
             },
             "usable": {
               "state": "no",
@@ -544,7 +554,8 @@ expression: replay
                 "x": 32,
                 "y": 7
               },
-              "steps": 36
+              "steps": 36,
+              "overRememberedSquares": true
             },
             "usable": {
               "state": "no",
@@ -598,7 +609,8 @@ expression: replay
           "swimmingAndFlying",
           "unexploredSquares",
           "playerSpeed",
-          "hitsOnTheWay"
+          "hitsOnTheWay",
+          "monstersOutOfView"
         ]
       },
       "fight": {
