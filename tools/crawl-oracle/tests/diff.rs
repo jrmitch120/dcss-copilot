@@ -1,7 +1,7 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
 //! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
-//! block and reach cases with 33 turn cases and its torment cases; and 24 cases of the player
+//! block and reach cases with 126 turn cases and its torment cases; and 24 cases of the player
 //! attacking monsters in melee, with launchers and thrown missiles and with spells' beams, and of
 //! the hit points monsters are made with (all seed 34).
 
@@ -339,7 +339,7 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
 
 /// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
 /// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
-/// unarmed and, for a kind that hits, holding a spear, 117 monsters playing out the player's next
+/// unarmed and, for a kind that hits, holding a spear, 126 monsters playing out the player's next
 /// action 20,000 times each, taking turns at the rules they exercise (seed 34), and the hit
 /// points a lurking horror's torment takes from 51 players.
 const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
@@ -347,24 +347,24 @@ const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 #[test]
 fn the_engine_agrees_with_crawl_on_every_block_reach_turn_and_torment_case() {
     let report = diff(TURNS).unwrap();
-    assert_eq!(report.cases, 913);
+    assert_eq!(report.cases, 922);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
 #[test]
 fn torment_taking_one_hit_point_more_is_caught() {
-    // Case 880, a human in statue form with rNeg 1, whom torment takes 8 from on 40 HP: half
+    // Case 889, a human in statue form with rNeg 1, whom torment takes 8 from on 40 HP: half
     // of 40 * 45 / 100 - 1.
-    let dump = with_changed(TURNS, 880, |case| case["lost"]["40"] = 9.into());
-    assert_eq!(caught(&dump), [(880, Measure::Torment)]);
+    let dump = with_changed(TURNS, 889, |case| case["lost"]["40"] = 9.into());
+    assert_eq!(caught(&dump), [(889, Measure::Torment)]);
 }
 
 #[test]
 fn a_lurking_horror_attacking_again_after_blowing_itself_up_is_caught() {
-    // Case 807, a lurking horror beside the player at speed 12, which attacks, blowing itself
+    // Case 840, a lurking horror beside the player at speed 12, which attacks, blowing itself
     // up, when its roll lets it step into them: never twice.
-    let dump = with_changed(TURNS, 807, |case| case["melee"] = shifted(&case["melee"]));
-    assert_eq!(caught(&dump), [(807, Measure::MeleeActions)]);
+    let dump = with_changed(TURNS, 840, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(840, Measure::MeleeActions)]);
 }
 
 #[test]
@@ -415,96 +415,126 @@ fn an_off_hands_dagger_reaching_as_far_as_the_main_hands_spear_is_caught() {
 
 #[test]
 fn a_monster_attacking_once_more_than_crawl_lets_it_is_caught() {
-    // Case 774, an adder beside the player at speed 13, which bites once or twice.
-    let dump = with_changed(TURNS, 774, |case| case["melee"] = shifted(&case["melee"]));
-    assert_eq!(caught(&dump), [(774, Measure::MeleeActions)]);
+    // Case 803, a hellion beside the player at speed 12, which attacks once or twice.
+    let dump = with_changed(TURNS, 803, |case| case["melee"] = shifted(&case["melee"]));
+    assert_eq!(caught(&dump), [(803, Measure::MeleeActions)]);
 }
 
 #[test]
 fn a_monster_closing_a_square_more_than_crawl_lets_it_is_caught() {
-    // Case 761, an angel four squares away at speed 15, which closes a square, and half the
+    // Case 748, a juggernaut four squares away at speed 15, which closes a square, and half the
     // time two.
-    let dump = with_changed(TURNS, 761, |case| case["closed"] = shifted(&case["closed"]));
-    assert_eq!(caught(&dump), [(761, Measure::Closed)]);
+    let dump = with_changed(TURNS, 748, |case| case["closed"] = shifted(&case["closed"]));
+    assert_eq!(caught(&dump), [(748, Measure::Closed)]);
 }
 
 #[test]
 fn a_blinkbolt_landing_past_the_player_is_caught() {
-    // Case 748, a spark wasp four squares away, which its blinkbolt lands beside the player:
+    // Case 818, a spark wasp four squares away, which its blinkbolt lands beside the player:
     // landed two squares past them, as on open floor, it closes two.
-    let dump = with_changed(TURNS, 748, |case| {
+    let dump = with_changed(TURNS, 818, |case| {
         let closed = case["closed"].as_object_mut().unwrap();
         let landed = closed.remove("3").unwrap().as_u64().unwrap();
         let walked = closed["2"].as_u64().unwrap();
         closed.insert("2".to_owned(), (walked + landed).into());
     });
-    assert_eq!(caught(&dump), [(748, Measure::Closed)]);
+    assert_eq!(caught(&dump), [(818, Measure::Closed)]);
 }
 
 #[test]
 fn a_monster_the_threat_level_leaves_out_that_crawl_shows_fighting_is_caught() {
-    // Case 774, an adder, counted twenty squares away while crawl shows it fighting.
-    let dump = with_changed(TURNS, 774, |case| case["distance"] = 20.into());
-    assert!(caught(&dump).contains(&(774, Measure::CanAttack)));
+    // Case 803, a hellion, counted twenty squares away while crawl shows it fighting.
+    let dump = with_changed(TURNS, 803, |case| case["distance"] = 20.into());
+    assert!(caught(&dump).contains(&(803, Measure::CanAttack)));
 }
 
 #[test]
 fn a_watched_monster_walking_up_as_if_unwatched_is_caught() {
-    // Case 754, a wandering mushroom five squares away, which crawl keeps where it is while the
+    // Case 811, a wandering mushroom four squares away, which crawl keeps where it is while the
     // player watches it: walked a square, as any other monster would be.
-    let dump = with_changed(TURNS, 754, |case| {
+    let dump = with_changed(TURNS, 811, |case| {
         case["closed"] = serde_json::json!({ "1": 20_000 });
     });
-    assert_eq!(caught(&dump), [(754, Measure::Closed)]);
+    assert_eq!(caught(&dump), [(811, Measure::Closed)]);
 }
 
 #[test]
 fn a_monster_keeping_its_range_walked_in_as_any_other_is_caught() {
-    // Case 769, an orb spider three squares away casting from another kind's book, which holds
-    // there, stepping around the player: closing a square, as any other monster would.
-    let dump = with_changed(TURNS, 769, |case| case["closed"] = shifted(&case["closed"]));
-    assert_eq!(caught(&dump), [(769, Measure::Closed)]);
+    // Case 757, an orb spider four squares away casting from another kind's book, which closes
+    // to three and holds there, stepping around the player: closing a square more, as any other
+    // monster would.
+    let dump = with_changed(TURNS, 757, |case| case["closed"] = shifted(&case["closed"]));
+    assert_eq!(caught(&dump), [(757, Measure::Closed)]);
 }
 
 #[test]
 fn a_monster_keeping_its_range_biting_from_beside_the_player_is_caught() {
-    // Case 795, an orb spider beside the player with its own book, cut down to nothing, which
-    // holds there, stepping around the player rather than bite: the Threat Level counts it as
-    // unable to attack at all.
-    let dump = with_changed(TURNS, 795, |case| case["melee"] = shifted(&case["melee"]));
+    // Case 841, an orb spider three squares away with its own book, cut down to nothing, which
+    // closes in to beside the player and holds there, stepping around them rather than bite: the
+    // Threat Level counts it as unable to attack at all.
+    let dump = with_changed(TURNS, 841, |case| case["melee"] = shifted(&case["melee"]));
     assert_eq!(
         caught(&dump),
-        [(795, Measure::CanAttack), (795, Measure::MeleeActions)]
+        [(841, Measure::CanAttack), (841, Measure::MeleeActions)]
     );
 }
 
 #[test]
 fn a_borrowed_book_left_out_is_caught() {
-    // Case 769's orb spider with its own book, cut down to nothing, closes in to bite rather
+    // Case 757's orb spider with its own book, cut down to nothing, closes in to bite rather
     // than hold three squares away, and casts nothing.
-    let dump = with_changed(TURNS, 769, |case| case["book"] = case["monster"].clone());
+    let dump = with_changed(TURNS, 757, |case| case["book"] = case["monster"].clone());
     assert_eq!(
         caught(&dump),
-        [(769, Measure::Casts), (769, Measure::Closed)]
+        [(757, Measure::Casts), (757, Measure::Closed)]
     );
 }
 
 #[test]
 fn a_batty_monster_staying_to_bite_with_every_action_is_caught() {
-    // Case 822, an obsidian bat beside the player at speed 30, which bites, then flits for its
+    // Case 772, an obsidian bat beside the player at speed 30, which bites, then flits for its
     // two other actions, biting again only when a flit carries it into the player.
-    let dump = with_changed(TURNS, 822, |case| {
+    let dump = with_changed(TURNS, 772, |case| {
         case["melee"] = serde_json::json!({ "3": 20_000 });
     });
-    assert_eq!(caught(&dump), [(822, Measure::MeleeActions)]);
+    assert_eq!(caught(&dump), [(772, Measure::MeleeActions)]);
 }
 
 #[test]
 fn a_batty_monster_casting_as_it_flits_is_caught() {
-    // Case 770, a quicksilver elemental beside the player at speed 20, which casts nothing in
-    // the action it flits after biting or breathing.
-    let dump = with_changed(TURNS, 770, |case| case["casts"] = shifted(&case["casts"]));
-    assert_eq!(caught(&dump), [(770, Measure::Casts)]);
+    // Case 786, a shard shrike beside the player at speed 30, which casts nothing in the actions
+    // it flits after biting or casting.
+    let dump = with_changed(TURNS, 786, |case| case["casts"] = shifted(&case["casts"]));
+    assert_eq!(caught(&dump), [(786, Measure::Casts)]);
+}
+
+/// `case`'s casts with `moved` of its plays that cast once casting twice instead.
+fn casting_twice(case: &mut serde_json::Value, moved: u64) {
+    let casts = case["casts"].as_object_mut().unwrap();
+    let once = casts["1"].as_u64().unwrap();
+    let twice = casts.get("2").map_or(0, |twice| twice.as_u64().unwrap());
+    casts.insert("1".to_owned(), (once - moved).into());
+    casts.insert("2".to_owned(), (twice + moved).into());
+}
+
+#[test]
+fn a_monster_breathing_again_through_its_opaque_clouds_is_caught() {
+    // Case 824, a pearl dragon three squares away at speed 12, whose blessed fire hides the
+    // player from it till it has walked to two: it never breathes twice. Without its clouds it
+    // would breathe twice in about one play of 125, when its breath is caught by its second
+    // action; said to in one of 50.
+    let dump = with_changed(TURNS, 824, |case| casting_twice(case, 400));
+    assert_eq!(caught(&dump), [(824, Measure::Casts)]);
+}
+
+#[test]
+fn a_cloud_spread_again_to_a_player_already_in_it_is_caught() {
+    // Case 796, Gloorx Vloq six squares away at speed 20, past the five its Miasma Breath's beam
+    // reaches, whose cloud spreads to the player only while their square holds none: once it
+    // does, it casts again only after closing a square. Were its cloud to spread to them again,
+    // it would cast twice in about one play of 70 more; said to in one of 20 more.
+    let dump = with_changed(TURNS, 796, |case| casting_twice(case, 1_000));
+    assert_eq!(caught(&dump), [(796, Measure::Casts)]);
 }
 
 const PLAYER: &str = include_str!("fixtures/player-0.34.1.jsonl");

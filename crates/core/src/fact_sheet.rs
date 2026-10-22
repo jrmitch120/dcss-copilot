@@ -288,7 +288,8 @@ pub enum NotModelled {
     Statuses,
     /// Monsters walk straight at the player, through walls and each other, and a batty one flits
     /// as on open floor, which errs low for one hemmed in beside the player, as in a corridor,
-    /// where it more often flits back into them.
+    /// where it more often flits back into them. A monster's own opaque clouds hide the player
+    /// from it only along a row, column or diagonal through them.
     Paths,
     /// Monsters are assumed awake and hunting the player, and a batty one not already flitting
     /// away.

@@ -39,11 +39,11 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Paths
 
-- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall. A monster that keeps its range, such as the orb spider, steps to a square around it that it can stand on and see the player from (`_set_firing_pos`); hemmed in, with none, it may step toward a farther one, and into the player to fight them. A batty monster, such as the shard shrike, flitting after it attacks or casts, steps toward a square nearby it picks at random, only one it can stand on (`set_random_target`), and round what stands in its way: hemmed in beside the player, it more often steps into them, attacking them again.
-- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing. A monster that keeps its range always has a square to step to, so it never steps into the player to fight them. A batty monster flits as on open floor, where every square nearby is one it may pick.
+- **What crawl does:** a monster walks round walls and other monsters (`_monster_move`, `mon_can_move_to_pos`). A blinkbolt carries its caster to the farthest square of its path it can stand on (`bolt::affect_endpoint`): past the player on open floor, as the bolt pierces, or short of them behind a wall. A monster that keeps its range, such as the orb spider, steps to a square around it that it can stand on and see the player from (`_set_firing_pos`); hemmed in, with none, it may step toward a farther one, and into the player to fight them. A batty monster, such as the shard shrike, flitting after it attacks or casts, steps toward a square nearby it picks at random, only one it can stand on (`set_random_target`), and round what stands in its way: hemmed in beside the player, it more often steps into them, attacking them again. Two squares of an opaque cloud between a monster and the player hide them from it (`opacity_default`, `_losight_quadrant`), along whichever line its sight takes, and a cloud spell's beam leaves its cloud along the path the beam takes (`bolt::affect_place_clouds`) and round where it ends, spreading at random (`big_cloud`): a pearl dragon that breathes blessed fire at the player seldom sees them again till it is two squares away, even from off a straight line to them, and the clouds stay a few of the player's actions.
+- **What the engine assumes:** monsters walk straight at the player, through walls and each other, and a blinkbolt lands its caster beside the player, the most dangerous landing. A monster that keeps its range always has a square to step to, so it never steps into the player to fight them. A batty monster flits as on open floor, where every square nearby is one it may pick. A monster's own opaque clouds hide the player from it only along a row, a column or a diagonal through the player, where the beam's path and its sight run through the same squares: one that casts from anywhere else leaves none the engine follows, one that stands anywhere else sees the player, the cloud round where a beam ends isn't counted, and its clouds are gone at the player's next action.
 - **Surfaced as:** `paths`, on every rated Threat Level.
-- **Harness:** the turn harness lays open floor around the player for each trial, and walls the square behind them for a caster of a blinkbolt, so crawl lands it beside them too.
-- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive. It errs low only for a monster hemmed in beside the player that keeps its range, which seldom happens, or that is batty, which in a corridor often flits back into the player. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
+- **Harness:** the turn harness lays open floor around the player for each trial, and walls the square behind them for a caster of a blinkbolt, so crawl lands it beside them too. It places each monster in a row with the player, where it walks straight at them, so its opaque clouds lie on that row.
+- **Impact and cost:** errs high: a monster round a corner or behind another is counted sooner than it can arrive, and one that cast an opaque cloud from off a straight line to the player casts again sooner than crawl lets it. It errs low only for a monster hemmed in beside the player that keeps its range, which seldom happens, or that is batty, which in a corridor often flits back into the player. The Ways Out already search the map for paths; the Threat Level would need the same search, per monster, inside the simulation.
 
 ### Awareness
 
@@ -265,15 +265,6 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **Harness:** the turn harness leaves such a kind out of the case it is found in, as it moves the player, and says so on standard error.
 - **Impact and cost:** small for the fight itself, as the monster lands beside the player; large for the Ways Out, as the player may land away from a staircase they meant to take.
 
-### Breathing again through its own clouds
-
-- **What crawl does:** a monster that breathes a cloud, such as a pearl dragon or a death drake, seldom breathes again through the clouds its last breath left, even once its breath is caught. Where in crawl this comes from isn't known yet.
-- **What the engine assumes:** a fast one may breathe twice before the player's next action.
-- **Surfaced as:** harness only.
-- **Harness:** the turn harness leaves out monsters faster than the player that cast or breathe a cloud.
-- **Impact and cost:** errs high, and only for fast cloud breathers. Finding the rule decides whether to port it or add a variant.
-- **Issue:** [#104]
-
 ### Shapeshifters
 
 - **What crawl does:** a shapeshifter takes another kind's shape as it is made, and changes shape as it goes (`monster::is_shapeshifter`, `mon-poly.cc`).
@@ -457,7 +448,6 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#104]: https://github.com/jrmitch120/dcss-copilot/issues/104
 [#106]: https://github.com/jrmitch120/dcss-copilot/issues/106
 [#108]: https://github.com/jrmitch120/dcss-copilot/issues/108
 [#120]: https://github.com/jrmitch120/dcss-copilot/issues/120
