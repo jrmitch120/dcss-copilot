@@ -65,7 +65,8 @@ expression: replayer.advisor().fact_sheet()
             "x": 2,
             "y": 0
           },
-          "steps": 2
+          "steps": 2,
+          "overRememberedSquares": false
         },
         "usable": {
           "state": "no",
@@ -113,7 +114,8 @@ expression: replayer.advisor().fact_sheet()
       "swimmingAndFlying",
       "unexploredSquares",
       "playerSpeed",
-      "hitsOnTheWay"
+      "hitsOnTheWay",
+      "monstersOutOfView"
     ]
   },
   "fight": {

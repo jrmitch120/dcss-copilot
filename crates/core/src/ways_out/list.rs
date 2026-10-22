@@ -43,7 +43,15 @@ impl WaysOut {
 /// A Way Out's row.
 fn row(way_out: &WayOut) -> WayOutRow {
     let (name, detail) = match &way_out.option {
-        Escape::Stairs { name, steps, .. } => (capitalised(name), Some(steps_away(*steps))),
+        Escape::Stairs {
+            name,
+            steps,
+            over_remembered_squares,
+            ..
+        } => (
+            capitalised(name),
+            Some(stairs_away(*steps, *over_remembered_squares)),
+        ),
         Escape::Item {
             kind_name,
             quantity,
@@ -92,7 +100,17 @@ fn row(way_out: &WayOut) -> WayOutRow {
     }
 }
 
-/// How far a staircase is, such as `7 steps`.
+/// How far a staircase is, `~` before it and saying so when the way there leaves view.
+fn stairs_away(steps: u32, over_remembered_squares: bool) -> String {
+    let away = steps_away(steps);
+    if over_remembered_squares {
+        format!("~{away} · partly out of view")
+    } else {
+        away
+    }
+}
+
+/// How far a square is, such as `7 steps`.
 fn steps_away(steps: u32) -> String {
     match steps {
         0 => "underfoot".to_owned(),

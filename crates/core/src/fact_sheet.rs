@@ -355,6 +355,9 @@ pub enum NotModelled {
     /// A staircase is cut off only by monsters that can stand beside it as the player takes it:
     /// the blows, shots and spells they could land on the way there aren't counted.
     HitsOnTheWay,
+    /// Only monsters in view are reckoned with on the way to a staircase: one out of view may
+    /// cut it off or stand in the way.
+    MonstersOutOfView,
     /// Abilities and spells are judged only by their cost in magic and the statuses that stop
     /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
     /// free square to blink to, isn't checked.
@@ -1424,6 +1427,7 @@ mod tests {
             | NotModelled::SwimmingAndFlying
             | NotModelled::UnexploredSquares
             | NotModelled::HitsOnTheWay
+            | NotModelled::MonstersOutOfView
             | NotModelled::OwnConditions
             | NotModelled::Summons
             | NotModelled::Allies
@@ -1566,6 +1570,7 @@ mod tests {
             SwimmingAndFlying,
             UnexploredSquares,
             HitsOnTheWay,
+            MonstersOutOfView,
             OwnConditions,
             MovesWithParent,
             OwnActions,

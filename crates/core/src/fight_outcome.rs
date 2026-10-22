@@ -785,6 +785,7 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         | NotModelled::SwimmingAndFlying
         | NotModelled::UnexploredSquares
         | NotModelled::HitsOnTheWay
+        | NotModelled::MonstersOutOfView
         | NotModelled::OwnConditions
         | NotModelled::MovesWithParent
         | NotModelled::OwnActions

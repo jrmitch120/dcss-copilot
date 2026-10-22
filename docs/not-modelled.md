@@ -431,6 +431,14 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **Harness:** none.
 - **Impact and cost:** errs low: a staircase called reachable may cost a lot of hit points to reach. Needs the Threat Level's simulation played out along the path.
 
+### Monsters out of view
+
+- **What crawl does:** it forgets a moving monster once it leaves view (`show_update_at`, `clear_map`), but keeps detected monsters and stationary ones on its map.
+- **What the engine assumes:** only monsters in view stand in the way of a staircase or race the player to it; the adapter drops detected ones too.
+- **Surfaced as:** `monstersOutOfView`, on the Ways Out whenever there are staircases.
+- **Harness:** none.
+- **Impact and cost:** errs low: a hostile just out of view may cut off a staircase called clear, or stand in the way to it. Reading detected monsters from the map would close part of it.
+
 ### Each ability's and spell's own conditions
 
 - **What crawl does:** each ability and spell has conditions of its own, such as piety, a cooldown, an exhausted berserker or a free square to blink to (`check_ability_possible`, `can_cast_spells`).
