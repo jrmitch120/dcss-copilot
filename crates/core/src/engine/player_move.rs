@@ -20,7 +20,6 @@ use copilot_gk::{
 use super::melee::BASELINE_DELAY;
 use super::rng::Rng;
 use crate::accumulated_state::MutationsRead;
-use crate::screen::ShownMutation;
 use crate::visible_state::Religion;
 
 copilot_gk::crawl_identifiers! {
@@ -330,9 +329,9 @@ pub(crate) fn read<'a>(bundle: &'a Bundle, seen: &Seen<'_>) -> Option<Read<'a>> 
                     form = Some(lit);
                 } else {
                     match classify(signs, light) {
-                        Some(Some(status)) => statuses.push(status),
-                        Some(None) => {}
-                        None => unread.push(Unread::Light(light.to_owned())),
+                        Lit::Status(status) => statuses.push(status),
+                        Lit::Nothing => {}
+                        Lit::Unclassified => unread.push(Unread::Light(light.to_owned())),
                     }
                 }
             }
@@ -431,11 +430,21 @@ pub(crate) fn read<'a>(bundle: &'a Bundle, seen: &Seen<'_>) -> Option<Read<'a>> 
     })
 }
 
+/// What a status light tells of the player's speed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Lit {
+    /// It lights a status that changes their speed.
+    Status(SpeedStatus),
+    /// It lights a status that doesn't.
+    Nothing,
+    /// The Game Knowledge doesn't classify it.
+    Unclassified,
+}
+
 /// What `light` tells of the player's speed, as `signs` classify the lights the status pane may
-/// show: `Some(None)` for a light that tells nothing, `None` for one they don't classify. A light
-/// crawl builds as it draws it, such as `Torch (3)`, is classified by the longest light of
-/// `signs` it starts with, that ends where a word does.
-pub(crate) fn classify(signs: &SpeedSigns, light: &str) -> Option<Option<SpeedStatus>> {
+/// show. A light crawl builds as it draws it, such as `Torch (3)`, is classified by the longest
+/// light of `signs` it starts with, that ends where a word does.
+pub(crate) fn classify(signs: &SpeedSigns, light: &str) -> Lit {
     signs
         .lights
         .iter()
@@ -449,16 +458,15 @@ pub(crate) fn classify(signs: &SpeedSigns, light: &str) -> Option<Option<SpeedSt
                 })
         })
         .max_by_key(|known| known.light.len())
-        .map(|known| known.status)
+        .map_or(Lit::Unclassified, |known| {
+            known.status.map_or(Lit::Nothing, Lit::Status)
+        })
 }
 
 /// The mutation of `signs` a row of the mutations screen shows, and its level, if it is one.
-fn shown_level<'a>(
-    signs: &'a SpeedSigns,
-    shown: &ShownMutation,
-) -> Option<(&'a SpeedMutation, u32)> {
+fn shown_level<'a>(signs: &'a SpeedSigns, shown: &str) -> Option<(&'a SpeedMutation, u32)> {
     signs.mutations.iter().find_map(|mutation| {
-        let at = mutation.shown.iter().position(|text| *text == shown.text)?;
+        let at = mutation.shown.iter().position(|text| text == shown)?;
         Some((mutation, u32::try_from(at + 1).ok()?))
     })
 }

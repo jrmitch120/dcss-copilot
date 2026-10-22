@@ -27,8 +27,8 @@ pub use fact_sheet::{
 pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use screen::{
-    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutation,
-    ShownMutations, Skills, SpellPower, SpellReach,
+    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutations, Skills,
+    SpellPower, SpellReach,
 };
 pub use view_model::{
     Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,

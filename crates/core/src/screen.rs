@@ -380,24 +380,13 @@ fn magic_cost(cost: &str) -> u32 {
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShownMutations {
-    /// Each mutation it lists, innate and acquired alike, as it lists them: not those it lists
-    /// as gained at a future experience level.
-    pub mutations: Vec<ShownMutation>,
+    /// Crawl's description of each mutation it lists at the level the character has, such as
+    /// `You cover ground slowly.`, innate and acquired alike: not those it lists as gained at a
+    /// future experience level. One that is transient, shown in brackets, or that their form
+    /// suppresses, in parentheses (`mutation_desc`), is described without them.
+    pub mutations: Vec<String>,
     /// Each bane, by its description, such as `You cover ground slowly.`
     pub banes: Vec<String>,
-}
-
-/// A mutation as the mutations screen describes it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ShownMutation {
-    /// Crawl's description of it at the level the character has, such as `You cover ground
-    /// slowly.`
-    pub text: String,
-    /// It doesn't work in the form the character is in, shown in parentheses (`mutation_desc`).
-    pub suppressed: bool,
-    /// It will wear off, shown in brackets.
-    pub transient: bool,
 }
 
 impl ScreenRead {
@@ -421,21 +410,10 @@ impl ScreenRead {
                 shown.banes.push(bane.to_owned());
                 continue;
             }
-            let (transient, entry) = match entry.strip_prefix('[').and_then(|e| e.strip_suffix(']'))
-            {
-                Some(inner) => (true, inner),
-                None => (false, entry),
-            };
-            let (suppressed, entry) =
-                match entry.strip_prefix('(').and_then(|e| e.strip_suffix(')')) {
-                    Some(inner) => (true, inner),
-                    None => (false, entry),
-                };
-            shown.mutations.push(ShownMutation {
-                text: entry.to_owned(),
-                suppressed,
-                transient,
-            });
+            let transient = entry.strip_prefix('[').and_then(|e| e.strip_suffix(']'));
+            let entry = transient.unwrap_or(entry);
+            let suppressed = entry.strip_prefix('(').and_then(|e| e.strip_suffix(')'));
+            shown.mutations.push(suppressed.unwrap_or(entry).to_owned());
         }
         Some(shown)
     }
@@ -622,25 +600,14 @@ mod tests {
             ],
         );
         let shown = screen.mutations().unwrap();
-        let mutations: Vec<_> = shown
-            .mutations
-            .iter()
-            .map(|mutation| {
-                (
-                    mutation.text.as_str(),
-                    mutation.suppressed,
-                    mutation.transient,
-                )
-            })
-            .collect();
         assert_eq!(
-            mutations,
+            shown.mutations,
             [
-                ("Your serpentine skin is tough. (AC +0)", false, false),
-                ("You have supernaturally acute vision. (SInv)", false, false),
-                ("Your snake-like lower body moves slowly.", false, false),
-                ("You can hop short distances, but move slowly.", true, false),
-                ("You cover ground very slowly.", false, true),
+                "Your serpentine skin is tough. (AC +0)",
+                "You have supernaturally acute vision. (SInv)",
+                "Your snake-like lower body moves slowly.",
+                "You can hop short distances, but move slowly.",
+                "You cover ground very slowly.",
             ]
         );
         assert_eq!(shown.banes, ["You cover ground slowly."]);
