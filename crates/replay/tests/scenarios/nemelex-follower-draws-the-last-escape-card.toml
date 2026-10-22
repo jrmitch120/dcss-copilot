@@ -1,0 +1,21 @@
+description = "A Minotaur Monk enters wizard mode on turn 0 of a seeded game, joins Nemelex Xobeh, who deals them one escape card, creates a jackal beside them and draws the card, the Tomb; then opens the ability menu, which greys Draw Escape out for its empty deck with no status to show it"
+recording = "nemelex-follower-draws-the-last-escape-card.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MiMo.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command: join a god
+  # by name, Nemelex Xobeh.
+  "&", "wiz\r", "_", "nemelex\r", "\u001b",
+  # Create a monster by name beside them, for the panel to list the Ways Out: a jackal.
+  "&", "m", "jackal\r", "\u001b",
+  # Draw the one escape card: the ability menu's Draw Escape.
+  "a", "f", "\u001b", "\u001b",
+  # Open the ability menu, closing it.
+  "a", "\u001b",
+]

@@ -1,0 +1,401 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz709412454",
+    "character": "wiz709412454",
+    "species": "Minotaur",
+    "firstSeenMs": 1792709413687,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 6,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "calm",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 0
+          },
+          "worstHit": 0,
+          "hostilesInView": 0,
+          "bestPlanWin": null,
+          "acting": [],
+          "gear": [],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": []
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "ability",
+                "name": "Berserk",
+                "effect": "strengthens",
+                "failurePercent": 10,
+                "read": {
+                  "turn": 0,
+                  "stale": false
+                }
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "status",
+                    "status": "on berserk cooldown"
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "pace": {
+            "moveTime": 15,
+            "waterMoveTime": 24,
+            "actionTime": 15,
+            "because": [
+              {
+                "reason": "status",
+                "status": "slowed"
+              }
+            ],
+            "mutationsRead": null
+          },
+          "gaps": [],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay",
+            "monstersOutOfView"
+          ]
+        },
+        "fight": {
+          "state": "noFight"
+        }
+      },
+      "game": {
+        "character": {
+          "name": "wiz709412454",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 6
+        },
+        "now": {
+          "state": "rated",
+          "level": "calm",
+          "line": "No hostiles in view.",
+          "detail": null
+        },
+        "focus": {
+          "card": "inView",
+          "monsters": []
+        },
+        "waysOut": null,
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "end": {
+    "turn": 11,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 3,
+        "hostilesInView": 1,
+        "bestPlanWin": null,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -2
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -2
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 11,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -2
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "inTheWay",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -2
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "ability",
+              "name": "Berserk",
+              "effect": "strengthens",
+              "failurePercent": 10,
+              "read": {
+                "turn": 11,
+                "stale": false
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "status",
+                  "status": "on berserk cooldown"
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 15,
+          "waterMoveTime": 24,
+          "actionTime": 15,
+          "because": [
+            {
+              "reason": "status",
+              "status": "slowed"
+            }
+          ],
+          "mutationsRead": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz709412454",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 11
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Jackal can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Jackal is faster"
+          },
+          {
+            "usable": false,
+            "name": "Berserk",
+            "detail": "ability · 10% fail",
+            "whyNot": "you're on berserk cooldown"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}
