@@ -1,6 +1,6 @@
 // Trimmed from crawl 0.34.1 for the extractor test: the status lights that tell the player's
-// Lighting or speed, the statuses that stop them reading, drinking or casting, and lights built
-// as they are drawn.
+// Lighting or speed, the statuses that stop them reading, drinking, casting or using an
+// ability, and lights built as they are drawn.
 
     case STATUS_NO_POTIONS:
         if (you.duration[DUR_NO_POTIONS] || player_in_branch(BRANCH_COCYTUS)
@@ -12,6 +12,18 @@
             inf.short_text   = "unable to drink";
             inf.long_text    = "You cannot drink potions.";
         }
+
+// (trimmed for the extractor test)
+
+    case STATUS_BEHELD:
+        if (you.beheld())
+        {
+            inf.light_colour = RED;
+            inf.light_text   = "Mesm";
+            inf.short_text   = "mesmerised";
+            inf.long_text    = "You are mesmerised.";
+        }
+        break;
 
 // (trimmed for the extractor test)
 

@@ -29,7 +29,7 @@ pub struct Source {
 }
 
 /// An enumerator's name, with the tokens of its initializer, if it has one.
-type Enumerator<'a> = (&'a str, Option<&'a [Token]>);
+pub type Enumerator<'a> = (&'a str, Option<&'a [Token]>);
 
 impl Source {
     /// Preprocesses `text` for a build with this `TAG_MAJOR_VERSION`, expands the file's own
@@ -77,7 +77,7 @@ impl Source {
     }
 
     /// The enumerators of `enum <name>`, each with the tokens of its initializer, if it has one.
-    fn enumerators(&self, name: &str) -> Result<Vec<Enumerator<'_>>, ExtractError> {
+    pub fn enumerators(&self, name: &str) -> Result<Vec<Enumerator<'_>>, ExtractError> {
         let start = self
             .find(&[Token::Ident("enum".into()), Token::Ident(name.into())])
             .ok_or_else(|| self.missing(&format!("enum {name}")))?;
@@ -242,15 +242,27 @@ impl Source {
         Ok(cases)
     }
 
-    /// The tokens inside the braces of the definition of the function `<name>(...)`.
+    /// The tokens inside the braces of the definition of the function `<name>(...)`: the first,
+    /// when it is overloaded.
     pub fn function_body(&self, name: &str) -> Result<&[Token], ExtractError> {
-        let start = (0..self.tokens.len())
-            .find(|&i| self.is_definition_of(i, name))
-            .ok_or_else(|| self.missing(&format!("the function {name}")))?;
-        let open = (start..self.tokens.len())
-            .find(|&i| self.tokens[i] == Token::Punct('{'))
-            .ok_or_else(|| self.missing(&format!("the body of {name}")))?;
-        Ok(&self.tokens[open + 1..self.matching_brace(open)?])
+        self.function_bodies(name)?
+            .into_iter()
+            .next()
+            .ok_or_else(|| self.missing(&format!("the function {name}")))
+    }
+
+    /// The tokens inside the braces of each definition of the function `<name>(...)`, every
+    /// overload of it, in file order.
+    pub fn function_bodies(&self, name: &str) -> Result<Vec<&[Token]>, ExtractError> {
+        (0..self.tokens.len())
+            .filter(|&i| self.is_definition_of(i, name))
+            .map(|start| {
+                let open = (start..self.tokens.len())
+                    .find(|&i| self.tokens[i] == Token::Punct('{'))
+                    .ok_or_else(|| self.missing(&format!("the body of {name}")))?;
+                Ok(&self.tokens[open + 1..self.matching_brace(open)?])
+            })
+            .collect()
     }
 
     /// `name ( ... ) {` or, for a member function, `name ( ... ) const {` starts at `i`, with no
@@ -321,6 +333,93 @@ impl Source {
             file: self.file.clone(),
             what: what.to_owned(),
         }
+    }
+}
+
+/// The statements of the arm `case <label>:` of the first `switch` in `body` that has one, and
+/// of each arm after it that it falls through to; `None` when no `switch` has it. An arm falls
+/// through unless its last statement returns or breaks, or is a block whose last one does.
+pub fn case_arm<'a>(body: &'a [Token], label: &str) -> Option<&'a [Token]> {
+    let start = body.windows(3).position(|window| {
+        matches!(window, [Token::Ident(case), Token::Ident(ident), Token::Punct(':')]
+            if case == "case" && ident == label)
+    })? + 3;
+    let mut depth = 0usize;
+    let mut arm_start = start;
+    let mut i = start;
+    while let Some(token) = body.get(i) {
+        let next_label = match (token, body.get(i + 1), body.get(i + 2)) {
+            (Token::Ident(case), Some(Token::Ident(_)), Some(Token::Punct(':')))
+                if case == "case" && body.get(i + 3) != Some(&Token::Punct(':')) =>
+            {
+                Some(3)
+            }
+            (Token::Ident(default), Some(Token::Punct(':')), _) if default == "default" => Some(2),
+            _ => None,
+        };
+        match (token, next_label) {
+            (_, Some(label_length)) if depth == 0 => {
+                if exits(&body[arm_start..i]) {
+                    return Some(&body[start..i]);
+                }
+                i += label_length;
+                arm_start = i;
+                continue;
+            }
+            (Token::Punct('{'), _) => depth += 1,
+            (Token::Punct('}'), _) if depth == 0 => return Some(&body[start..i]),
+            (Token::Punct('}'), _) => depth -= 1,
+            _ => {}
+        }
+        i += 1;
+    }
+    Some(&body[start..])
+}
+
+/// Whether the statements of an arm of a `switch` leave it: the last returns or breaks, after
+/// an `else` or not, or is a bare block whose last statement does.
+fn exits(statements: &[Token]) -> bool {
+    match statements.last() {
+        Some(Token::Punct(';')) => {
+            let rest = &statements[..statements.len() - 1];
+            // The last statement starts after the `;` or `}` before it, outside any brackets.
+            let mut depth = 0usize;
+            let mut from = 0;
+            for (i, token) in rest.iter().enumerate().rev() {
+                match token {
+                    Token::Punct(')' | ']') => depth += 1,
+                    Token::Punct('(' | '[') => depth = depth.saturating_sub(1),
+                    Token::Punct(';' | '}') if depth == 0 => {
+                        from = i + 1;
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+            let mut words = rest[from..]
+                .iter()
+                .skip_while(|token| matches!(token, Token::Ident(word) if word == "else"));
+            matches!(words.next(), Some(Token::Ident(word)) if word == "return" || word == "break")
+        }
+        Some(Token::Punct('}')) => {
+            let mut depth = 0usize;
+            for (i, token) in statements.iter().enumerate().rev() {
+                match token {
+                    Token::Punct('}') => depth += 1,
+                    Token::Punct('{') => {
+                        depth -= 1;
+                        if depth == 0 {
+                            let bare = i == 0
+                                || matches!(statements[i - 1], Token::Punct(';' | '}' | '{'));
+                            return bare && exits(&statements[i + 1..statements.len() - 1]);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            false
+        }
+        _ => false,
     }
 }
 
