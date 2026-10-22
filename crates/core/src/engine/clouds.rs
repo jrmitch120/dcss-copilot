@@ -16,16 +16,17 @@
 //! from three squares or more walks on until it is two squares away, with one square of its fire
 //! between them, before it breathes again.
 //!
-//! A cloud spell's tracer counts the player only if its cloud reaches them (`bolt::affect_endpoint`,
-//! `beam.cc:2583`), and a cloud spreads only over squares no cloud holds yet (`_cloudable` in
-//! `targeter_cloud::set_aim`, `target.cc:1103`). A beam that reaches the player ends on their
-//! square, which is always counted; one that stops short spreads to them only while their square
-//! holds no cloud, and once it does the tracer finds no foe, so the monster doesn't cast it
-//! (`targeting_tracer::good_to_fire`, `beam.cc:7684`). The cloud round where such a beam ends,
-//! beside the player, always covers their square: it spreads to the nearest squares first and
-//! is ten squares or more. A new cloud spreads over steam or a harmless clear one
-//! (`cloud_is_stronger`, `cloud.cc:748`), but every cloud a ported spell leaves is harmful. A death drake that breathes miasma from a
-//! square past its beam's range doesn't breathe from there again: it walks a square nearer first.
+//! A cloud spell's tracer counts the player only if its cloud reaches them
+//! (`bolt::affect_endpoint`, `beam.cc:2583`), and a cloud spreads only over squares no cloud holds
+//! yet (`_cloudable` in `targeter_cloud::set_aim`, `target.cc:1103`). A beam that reaches the
+//! player ends on their square, which is always counted; one that stops short spreads to them only
+//! while their square holds no cloud, and once it does the tracer finds no foe, so the monster
+//! doesn't cast it (`targeting_tracer::good_to_fire`, `beam.cc:7684`). The cloud round where such
+//! a beam ends, beside the player, always covers their square: it spreads to the nearest squares
+//! first and is ten squares or more. A new cloud spreads over steam or a harmless clear one
+//! (`cloud_is_stronger`, `cloud.cc:748`), but every cloud a ported spell leaves is harmful. A
+//! death drake that breathes miasma from a square past its beam's range doesn't breathe from there
+//! again: it walks a square nearer first.
 //!
 //! The engine has no map (`NotModelled::Paths`), so it follows a beam's path only along a row, a
 //! column or a diagonal through the player, where the path and every line of sight run through
