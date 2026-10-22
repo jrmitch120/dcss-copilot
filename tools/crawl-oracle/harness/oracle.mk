@@ -46,3 +46,9 @@ crawl-oracle-player.o: $(ORACLE_DIR)player.cc $(ORACLE_DIR)common.h | $(GENERATE
 
 crawl-oracle-player: crawl-oracle-player.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
 	$(CXX) $(LDFLAGS) crawl-oracle-player.o $(OBJECTS) $(EXTRA_OBJECTS) -o $@ $(LIBS)
+
+crawl-oracle-speed.o: $(ORACLE_DIR)speed.cc $(ORACLE_DIR)common.h | $(GENERATED_HEADERS) $(TILEDEFHDRS)
+	$(CXX) $(STDFLAG) $(ALL_CFLAGS) -fno-access-control -c $< -o $@
+
+crawl-oracle-speed: crawl-oracle-speed.o $(OBJECTS) $(EXTRA_OBJECTS) $(CONTRIB_LIBS)
+	$(CXX) $(LDFLAGS) crawl-oracle-speed.o $(OBJECTS) $(EXTRA_OBJECTS) -o $@ $(LIBS)

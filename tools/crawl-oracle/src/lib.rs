@@ -50,7 +50,7 @@ use std::fmt;
 
 use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
-    MeleeCase, MeleeTally, MissileCase, PlayerBeamCase, PlayerMeleeCase, PlayerResists,
+    MeleeCase, MeleeTally, MissileCase, MoverCase, PlayerBeamCase, PlayerMeleeCase, PlayerResists,
     PlayerShotCase, PlayerTally, SpellCase, SpellChoiceCase, SpellTally, StrikerCase, TormentCase,
     TurnCase, WandCase, WeaponCase, ZapCase,
 };
@@ -164,6 +164,12 @@ pub enum Measure {
     WandPower,
     /// The hit points a monster was made with.
     HitPoints,
+    /// The time an action took the player: `player_speed`.
+    ActionTime,
+    /// The delay a move added for the player: `player_movement_speed`.
+    MoveDelay,
+    /// The time a move took the player.
+    MoveTime,
 }
 
 impl fmt::Display for Measure {
@@ -194,6 +200,9 @@ impl fmt::Display for Measure {
             Self::Broke => "missiles broken",
             Self::WandPower => "wand power",
             Self::HitPoints => "hit points made with",
+            Self::ActionTime => "the player's action time",
+            Self::MoveDelay => "the player's move delay",
+            Self::MoveTime => "the player's move time",
         })
     }
 }
@@ -506,6 +515,18 @@ struct TurnLine {
     closed: BTreeMap<i32, u32>,
 }
 
+#[derive(Deserialize)]
+struct SpeedLine {
+    #[serde(rename = "case")]
+    index: u64,
+    #[serde(flatten)]
+    mover: MoverCase,
+    trials: u32,
+    action: BTreeMap<i32, u32>,
+    delay: BTreeMap<i32, u32>,
+    time: BTreeMap<i32, u32>,
+}
+
 /// Diffs a harness dump against the engine.
 ///
 /// # Errors
@@ -588,6 +609,10 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             Some("player-beam") => {
                 let case: PlayerBeamLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_player_beam(bundle, seed, &case)?);
+            }
+            Some("speed") => {
+                let case: SpeedLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_speed(bundle, seed, &case)?);
             }
             Some("hit-points") => {
                 let case: HitPointsLine = serde_json::from_value(value).map_err(read)?;
@@ -1525,5 +1550,30 @@ fn compare_hit_points(
         case.index,
         &case.name,
         [(Measure::HitPoints, case.hp.clone(), engine)],
+    ))
+}
+
+/// Every measure of a speed `case` on which crawl and the engine differ.
+fn compare_speed(bundle: &Bundle, seed: u64, case: &SpeedLine) -> Result<Vec<Mismatch>, DiffError> {
+    let engine = oracle::player_move(bundle, &case.mover, (seed, case.index), case.trials)
+        .map_err(|source| DiffError::Case {
+            case: case.index,
+            source,
+        })?;
+    let mover = &case.mover;
+    let who = format!(
+        "a {} at XL {} lit {:?}",
+        mover.species,
+        mover.xl,
+        mover.lights.join(", ")
+    );
+    Ok(differing(
+        case.index,
+        &who,
+        [
+            (Measure::ActionTime, case.action.clone(), engine.action),
+            (Measure::MoveDelay, case.delay.clone(), engine.delay),
+            (Measure::MoveTime, case.time.clone(), engine.time),
+        ],
     ))
 }
