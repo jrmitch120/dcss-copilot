@@ -19,6 +19,7 @@ use super::player_attacks::{self, Defence, DrawnSkill, Hand, Heft, PlayerZap, Sh
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
+use super::step::Offset;
 use super::threat::{self, Attacker, Draw};
 use super::{torment, wands};
 use crate::screen::{Resistance, Resistances};
@@ -856,7 +857,7 @@ pub fn melee_reach(
         .ok_or(CaseError::NoMonster(monster))?;
     let fighter = Fighter {
         hands: Some(self::hands(bundle, hands)?),
-        ..Attacker::new(bundle, known, 1).fighter
+        ..Attacker::new(bundle, known, Offset::east(1)).fighter
     };
     let reach = threat::melee_reach(formulas, &fighter, known);
     let attacks_from = (1..=reach)
@@ -946,7 +947,7 @@ pub fn turn(
         },
         MonsterSpells::PerMonster => MonsterSpells::PerMonster,
     };
-    let attacker = Attacker::new(bundle, &monster, case.distance).without_gear();
+    let attacker = Attacker::new(bundle, &monster, Offset::east(case.distance)).without_gear();
     // Undefended, so whatever strikes the player deals damage.
     let target = Target {
         defences: Defences::exact(0, 0, 0),

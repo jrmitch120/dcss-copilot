@@ -11,6 +11,7 @@ use crate::carried_gear::{self, ItemBrand};
 use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
 use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
+use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, Gap, NotModelled};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
@@ -335,12 +336,7 @@ fn foes_in_light(visible: &VisibleState, foes: &[Attacker<'_>]) -> bool {
         monsters
             .iter()
             .filter(|monster| monster.id.as_ref() == Some(&foe.monster.id))
-            .filter(|monster| {
-                (monster.position.x - player.x)
-                    .abs()
-                    .max((monster.position.y - player.y).abs())
-                    == foe.distance
-            })
+            .filter(|monster| Offset::between(player, monster.position) == foe.offset)
             .any(|monster| {
                 map.cell(monster.position)
                     .is_some_and(|cell| cell.light != SquareLight::Plain)
@@ -790,7 +786,6 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         | NotModelled::UnexploredSquares
         | NotModelled::HitsOnTheWay
         | NotModelled::OwnConditions
-        | NotModelled::Batty
         | NotModelled::MovesWithParent
         | NotModelled::OwnActions
         | NotModelled::SwoopOrFlank

@@ -348,7 +348,7 @@ impl<'f, 'a> Side<'f, 'a> {
         let Some(hostile) = hostiles
             .iter_mut()
             .filter(|hostile| hostile.alive())
-            .min_by_key(|hostile| hostile.engaged.distance)
+            .min_by_key(|hostile| hostile.engaged.distance())
         else {
             return BASELINE_DELAY;
         };
@@ -361,12 +361,12 @@ impl<'f, 'a> Side<'f, 'a> {
         // Nothing reaches it: wait for it to walk up, or step toward it if it never will. One
         // that keeps its range comes no nearer than that, out of reach.
         let monster = hostile.engaged.attacker().monster;
-        let distance = hostile.engaged.distance;
+        let distance = hostile.engaged.distance();
         let comes = !monster.stationary
             && !monster.keeps_range
             && step::may_step(formulas.monster_step, monster.watched_step, distance);
         if !comes && distance > 1 {
-            hostile.engaged.distance -= 1;
+            hostile.engaged.approached();
         }
         BASELINE_DELAY
     }
@@ -378,7 +378,7 @@ impl<'f, 'a> Side<'f, 'a> {
         rng: &mut Rng,
         hostile: &mut Hostile<'_, '_>,
     ) -> Option<i32> {
-        let distance = hostile.engaged.distance;
+        let distance = hostile.engaged.distance();
         let variant = formulas.player_beam;
         match self.opening.as_mut()? {
             Opening::Spell {
@@ -445,7 +445,7 @@ impl<'f, 'a> Side<'f, 'a> {
         rng: &mut Rng,
         hostile: &mut Hostile<'_, '_>,
     ) -> Option<i32> {
-        let distance = hostile.engaged.distance;
+        let distance = hostile.engaged.distance();
         let attack = formulas.player_attack;
         let skill = self.base_skill;
         let (blow, time) = match self.fighter.base {
@@ -505,6 +505,7 @@ mod tests {
     use crate::engine::lighting::Lighting;
     use crate::engine::melee::DisplayedDefences;
     use crate::engine::resists::Resists;
+    use crate::engine::step::Offset;
 
     #[test]
     fn the_player_steps_toward_a_monster_that_keeps_its_range_out_of_their_reach() {
@@ -520,7 +521,7 @@ mod tests {
             .unwrap()
             .clone();
         spider.speed = 5;
-        let attacker = Attacker::new(bundle, &spider, 3).without_gear();
+        let attacker = Attacker::new(bundle, &spider, Offset::east(3)).without_gear();
         assert_eq!(attacker.firing_range(formulas), Some(3));
         let foe = Foe {
             defence: player_attacks::Defence::of(formulas.player_beam, &spider),

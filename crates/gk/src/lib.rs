@@ -445,6 +445,10 @@ pub struct Formulas {
     /// Where a monster that keeps its range steps, rather than into its foe:
     /// `_set_firing_pos` and `monster::threat_range`.
     pub firing_position: FiringPosition,
+    /// How a batty monster flits after it attacks or casts, and for how long, before it hunts
+    /// its foe again: `_handle_battiness`, `set_random_target`, `_find_best_step` and
+    /// `BATTY_TURNS_KEY` in `_post_monster_move`.
+    pub batty_flight: BattyFlight,
     /// The hit points torment takes from the player: `torment_player` and `player::res_torment`.
     pub torment: Torment,
     /// The player's melee, launcher and thrown attacks on a monster: their accuracy, damage
@@ -616,6 +620,14 @@ pub enum FiringPosition {
     Crawl034,
 }
 
+/// The variants of how a batty monster flits.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BattyFlight {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of the hit points torment takes from the player.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Torment {
@@ -687,6 +699,7 @@ impl Formulas {
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
         firing_position: FiringPosition::Crawl034,
+        batty_flight: BattyFlight::Crawl034,
         torment: Torment::Crawl034,
         player_attack: PlayerAttack::Crawl034,
         player_beam: PlayerBeam::Crawl034,
@@ -790,7 +803,7 @@ pub struct Monster {
     pub two_weapons: bool,
     /// It has crawl's `unique` flag: there is only one of it, such as Sigmund.
     pub unique: bool,
-    /// It has crawl's `batty` flag: it flits away after it attacks (`_handle_battiness`).
+    /// It has crawl's `batty` flag: it flits away after it attacks or casts (`_handle_battiness`).
     pub batty: bool,
     /// It has crawl's `maintain_range` flag: it holds a firing position away from its foe
     /// rather than close in (`_decide_monster_firing_position`).

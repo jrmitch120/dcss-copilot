@@ -14,6 +14,7 @@ use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
+use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::fight_outcome::{self, Fight};
 use crate::screen::{Resistances, Screen};
@@ -285,9 +286,12 @@ pub enum NotModelled {
     /// Statuses on either side, such as haste, might or confusion, beyond those that backlight
     /// the player.
     Statuses,
-    /// Monsters walk straight at the player, through walls and each other.
+    /// Monsters walk straight at the player, through walls and each other, and a batty one flits
+    /// as on open floor, which errs low for one hemmed in beside the player, as in a corridor,
+    /// where it more often flits back into them.
     Paths,
-    /// Monsters are assumed awake and hunting the player.
+    /// Monsters are assumed awake and hunting the player, and a batty one not already flitting
+    /// away.
     Awareness,
     /// A monster in view has spells the simulation doesn't play out, such as summons, hexes,
     /// self-buffs and spells that aren't a single bolt or explosion: it is assumed never to cast
@@ -347,9 +351,6 @@ pub enum NotModelled {
     /// them: what each needs of its own, such as piety, a cooldown, an exhausted berserker or a
     /// free square to blink to, isn't checked.
     OwnConditions,
-    /// A monster that can attack is batty, such as the shard shrike: crawl has it flit away after
-    /// it attacks (`_handle_battiness`), and the simulation has it stay and attack again.
-    Batty,
     /// A monster in view is a tentacle or vine, such as the snaplasher vine, which crawl moves
     /// with its parent (`mons_is_tentacle_or_tentacle_segment`): the simulation walks it on its
     /// own, so it may strike from where it is judged out of reach.
@@ -681,8 +682,9 @@ fn threat<'a>(
     // Whether a monster in view that can't attack has spells the simulation doesn't play out.
     let mut other_spells_out_of_reach = false;
     for (seen, monster) in hostile {
-        let distance = distance(player, seen.position);
-        let attacker = Attacker::new(bundle, monster, distance);
+        let offset = Offset::between(player, seen.position);
+        let distance = offset.distance();
+        let attacker = Attacker::new(bundle, monster, offset);
         let carried = remembered
             .and_then(|state| state.gear_of(seen, bundle))
             .and_then(|read| match read {
@@ -723,7 +725,7 @@ fn threat<'a>(
             acting.push(ActingMonster {
                 name: seen.name.clone(),
                 position: seen.position,
-                distance: attacker.distance,
+                distance: attacker.distance(),
                 casts: attacker
                     .spells
                     .iter()
@@ -984,7 +986,6 @@ fn moves_not_modelled(monster: &copilot_gk::Monster) -> Vec<NotModelled> {
             .any(|attack| flavours.contains(&attack.flavour.0.as_str()))
     };
     [
-        (NotModelled::Batty, monster.batty),
         (NotModelled::MovesWithParent, monster.tentacle),
         (NotModelled::OwnActions, monster.own_actions),
         (
@@ -1030,11 +1031,6 @@ fn level(hp: i32, death: Chance, worst_hit: i32, best_plan_win: Option<Chance>) 
     } else {
         ThreatLevel::Calm
     }
-}
-
-/// Squares between two positions, counting a diagonal step as one: crawl's `grid_distance`.
-fn distance(a: Position, b: Position) -> i32 {
-    (a.x - b.x).abs().max((a.y - b.y).abs())
 }
 
 #[cfg(test)]
@@ -1392,8 +1388,7 @@ mod tests {
     /// sorted here.
     fn is_move(variant: NotModelled) -> bool {
         match variant {
-            NotModelled::Batty
-            | NotModelled::MovesWithParent
+            NotModelled::MovesWithParent
             | NotModelled::OwnActions
             | NotModelled::SwoopOrFlank
             | NotModelled::SpecialAbilities
@@ -1474,7 +1469,6 @@ mod tests {
     #[test]
     fn a_monster_that_moves_as_crawl_moves_it_in_a_way_not_modelled_is_named_with_its_row() {
         for (name, variant) in [
-            ("shard shrike", NotModelled::Batty),
             ("snaplasher vine", NotModelled::MovesWithParent),
             ("jiangshi", NotModelled::OwnActions),
             ("tengu warrior", NotModelled::SwoopOrFlank),
@@ -1565,7 +1559,6 @@ mod tests {
             UnexploredSquares,
             HitsOnTheWay,
             OwnConditions,
-            Batty,
             MovesWithParent,
             OwnActions,
             SwoopOrFlank,
