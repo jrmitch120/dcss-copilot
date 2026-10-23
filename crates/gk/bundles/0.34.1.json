@@ -73214,6 +73214,9 @@
     "2": "MTHRT_TOUGH",
     "3": "MTHRT_NASTY"
   },
+  "identification": {
+    "kindLearned": "You learned that %s %s actually %s."
+  },
   "lighting": {
     "backlightingLights": [
       "Corona",

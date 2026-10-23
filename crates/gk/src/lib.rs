@@ -114,6 +114,8 @@ pub struct Bundle {
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
     /// `mon_threat_level_type` enum value: a monster's webtiles `threat`.
     pub monster_threats: BTreeMap<u8, EnumId>,
+    /// What the game shows as the player learns which kind of item they carry.
+    pub identification: IdentificationSigns,
     /// What the game shows that tells the player's Lighting.
     pub lighting: LightingSigns,
     /// What the game shows that tells the player's holiness and whether they worship a good god.
@@ -125,6 +127,39 @@ pub struct Bundle {
     pub speed: SpeedSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
+}
+
+/// What the game shows as the player learns which kind an item they carry is, beyond what the
+/// item itself shows, as this Crawl Version shows it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IdentificationSigns {
+    /// The message crawl gives when the player sees an identified item of a kind they carry
+    /// unidentified (`seen_item`), as crawl's format for it, with `%s` for each part it fills
+    /// in, such as `You learned that %s %s actually %s.`. Its last part is the carried item's
+    /// name as the player now knows it, such as `a scroll of teleportation`.
+    pub kind_learned: String,
+}
+
+impl IdentificationSigns {
+    /// The name of the item `message` says the player has learned the kind of, such as
+    /// `a scroll of teleportation`, if it is that message.
+    #[must_use]
+    pub fn learned_name<'m>(&self, message: &'m str) -> Option<&'m str> {
+        let (before, after) = self.kind_learned.rsplit_once("%s")?;
+        let rest = message.strip_suffix(after)?;
+        match before.rsplit_once("%s") {
+            None => rest.strip_prefix(before),
+            Some((earlier, lead)) => {
+                let opening = earlier
+                    .split_once("%s")
+                    .map_or(earlier, |(opening, _)| opening);
+                // The parts before the name are names too, so the name follows the last `lead`.
+                let (_, name) = rest.strip_prefix(opening)?.rsplit_once(lead)?;
+                Some(name)
+            }
+        }
+    }
 }
 
 /// Which of the things the player carries, casts and invokes are Ways Out, and what the game

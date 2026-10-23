@@ -20,8 +20,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::{
-    Bundle, CrawlSource, EnumId, Form, FormHoliness, Formulas, HolinessSigns, ItemClass,
-    ItemSubType, LightingSigns, MonsterSpell, Species, Spell, SpellCloud, Undeadness, WeaponBrand,
+    Bundle, CrawlSource, EnumId, Form, FormHoliness, Formulas, HolinessSigns, IdentificationSigns,
+    ItemClass, ItemSubType, LightingSigns, MonsterSpell, Species, Spell, SpellCloud, Undeadness,
+    WeaponBrand,
 };
 
 use crate::cpp::{Source, Token};
@@ -83,6 +84,8 @@ const SERIES: &[Series] = &[Series {
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     speed: &speed::SPEED_RULES_0_34,
+    // `seen_item`, as it tells the player what an item they carry is.
+    kind_learned: Shown::quoted("You learned that %s %s actually %s.", "item-prop.cc"),
     kinds_hidden: &[
         "OBJ_WANDS",
         "OBJ_SCROLLS",
@@ -245,6 +248,9 @@ struct Series {
     ways_out: &'static ways_out::WayOutRules,
     /// What it reads of the player's speed.
     speed: &'static speed::SpeedRules,
+    /// The message it gives when the player learns the kind of an item they carry by seeing
+    /// another of its kind identified.
+    kind_learned: Shown,
     /// The item classes whose items hide their sub-type until identified: crawl's
     /// `item_type_has_ids` (`item-name.cc`), which is code rather than data.
     kinds_hidden: &'static [&'static str],
@@ -634,6 +640,9 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
+        identification: IdentificationSigns {
+            kind_learned: crawl.shown(&series.kind_learned)?,
+        },
         lighting: crawl.lighting(series.lighting)?,
         ways_out,
         speed: crawl.speed(
