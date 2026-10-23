@@ -100,15 +100,14 @@ impl WebtilesSource {
             origin: envelope.origin.clone(),
             tab: envelope.tab,
         };
-        let knowledge = envelope
-            .game_version
-            .as_deref()
-            .and_then(crawl_version)
+        let crawl_version = envelope.game_version.as_deref().and_then(crawl_version);
+        let knowledge = crawl_version
+            .as_ref()
             .and_then(|version| self.knowledge.for_version(&version.0));
         let game = self.tabs.entry(key.clone()).or_default();
         game.apply(&envelope.msg, knowledge);
 
-        let identity = game.identify(envelope, &mut self.seen);
+        let identity = game.identify(envelope, crawl_version, &mut self.seen);
         let switched = self.followed.as_ref() != Some(&key);
         let Some(identity) = identity else {
             // A game process can stop before it names its game. In the followed tab, that is the
@@ -225,12 +224,13 @@ impl TabGame {
         }
     }
 
-    /// The game's identity, once the game has named the character and species. The first call
-    /// that succeeds tells whether this process joined a new game or resynced one already
-    /// `seen`, which fixes when the game was first seen.
+    /// The game's identity, on `crawl_version`, once the game has named the character and
+    /// species. The first call that succeeds tells whether this process joined a new game or
+    /// resynced one already `seen`, which fixes when the game was first seen.
     fn identify(
         &mut self,
         envelope: &Envelope,
+        crawl_version: Option<CrawlVersion>,
         seen: &mut HashMap<GameKey, SeenGame>,
     ) -> Option<GameIdentity> {
         let player = &self.shown.player;
@@ -271,7 +271,7 @@ impl TabGame {
             character: name.clone(),
             species: species.clone(),
             first_seen_ms,
-            crawl_version: envelope.game_version.as_deref().and_then(crawl_version),
+            crawl_version,
             wizard: player.wizard,
             role: self.role,
         })
