@@ -13,9 +13,18 @@ const UNNAMED: &str = "unknown item";
 /// `ISFLAG_IDENTIFIED` (`item-status-flag-type.h`): the item is fully identified.
 const IDENTIFIED: i64 = 0x1;
 
-/// A kind of item as the game numbers it: its `object_class_type` value and its value in its
-/// class's sub-type enum.
-type KindId = (u8, u16);
+/// `ISFLAG_ARTEFACT_MASK` (`item-status-flag-type.h`): the item is a randart or an unrandart,
+/// whose kind crawl never knows from its kind's identification, nor teaches it.
+const ARTEFACT: i64 = 0x3000;
+
+/// A kind of item as the game numbers it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct KindId {
+    /// Its `object_class_type` value.
+    base_type: u8,
+    /// Its value in its class's sub-type enum.
+    sub_type: u16,
+}
 
 /// The inventory slots the game has described, by slot number, and the kinds of item the
 /// player has identified in this game as far as the game has shown.
@@ -81,6 +90,7 @@ impl Inventory {
             }
             if let Some((kind, class)) = knowledge.and_then(|bundle| fields.kind_id(bundle))
                 && class.kinds_hidden
+                && !fields.artefact()
                 && fields.shows_identified(class, kind)
             {
                 self.identified.insert(kind);
@@ -92,21 +102,21 @@ impl Inventory {
     /// an item they carry, as crawl says when they see an identified item of that kind
     /// (`seen_item`). It is learned only when exactly one kind the player carries unidentified
     /// fits the name the message gives.
-    pub fn learn(&mut self, message: &str, bundle: &Bundle) {
+    pub fn learn_from_message(&mut self, message: &str, bundle: &Bundle) {
         let Some(name) = bundle.identification.learned_name(message) else {
             return;
         };
-        let named: BTreeSet<KindId> = self
+        let fitting: BTreeSet<KindId> = self
             .slots
             .values()
             .filter_map(|slot| {
                 let (kind, class) = slot.kind_id(bundle)?;
                 let unknown = class.kinds_hidden && !self.identified.contains(&kind);
-                (unknown && named_sub_type(class, name) == Some(kind.1)).then_some(kind)
+                (unknown && named_sub_type(class, name) == Some(kind.sub_type)).then_some(kind)
             })
             .collect();
-        if named.len() == 1 {
-            self.identified.extend(named);
+        if fitting.len() == 1 {
+            self.identified.extend(fitting);
         }
     }
 
@@ -141,14 +151,14 @@ impl Inventory {
 impl Inventory {
     /// What the item in `slot` is, through `bundle`: its sub-type only when the player knows
     /// it (`item_type_known` in crawl's `item-name.cc`), as they know a scroll's only once it or
-    /// another of its kind is identified.
+    /// another of its kind is identified, and an artefact's only once it is.
     fn kind(&self, slot: &Slot, bundle: &Bundle) -> Option<ItemKind> {
         let base_type = u8::try_from(slot.base_type?).ok()?;
         let sub_type = slot.sub_type.and_then(|sub| u16::try_from(sub).ok());
         let known = slot.kind_id(bundle).is_some_and(|(kind, class)| {
             !class.kinds_hidden
                 || slot.shows_identified(class, kind)
-                || self.identified.contains(&kind)
+                || (!slot.artefact() && self.identified.contains(&kind))
         });
         bundle.item(base_type, sub_type.filter(|_| known))
     }
@@ -171,7 +181,18 @@ impl Slot {
         let base_type = u8::try_from(self.base_type?).ok()?;
         let sub_type = u16::try_from(self.sub_type?).ok()?;
         let class = bundle.item_classes.get(&base_type)?;
-        Some(((base_type, sub_type), class))
+        Some((
+            KindId {
+                base_type,
+                sub_type,
+            },
+            class,
+        ))
+    }
+
+    /// The item is an artefact, as its flags say.
+    fn artefact(&self) -> bool {
+        self.flags.is_some_and(|flags| flags & ARTEFACT != 0)
     }
 
     /// The slot itself shows the player has identified its item's `kind`, of `class`: the item
@@ -181,7 +202,7 @@ impl Slot {
             || self
                 .name
                 .as_deref()
-                .is_some_and(|name| named_sub_type(class, name) == Some(kind.1))
+                .is_some_and(|name| named_sub_type(class, name) == Some(kind.sub_type))
     }
 }
 

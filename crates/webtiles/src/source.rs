@@ -285,7 +285,7 @@ impl Shown {
         let added = self.messages.merge(msg);
         if let (Some(bundle), Some(inventory)) = (knowledge, &mut self.player.inventory) {
             for message in &added {
-                inventory.learn(&message.text, bundle);
+                inventory.learn_from_message(&message.text, bundle);
             }
         }
     }

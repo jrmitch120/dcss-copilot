@@ -4,7 +4,7 @@ A Game Knowledge bundle is the static facts about DCSS for one Crawl Version, as
 
 Webtiles sends monster, item and dungeon feature types, and a monster's attitude and threat rating, as crawl's C++ enum values, which crawl renumbers between versions. A bundle keys everything by its own version's values, so the webtiles Game Source decodes a game's monsters and items through the bundle for that game's Crawl Version. With no bundle for the version, nothing is decoded: monsters keep the name the game sends, and the Advisor knows nothing more about them.
 
-Webtiles sends an item's true sub-type even when the player doesn't know it, so the source decodes it only once the player has identified the item's kind: the item is flagged identified, its name names its sub-type, or another item of its kind showed so earlier in the game. Crawl can identify a kind without resending a carried item of it, as when the player sees an identified item of the kind; then only its message says so ("You learned that … actually …"), and the source learns the kind from that.
+Webtiles sends an item's true sub-type even when the player doesn't know it, so the source decodes it only once the player has identified the item's kind: the item is flagged identified, its name names its sub-type, or, unless it is an artefact, another item of its kind showed so earlier in the game, as crawl itself knows an artefact's kind only from the artefact. Crawl can identify a kind without resending a carried item of it, as when the player sees an identified item of the kind; then only its message says so ("You learned that … actually …"), and the source learns the kind from that.
 
 ## What the extractor reads
 

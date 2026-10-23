@@ -12,6 +12,9 @@ use serde_json::{Value, json};
 /// `ISFLAG_IDENTIFIED`, as webtiles sends it in an item's `flags`.
 const IDENTIFIED: i64 = 0x1;
 
+/// `ISFLAG_RANDART`: the item is a randomly made artefact.
+const RANDART: i64 = 0x1000;
+
 /// A source fed one tab of a crawl 0.34.1 game.
 struct Game {
     source: WebtilesSource,
@@ -181,5 +184,32 @@ fn an_item_of_a_kind_never_identified_stays_undecoded() {
     );
 
     assert_eq!(game.sub_type('b'), None);
+    assert_eq!(game.sub_type('c'), None);
+}
+
+#[test]
+fn an_artefact_neither_teaches_its_kind_nor_is_decoded_by_it() {
+    let mut game = Game::new();
+    let protection = game.kind("OBJ_JEWELLERY", "RING_PROTECTION");
+    game.start("Tiv", 1);
+    game.carry(
+        0,
+        &item(
+            protection,
+            'a',
+            "ring \"Zebeh\" {AC+3}",
+            IDENTIFIED | RANDART,
+        ),
+    );
+    game.carry(1, &item(protection, 'b', "ruby ring", 0));
+    assert_eq!(game.sub_type('b'), None);
+
+    // Crawl identifies the kind once a plain ring of it is.
+    game.carry(
+        1,
+        &json!({ "flags": IDENTIFIED, "name": "+3 ring of protection" }),
+    );
+    game.carry(2, &item(protection, 'c', "ring \"Qux\"", RANDART));
+
     assert_eq!(game.sub_type('c'), None);
 }
