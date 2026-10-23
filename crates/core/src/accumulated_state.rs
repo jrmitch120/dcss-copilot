@@ -397,17 +397,13 @@ impl AccumulatedState {
                     .extend(reads.map(|(name, gear)| Unplaced { name, gear, turn }));
             }
             Said::Look { name, gear } => {
-                let in_view = now.monsters.iter().flatten();
-                let under_cursor = in_view
-                    .clone()
+                let under_cursor = now
+                    .monsters
+                    .iter()
+                    .flatten()
                     .find(|monster| Some(monster.position) == now.look_cursor)
                     .filter(|monster| names_match(&name, &monster.name));
-                let mut named = in_view.filter(|monster| names_match(&name, &monster.name));
-                let only_named = match (named.next(), named.next()) {
-                    (Some(only), None) => Some(only),
-                    _ => None,
-                };
-                if let Some(monster) = under_cursor.or(only_named) {
+                if let Some(monster) = under_cursor.or_else(|| only_named(&name, now)) {
                     self.remember(monster, gear, GearSource::Look, turn, bundle);
                 }
             }
@@ -509,6 +505,19 @@ impl<'a> GearKey<'a> {
         } else {
             monster.sighting.map(Self::Sighting)
         }
+    }
+}
+
+/// The one monster in `now` that the `said` name fits, if no other in view fits it too.
+fn only_named<'a>(said: &str, now: &'a VisibleState) -> Option<&'a VisibleMonster> {
+    let mut named = now
+        .monsters
+        .iter()
+        .flatten()
+        .filter(|monster| names_match(said, &monster.name));
+    match (named.next(), named.next()) {
+        (Some(only), None) => Some(only),
+        _ => None,
     }
 }
 
