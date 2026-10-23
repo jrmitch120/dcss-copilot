@@ -100,10 +100,14 @@ impl WebtilesSource {
             origin: envelope.origin.clone(),
             tab: envelope.tab,
         };
+        let crawl_version = envelope.game_version.as_deref().and_then(crawl_version);
+        let knowledge = crawl_version
+            .as_ref()
+            .and_then(|version| self.knowledge.for_version(&version.0));
         let game = self.tabs.entry(key.clone()).or_default();
-        game.apply(&envelope.msg);
+        game.apply(&envelope.msg, knowledge);
 
-        let identity = game.identify(envelope, &mut self.seen);
+        let identity = game.identify(envelope, crawl_version, &mut self.seen);
         let switched = self.followed.as_ref() != Some(&key);
         let Some(identity) = identity else {
             // A game process can stop before it names its game. In the followed tab, that is the
@@ -117,7 +121,6 @@ impl WebtilesSource {
                 .collect();
         };
         let session = std::mem::take(&mut game.session);
-        let knowledge = identity.knowledge(&self.knowledge);
         let visible = game.visible(knowledge);
         let mut events = Vec::new();
         let (last_identity, last_visible) = match &game.reported {
@@ -145,7 +148,8 @@ impl WebtilesSource {
 }
 
 impl TabGame {
-    fn apply(&mut self, msg: &Value) {
+    /// Merges one webtiles message, decoding what it needs to through `knowledge`.
+    fn apply(&mut self, msg: &Value, knowledge: Option<&Bundle>) {
         match msg.get("msg").and_then(Value::as_str) {
             Some("login_success") => self.account = string(msg, "username"),
             Some("game_started") => self.start(Role::Playing),
@@ -154,10 +158,10 @@ impl TabGame {
                 // The game belongs to the account being watched.
                 self.account = string(msg, "username");
             }
-            Some("player") => self.shown.player.merge(msg),
+            Some("player") => self.shown.player.merge(msg, knowledge),
             Some("map") => self.shown.map.merge(msg),
             Some("cursor") => self.shown.map.merge_cursor(msg),
-            Some("msgs") => self.shown.messages.merge(msg),
+            Some("msgs") => self.shown.merge_messages(msg, knowledge),
             Some("game_ended") => {
                 let reason = string(msg, "reason");
                 let end = reason.as_deref().and_then(game_end);
@@ -220,12 +224,13 @@ impl TabGame {
         }
     }
 
-    /// The game's identity, once the game has named the character and species. The first call
-    /// that succeeds tells whether this process joined a new game or resynced one already
-    /// `seen`, which fixes when the game was first seen.
+    /// The game's identity, on `crawl_version`, once the game has named the character and
+    /// species. The first call that succeeds tells whether this process joined a new game or
+    /// resynced one already `seen`, which fixes when the game was first seen.
     fn identify(
         &mut self,
         envelope: &Envelope,
+        crawl_version: Option<CrawlVersion>,
         seen: &mut HashMap<GameKey, SeenGame>,
     ) -> Option<GameIdentity> {
         let player = &self.shown.player;
@@ -266,10 +271,23 @@ impl TabGame {
             character: name.clone(),
             species: species.clone(),
             first_seen_ms,
-            crawl_version: envelope.game_version.as_deref().and_then(crawl_version),
+            crawl_version,
             wizard: player.wizard,
             role: self.role,
         })
+    }
+}
+
+impl Shown {
+    /// Merges a `msgs` message, learning through `knowledge` any kind of item it says the
+    /// player now knows.
+    fn merge_messages(&mut self, msg: &Value, knowledge: Option<&Bundle>) {
+        let added = self.messages.merge(msg);
+        if let (Some(bundle), Some(inventory)) = (knowledge, &mut self.player.inventory) {
+            for message in &added {
+                inventory.learn_from_message(&message.text, bundle);
+            }
+        }
     }
 }
 

@@ -1,9 +1,9 @@
 //! The player's inventory, merged from the `inv` deltas of webtiles `player` messages.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use copilot_core::InventoryItem;
-use copilot_gk::{Bundle, ItemKind};
+use copilot_gk::{Bundle, ItemClass, ItemKind};
 use serde_json::Value;
 
 /// What an item is called when the game hasn't named it, which only a stream that missed the
@@ -13,10 +13,30 @@ const UNNAMED: &str = "unknown item";
 /// `ISFLAG_IDENTIFIED` (`item-status-flag-type.h`): the item is fully identified.
 const IDENTIFIED: i64 = 0x1;
 
-/// The inventory slots the game has described, by slot number.
+/// `ISFLAG_ARTEFACT_MASK` (`item-status-flag-type.h`): the item is a randart or an unrandart,
+/// whose kind crawl never knows from its kind's identification, nor teaches it.
+const ARTEFACT: i64 = 0x3000;
+
+/// A kind of item as the game numbers it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct KindId {
+    /// Its `object_class_type` value.
+    base_type: u8,
+    /// Its value in its class's sub-type enum.
+    sub_type: u16,
+}
+
+/// The inventory slots the game has described, by slot number, and the kinds of item the
+/// player has identified in this game as far as the game has shown.
+///
+/// Crawl can identify a kind without resending a carried item of it: webtiles sends an item's
+/// name only when some other field of it changed, and compares the names under what the player
+/// knows now, so they always match. A kind identified once is remembered for the game, and
+/// decodes every item of it.
 #[derive(Debug, Default)]
 pub struct Inventory {
     slots: BTreeMap<u16, Slot>,
+    identified: BTreeSet<KindId>,
 }
 
 /// One slot's fields, merged across deltas. A field is sent only when it changed.
@@ -37,8 +57,9 @@ struct Slot {
 }
 
 impl Inventory {
-    /// Merges a `player` message's `inv` object, keyed by slot number.
-    pub fn merge(&mut self, inv: &Value) {
+    /// Merges a `player` message's `inv` object, keyed by slot number, learning through
+    /// `knowledge` the kinds each item it sends shows identified.
+    pub fn merge(&mut self, inv: &Value, knowledge: Option<&Bundle>) {
         let Some(slots) = inv.as_object() else { return };
         for (slot, delta) in slots {
             let Ok(slot) = slot.parse() else {
@@ -67,6 +88,35 @@ impl Inventory {
             if let Some(useless) = int("useless") {
                 fields.useless = Some(useless != 0);
             }
+            if let Some((kind, class)) = knowledge.and_then(|bundle| fields.kind_id(bundle))
+                && class.kinds_hidden
+                && !fields.artefact()
+                && fields.shows_identified(class, kind)
+            {
+                self.identified.insert(kind);
+            }
+        }
+    }
+
+    /// Learns from a game message, through `bundle`, the kind it says the player now knows of
+    /// an item they carry, as crawl says when they see an identified item of that kind
+    /// (`seen_item`). It is learned only when exactly one kind the player carries unidentified
+    /// fits the name the message gives.
+    pub fn learn_from_message(&mut self, message: &str, bundle: &Bundle) {
+        let Some(name) = bundle.identification.learned_name(message) else {
+            return;
+        };
+        let fitting: BTreeSet<KindId> = self
+            .slots
+            .values()
+            .filter_map(|slot| {
+                let (kind, class) = slot.kind_id(bundle)?;
+                let unknown = class.kinds_hidden && !self.identified.contains(&kind);
+                (unknown && named_sub_type(class, name) == Some(kind.sub_type)).then_some(kind)
+            })
+            .collect();
+        if fitting.len() == 1 {
+            self.identified.extend(fitting);
         }
     }
 
@@ -80,7 +130,7 @@ impl Inventory {
             .filter_map(|(&slot, fields)| {
                 let quantity = fields.quantity.filter(|&quantity| quantity > 0)?;
                 let name = fields.name.clone().unwrap_or_else(|| UNNAMED.to_owned());
-                let kind = knowledge.and_then(|bundle| fields.kind(bundle, &name));
+                let kind = knowledge.and_then(|bundle| self.kind(fields, bundle));
                 Some(InventoryItem {
                     letter: fields
                         .letter
@@ -99,6 +149,20 @@ impl Inventory {
 }
 
 impl Inventory {
+    /// What the item in `slot` is, through `bundle`: its sub-type only when the player knows
+    /// it (`item_type_known` in crawl's `item-name.cc`), as they know a scroll's only once it or
+    /// another of its kind is identified, and an artefact's only once it is.
+    fn kind(&self, slot: &Slot, bundle: &Bundle) -> Option<ItemKind> {
+        let base_type = u8::try_from(slot.base_type?).ok()?;
+        let sub_type = slot.sub_type.and_then(|sub| u16::try_from(sub).ok());
+        let known = slot.kind_id(bundle).is_some_and(|(kind, class)| {
+            !class.kinds_hidden
+                || slot.shows_identified(class, kind)
+                || (!slot.artefact() && self.identified.contains(&kind))
+        });
+        bundle.item(base_type, sub_type.filter(|_| known))
+    }
+
     /// The inventory letter of the item in `slot`, if it holds one.
     pub fn letter_of(&self, slot: u16) -> Option<char> {
         let fields = self.slots.get(&slot)?;
@@ -111,22 +175,47 @@ impl Inventory {
 }
 
 impl Slot {
-    /// What the item is, through `bundle`: its sub-type only when the player knows it, as they
-    /// know a scroll's only once it is identified, by the item or by its kind, which its `name`
-    /// then says (`item_type_known` in crawl's `item-name.cc`).
-    fn kind(&self, bundle: &Bundle, name: &str) -> Option<ItemKind> {
+    /// The item's kind as the game numbers it, whether or not the player knows it, with its
+    /// class in `bundle`.
+    fn kind_id<'b>(&self, bundle: &'b Bundle) -> Option<(KindId, &'b ItemClass)> {
         let base_type = u8::try_from(self.base_type?).ok()?;
-        let sub_type = self.sub_type.and_then(|sub| u16::try_from(sub).ok());
+        let sub_type = u16::try_from(self.sub_type?).ok()?;
         let class = bundle.item_classes.get(&base_type)?;
-        let identified = self.flags.is_some_and(|flags| flags & IDENTIFIED != 0);
-        let named = || {
-            sub_type
-                .and_then(|sub| class.sub_types.get(&sub))
-                .is_some_and(|sub| name.contains(&format!("of {}", sub.name)))
-        };
-        let known = !class.kinds_hidden || identified || named();
-        bundle.item(base_type, sub_type.filter(|_| known))
+        Some((
+            KindId {
+                base_type,
+                sub_type,
+            },
+            class,
+        ))
     }
+
+    /// The item is an artefact, as its flags say.
+    fn artefact(&self) -> bool {
+        self.flags.is_some_and(|flags| flags & ARTEFACT != 0)
+    }
+
+    /// The slot itself shows the player has identified its item's `kind`, of `class`: the item
+    /// is flagged identified, or its name names its sub-type.
+    fn shows_identified(&self, class: &ItemClass, kind: KindId) -> bool {
+        self.flags.is_some_and(|flags| flags & IDENTIFIED != 0)
+            || self
+                .name
+                .as_deref()
+                .is_some_and(|name| named_sub_type(class, name) == Some(kind.sub_type))
+    }
+}
+
+/// The sub-type of `class` that `name` names, as `of <sub-type>`, such as `teleportation` in
+/// `a scroll of teleportation`: the longest when several fit, so `protection from fire` rather
+/// than `protection`.
+fn named_sub_type(class: &ItemClass, name: &str) -> Option<u16> {
+    class
+        .sub_types
+        .iter()
+        .filter(|(_, sub)| name.contains(&format!("of {}", sub.name)))
+        .max_by_key(|(_, sub)| sub.name.len())
+        .map(|(&value, _)| value)
 }
 
 /// The letter crawl gives a slot it numbers 0 to 51 when the game hasn't sent the slot's own

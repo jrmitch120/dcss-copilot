@@ -16,11 +16,12 @@ pub struct MessageLog {
 
 impl MessageLog {
     /// Merges a `msgs` message: it first takes back the last `rollback` lines, which crawl
-    /// replaces when it rewrites a message, then adds its new ones.
-    pub fn merge(&mut self, msg: &Value) {
+    /// replaces when it rewrites a message, then adds its new ones, which it returns.
+    pub fn merge(&mut self, msg: &Value) -> Vec<GameMessage> {
         let rollback = int::<usize>(msg, "rollback").unwrap_or(0);
         self.recent
             .truncate(self.recent.len().saturating_sub(rollback));
+        let mut added = Vec::new();
         for message in msg
             .get("messages")
             .and_then(Value::as_array)
@@ -30,14 +31,17 @@ impl MessageLog {
             let Some(text) = message.get("text").and_then(Value::as_str) else {
                 continue;
             };
-            self.recent.push_back(GameMessage {
+            let message = GameMessage {
                 text: plain(text),
                 turn: int(message, "turn"),
-            });
+            };
+            self.recent.push_back(message.clone());
+            added.push(message);
             if self.recent.len() > RECENT_MESSAGES {
                 self.recent.pop_front();
             }
         }
+        added
     }
 
     /// The recent messages, oldest first.

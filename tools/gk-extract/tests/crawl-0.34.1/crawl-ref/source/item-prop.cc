@@ -111,3 +111,28 @@ string talisman_type_name(int type)
     default: return "buggy talisman";
     }
 }
+
+void seen_item(item_def &item)
+{
+    if (item_type_has_ids(item.base_type) && !is_artefact(item)
+        && item.is_identified()
+        && !you.type_ids[item.base_type][item.sub_type])
+    {
+        item_def* held = nullptr;
+        for (int i = MAX_GEAR; i < ENDOFPACK; ++i)
+        {
+            if (you.inv[i].base_type == item.base_type
+                && you.inv[i].sub_type == item.sub_type)
+            {
+                held = &you.inv[i];
+                mprf("You learned that %s %s actually %s.",
+                        held->name(DESC_YOUR).c_str(),
+                        held->quantity > 1 ? "are" : "is",
+                        held->name(DESC_A, false, true).c_str());
+                break;
+            }
+        }
+
+        identify_item_type(item.base_type, item.sub_type);
+    }
+}
