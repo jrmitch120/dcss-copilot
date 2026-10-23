@@ -1,6 +1,7 @@
 //! The character, merged from webtiles `player` messages, which send a field only when it changed.
 
 use copilot_core::{Colour, Place, Position, Religion, Stats, Status, Wielding};
+use copilot_gk::Bundle;
 use serde_json::Value;
 
 use crate::inventory::Inventory;
@@ -30,10 +31,11 @@ pub struct Player {
 }
 
 impl Player {
-    /// Merges a `player` delta.
-    pub fn merge(&mut self, msg: &Value) {
+    /// Merges a `player` delta, learning through `knowledge` the kinds of item it shows
+    /// identified.
+    pub fn merge(&mut self, msg: &Value, knowledge: Option<&Bundle>) {
         if let Some(inv) = msg.get("inv") {
-            self.inventory.get_or_insert_default().merge(inv);
+            self.inventory.get_or_insert_default().merge(inv, knowledge);
         }
         set(&mut self.name, string(msg, "name"));
         set(&mut self.species, string(msg, "species"));
