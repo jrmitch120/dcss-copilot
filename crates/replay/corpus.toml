@@ -57,3 +57,10 @@ file = "player-0.34.1-seed-15.dcssrec"
 sha256 = "d1f7ad21cfb69db067003904568b0900c0ef2eebc32e62680a00e8c61b93ba65"
 crawl_version = "0.34.1"
 seed = 15
+
+[[game]]
+# A Mountain Dwarf Reaver killed from afar by a steam dragon (16 damage) on D:6 at turn 4294, XL 7.
+file = "player-0.34.1-seed-16.dcssrec"
+sha256 = "4c3c0311ad263fe4a0ec9f30c7b0e1324fc18ddf0e363aa6478d2ffd6e4ebe8c"
+crawl_version = "0.34.1"
+seed = 16
