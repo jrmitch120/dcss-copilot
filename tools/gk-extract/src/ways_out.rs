@@ -16,10 +16,10 @@ use crate::{Crawl, ExtractError, Shown};
 
 /// What a release series counts as a Way Out, and what stops each.
 pub struct WayOutRules {
-    /// Each kind of item: its class, its sub-type, what it does and whether it translocates.
-    pub items: &'static [(&'static str, &'static str, Relief, bool)],
-    /// Each spell: its `spell_type` identifier, what it does and whether it translocates.
-    pub spells: &'static [(&'static str, Relief, bool)],
+    /// Each kind of item.
+    pub items: &'static [ItemRule],
+    /// Each spell.
+    pub spells: &'static [SpellRule],
     /// Each ability.
     pub abilities: &'static [AbilityRule],
     /// Each status that stops something, by its light or the words the status pane shows for
@@ -37,6 +37,67 @@ pub struct WayOutRules {
     pub no_abilities: Shown,
 }
 
+/// A kind of item that is a Way Out.
+pub struct ItemRule {
+    /// Its `object_class_type` identifier, such as `OBJ_SCROLLS`.
+    pub class: &'static str,
+    /// Its sub-type's identifier, such as `SCR_TELEPORTATION`.
+    pub sub_type: &'static str,
+    /// What it does.
+    pub effect: Relief,
+    /// It translocates the player.
+    pub translocation: bool,
+}
+
+impl ItemRule {
+    /// A kind of item that does `effect` without translocating the player.
+    const fn new(class: &'static str, sub_type: &'static str, effect: Relief) -> Self {
+        Self {
+            class,
+            sub_type,
+            effect,
+            translocation: false,
+        }
+    }
+
+    /// This kind of item, translocating the player.
+    const fn translocating(self) -> Self {
+        Self {
+            translocation: true,
+            ..self
+        }
+    }
+}
+
+/// A spell that is a Way Out.
+pub struct SpellRule {
+    /// Its `spell_type` identifier, such as `SPELL_BLINK`.
+    pub spell: &'static str,
+    /// What it does.
+    pub effect: Relief,
+    /// It translocates the player.
+    pub translocation: bool,
+}
+
+impl SpellRule {
+    /// A spell that does `effect` without translocating the player.
+    const fn new(spell: &'static str, effect: Relief) -> Self {
+        Self {
+            spell,
+            effect,
+            translocation: false,
+        }
+    }
+
+    /// This spell, translocating the player.
+    const fn translocating(self) -> Self {
+        Self {
+            translocation: true,
+            ..self
+        }
+    }
+}
+
 /// An ability that is a Way Out, by the name `ability.cc` gives it.
 pub struct AbilityRule {
     /// Its name, which `ability.cc`'s table of abilities must give `ability`.
@@ -52,19 +113,30 @@ pub struct AbilityRule {
 }
 
 impl AbilityRule {
-    const fn new(
-        name: &'static str,
-        ability: &'static str,
-        effect: Relief,
-        invocation: bool,
-        translocation: bool,
-    ) -> Self {
+    /// An ability that isn't a god's power and does `effect` without translocating the player.
+    const fn new(name: &'static str, ability: &'static str, effect: Relief) -> Self {
         Self {
             name,
             ability,
             effect,
-            invocation,
-            translocation,
+            invocation: false,
+            translocation: false,
+        }
+    }
+
+    /// A god's power that does `effect` without translocating the player.
+    const fn invocation(name: &'static str, ability: &'static str, effect: Relief) -> Self {
+        Self {
+            invocation: true,
+            ..Self::new(name, ability, effect)
+        }
+    }
+
+    /// This ability, translocating the player.
+    const fn translocating(self) -> Self {
+        Self {
+            translocation: true,
+            ..self
         }
     }
 }
@@ -96,118 +168,48 @@ pub struct AbilityChecks {
 /// translocation as `player::no_tele`.
 pub const WAY_OUT_RULES_0_34: WayOutRules = WayOutRules {
     items: &[
-        ("OBJ_POTIONS", "POT_HEAL_WOUNDS", Relief::Heals, false),
-        ("OBJ_POTIONS", "POT_CURING", Relief::Heals, false),
-        ("OBJ_POTIONS", "POT_HASTE", Relief::Hastens, false),
-        ("OBJ_POTIONS", "POT_INVISIBILITY", Relief::Hinders, false),
-        (
-            "OBJ_POTIONS",
-            "POT_BERSERK_RAGE",
-            Relief::Strengthens,
-            false,
-        ),
-        ("OBJ_SCROLLS", "SCR_BLINKING", Relief::Escapes, true),
-        (
-            "OBJ_SCROLLS",
-            "SCR_TELEPORTATION",
-            Relief::EscapesLater,
-            true,
-        ),
-        ("OBJ_SCROLLS", "SCR_FOG", Relief::Hinders, false),
-        ("OBJ_SCROLLS", "SCR_FEAR", Relief::Hinders, false),
+        ItemRule::new("OBJ_POTIONS", "POT_HEAL_WOUNDS", Relief::Heals),
+        ItemRule::new("OBJ_POTIONS", "POT_CURING", Relief::Heals),
+        ItemRule::new("OBJ_POTIONS", "POT_HASTE", Relief::Hastens),
+        ItemRule::new("OBJ_POTIONS", "POT_INVISIBILITY", Relief::Hinders),
+        ItemRule::new("OBJ_POTIONS", "POT_BERSERK_RAGE", Relief::Strengthens),
+        ItemRule::new("OBJ_SCROLLS", "SCR_BLINKING", Relief::Escapes).translocating(),
+        ItemRule::new("OBJ_SCROLLS", "SCR_TELEPORTATION", Relief::EscapesLater).translocating(),
+        ItemRule::new("OBJ_SCROLLS", "SCR_FOG", Relief::Hinders),
+        ItemRule::new("OBJ_SCROLLS", "SCR_FEAR", Relief::Hinders),
     ],
     spells: &[
-        ("SPELL_BLINK", Relief::Escapes, true),
-        ("SPELL_GOLUBRIAS_PASSAGE", Relief::Escapes, true),
-        ("SPELL_PASSWALL", Relief::EscapesLater, false),
-        ("SPELL_SWIFTNESS", Relief::Hastens, false),
+        SpellRule::new("SPELL_BLINK", Relief::Escapes).translocating(),
+        SpellRule::new("SPELL_GOLUBRIAS_PASSAGE", Relief::Escapes).translocating(),
+        SpellRule::new("SPELL_PASSWALL", Relief::EscapesLater),
+        SpellRule::new("SPELL_SWIFTNESS", Relief::Hastens),
     ],
     abilities: &[
-        AbilityRule::new(
-            "Evoke Blink",
-            "ABIL_EVOKE_BLINK",
-            Relief::Escapes,
-            false,
-            true,
-        ),
-        AbilityRule::new("Blinkbolt", "ABIL_BLINKBOLT", Relief::Escapes, false, true),
-        AbilityRule::new("Hop", "ABIL_HOP", Relief::Escapes, false, false),
-        AbilityRule::new(
-            "Heal Wounds",
-            "ABIL_HEAL_WOUNDS",
-            Relief::Heals,
-            false,
-            false,
-        ),
-        AbilityRule::new(
-            "Berserk",
-            "ABIL_TROG_BERSERK",
-            Relief::Strengthens,
-            true,
-            false,
-        ),
-        AbilityRule::new(
-            "Sanctuary",
-            "ABIL_ZIN_SANCTUARY",
-            Relief::Hinders,
-            true,
-            false,
-        ),
-        AbilityRule::new(
-            "Heal Self",
-            "ABIL_ELYVILON_HEAL_SELF",
-            Relief::Heals,
-            true,
-            false,
-        ),
-        AbilityRule::new(
-            "Draw Escape",
-            "ABIL_NEMELEX_DRAW_ESCAPE",
-            Relief::Escapes,
-            true,
-            false,
-        ),
-        AbilityRule::new(
-            "Bend Time",
-            "ABIL_CHEIBRIADOS_TIME_BEND",
-            Relief::Hinders,
-            true,
-            false,
-        ),
-        AbilityRule::new(
+        AbilityRule::new("Evoke Blink", "ABIL_EVOKE_BLINK", Relief::Escapes).translocating(),
+        AbilityRule::new("Blinkbolt", "ABIL_BLINKBOLT", Relief::Escapes).translocating(),
+        AbilityRule::new("Hop", "ABIL_HOP", Relief::Escapes),
+        AbilityRule::new("Heal Wounds", "ABIL_HEAL_WOUNDS", Relief::Heals),
+        AbilityRule::invocation("Berserk", "ABIL_TROG_BERSERK", Relief::Strengthens),
+        AbilityRule::invocation("Sanctuary", "ABIL_ZIN_SANCTUARY", Relief::Hinders),
+        AbilityRule::invocation("Heal Self", "ABIL_ELYVILON_HEAL_SELF", Relief::Heals),
+        AbilityRule::invocation("Draw Escape", "ABIL_NEMELEX_DRAW_ESCAPE", Relief::Escapes),
+        AbilityRule::invocation("Bend Time", "ABIL_CHEIBRIADOS_TIME_BEND", Relief::Hinders),
+        AbilityRule::invocation(
             "Step From Time",
             "ABIL_CHEIBRIADOS_TIME_STEP",
             Relief::Escapes,
-            true,
-            false,
         ),
-        AbilityRule::new(
-            "Shadowslip",
-            "ABIL_DITHMENOS_SHADOWSLIP",
-            Relief::Escapes,
-            true,
-            false,
-        ),
-        AbilityRule::new(
-            "Draw Out Power",
-            "ABIL_RU_DRAW_OUT_POWER",
-            Relief::Heals,
-            true,
-            false,
-        ),
-        AbilityRule::new(
+        AbilityRule::invocation("Shadowslip", "ABIL_DITHMENOS_SHADOWSLIP", Relief::Escapes),
+        AbilityRule::invocation("Draw Out Power", "ABIL_RU_DRAW_OUT_POWER", Relief::Heals),
+        AbilityRule::invocation(
             "Serpent's Lash",
             "ABIL_WU_JIAN_SERPENTS_LASH",
             Relief::Hastens,
-            true,
-            false,
         ),
-        AbilityRule::new(
+        AbilityRule::invocation(
             "Rising Flame",
             "ABIL_IGNIS_RISING_FLAME",
             Relief::EscapesLater,
-            true,
-            false,
         ),
     ],
     stops: &[
@@ -292,39 +294,42 @@ impl Crawl {
         let items = rules
             .items
             .iter()
-            .map(|&(class, sub_type, effect, translocation)| {
+            .map(|rule| {
                 let known = item_classes.values().any(|known| {
-                    known.id.0 == class
-                        && known.sub_types.values().any(|known| known.id.0 == sub_type)
+                    known.id.0 == rule.class
+                        && known
+                            .sub_types
+                            .values()
+                            .any(|known| known.id.0 == rule.sub_type)
                 });
                 if !known {
                     return Err(ExtractError::Missing {
                         file: "item-prop-enum.h".to_owned(),
-                        what: format!("{sub_type}, an item of {class}"),
+                        what: format!("{}, an item of {}", rule.sub_type, rule.class),
                     });
                 }
                 Ok(EscapeItem {
-                    class: EnumId(class.to_owned()),
-                    sub_type: EnumId(sub_type.to_owned()),
-                    effect,
-                    translocation,
+                    class: EnumId(rule.class.to_owned()),
+                    sub_type: EnumId(rule.sub_type.to_owned()),
+                    effect: rule.effect,
+                    translocation: rule.translocation,
                 })
             })
             .collect::<Result<_, _>>()?;
         let spells = rules
             .spells
             .iter()
-            .map(|&(spell, effect, translocation)| {
-                if !spells.values().any(|known| known.id.0 == spell) {
+            .map(|rule| {
+                if !spells.values().any(|known| known.id.0 == rule.spell) {
                     return Err(ExtractError::Missing {
                         file: "spell-type.h".to_owned(),
-                        what: spell.to_owned(),
+                        what: rule.spell.to_owned(),
                     });
                 }
                 Ok(EscapeSpell {
-                    spell: EnumId(spell.to_owned()),
-                    effect,
-                    translocation,
+                    spell: EnumId(rule.spell.to_owned()),
+                    effect: rule.effect,
+                    translocation: rule.translocation,
                 })
             })
             .collect::<Result<_, _>>()?;
