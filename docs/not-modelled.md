@@ -439,13 +439,13 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **Harness:** none.
 - **Impact and cost:** errs low: a hostile just out of view may cut off a staircase called clear, or stand in the way to it. Reading detected monsters from the map would close part of it.
 
-### Each ability's and spell's own conditions
+### Each spell's own conditions, and an ability's from a Stale list
 
-- **What crawl does:** each ability and spell has conditions of its own, such as piety, a cooldown, an exhausted berserker or a free square to blink to (`check_ability_possible`, `can_cast_spells`).
-- **What the engine assumes:** an ability or spell is usable if the player has the magic for it and no status stops it.
-- **Surfaced as:** `ownConditions`, when an ability or spell is among the Ways Out.
+- **What crawl does:** each ability and spell has conditions of its own, such as piety, a cooldown, an empty deck or a free square to blink to (`check_ability_possible`, `can_cast_spells`). The ability menu greys out an ability that fails them.
+- **What the engine assumes:** a spell is usable if the player has the magic for it and no status stops it. An ability is stopped by the statuses that stop it in particular, read from crawl's checks, and by too little magic; one the ability menu greyed out for a reason the Advisor couldn't see as it was read stays stopped until the menu is read again. An ability the menu showed while the list is Known was checked by crawl itself; one from a Stale list may since have been greyed out, or no longer be.
+- **Surfaced as:** `ownConditions`, when a spell, or an ability read only from a Stale ability list, is among the Ways Out.
 - **Harness:** none.
-- **Impact and cost:** a Way Out shown usable may not be. The ability menu greys out some of these ([#108]); the rest are each their own port.
+- **Impact and cost:** a spell shown usable may not be; each spell's conditions are their own port. An ability's unseen conditions, such as an emptied deck or a sanctuary placed since, may change without the list going Stale.
 
 [#40]: https://github.com/jrmitch120/dcss-copilot/issues/40
 [#77]: https://github.com/jrmitch120/dcss-copilot/issues/77
@@ -455,6 +455,5 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92
 [#94]: https://github.com/jrmitch120/dcss-copilot/issues/94
 [#95]: https://github.com/jrmitch120/dcss-copilot/issues/95
-[#108]: https://github.com/jrmitch120/dcss-copilot/issues/108
 [#120]: https://github.com/jrmitch120/dcss-copilot/issues/120
 [#121]: https://github.com/jrmitch120/dcss-copilot/issues/121

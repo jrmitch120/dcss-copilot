@@ -11,9 +11,11 @@ use crate::crawl_ids::{armour_types, object_classes};
 use crate::screen::{
     KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations, Skills, SpellReach,
 };
+use crate::view_model::Colour;
 use crate::visible_state::{
     GameMessage, InventoryItem, Sighting, Status, VisibleMonster, VisibleState,
 };
+use crate::ways_out;
 
 /// What the Advisor remembers of one game.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -55,6 +57,10 @@ pub struct AccumulatedState {
     ///
     /// For each of these, the inventory changes when what is carried does: crawl greying an
     /// item out or not, which follows the character's statuses, isn't a change.
+    ///
+    /// A Way Out the menu greyed out is remembered so only when nothing the Advisor saw as it
+    /// was read explains it: a status that stops it or too little magic, which the Ways Out
+    /// judge afresh every turn.
     pub abilities: Remembered<Vec<KnownAbility>>,
     /// The mutations and banes the character has, as the mutations screen (`A`) last showed
     /// them, with the experience level they had then. It goes Stale when the experience level
@@ -212,8 +218,14 @@ impl<T> Remembered<T> {
 }
 
 impl AccumulatedState {
-    /// Remembers what a screen the player opened shows, read on `visible`'s turn.
-    pub(crate) fn read(&mut self, read: &ScreenRead, visible: &VisibleState) {
+    /// Remembers what a screen the player opened shows, read on `visible`'s turn through
+    /// `knowledge`, the Game Knowledge for the game's Crawl Version, if the Advisor has it.
+    pub(crate) fn read(
+        &mut self,
+        read: &ScreenRead,
+        visible: &VisibleState,
+        knowledge: Option<&Bundle>,
+    ) {
         if let Some(resistances) = read.resistances() {
             self.resistances = Remembered::read(resistances, read, visible);
         }
@@ -232,7 +244,14 @@ impl AccumulatedState {
         if let Some(skills) = read.skills() {
             self.skills = Remembered::read(skills, read, visible);
         }
-        if let Some(abilities) = read.abilities() {
+        let greyed_out =
+            knowledge.and_then(|bundle| Colour::from_crawl(bundle.ways_out.inapplicable_colour));
+        if let Some(mut abilities) = read.abilities(greyed_out) {
+            if let Some(bundle) = knowledge {
+                for ability in &mut abilities {
+                    ability.greyed_out &= ways_out::greyed_out_unseen(visible, bundle, ability);
+                }
+            }
             self.abilities = Remembered::read(abilities, read, visible);
         }
         if let Some(shown) = read.mutations() {
@@ -625,9 +644,10 @@ mod tests {
             screen: Screen::CharacterOverview,
             title: None,
             lines: vec!["rFire   + . .".to_owned()],
+            colours: BTreeMap::new(),
         };
         let mut remembered = AccumulatedState::default();
-        remembered.read(&overview, before);
+        remembered.read(&overview, before, None);
         assert!(remembered.resistances.known().is_some());
         remembered.update(before, now, None);
         matches!(remembered.resistances, Remembered::Stale(_))
@@ -707,6 +727,7 @@ mod tests {
                 " a - Your snake-like lower body moves slowly.".to_owned(),
                 " b - You cover ground slowly. [3.5]".to_owned(),
             ],
+            colours: BTreeMap::new(),
         }
     }
 
@@ -722,7 +743,7 @@ mod tests {
     /// The mutations read off the mutations screen in `before`, once the game reports `now`.
     fn mutations_after(before: &VisibleState, now: &VisibleState) -> Remembered<MutationsRead> {
         let mut remembered = AccumulatedState::default();
-        remembered.read(&mutations_screen(), before);
+        remembered.read(&mutations_screen(), before, None);
         remembered.update(before, now, Some(bundle()));
         remembered.mutations
     }
@@ -731,7 +752,7 @@ mod tests {
     fn the_mutations_screen_is_known_as_of_the_turn_and_level_it_was_read() {
         let mut remembered = AccumulatedState::default();
         assert_eq!(remembered.mutations, Remembered::Missing);
-        remembered.read(&mutations_screen(), &character());
+        remembered.read(&mutations_screen(), &character(), None);
         let Remembered::Known(read) = &remembered.mutations else {
             panic!("{:?}", remembered.mutations);
         };

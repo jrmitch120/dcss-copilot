@@ -1,0 +1,231 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz709283217",
+    "character": "wiz709283217",
+    "species": "Minotaur",
+    "firstSeenMs": 1792709284463,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "end": {
+    "turn": 1,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 19,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 4,
+        "hostilesInView": 1,
+        "bestPlanWin": null,
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 0,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "backlit",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "ability",
+              "name": "Draw Escape",
+              "effect": "escapes",
+              "failurePercent": 0,
+              "read": {
+                "turn": 1,
+                "stale": false
+              }
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "greyedOut",
+                  "read": {
+                    "turn": 1,
+                    "stale": false
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 3,
+          "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
+        },
+        "gaps": [],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
+      }
+    },
+    "game": {
+      "character": {
+        "name": "wiz709283217",
+        "species": "Minotaur",
+        "hp": 19,
+        "hpMax": 19,
+        "turn": 1
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "line": "Jackal can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
+        ]
+      },
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Escape hatch in the floor",
+            "detail": "2 steps",
+            "whyNot": "Jackal is faster"
+          },
+          {
+            "usable": false,
+            "name": "Draw Escape",
+            "detail": "ability · 0% fail",
+            "whyNot": "greyed out in the ability menu as of turn 1"
+          }
+        ],
+        "ground": "On open ground: 3 sides open",
+        "gaps": []
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      }
+    }
+  }
+}

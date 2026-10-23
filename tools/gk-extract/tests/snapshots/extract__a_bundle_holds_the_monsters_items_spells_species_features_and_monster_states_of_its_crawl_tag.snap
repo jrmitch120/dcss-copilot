@@ -2986,85 +2986,120 @@ expression: bundle
         "name": "Evoke Blink",
         "effect": "escapes",
         "invocation": false,
-        "translocation": true
+        "translocation": true,
+        "stoppedBy": [
+          "-Blink"
+        ]
       },
       {
         "name": "Blinkbolt",
         "effect": "escapes",
         "invocation": false,
-        "translocation": true
+        "translocation": true,
+        "stoppedBy": [
+          "-Bbolt"
+        ]
       },
       {
         "name": "Hop",
         "effect": "escapes",
         "invocation": false,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "-Hop"
+        ]
       },
       {
         "name": "Heal Wounds",
         "effect": "heals",
         "invocation": false,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "DDoor"
+        ]
       },
       {
         "name": "Berserk",
         "effect": "strengthens",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "-Berserk",
+          "DDoor",
+          "Berserk",
+          "Mesm"
+        ]
       },
       {
         "name": "Sanctuary",
         "effect": "hinders",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": []
       },
       {
         "name": "Heal Self",
         "effect": "heals",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "DDoor"
+        ]
       },
       {
         "name": "Draw Escape",
         "effect": "escapes",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": []
       },
       {
         "name": "Bend Time",
         "effect": "hinders",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": []
       },
       {
         "name": "Step From Time",
         "effect": "escapes",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": []
       },
       {
         "name": "Shadowslip",
         "effect": "escapes",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": []
       },
       {
         "name": "Draw Out Power",
         "effect": "heals",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "Exh"
+        ]
       },
       {
         "name": "Serpent's Lash",
         "effect": "hastens",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "Exh"
+        ]
       },
       {
         "name": "Rising Flame",
         "effect": "escapesLater",
         "invocation": true,
-        "translocation": false
+        "translocation": false,
+        "stoppedBy": [
+          "Rise"
+        ]
       }
     ],
     "stops": [
@@ -3118,6 +3153,7 @@ expression: bundle
         ]
       }
     ],
+    "inapplicableColour": 8,
     "noSpells": "You don't know any spells.",
     "noAbilities": "Sorry, you're not good enough to have a special ability."
   },
@@ -3172,11 +3208,19 @@ expression: bundle
         "status": "helpless"
       },
       {
+        "light": "-Berserk",
+        "status": null
+      },
+      {
         "light": "Conf",
         "status": null
       },
       {
         "light": "Corona",
+        "status": null
+      },
+      {
+        "light": "Exh",
         "status": null
       },
       {
@@ -3192,7 +3236,27 @@ expression: bundle
         "status": null
       },
       {
+        "light": "DDoor",
+        "status": null
+      },
+      {
+        "light": "-Hop",
+        "status": null
+      },
+      {
+        "light": "-Bbolt",
+        "status": null
+      },
+      {
         "light": "-Cast",
+        "status": null
+      },
+      {
+        "light": "Rise",
+        "status": null
+      },
+      {
+        "light": "-Blink",
         "status": null
       },
       {
@@ -3213,6 +3277,10 @@ expression: bundle
       },
       {
         "light": "Fire++",
+        "status": null
+      },
+      {
+        "light": "Mesm",
         "status": null
       },
       {

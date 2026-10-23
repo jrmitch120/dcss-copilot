@@ -175,6 +175,9 @@ expression: replay.timeline
     "title": "  Ability - do what?                  Cost                          Failure",
     "lines": [
       " a - Berserk                        None                            0%"
-    ]
+    ],
+    "colours": {
+      "0": "darkGrey"
+    }
   }
 ]

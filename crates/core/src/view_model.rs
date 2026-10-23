@@ -282,7 +282,8 @@ pub struct Glyph {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 pub struct TileName(pub String);
 
-/// The sixteen colours DCSS draws glyphs in, named as crawl names them, in crawl's order.
+/// The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
+/// them, in crawl's order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Colour {

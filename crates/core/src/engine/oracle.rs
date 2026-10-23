@@ -1379,6 +1379,7 @@ pub fn player_move(
         screen: Screen::Mutations,
         title: None,
         lines: case.mutations.clone(),
+        colours: BTreeMap::new(),
     };
     let mutations = MutationsRead {
         shown: screen.mutations().unwrap_or_default(),

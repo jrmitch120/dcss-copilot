@@ -86,11 +86,15 @@ impl Advisor {
                 self.visible = *visible;
             }
             SourceEvent::ScreenRead(read) => {
+                let knowledge = self
+                    .identity
+                    .as_ref()
+                    .and_then(|identity| identity.knowledge(&self.knowledge));
                 if let Some(remembered) = self
                     .followed_key()
                     .and_then(|key| self.remembered.get_mut(&key))
                 {
-                    remembered.read(&read, &self.visible);
+                    remembered.read(&read, &self.visible, knowledge);
                 }
             }
             // A game's sessions don't change what is remembered of it: a resynced game is the

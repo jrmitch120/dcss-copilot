@@ -1,0 +1,24 @@
+description = "A Minotaur Berserker of Trog enters wizard mode on turn 0 of a seeded game, opens the ability menu, goes berserk and waits until the rage ends; while they recover, which the -Berserk light shows, they open the ability menu again, which greys Berserk out, and create a jackal beside them"
+recording = "berserker-cools-down.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [6]       # recovering, with the menu last read before the rage
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command: none.
+  "&", "wiz\r", "\u001b",
+  # Open the ability menu, closing it.
+  "a", "\u001b",
+  # Go berserk: the ability menu's first ability.
+  "a", "a", "\u001b",
+  # Wait a turn at a time until the rage has ended, but not the recovery from it.
+  "s", "s", "s", "s", "s", "s", "s", "s", "s", "s",
+  # Open the ability menu again, which greys Berserk out while they recover.
+  "a", "\u001b",
+  # Create a monster by name beside them, for the panel to list the Ways Out: a jackal.
+  "&", "m", "jackal\r", "\u001b",
+]

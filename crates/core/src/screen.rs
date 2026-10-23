@@ -5,8 +5,11 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use crate::view_model::Colour;
+
 /// A screen the player has open, read as plain text: crawl's own words, laid out as crawl lays
-/// them out, so the core reads it the same whichever Game Source it came from.
+/// them out, so the core reads it the same whichever Game Source it came from, with the colour
+/// crawl gives a menu's entries.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScreenRead {
@@ -17,6 +20,11 @@ pub struct ScreenRead {
     /// Its text, line by line, without colours: the rows of a text screen, or one line per
     /// entry of a menu.
     pub lines: Vec<String>,
+    /// The colour of each entry of a menu crawl draws in a colour of its own, rather than the
+    /// menu's, by its index in `lines`: such as an ability crawl greys out as one that can't be
+    /// used now. Empty for a text screen.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub colours: BTreeMap<usize, Colour>,
 }
 
 /// Which screen the player has open.
@@ -145,6 +153,11 @@ pub struct KnownAbility {
     pub magic_cost: u32,
     /// The chance of failing to use it, in percent.
     pub failure_percent: u32,
+    /// Crawl greyed its row out as one that can't be used now (`check_ability_possible`). What
+    /// the Advisor remembers of the menu keeps this only for a Way Out greyed out for a reason it
+    /// couldn't see as the menu was read, such as an empty deck, a sanctuary already in place or
+    /// stasis: not one a status it showed then, or too little magic, explains.
+    pub greyed_out: bool,
 }
 
 impl ScreenRead {
@@ -233,16 +246,18 @@ impl ScreenRead {
     }
 
     /// The abilities, when this is the ability menu: one per row as `a - Berserk    None    0%`,
-    /// the name, the cost and the failure rate (`describe_talent` in crawl's `ability.cc`).
+    /// the name, the cost and the failure rate (`describe_talent` in crawl's `ability.cc`), each
+    /// greyed out when its row is in the colour `greyed_out`, if the Advisor knows it.
     #[must_use]
-    pub fn abilities(&self) -> Option<Vec<KnownAbility>> {
+    pub fn abilities(&self, greyed_out: Option<Colour>) -> Option<Vec<KnownAbility>> {
         if self.screen != Screen::Abilities {
             return None;
         }
         self.lines
             .iter()
-            .filter_map(|line| menu_entry(line))
-            .map(|row| {
+            .enumerate()
+            .filter_map(|(index, line)| Some((index, menu_entry(line)?)))
+            .map(|(index, row)| {
                 let columns = columns(row);
                 let [name, cost, failure] = columns.as_slice() else {
                     return None;
@@ -252,6 +267,8 @@ impl ScreenRead {
                     cost: (*cost).to_owned(),
                     magic_cost: magic_cost(cost),
                     failure_percent: percent(failure)?,
+                    greyed_out: greyed_out.is_some()
+                        && self.colours.get(&index) == greyed_out.as_ref(),
                 })
             })
             .collect()
@@ -542,6 +559,7 @@ mod tests {
             screen,
             title: None,
             lines: lines.iter().map(|&line| line.to_owned()).collect(),
+            colours: BTreeMap::new(),
         }
     }
 

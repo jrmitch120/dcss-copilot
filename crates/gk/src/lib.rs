@@ -140,6 +140,9 @@ pub struct WayOutSigns {
     pub abilities: Vec<EscapeAbility>,
     /// The statuses that stop the player using things.
     pub stops: Vec<Stop>,
+    /// The colour the ability menu draws an ability in when crawl's checks say it can't be used
+    /// now (`COL_INAPPLICABLE`), as crawl's `COLOURS` numbers it.
+    pub inapplicable_colour: u8,
     /// The message crawl gives instead of the spell list when the player knows no spells.
     pub no_spells: String,
     /// The message crawl gives instead of the ability menu when the player has no abilities.
@@ -184,6 +187,10 @@ pub struct EscapeAbility {
     pub invocation: bool,
     /// It moves the player by magic, which a dimension anchor stops.
     pub translocation: bool,
+    /// The statuses that stop this ability in particular, besides those [`WayOutSigns::stops`]
+    /// says stop every ability, as the status pane shows them: each one's light, such as
+    /// `-Berserk`, or its words when it has none.
+    pub stopped_by: Vec<String>,
 }
 
 /// What a Way Out does for the player in trouble.
