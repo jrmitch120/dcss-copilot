@@ -153,12 +153,21 @@ pub struct AbilityChecks {
     /// some abilities only as they are used. Only its helper calls are read, as its arms'
     /// other code is the abilities' effects.
     pub used: &'static str,
-    /// The functions that check abilities, each with its file, followed wherever an arm or
-    /// another helper calls them: every overload of each.
-    pub helpers: &'static [(&'static str, &'static str)],
+    /// The functions that check abilities, followed wherever an arm or another helper calls
+    /// them: every overload of each.
+    pub helpers: &'static [CheckHelper],
     /// The tests of a status that isn't a duration, by the function crawl tests it with, with
     /// the light the status pane shows for it.
     pub tests: &'static [(&'static str, Shown)],
+}
+
+/// A function that checks abilities, which [`AbilityChecks`] follows wherever it is called.
+#[derive(Clone, Copy)]
+pub struct CheckHelper {
+    /// Its name, such as `_can_hop`.
+    pub function: &'static str,
+    /// The file it is defined in, such as `ability.cc`.
+    pub file: &'static str,
 }
 
 /// What crawl 0.34 counts as a Way Out, and what stops each: reading as
@@ -243,11 +252,26 @@ pub const WAY_OUT_RULES_0_34: WayOutRules = WayOutRules {
         possible: "_check_ability_possible",
         used: "_do_ability",
         helpers: &[
-            ("_can_hop", ABILITY_FILE),
-            ("_can_blinkbolt", ABILITY_FILE),
-            ("_can_rising_flame", ABILITY_FILE),
-            ("can_go_berserk", "player-act.cc"),
-            ("berserk", "player-act.cc"),
+            CheckHelper {
+                function: "_can_hop",
+                file: ABILITY_FILE,
+            },
+            CheckHelper {
+                function: "_can_blinkbolt",
+                file: ABILITY_FILE,
+            },
+            CheckHelper {
+                function: "_can_rising_flame",
+                file: ABILITY_FILE,
+            },
+            CheckHelper {
+                function: "can_go_berserk",
+                file: "player-act.cc",
+            },
+            CheckHelper {
+                function: "berserk",
+                file: "player-act.cc",
+            },
         ],
         // `fill_status_info`'s light for STATUS_BEHELD.
         tests: &[("beheld", Shown::quoted("Mesm", "status.cc"))],
@@ -403,16 +427,16 @@ impl Crawl {
             checked.calls(arm, checks);
         }
         let mut followed = BTreeSet::new();
-        while let Some((helper, file)) = checked.helpers.pop() {
-            if !followed.insert(helper) {
+        while let Some(CheckHelper { function, file }) = checked.helpers.pop() {
+            if !followed.insert(function) {
                 continue;
             }
             let source = self.parse(file)?;
-            let bodies = source.function_bodies(helper)?;
+            let bodies = source.function_bodies(function)?;
             if bodies.is_empty() {
                 return Err(ExtractError::Missing {
                     file: file.to_owned(),
-                    what: format!("the function {helper}"),
+                    what: format!("the function {function}"),
                 });
             }
             for body in bodies {
@@ -511,12 +535,12 @@ impl Crawl {
 }
 
 /// What the checks on one ability were found to read: the durations and tests that stop it, in
-/// the order they are read, and the helpers still to follow, each with its file.
+/// the order they are read, and the helpers still to follow.
 #[derive(Default)]
 struct Checked {
     durations: Vec<String>,
     tests: Vec<String>,
-    helpers: Vec<(&'static str, &'static str)>,
+    helpers: Vec<CheckHelper>,
 }
 
 impl Checked {
@@ -550,7 +574,10 @@ impl Checked {
     fn calls(&mut self, tokens: &[Token], checks: &AbilityChecks) {
         for window in tokens.windows(2) {
             if let [Token::Ident(ident), Token::Punct('(')] = window
-                && let Some(&helper) = checks.helpers.iter().find(|(name, _)| name == ident)
+                && let Some(&helper) = checks
+                    .helpers
+                    .iter()
+                    .find(|helper| helper.function == ident)
             {
                 self.helpers.push(helper);
             }
