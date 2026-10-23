@@ -19,7 +19,7 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 - **What the engine assumes:** a monster whose Carried Gear shows what it holds fights with it: the weapon `monster::weapon` gives each attack, its accuracy, damage, enchantment and the brands `brands.rs` ports, its reach, and its brand's delay, and it makes no attack only a weapon makes when it holds no melee weapon. A kind that uses no items holds none. Any other monster fights with its kind's attacks alone, as if it wields nothing, but still makes the attacks only a weapon makes: its Carried Gear isn't read, its listing (a group's sighting message) may leave out a plain weapon in its main hand, it holds something the Advisor can't name as a weapon, such as a magical staff or an artefact whose name doesn't show its kind, or it is an animated object. No monster's armour or shield is counted, which matters only to the player's attacks, and the engine doesn't play those.
 - **Surfaced as:** `monsterEquipment`, while a monster in view that can fight in melee may wield a weapon the Advisor hasn't read. A weapon's enchantment or brand its name doesn't show, and a brand that isn't ported, are listed with the monster's gear as unplayed.
 - **Harness:** melee leaves out animated objects; the turn harness makes its monsters with no items, and the missile harness with nothing but what they shoot.
-- **Impact and cost:** large for an armed monster seen only in a group's sighting message, or out of view since, such as an orc with a good weapon; little for beasts. Reading its look text (`x`) closes it; animated objects need their item read from their name.
+- **Impact and cost:** large for an armed monster seen only in a group's sighting message, or out of view since, such as an orc with a good weapon; little for beasts. Reading its look text (`x`) or the full-view list (`Ctrl-X`) closes it; animated objects need their item read from their name.
 
 ### Attack flavours
 
@@ -128,12 +128,12 @@ An entry is deleted when what it describes is modelled. `cargo test -p copilot-c
 
 ### Carried Gear
 
-- **What crawl does:** a monster carries the launcher, missiles and wand it was made with or picked up, with their enchantments and brands (`give_item`), and lists them as it comes into view and in its look text (`get_monster_equipment_desc`).
+- **What crawl does:** a monster carries the launcher, missiles and wand it was made with or picked up, with their enchantments and brands (`give_item`), and lists them as it comes into view, in its look text and in the full-view list (`get_monster_equipment_desc`).
 - **What the engine assumes:** a monster whose Carried Gear the Advisor hasn't read is judged by its kind's Possible Gear, the odds crawl makes its kind with, its launcher or missiles +0 and unbranded. That is one that came back into view, which crawl doesn't list again, or came with others whose message didn't list it or listed it among others of its name. Where a listing leaves out what a monster may still carry, an ordinary launcher in a group's main hand or unbranded large rocks, Possible Gear is played given that it is nothing the listing would have named, and an unidentified wand by its kind's wand odds given that it has one.
 - **Surfaced as:** `carriedGear`, when a monster whose kind may shoot, throw or zap is in view without its Carried Gear read; and each monster's gear on the Fact Sheet, with what of its Carried Gear isn't played: an enchantment or brand its name doesn't show, a brand the engine doesn't port, or a wand neither named nor one its kind is made with.
 - **Harness:** the missile harness draws a monster's launcher or missile from its gear, so never both: a monster with both, which takes its launcher two times in three (`handle_throw`), isn't checked.
-- **Impact and cost:** large for a monster whose gear isn't read, with a good launcher or a wand its kind seldom has. Looking at it (`x`) reads its gear; reading picked-up gear off the pick-up and wield messages, which only make it Stale, would keep more of it Known.
-- **Issue:** [#113], [#114], [#116]
+- **Impact and cost:** large for a monster whose gear isn't read, with a good launcher or a wand its kind seldom has. Looking at it (`x`) or at the full-view list (`Ctrl-X`) reads its gear, unless another in view shares its name; reading picked-up gear off the pick-up and wield messages, which only make it Stale, would keep more of it Known.
+- **Issue:** [#114], [#116]
 
 ### Wands not played out
 
@@ -449,7 +449,6 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 
 [#40]: https://github.com/jrmitch120/dcss-copilot/issues/40
 [#77]: https://github.com/jrmitch120/dcss-copilot/issues/77
-[#113]: https://github.com/jrmitch120/dcss-copilot/issues/113
 [#114]: https://github.com/jrmitch120/dcss-copilot/issues/114
 [#116]: https://github.com/jrmitch120/dcss-copilot/issues/116
 [#92]: https://github.com/jrmitch120/dcss-copilot/issues/92

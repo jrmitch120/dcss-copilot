@@ -81,7 +81,7 @@ pub struct AccumulatedState {
     unplaced: Vec<Unplaced>,
 }
 
-/// What the game said a monster's Carried Gear is, in which message.
+/// Where the game listed a monster's Carried Gear: in which message, or on the full-view list.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum GearSource {
@@ -89,6 +89,8 @@ pub enum GearSource {
     Sighting,
     /// The look text, as the look cursor rested on it.
     Look,
+    /// The full-view list (`Ctrl-X`), which lists every monster in view.
+    FullView,
 }
 
 /// A sighting message's read of one monster's gear, waiting for the monster to be in view.
@@ -219,7 +221,9 @@ impl<T> Remembered<T> {
 
 impl AccumulatedState {
     /// Remembers what a screen the player opened shows, read on `visible`'s turn through
-    /// `knowledge`, the Game Knowledge for the game's Crawl Version, if the Advisor has it.
+    /// `knowledge`, the Game Knowledge for the game's Crawl Version, if the Advisor has it: on
+    /// the full-view list, the Carried Gear of each monster it names that no other in view
+    /// shares the name of.
     pub(crate) fn read(
         &mut self,
         read: &ScreenRead,
@@ -260,6 +264,16 @@ impl AccumulatedState {
                 xl: visible.stats.xl,
             };
             self.mutations = Remembered::read(mutations, read, visible);
+        }
+        if let (Some(bundle), Some(monsters)) = (knowledge, read.full_view_monsters()) {
+            for description in monsters {
+                let Some((name, gear)) = carried_gear::full_view(&description, bundle) else {
+                    continue;
+                };
+                if let Some(monster) = only_named(&name, visible) {
+                    self.remember(monster, gear, GearSource::FullView, visible.turn, bundle);
+                }
+            }
         }
     }
 
