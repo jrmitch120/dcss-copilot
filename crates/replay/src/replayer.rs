@@ -4,14 +4,14 @@
 use std::ops::Range;
 
 use copilot_core::{
-    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, Detection, SourceEvent,
-    ViewModel,
+    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, SourceEvent, ViewModel,
 };
 use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
 use crate::Recording;
+use crate::following::{Following, Happened};
 
 /// Replays a Recording through the webtiles Game Source and the core, as if a browser had relayed
 /// it live.
@@ -76,20 +76,9 @@ pub struct Moment {
     pub event: Happened,
 }
 
-/// What happened at a [`Moment`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(untagged)]
-pub enum Happened {
-    /// The Game Source reported a screen read or a session event.
-    Source(SourceEvent),
-    /// The Advisor's detectors noticed something at a Settled Update.
-    Detected(Detection),
-}
-
-/// The Game Source and the core, fed together.
+/// The Game Source and the core, fed together, and what has happened so far.
 struct Game {
-    source: WebtilesSource,
-    advisor: Advisor,
+    following: Following,
     /// What has happened so far, in order.
     timeline: Vec<Moment>,
     /// How many envelopes have been applied.
@@ -99,23 +88,15 @@ struct Game {
 impl Game {
     fn new(knowledge: &Library) -> Self {
         Self {
-            source: WebtilesSource::new(knowledge.clone()),
-            advisor: Advisor::new(knowledge.clone()),
+            following: Following::new(knowledge),
             timeline: Vec::new(),
             applied: 0,
         }
     }
 
     fn apply(&mut self, envelope: &Envelope) {
-        let mut happened = Vec::new();
-        for event in self.source.ingest(envelope) {
-            let detections = self.advisor.apply(event.clone());
-            if matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_)) {
-                happened.push(Happened::Source(event));
-            }
-            happened.extend(detections.into_iter().map(Happened::Detected));
-        }
-        let turn = self.advisor.visible().turn;
+        let happened = self.following.ingest(envelope);
+        let turn = self.following.advisor().visible().turn;
         self.timeline
             .extend(happened.into_iter().map(|event| Moment {
                 envelope: self.applied,
@@ -240,7 +221,7 @@ impl Replayer {
     /// The core, as the applied envelopes left it.
     #[must_use]
     pub fn advisor(&self) -> &Advisor {
-        &self.game.advisor
+        self.game.following.advisor()
     }
 
     /// The screen reads, session events and what the detectors noticed so far, in order.
@@ -277,7 +258,7 @@ impl Replayer {
             assistance,
             // A replay fails rather than run without the shipped Game Knowledge.
             unreadable_game_knowledge: None,
-            game: self.game.advisor.game_view(assistance),
+            game: self.game.following.advisor().game_view(assistance),
         }
     }
 

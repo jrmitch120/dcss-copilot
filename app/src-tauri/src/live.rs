@@ -5,11 +5,11 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-use copilot_core::{Advisor, Appearance, AssistanceLevel, Connection, ViewModel};
+use copilot_core::{Appearance, AssistanceLevel, Connection, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
-use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
-use copilot_webtiles::{Envelope, WebtilesSource};
+use copilot_replay::{Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
+use copilot_webtiles::Envelope;
 
 use crate::relay::{ApprovalRequest, RelayEvent};
 use crate::settings::{Settings, SettingsError};
@@ -119,7 +119,7 @@ impl Live {
             appearance: state.settings.appearance(),
             assistance: state.settings.assistance(),
             unreadable_game_knowledge: self.unreadable_knowledge.clone(),
-            game: state.game.advisor.game_view(state.settings.assistance()),
+            game: state.game.advisor().game_view(state.settings.assistance()),
         }
     }
 
@@ -219,32 +219,8 @@ impl Live {
 impl State {
     fn ingest(&mut self, envelope: &Envelope) {
         self.recorder.record(envelope);
+        // What the detectors notice reaches the panel through the view model.
         self.game.ingest(envelope);
-    }
-}
-
-/// The game the relay delivers: the webtiles Game Source and the Advisor it feeds, always built
-/// together from the same Game Knowledge.
-struct Following {
-    source: WebtilesSource,
-    advisor: Advisor,
-}
-
-impl Following {
-    /// Nothing followed yet, decoding and judging games through `knowledge`.
-    fn new(knowledge: &Library) -> Self {
-        Self {
-            source: WebtilesSource::new(knowledge.clone()),
-            advisor: Advisor::new(knowledge.clone()),
-        }
-    }
-
-    /// Decodes one relayed envelope and tells the Advisor what the Game Source learned.
-    fn ingest(&mut self, envelope: &Envelope) {
-        for event in self.source.ingest(envelope) {
-            // What the detectors notice reaches the panel through the view model.
-            self.advisor.apply(event);
-        }
     }
 }
 

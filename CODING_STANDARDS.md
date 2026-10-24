@@ -22,7 +22,7 @@ You are the steward of this codebase. Build it thoughtfully and purposefully, wi
 | `crates/gk` | The Game Knowledge bundle schema, shared by the extractor and `core`. |
 | `crates/llm` | The `LlmProvider` trait, provider adapters, and LLM sidecar record and replay. |
 | `crates/store` | SQLite persistence. |
-| `crates/replay` | The Recording format, the in-process replayer and the fake-extension front end. |
+| `crates/replay` | The Recording format, the in-process replayer and the fake-extension front end, and `Following`: the Game Source and the Advisor wired together, which the app runs live and the replayer replays. |
 | `app/src-tauri` | The Tauri shell. Wires the crates together and owns windows, the tray and the keychain. |
 | `app/src` | The Svelte 5 panel, drawn in the app's window and the extension's Side Panel. Renders the view model; holds no game logic. |
 | `extension` | The WXT extension. A pure relay: forwards raw messages, parses and stores nothing, and shows the app's panel in the browser's Side Panel from the view model the app sends (ADR 0001, ADR 0004). |
