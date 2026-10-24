@@ -506,27 +506,38 @@ impl FactSheet {
         species: Option<&str>,
         knowledge: Option<&Bundle>,
     ) -> Self {
-        let Assessed {
-            mut threat,
-            defender,
-            hostiles,
-        } = threat(visible, remembered, species, knowledge);
-        let fight = fight_outcome::judge(visible, remembered, knowledge, defender, hostiles);
-        if let (Threat::Rated(assessment), Some(best)) = (&mut threat, fight.best()) {
-            assessment.best_plan_win = Some(best.win);
-            assessment.level = level(
-                assessment.hp,
-                assessment.death,
-                assessment.worst_hit,
-                assessment.best_plan_win,
-            );
-        }
+        let (threat, fight) = judge(visible, remembered, species, knowledge);
         Self {
             threat,
             ways_out: WaysOut::compute(visible, remembered, species, knowledge),
             fight,
         }
     }
+}
+
+/// The Threat Level of `visible`, with the Fight Outcome it is judged by.
+fn judge(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    species: Option<&str>,
+    knowledge: Option<&Bundle>,
+) -> (Threat, Fight) {
+    let Assessed {
+        mut threat,
+        defender,
+        hostiles,
+    } = threat(visible, remembered, species, knowledge);
+    let fight = fight_outcome::judge(visible, remembered, knowledge, defender, hostiles);
+    if let (Threat::Rated(assessment), Some(best)) = (&mut threat, fight.best()) {
+        assessment.best_plan_win = Some(best.win);
+        assessment.level = level(
+            assessment.hp,
+            assessment.death,
+            assessment.worst_hit,
+            assessment.best_plan_win,
+        );
+    }
+    (threat, fight)
 }
 
 /// Monsters on these sides attack the player: crawl's `mons_att_wont_attack` (`mon-util.cc`)
