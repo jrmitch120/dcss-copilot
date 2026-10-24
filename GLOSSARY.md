@@ -58,6 +58,10 @@ _Avoid_: Screen scrape, menu dump
 Something that happened to the Game Source's view of a game rather than in the game: the Advisor joined it, the source resynced it in full, the connection to it was lost, or it ended.
 _Avoid_: Connection state, lifecycle event
 
+**Settled Update**:
+What the game reports once it has finished reacting to the player and waits for their next command. The Advisor's detectors judge each one once, against the one before; a player action is a Settled Update whose turn has moved on.
+_Avoid_: Tick, frame, turn (when meaning this)
+
 **Accumulated State**:
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache

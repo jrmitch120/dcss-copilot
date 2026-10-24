@@ -128,7 +128,8 @@ impl Replayer {
     /// `knowledge`, such as none at all.
     #[must_use]
     pub fn with_knowledge(recording: Recording, knowledge: Library) -> Self {
-        // The Game Source alone tells each envelope's turn: the Advisor needn't follow along.
+        // The Game Source alone tells each envelope's turn: the Advisor would judge every
+        // Settled Update on the way.
         let mut source = WebtilesSource::new(knowledge.clone());
         let mut turn = None;
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
@@ -146,7 +147,8 @@ impl Replayer {
                             crawl_versions.push(version);
                         }
                     }
-                    SourceEvent::ScreenRead(_) | SourceEvent::Session(_) => {}
+                    SourceEvent::ScreenRead(_) | SourceEvent::Session(_) | SourceEvent::Settled => {
+                    }
                 }
             }
             turns.push(turn);

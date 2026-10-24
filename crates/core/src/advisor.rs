@@ -98,8 +98,8 @@ impl Advisor {
                 }
             }
             // A game's sessions don't change what is remembered of it: a resynced game is the
-            // same game, and a new game has its own game key.
-            SourceEvent::Session(_) => return,
+            // same game, and a new game has its own game key. Nothing judges a Settled Update yet.
+            SourceEvent::Session(_) | SourceEvent::Settled => return,
         }
         self.fact_sheet = OnceLock::new();
     }
