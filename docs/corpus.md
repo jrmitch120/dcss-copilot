@@ -53,6 +53,15 @@ gh release create crawl-0.34.1 --repo jrmitch120/dcss-copilot-corpus --title "Cr
 gh release upload crawl-0.34.1 --repo jrmitch120/dcss-copilot-corpus player-0.34.1-seed-7.dcssrec
 ```
 
+Then write its timeline snapshot, which the corpus test fails without, and review it like any other:
+
+```sh
+cargo run -p corpus -- fetch
+INSTA_UPDATE=always cargo test --release -p copilot-replay --test corpus -- --ignored
+```
+
+Commit `corpus.toml` with the new `corpus__timeline-<game>.snap`; no other snapshot should change.
+
 Never replace an asset in place: a game that changes is a new file with a new hash.
 
 ## Scenarios
