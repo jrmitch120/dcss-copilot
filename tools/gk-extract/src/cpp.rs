@@ -1,5 +1,5 @@
 //! Just enough of C++ to read crawl's enums and data tables: the `TAG_MAJOR_VERSION`
-//! conditionals, function-like macros that build table entries, and tokens.
+//! conditionals, macros that build table entries, and tokens.
 //!
 //! Anything this reader doesn't understand is an error rather than a guess, so a crawl change
 //! that breaks it fails the extraction instead of producing a wrong bundle.
@@ -33,7 +33,7 @@ pub type Enumerator<'a> = (&'a str, Option<&'a [Token]>);
 
 impl Source {
     /// Preprocesses `text` for a build with this `TAG_MAJOR_VERSION`, expands the file's own
-    /// function-like macros and tokenizes the result. `file` names it in errors.
+    /// macros and tokenizes the result. `file` names it in errors.
     pub fn parse(file: &str, text: &str, tag_major: i64) -> Result<Self, ExtractError> {
         let (code, macros) = preprocess(file, text, tag_major)?;
         let tokens = expand(file, &tokenize(file, &code)?, &macros, &[])?;
@@ -488,9 +488,9 @@ pub fn number(text: &str) -> Option<i64> {
     }
 }
 
-/// A function-like macro: its parameters and its body's tokens.
+/// A macro: its parameters, `None` for an object-like one, and its body's tokens.
 struct Macro {
-    params: Vec<String>,
+    params: Option<Vec<String>>,
     body: Vec<Token>,
 }
 
@@ -502,7 +502,7 @@ struct Group {
     live: bool,
 }
 
-/// Keeps the live lines for this build, without comments, and collects function-like macros.
+/// Keeps the live lines for this build, without comments, and collects the macros they define.
 fn preprocess(
     file: &str,
     text: &str,
@@ -571,9 +571,8 @@ fn preprocess(
                 }
             }
             "define" if live => {
-                if let Some((name, mac)) = function_macro(file, rest)? {
-                    macros.insert(name, mac);
-                }
+                let (name, mac) = macro_definition(file, rest)?;
+                macros.insert(name, mac);
             }
             // Macros are expanded once the whole file is read, so `#undef` is not honoured: a
             // table's macro is undefined straight after the table that uses it.
@@ -608,14 +607,16 @@ fn condition(expr: &str, tag_major: i64) -> Option<bool> {
     })
 }
 
-/// A `#define NAME(params) body`, or `None` for an object-like macro, which tables don't use.
-fn function_macro(file: &str, define: &str) -> Result<Option<(String, Macro)>, ExtractError> {
+/// A `#define NAME(params) body`, or an object-like `#define NAME body`, which a table built in
+/// parts uses, as `mon-pick-data.h` builds Depths' population from `POP_DEPTHS`.
+fn macro_definition(file: &str, define: &str) -> Result<(String, Macro), ExtractError> {
     let name_end = define
         .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
         .unwrap_or(define.len());
     let (name, rest) = define.split_at(name_end);
     let Some(rest) = rest.strip_prefix('(') else {
-        return Ok(None);
+        let body = tokenize(file, rest)?;
+        return Ok((name.to_owned(), Macro { params: None, body }));
     };
     let unreadable = || ExtractError::Unreadable {
         file: file.to_owned(),
@@ -624,7 +625,13 @@ fn function_macro(file: &str, define: &str) -> Result<Option<(String, Macro)>, E
     let (params, body) = rest.split_once(')').ok_or_else(unreadable)?;
     let params = params.split(',').map(|p| p.trim().to_owned()).collect();
     let body = tokenize(file, body)?;
-    Ok(Some((name.to_owned(), Macro { params, body })))
+    Ok((
+        name.to_owned(),
+        Macro {
+            params: Some(params),
+            body,
+        },
+    ))
 }
 
 /// The text `#` makes of a macro argument of identifiers and numbers, single spaced; `None` for
@@ -640,8 +647,9 @@ fn stringized(arg: &[Token]) -> Option<String> {
     Some(words?.join(" "))
 }
 
-/// Replaces each use of a function-like macro with its body, substituting the arguments,
-/// stringizing those after `#` and pasting tokens joined by `##`. Each body is rescanned for
+/// Replaces each use of a macro with its body: an object-like one's as it is, and a function-like
+/// one's substituting the arguments, stringizing those after `#` and pasting tokens joined by
+/// `##`. Each body is rescanned for
 /// the macros it uses, as `COLOUR_IS` uses `COLOURS`, but never for the macros being expanded
 /// (`expanding`), as the compiler never expands a macro inside itself.
 fn expand(
@@ -654,10 +662,7 @@ fn expand(
     let mut i = 0;
     while i < tokens.len() {
         let mac = match &tokens[i] {
-            Token::Ident(name)
-                if tokens.get(i + 1) == Some(&Token::Punct('('))
-                    && !expanding.contains(&name.as_str()) =>
-            {
+            Token::Ident(name) if !expanding.contains(&name.as_str()) => {
                 macros.get(name).map(|mac| (name.as_str(), mac))
             }
             _ => None,
@@ -667,12 +672,24 @@ fn expand(
             i += 1;
             continue;
         };
+        let within = [expanding, &[name]].concat();
+        let Some(params) = &mac.params else {
+            out.extend(expand(file, &mac.body, macros, &within)?);
+            i += 1;
+            continue;
+        };
+        // A function-like macro's name not followed by `(` is no use of it.
+        if tokens.get(i + 1) != Some(&Token::Punct('(')) {
+            out.push(tokens[i].clone());
+            i += 1;
+            continue;
+        }
         let (args, after) = arguments(tokens, i + 1).ok_or_else(|| ExtractError::Unreadable {
             file: file.to_owned(),
             what: format!("a use of the macro {:?}", tokens[i]),
         })?;
         let param = |token: Option<&Token>| match token {
-            Some(Token::Ident(ident)) => mac.params.iter().position(|p| p == ident),
+            Some(Token::Ident(ident)) => params.iter().position(|p| p == ident),
             _ => None,
         };
         let mut body: Vec<Token> = Vec::new();
@@ -699,7 +716,6 @@ fn expand(
             }
             at += 1;
         }
-        let within = [expanding, &[name]].concat();
         out.extend(expand(file, &paste(body), macros, &within)?);
         i = after;
     }

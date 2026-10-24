@@ -5,6 +5,7 @@
 //! The extractor reads the source as a webtiles server's build of that release compiles it, so
 //! the enum values match what webtiles sends.
 
+mod branches;
 mod cpp;
 mod features;
 mod gear;
@@ -20,9 +21,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use copilot_gk::{
-    Bundle, CrawlSource, EnumId, Form, FormHoliness, Formulas, HolinessSigns, IdentificationSigns,
-    ItemClass, ItemSubType, LightingSigns, MonsterSpell, Species, Spell, SpellCloud, Undeadness,
-    WeaponBrand,
+    Bundle, CrawlSource, DangerSigns, EnumId, Form, FormHoliness, Formulas, HolinessSigns,
+    IdentificationSigns, ItemClass, ItemSubType, LightingSigns, MonsterSpell, Species, Spell,
+    SpellCloud, Undeadness, WeaponBrand,
 };
 
 use crate::cpp::{Source, Token};
@@ -81,6 +82,7 @@ const SERIES: &[Series] = &[Series {
     },
     lighting: &LIGHTING_0_34,
     holiness: &HOLINESS_0_34,
+    danger: &DANGER_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     speed: &speed::SPEED_RULES_0_34,
@@ -133,6 +135,44 @@ const LIGHTING_0_34: LightingRules = LightingRules {
         },
     ],
 };
+
+/// What crawl 0.34 shows of the statuses that put the player in danger: poison that will kill
+/// (`_describe_poison`, `status.cc:1198`), petrification, liquid fire, which `fill_status_info`
+/// lights hotter as it burns hotter (`status.cc:623`), and confusion.
+const DANGER_0_34: DangerRules = DangerRules {
+    lethal_poison: [
+        Shown {
+            text: "lethally",
+            file: "status.cc",
+            evidence: Some("(pois_perc >= 100) ? \"lethally\""),
+        },
+        Shown {
+            text: " poisoned",
+            file: "status.cc",
+            evidence: Some("adj + \" poisoned\""),
+        },
+    ],
+    petrification_lights: &[
+        Shown::quoted("Petr", "duration-data.h"),
+        Shown::quoted("Stone", "duration-data.h"),
+    ],
+    liquid_fire_lights: &[
+        Shown::quoted("Fire", "duration-data.h"),
+        Shown::quoted("Fire+", "status.cc"),
+        Shown::quoted("Fire++", "status.cc"),
+    ],
+    confusion_lights: &[Shown::quoted("Conf", "duration-data.h")],
+};
+
+/// What a crawl release series shows of the statuses that put the player in danger, each text
+/// checked against crawl's source.
+struct DangerRules {
+    /// The two parts of the words that describe poison that will kill the player.
+    lethal_poison: [Shown; 2],
+    petrification_lights: &'static [Shown],
+    liquid_fire_lights: &'static [Shown],
+    confusion_lights: &'static [Shown],
+}
 
 /// What crawl 0.34 decides in code about the player's holiness: `species::is_nonliving`
 /// (`species.cc:313`), `player::undead_or_demonic` (`player.cc:6893`), `is_good_god`
@@ -242,6 +282,8 @@ struct Series {
     lighting: &'static LightingRules,
     /// What it decides in code about the player's holiness.
     holiness: &'static HolinessRules,
+    /// What it shows of the statuses that put the player in danger.
+    danger: &'static DangerRules,
     /// What it decides about dungeon features in code rather than in `feat_defs`.
     features: &'static features::FeatureRules,
     /// What it counts as a Way Out, and what stops each.
@@ -640,6 +682,14 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
         monster_threats: crawl.values("mon-util.h", "mon_threat_level_type", "MTHRT_UNDEF")?,
+        mouse_modes: crawl.declared_values("defines.h", "mouse_mode", "MOUSE_MODE_MAX")?,
+        branches: branches::branches(
+            &crawl.parse("branch-type.h")?,
+            &crawl.parse("branch-data.h")?,
+            &crawl.parse("mon-pick-data.h")?,
+            &monster_type,
+        )?,
+        danger: crawl.danger(series.danger)?,
         identification: IdentificationSigns {
             kind_learned: crawl.shown(&series.kind_learned)?,
         },
@@ -736,22 +786,34 @@ impl Crawl {
         name: &str,
         end: &str,
     ) -> Result<BTreeMap<T, EnumId>, ExtractError> {
-        let mut enumeration = self.enumeration(file, name)?;
-        if !end.is_empty() {
-            let at = enumeration
-                .iter()
-                .position(|(id, _)| id == end)
-                .ok_or_else(|| ExtractError::Missing {
-                    file: file.to_owned(),
-                    what: end.to_owned(),
-                })?;
-            enumeration.truncate(at);
-        }
-        let mut values = BTreeMap::new();
-        for (id, value) in enumeration {
-            values.entry(in_range(&id, value)?).or_insert(EnumId(id));
-        }
-        Ok(values)
+        values_of(&self.parse(file)?, file, name, end)
+    }
+
+    /// As [`Crawl::values`], for an enum read from its own declaration in `file`.
+    fn declared_values<T: TryFrom<i64> + Ord>(
+        &self,
+        file: &str,
+        name: &str,
+        end: &str,
+    ) -> Result<BTreeMap<T, EnumId>, ExtractError> {
+        values_of(&self.declared_enum(file, name)?, file, name, end)
+    }
+
+    /// `enum <name>` alone, parsed from its own declaration in `file`: for a header whose other
+    /// conditionals the extractor can't read, as `defines.h`'s test the build's CPU.
+    fn declared_enum(&self, file: &str, name: &str) -> Result<Source, ExtractError> {
+        let text = read(&self.source.join(file))?;
+        let declaration = text
+            .find(&format!("enum {name}"))
+            .and_then(|start| {
+                let end = start + text[start..].find("};")? + 2;
+                text.get(start..end)
+            })
+            .ok_or_else(|| ExtractError::Missing {
+                file: file.to_owned(),
+                what: format!("enum {name}"),
+            })?;
+        Source::parse(file, declaration, self.tag_major)
     }
 
     /// Every item sub-type identifier crawl names, with its name. An identifier's first name wins.
@@ -1060,6 +1122,19 @@ impl Crawl {
         })
     }
 
+    /// The texts of `rules`, each found in crawl's source as its rule says.
+    fn danger(&self, rules: &DangerRules) -> Result<DangerSigns, ExtractError> {
+        let texts = |shown: &[Shown]| -> Result<Vec<String>, ExtractError> {
+            shown.iter().map(|shown| self.shown(shown)).collect()
+        };
+        Ok(DangerSigns {
+            lethal_poison: texts(&rules.lethal_poison)?.concat(),
+            petrification_lights: texts(rules.petrification_lights)?,
+            liquid_fire_lights: texts(rules.liquid_fire_lights)?,
+            confusion_lights: texts(rules.confusion_lights)?,
+        })
+    }
+
     /// The player's holiness signs: the forms in `dat/forms` marked as `rules` says crawl's code
     /// treats them, and its species, gods and status lights, each found among `species` or in
     /// crawl's source.
@@ -1135,6 +1210,33 @@ impl Crawl {
 }
 
 /// An enum value as the bundle's integer type for it.
+/// The enumerators of `enum <name>` in `source`, read from `file`, before `end` (or all of
+/// them, when `end` is empty), by value. An enumerator that aliases an earlier one's value keeps
+/// the earlier one's name.
+fn values_of<T: TryFrom<i64> + Ord>(
+    source: &Source,
+    file: &str,
+    name: &str,
+    end: &str,
+) -> Result<BTreeMap<T, EnumId>, ExtractError> {
+    let mut enumeration = source.enumeration(name)?;
+    if !end.is_empty() {
+        let at = enumeration
+            .iter()
+            .position(|(id, _)| id == end)
+            .ok_or_else(|| ExtractError::Missing {
+                file: file.to_owned(),
+                what: end.to_owned(),
+            })?;
+        enumeration.truncate(at);
+    }
+    let mut values = BTreeMap::new();
+    for (id, value) in enumeration {
+        values.entry(in_range(&id, value)?).or_insert(EnumId(id));
+    }
+    Ok(values)
+}
+
 fn in_range<T: TryFrom<i64>>(id: &str, value: i64) -> Result<T, ExtractError> {
     T::try_from(value).map_err(|_| ExtractError::OutOfRange {
         id: id.to_owned(),

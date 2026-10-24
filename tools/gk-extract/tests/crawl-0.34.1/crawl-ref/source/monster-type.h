@@ -182,5 +182,7 @@ enum monster_type                      // env.mons[].type
     MONS_DRACONIAN_KNIGHT,
     MONS_GNOLL,
     MONS_HAROLD,
+    // (trimmed for the extractor test) The monsters the population tables name.
+    MONS_HELLION,
 };
 COMPILE_CHECK(NUM_MONSTERS < MONS_NO_MONSTER);

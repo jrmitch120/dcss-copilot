@@ -507,18 +507,8 @@ impl Crawl {
             };
             colour = aliased;
         }
-        let text = crate::read(&self.source.join(COLOURS_FILE))?;
-        let declaration = text
-            .find(&format!("enum {COLOURS}"))
-            .and_then(|start| {
-                let end = start + text[start..].find("};")? + 2;
-                text.get(start..end)
-            })
-            .ok_or_else(|| ExtractError::Missing {
-                file: COLOURS_FILE.to_owned(),
-                what: format!("enum {COLOURS}"),
-            })?;
-        let value = Source::parse(COLOURS_FILE, declaration, self.tag_major)?
+        let value = self
+            .declared_enum(COLOURS_FILE, COLOURS)?
             .enumeration(COLOURS)?
             .into_iter()
             .find(|(ident, _)| ident == colour)

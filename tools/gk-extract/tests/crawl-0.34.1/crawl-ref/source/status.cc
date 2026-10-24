@@ -186,6 +186,25 @@ static void _describe_airborne(status_info& inf)
 
 // (trimmed for the extractor test)
 
+static void _describe_poison(status_info& inf)
+{
+    int pois_perc = (you.hp <= 0) ? 100
+                                  : ((you.hp - max(0, poison_survival())) * 100 / you.hp);
+    inf.light_colour = (player_res_poison(false) >= 3
+                        ? DARKGREY : _bad_ench_colour(pois_perc, 35, 100));
+    inf.light_text   = "Pois";
+    const string adj =
+         (pois_perc >= 100) ? "lethally" :
+         (pois_perc > 65)   ? "seriously" :
+         (pois_perc > 35)   ? "quite"
+                            : "mildly";
+    inf.short_text   = adj + " poisoned"
+        + make_stringf(" (%d -> %d)", you.hp, poison_survival());
+    inf.long_text    = "You are " + inf.short_text + ".";
+}
+
+// (trimmed for the extractor test)
+
 static void _describe_transform(status_info& inf)
 {
     if (you.form == transformation::none)

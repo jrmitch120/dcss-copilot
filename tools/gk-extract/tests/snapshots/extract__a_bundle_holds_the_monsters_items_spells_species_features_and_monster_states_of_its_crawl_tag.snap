@@ -2764,6 +2764,288 @@ expression: bundle
     "2": "MTHRT_TOUGH",
     "3": "MTHRT_NASTY"
   },
+  "mouseModes": {
+    "0": "MOUSE_MODE_NORMAL",
+    "1": "MOUSE_MODE_COMMAND",
+    "2": "MOUSE_MODE_TARGET",
+    "3": "MOUSE_MODE_TARGET_DIR",
+    "4": "MOUSE_MODE_TARGET_PATH",
+    "5": "MOUSE_MODE_MORE",
+    "6": "MOUSE_MODE_MACRO",
+    "7": "MOUSE_MODE_PROMPT",
+    "8": "MOUSE_MODE_YESNO"
+  },
+  "branches": [
+    {
+      "id": "BRANCH_DUNGEON",
+      "name": "Dungeon",
+      "shallowest": {
+        "MONS_ADDER": 2,
+        "MONS_BAT": 1,
+        "MONS_JACKAL": 1,
+        "MONS_ORC_WARRIOR": 6,
+        "MONS_STONE_GIANT": 21
+      }
+    },
+    {
+      "id": "BRANCH_TEMPLE",
+      "name": "Temple",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_ORC",
+      "name": "Orcish Mines",
+      "shallowest": {
+        "MONS_ORC_WARRIOR": 1,
+        "MONS_ORC_WIZARD": 1
+      }
+    },
+    {
+      "id": "BRANCH_ELF",
+      "name": "Elven Halls",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_DWARF",
+      "name": "Dwarven Hall",
+      "shallowest": {
+        "MONS_DEATH_KNIGHT": 1
+      }
+    },
+    {
+      "id": "BRANCH_LAIR",
+      "name": "Lair",
+      "shallowest": {
+        "MONS_BASILISK": 1,
+        "MONS_WOLF": 1
+      }
+    },
+    {
+      "id": "BRANCH_SWAMP",
+      "name": "Swamp",
+      "shallowest": {
+        "MONS_SPRIGGAN_RIDER": 1
+      }
+    },
+    {
+      "id": "BRANCH_SHOALS",
+      "name": "Shoals",
+      "shallowest": {
+        "MONS_CYCLOPS": 1
+      }
+    },
+    {
+      "id": "BRANCH_SNAKE",
+      "name": "Snake Pit",
+      "shallowest": {
+        "MONS_BLACK_MAMBA": 1
+      }
+    },
+    {
+      "id": "BRANCH_SPIDER",
+      "name": "Spider Nest",
+      "shallowest": {
+        "MONS_ORB_SPIDER": 1
+      }
+    },
+    {
+      "id": "BRANCH_SLIME",
+      "name": "Slime Pits",
+      "shallowest": {
+        "MONS_SLIME_CREATURE": 1
+      }
+    },
+    {
+      "id": "BRANCH_VAULTS",
+      "name": "Vaults",
+      "shallowest": {
+        "MONS_SLIME_CREATURE": 1
+      }
+    },
+    {
+      "id": "BRANCH_BLADE",
+      "name": "Hall of Blades",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_CRYPT",
+      "name": "Crypt",
+      "shallowest": {
+        "MONS_DEATH_KNIGHT": 1,
+        "MONS_JIANGSHI": 1
+      }
+    },
+    {
+      "id": "BRANCH_TOMB",
+      "name": "Tomb",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_VESTIBULE",
+      "name": "Hell",
+      "shallowest": {
+        "MONS_HELL_RAT": 1
+      }
+    },
+    {
+      "id": "BRANCH_DIS",
+      "name": "Dis",
+      "shallowest": {
+        "MONS_HELLION": 1
+      }
+    },
+    {
+      "id": "BRANCH_GEHENNA",
+      "name": "Gehenna",
+      "shallowest": {
+        "MONS_HELLION": 1
+      }
+    },
+    {
+      "id": "BRANCH_COCYTUS",
+      "name": "Cocytus",
+      "shallowest": {
+        "MONS_HELLION": 1
+      }
+    },
+    {
+      "id": "BRANCH_TARTARUS",
+      "name": "Tartarus",
+      "shallowest": {
+        "MONS_HELLION": 1,
+        "MONS_TAINTED_LEVIATHAN": 1
+      }
+    },
+    {
+      "id": "BRANCH_ZOT",
+      "name": "Zot",
+      "shallowest": {
+        "MONS_BLACK_DRACONIAN": 1,
+        "MONS_DRACONIAN_KNIGHT": 1
+      }
+    },
+    {
+      "id": "BRANCH_FOREST",
+      "name": "Forest",
+      "shallowest": {
+        "MONS_WOLF": 1
+      }
+    },
+    {
+      "id": "BRANCH_ABYSS",
+      "name": "Abyss",
+      "shallowest": {
+        "MONS_SIXFIRHY": 1
+      }
+    },
+    {
+      "id": "BRANCH_PANDEMONIUM",
+      "name": "Pandemonium",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_ZIGGURAT",
+      "name": "Ziggurat",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_LABYRINTH",
+      "name": "Labyrinth",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_BAZAAR",
+      "name": "Bazaar",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_TROVE",
+      "name": "Trove",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_SEWER",
+      "name": "Sewer",
+      "shallowest": {
+        "MONS_BAT": 1
+      }
+    },
+    {
+      "id": "BRANCH_OSSUARY",
+      "name": "Ossuary",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_BAILEY",
+      "name": "Bailey",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_ICE_CAVE",
+      "name": "Ice Cave",
+      "shallowest": {
+        "MONS_WOLF": 1
+      }
+    },
+    {
+      "id": "BRANCH_VOLCANO",
+      "name": "Volcano",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_WIZLAB",
+      "name": "Wizlab",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_DEPTHS",
+      "name": "Depths",
+      "shallowest": {
+        "MONS_STONE_GIANT": 1,
+        "MONS_UGLY_THING": 1
+      }
+    },
+    {
+      "id": "BRANCH_DESOLATION",
+      "name": "Desolation",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_GAUNTLET",
+      "name": "Gauntlet",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_ARENA",
+      "name": "Arena",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_CRUCIBLE",
+      "name": "Crucible",
+      "shallowest": {}
+    },
+    {
+      "id": "BRANCH_NECROPOLIS",
+      "name": "Necropolis",
+      "shallowest": {}
+    }
+  ],
+  "danger": {
+    "lethalPoison": "lethally poisoned",
+    "petrificationLights": [
+      "Petr",
+      "Stone"
+    ],
+    "liquidFireLights": [
+      "Fire",
+      "Fire+",
+      "Fire++"
+    ],
+    "confusionLights": [
+      "Conf"
+    ]
+  },
   "identification": {
     "kindLearned": "You learned that %s %s actually %s."
   },
@@ -3284,6 +3566,10 @@ expression: bundle
       },
       {
         "light": "Mesm",
+        "status": null
+      },
+      {
+        "light": "Pois",
         "status": null
       },
       {
