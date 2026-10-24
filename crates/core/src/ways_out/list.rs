@@ -40,51 +40,58 @@ impl WaysOut {
     }
 }
 
+impl Escape {
+    /// Its name as the panel lists it, and a short fact beside it.
+    fn named(&self) -> (String, Option<String>) {
+        match self {
+            Escape::Stairs {
+                name,
+                steps,
+                over_remembered_squares,
+                ..
+            } => (
+                capitalised(name),
+                Some(stairs_away(*steps, *over_remembered_squares)),
+            ),
+            Escape::Item {
+                kind_name,
+                quantity,
+                effect,
+                ..
+            } => {
+                let name = capitalised(kind_name);
+                let name = if *quantity > 1 {
+                    format!("{name} ×{quantity}")
+                } else {
+                    name
+                };
+                (name, Some(relief(*effect).to_owned()))
+            }
+            Escape::Ability {
+                name,
+                failure_percent,
+                read,
+                ..
+            } => (
+                name.clone(),
+                Some(failing("ability", *failure_percent, *read)),
+            ),
+            Escape::Spell {
+                name,
+                failure_percent,
+                read,
+                ..
+            } => (
+                name.clone(),
+                Some(failing("spell", *failure_percent, *read)),
+            ),
+        }
+    }
+}
+
 /// A Way Out's row.
 fn row(way_out: &WayOut) -> WayOutRow {
-    let (name, detail) = match &way_out.option {
-        Escape::Stairs {
-            name,
-            steps,
-            over_remembered_squares,
-            ..
-        } => (
-            capitalised(name),
-            Some(stairs_away(*steps, *over_remembered_squares)),
-        ),
-        Escape::Item {
-            kind_name,
-            quantity,
-            effect,
-            ..
-        } => {
-            let name = capitalised(kind_name);
-            let name = if *quantity > 1 {
-                format!("{name} ×{quantity}")
-            } else {
-                name
-            };
-            (name, Some(relief(*effect).to_owned()))
-        }
-        Escape::Ability {
-            name,
-            failure_percent,
-            read,
-            ..
-        } => (
-            name.clone(),
-            Some(failing("ability", *failure_percent, *read)),
-        ),
-        Escape::Spell {
-            name,
-            failure_percent,
-            read,
-            ..
-        } => (
-            name.clone(),
-            Some(failing("spell", *failure_percent, *read)),
-        ),
-    };
+    let (name, detail) = way_out.option.named();
     let (usable, why_not) = match &way_out.usable {
         Usable::Yes => (true, None),
         Usable::No { because } => (
