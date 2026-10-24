@@ -2778,7 +2778,7 @@ expression: bundle
   "branches": [
     {
       "id": "BRANCH_DUNGEON",
-      "name": "Dungeon",
+      "place": "Dungeon",
       "shallowest": {
         "MONS_ADDER": 2,
         "MONS_BAT": 1,
@@ -2789,12 +2789,12 @@ expression: bundle
     },
     {
       "id": "BRANCH_TEMPLE",
-      "name": "Temple",
+      "place": "Temple",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ORC",
-      "name": "Orcish Mines",
+      "place": "Orcish Mines",
       "shallowest": {
         "MONS_ORC_WARRIOR": 1,
         "MONS_ORC_WIZARD": 1
@@ -2802,19 +2802,19 @@ expression: bundle
     },
     {
       "id": "BRANCH_ELF",
-      "name": "Elven Halls",
+      "place": "Elven Halls",
       "shallowest": {}
     },
     {
       "id": "BRANCH_DWARF",
-      "name": "Dwarven Hall",
+      "place": "Dwarven Hall",
       "shallowest": {
         "MONS_DEATH_KNIGHT": 1
       }
     },
     {
       "id": "BRANCH_LAIR",
-      "name": "Lair",
+      "place": "Lair",
       "shallowest": {
         "MONS_BASILISK": 1,
         "MONS_WOLF": 1
@@ -2822,54 +2822,54 @@ expression: bundle
     },
     {
       "id": "BRANCH_SWAMP",
-      "name": "Swamp",
+      "place": "Swamp",
       "shallowest": {
         "MONS_SPRIGGAN_RIDER": 1
       }
     },
     {
       "id": "BRANCH_SHOALS",
-      "name": "Shoals",
+      "place": "Shoals",
       "shallowest": {
         "MONS_CYCLOPS": 1
       }
     },
     {
       "id": "BRANCH_SNAKE",
-      "name": "Snake Pit",
+      "place": "Snake Pit",
       "shallowest": {
         "MONS_BLACK_MAMBA": 1
       }
     },
     {
       "id": "BRANCH_SPIDER",
-      "name": "Spider Nest",
+      "place": "Spider Nest",
       "shallowest": {
         "MONS_ORB_SPIDER": 1
       }
     },
     {
       "id": "BRANCH_SLIME",
-      "name": "Slime Pits",
+      "place": "Slime Pits",
       "shallowest": {
         "MONS_SLIME_CREATURE": 1
       }
     },
     {
       "id": "BRANCH_VAULTS",
-      "name": "Vaults",
+      "place": "Vaults",
       "shallowest": {
         "MONS_SLIME_CREATURE": 1
       }
     },
     {
       "id": "BRANCH_BLADE",
-      "name": "Hall of Blades",
+      "place": "Hall of Blades",
       "shallowest": {}
     },
     {
       "id": "BRANCH_CRYPT",
-      "name": "Crypt",
+      "place": "Crypt",
       "shallowest": {
         "MONS_DEATH_KNIGHT": 1,
         "MONS_JIANGSHI": 1
@@ -2877,40 +2877,40 @@ expression: bundle
     },
     {
       "id": "BRANCH_TOMB",
-      "name": "Tomb",
+      "place": "Tomb",
       "shallowest": {}
     },
     {
       "id": "BRANCH_VESTIBULE",
-      "name": "Hell",
+      "place": "Hell",
       "shallowest": {
         "MONS_HELL_RAT": 1
       }
     },
     {
       "id": "BRANCH_DIS",
-      "name": "Dis",
+      "place": "Dis",
       "shallowest": {
         "MONS_HELLION": 1
       }
     },
     {
       "id": "BRANCH_GEHENNA",
-      "name": "Gehenna",
+      "place": "Gehenna",
       "shallowest": {
         "MONS_HELLION": 1
       }
     },
     {
       "id": "BRANCH_COCYTUS",
-      "name": "Cocytus",
+      "place": "Cocytus",
       "shallowest": {
         "MONS_HELLION": 1
       }
     },
     {
       "id": "BRANCH_TARTARUS",
-      "name": "Tartarus",
+      "place": "Tartarus",
       "shallowest": {
         "MONS_HELLION": 1,
         "MONS_TAINTED_LEVIATHAN": 1
@@ -2918,7 +2918,7 @@ expression: bundle
     },
     {
       "id": "BRANCH_ZOT",
-      "name": "Zot",
+      "place": "Zot",
       "shallowest": {
         "MONS_BLACK_DRACONIAN": 1,
         "MONS_DRACONIAN_KNIGHT": 1
@@ -2926,80 +2926,80 @@ expression: bundle
     },
     {
       "id": "BRANCH_FOREST",
-      "name": "Forest",
+      "place": "Forest",
       "shallowest": {
         "MONS_WOLF": 1
       }
     },
     {
       "id": "BRANCH_ABYSS",
-      "name": "Abyss",
+      "place": "Abyss",
       "shallowest": {
         "MONS_SIXFIRHY": 1
       }
     },
     {
       "id": "BRANCH_PANDEMONIUM",
-      "name": "Pandemonium",
+      "place": "Pandemonium",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ZIGGURAT",
-      "name": "Ziggurat",
+      "place": "Ziggurat",
       "shallowest": {}
     },
     {
       "id": "BRANCH_LABYRINTH",
-      "name": "Labyrinth",
+      "place": "a Labyrinth",
       "shallowest": {}
     },
     {
       "id": "BRANCH_BAZAAR",
-      "name": "Bazaar",
+      "place": "a Bazaar",
       "shallowest": {}
     },
     {
       "id": "BRANCH_TROVE",
-      "name": "Trove",
+      "place": "a Trove",
       "shallowest": {}
     },
     {
       "id": "BRANCH_SEWER",
-      "name": "Sewer",
+      "place": "a Sewer",
       "shallowest": {
         "MONS_BAT": 1
       }
     },
     {
       "id": "BRANCH_OSSUARY",
-      "name": "Ossuary",
+      "place": "an Ossuary",
       "shallowest": {}
     },
     {
       "id": "BRANCH_BAILEY",
-      "name": "Bailey",
+      "place": "a Bailey",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ICE_CAVE",
-      "name": "Ice Cave",
+      "place": "an Ice Cave",
       "shallowest": {
         "MONS_WOLF": 1
       }
     },
     {
       "id": "BRANCH_VOLCANO",
-      "name": "Volcano",
+      "place": "a Volcano",
       "shallowest": {}
     },
     {
       "id": "BRANCH_WIZLAB",
-      "name": "Wizlab",
+      "place": "a Wizlab",
       "shallowest": {}
     },
     {
       "id": "BRANCH_DEPTHS",
-      "name": "Depths",
+      "place": "Depths",
       "shallowest": {
         "MONS_STONE_GIANT": 1,
         "MONS_UGLY_THING": 1
@@ -3007,27 +3007,27 @@ expression: bundle
     },
     {
       "id": "BRANCH_DESOLATION",
-      "name": "Desolation",
+      "place": "a Desolation",
       "shallowest": {}
     },
     {
       "id": "BRANCH_GAUNTLET",
-      "name": "Gauntlet",
+      "place": "a Gauntlet",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ARENA",
-      "name": "Arena",
+      "place": "an Arena",
       "shallowest": {}
     },
     {
       "id": "BRANCH_CRUCIBLE",
-      "name": "Crucible",
+      "place": "a Crucible",
       "shallowest": {}
     },
     {
       "id": "BRANCH_NECROPOLIS",
-      "name": "Necropolis",
+      "place": "a Necropolis",
       "shallowest": {}
     }
   ],

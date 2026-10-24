@@ -1,5 +1,6 @@
-//! The branches of the dungeon, from `branches` in `branch-data.h`, each with the shallowest of
-//! its levels crawl makes each monster on at random, from `population` in `mon-pick-data.h`.
+//! The branches of the dungeon, from `branches` in `branch-data.h`, each with what the game names
+//! the place a level of it is and the shallowest of its levels crawl makes each monster on at
+//! random, from `population` in `mon-pick-data.h`.
 
 use std::collections::BTreeMap;
 
@@ -11,20 +12,40 @@ use crate::cpp::{Source, Token};
 /// The enumerator that ends `branch_type`'s branches.
 const BRANCHES_END: &str = "NUM_BRANCHES";
 
-/// Where a branch's short name is among the fields of its entry in `branches`: after its
-/// identifier, its parent, its depths, its flags and its three features (`struct Branch` in
-/// `branch.h`).
+/// Where a branch's fields are in its entry in `branches` (`struct Branch` in `branch.h`): its
+/// identifier, its parent, the depths it may be entered from, how many levels it has, its
+/// absolute depth, its flags, its three features, then its short name.
+const LEVELS_FIELD: usize = 4;
+const FLAGS_FIELD: usize = 6;
 const SHORT_NAME_FIELD: usize = 10;
 
+/// How webtiles names the place a level of a branch one level deep is (`tileweb.cc`), as crawl's
+/// code does it rather than its data: its short name, with a definite article for some branches,
+/// bare for others, and otherwise with an indefinite one (`article_a`) if the dungeon doesn't lead
+/// to it by stairs (`is_connected_branch`).
+pub struct PlaceNaming {
+    /// The branches given a definite article, by `branch_type` identifier, with it, such as
+    /// `The `.
+    pub definite: &'static [(&'static str, &'static str)],
+    /// The branches named bare, by `branch_type` identifier.
+    pub bare: &'static [&'static str],
+    /// The flag of a branch the dungeon doesn't lead to by stairs.
+    pub unconnected_flag: &'static str,
+    /// The first letters `article_a` writes `an` before rather than `a`.
+    pub vowels: &'static str,
+}
+
 /// Every branch, in `branch_type` order, from `branch_types` (`branch-type.h`), `branch_data`
-/// (`branch-data.h`) and `populations` (`mon-pick-data.h`). Each table must hold one entry per
-/// branch, in the enum's order, as crawl indexes both by `branch_type`, and every monster a
-/// population names must be in `monster_type`.
+/// (`branch-data.h`) and `populations` (`mon-pick-data.h`), each place named by `naming`. Each
+/// table must hold one entry per branch, in the enum's order, as crawl indexes both by
+/// `branch_type`; every monster a population names must be in `monster_type`, and every branch
+/// `naming` names in `branch_type`.
 pub fn branches(
     branch_types: &Source,
     branch_data: &Source,
     populations: &Source,
     monster_type: &[(String, i64)],
+    naming: &PlaceNaming,
 ) -> Result<Vec<Branch>, ExtractError> {
     let mut ids = branch_types.enumeration("branch_type")?;
     let end = ids
@@ -39,6 +60,12 @@ pub fn branches(
         seen.push(*value);
         first
     });
+    let named = naming.definite.iter().map(|(id, _)| id).chain(naming.bare);
+    for id in named {
+        if !ids.iter().any(|(known, _)| known == id) {
+            return Err(missing("branch-type.h", id));
+        }
+    }
     let data = branch_data.entries("branches")?;
     let population = populations.entries("population")?;
     if data.len() != ids.len() {
@@ -74,22 +101,44 @@ pub fn branches(
                     ));
                 }
             }
-            let name = match fields.get(SHORT_NAME_FIELD).map(Vec::as_slice) {
-                Some([Token::Str(name)]) => name.clone(),
-                _ => {
-                    return Err(unreadable(
-                        "branch-data.h",
-                        &format!("the short name of {id}"),
-                    ));
-                }
+            let (Some([Token::Str(name)]), Some(levels), Some(flags)) = (
+                fields.get(SHORT_NAME_FIELD).map(Vec::as_slice),
+                fields.get(LEVELS_FIELD).and_then(|field| integer(field)),
+                fields.get(FLAGS_FIELD),
+            ) else {
+                return Err(unreadable(
+                    "branch-data.h",
+                    &format!("the entry of branches for {id}"),
+                ));
             };
+            let connected = !flags.contains(&Token::Ident(naming.unconnected_flag.to_owned()));
             Ok(Branch {
                 shallowest: shallowest(&id, &population, monster_type)?,
+                place: place(&id, name, levels == 1, connected, naming),
                 id: EnumId(id),
-                name,
             })
         })
         .collect()
+}
+
+/// What webtiles names the place a level of the branch `id`, short-named `name`, is: `one_level`
+/// when it has one level, and `connected` when the dungeon leads to it by stairs.
+fn place(id: &str, name: &str, one_level: bool, connected: bool, naming: &PlaceNaming) -> String {
+    if !one_level {
+        return name.to_owned();
+    }
+    if let Some((_, article)) = naming.definite.iter().find(|(named, _)| *named == id) {
+        return format!("{article}{name}");
+    }
+    if connected || naming.bare.contains(&id) {
+        return name.to_owned();
+    }
+    let article = if name.starts_with(|first| naming.vowels.contains(first)) {
+        "an"
+    } else {
+        "a"
+    };
+    format!("{article} {name}")
 }
 
 /// The shallowest level of the branch `id` each monster of its `population` is made on, from 1

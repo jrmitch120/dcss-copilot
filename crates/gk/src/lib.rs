@@ -389,8 +389,10 @@ pub enum BodySize {
 pub struct Branch {
     /// Its `branch_type` identifier, such as `BRANCH_DUNGEON`.
     pub id: EnumId,
-    /// Its short name, such as `Dungeon` or `Lair`, as the game names the place it is.
-    pub name: String,
+    /// What the game names the place a level of it is, as webtiles' `place` does: its short
+    /// name, such as `Dungeon` or `Lair`, which crawl gives an article for some branches one
+    /// level deep, such as `a Bazaar` or `The Abyss`.
+    pub place: String,
     /// The shallowest of its levels crawl makes each monster on at random, by `monster_type`
     /// identifier, from 1 for its first level. Monsters crawl only places, such as uniques, and
     /// those it makes at random only in other branches, aren't here.
@@ -618,17 +620,10 @@ impl Bundle {
         self.mouse_modes.get(&value)
     }
 
-    /// The branch the game names `place`, as the status pane names where the player is: its
-    /// short name, which crawl gives an article for a branch one level deep that the dungeon
-    /// doesn't lead to by stairs, such as `a Bazaar` or `The Abyss` (`tileweb.cc`).
+    /// The branch whose levels the game names `place`, as webtiles names where the player is.
     #[must_use]
-    pub fn branch_named(&self, place: &str) -> Option<&Branch> {
-        let name = ["a ", "an ", "The "]
-            .iter()
-            .find_map(|article| place.strip_prefix(article))
-            .filter(|name| self.branches.iter().any(|branch| branch.name == *name))
-            .unwrap_or(place);
-        self.branches.iter().find(|branch| branch.name == name)
+    pub fn branch_at(&self, place: &str) -> Option<&Branch> {
+        self.branches.iter().find(|branch| branch.place == place)
     }
 
     /// What an item with this `base_type` and `sub_type` is, if this version has the class. The

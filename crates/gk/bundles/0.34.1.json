@@ -73228,7 +73228,7 @@
   "branches": [
     {
       "id": "BRANCH_DUNGEON",
-      "name": "Dungeon",
+      "place": "Dungeon",
       "shallowest": {
         "MONS_ACID_DRAGON": 8,
         "MONS_ADDER": 2,
@@ -73358,12 +73358,12 @@
     },
     {
       "id": "BRANCH_TEMPLE",
-      "name": "Temple",
+      "place": "Temple",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ORC",
-      "name": "Orcish Mines",
+      "place": "Orcish Mines",
       "shallowest": {
         "MONS_CYCLOPS": 1,
         "MONS_ETTIN": 1,
@@ -73386,7 +73386,7 @@
     },
     {
       "id": "BRANCH_ELF",
-      "name": "Elven Halls",
+      "place": "Elven Halls",
       "shallowest": {
         "MONS_AIR_ELEMENTAL": 1,
         "MONS_DANCING_WEAPON": 1,
@@ -73414,7 +73414,7 @@
     },
     {
       "id": "BRANCH_DWARF",
-      "name": "Dwarven Hall",
+      "place": "Dwarven Hall",
       "shallowest": {
         "MONS_DEATH_KNIGHT": 1,
         "MONS_DEEP_DWARF": 1,
@@ -73432,7 +73432,7 @@
     },
     {
       "id": "BRANCH_LAIR",
-      "name": "Lair",
+      "place": "Lair",
       "shallowest": {
         "MONS_ALLIGATOR": 10,
         "MONS_ANACONDA": 10,
@@ -73473,7 +73473,7 @@
     },
     {
       "id": "BRANCH_SWAMP",
-      "name": "Swamp",
+      "place": "Swamp",
       "shallowest": {
         "MONS_ALLIGATOR": 1,
         "MONS_BLOATED_HUSK": 1,
@@ -73502,7 +73502,7 @@
     },
     {
       "id": "BRANCH_SHOALS",
-      "name": "Shoals",
+      "place": "Shoals",
       "shallowest": {
         "MONS_ALLIGATOR_SNAPPING_TURTLE": 1,
         "MONS_CENTAUR_WARRIOR": 1,
@@ -73530,7 +73530,7 @@
     },
     {
       "id": "BRANCH_SNAKE",
-      "name": "Snake Pit",
+      "place": "Snake Pit",
       "shallowest": {
         "MONS_ANACONDA": 1,
         "MONS_BLACK_MAMBA": 1,
@@ -73550,7 +73550,7 @@
     },
     {
       "id": "BRANCH_SPIDER",
-      "name": "Spider Nest",
+      "place": "Spider Nest",
       "shallowest": {
         "MONS_BOULDER_BEETLE": 1,
         "MONS_BROODMOTHER": 1,
@@ -73578,7 +73578,7 @@
     },
     {
       "id": "BRANCH_SLIME",
-      "name": "Slime Pits",
+      "place": "Slime Pits",
       "shallowest": {
         "MONS_ACID_BLOB": 1,
         "MONS_AZURE_JELLY": 1,
@@ -73602,7 +73602,7 @@
     },
     {
       "id": "BRANCH_VAULTS",
-      "name": "Vaults",
+      "place": "Vaults",
       "shallowest": {
         "MONS_ANCIENT_LICH": 5,
         "MONS_ARCANIST": 1,
@@ -73666,14 +73666,14 @@
     },
     {
       "id": "BRANCH_BLADE",
-      "name": "Hall of Blades",
+      "place": "Hall of Blades",
       "shallowest": {
         "MONS_DANCING_WEAPON": 1
       }
     },
     {
       "id": "BRANCH_CRYPT",
-      "name": "Crypt",
+      "place": "Crypt",
       "shallowest": {
         "MONS_ANCIENT_CHAMPION": 1,
         "MONS_ANCIENT_LICH": 3,
@@ -73705,7 +73705,7 @@
     },
     {
       "id": "BRANCH_TOMB",
-      "name": "Tomb",
+      "place": "Tomb",
       "shallowest": {
         "MONS_ANCIENT_LICH": 3,
         "MONS_BENNU": 3,
@@ -73724,7 +73724,7 @@
     },
     {
       "id": "BRANCH_VESTIBULE",
-      "name": "Hell",
+      "place": "Hell",
       "shallowest": {
         "MONS_BALRUG": 1,
         "MONS_BLIZZARD_DEMON": 1,
@@ -73751,7 +73751,7 @@
     },
     {
       "id": "BRANCH_DIS",
-      "name": "Dis",
+      "place": "Dis",
       "shallowest": {
         "MONS_ANCIENT_CHAMPION": 1,
         "MONS_ANCIENT_LICH": 1,
@@ -73770,7 +73770,7 @@
     },
     {
       "id": "BRANCH_GEHENNA",
-      "name": "Gehenna",
+      "place": "Gehenna",
       "shallowest": {
         "MONS_ANCIENT_LICH": 1,
         "MONS_BALRUG": 1,
@@ -73790,7 +73790,7 @@
     },
     {
       "id": "BRANCH_COCYTUS",
-      "name": "Cocytus",
+      "place": "Cocytus",
       "shallowest": {
         "MONS_ANCIENT_LICH": 1,
         "MONS_AZURE_JELLY": 1,
@@ -73809,7 +73809,7 @@
     },
     {
       "id": "BRANCH_TARTARUS",
-      "name": "Tartarus",
+      "place": "Tartarus",
       "shallowest": {
         "MONS_ANCIENT_LICH": 1,
         "MONS_DREAD_LICH": 1,
@@ -73829,7 +73829,7 @@
     },
     {
       "id": "BRANCH_ZOT",
-      "name": "Zot",
+      "place": "Zot",
       "shallowest": {
         "MONS_BLACK_DRACONIAN": 1,
         "MONS_CURSE_TOE": 1,
@@ -73860,7 +73860,7 @@
     },
     {
       "id": "BRANCH_FOREST",
-      "name": "Forest",
+      "place": "Forest",
       "shallowest": {
         "MONS_ANACONDA": 1,
         "MONS_APIS": 1,
@@ -73888,7 +73888,7 @@
     },
     {
       "id": "BRANCH_ABYSS",
-      "name": "Abyss",
+      "place": "Abyss",
       "shallowest": {
         "MONS_ABOMINATION_LARGE": 1,
         "MONS_ABOMINATION_SMALL": 1,
@@ -74032,7 +74032,7 @@
     },
     {
       "id": "BRANCH_PANDEMONIUM",
-      "name": "Pandemonium",
+      "place": "Pandemonium",
       "shallowest": {
         "MONS_ABOMINATION_LARGE": 1,
         "MONS_ANGEL": 1,
@@ -74085,27 +74085,27 @@
     },
     {
       "id": "BRANCH_ZIGGURAT",
-      "name": "Ziggurat",
+      "place": "Ziggurat",
       "shallowest": {}
     },
     {
       "id": "BRANCH_LABYRINTH",
-      "name": "Labyrinth",
+      "place": "a Labyrinth",
       "shallowest": {}
     },
     {
       "id": "BRANCH_BAZAAR",
-      "name": "Bazaar",
+      "place": "a Bazaar",
       "shallowest": {}
     },
     {
       "id": "BRANCH_TROVE",
-      "name": "Trove",
+      "place": "a Trove",
       "shallowest": {}
     },
     {
       "id": "BRANCH_SEWER",
-      "name": "Sewer",
+      "place": "a Sewer",
       "shallowest": {
         "MONS_ADDER": 1,
         "MONS_BALL_PYTHON": 1,
@@ -74122,7 +74122,7 @@
     },
     {
       "id": "BRANCH_OSSUARY",
-      "name": "Ossuary",
+      "place": "an Ossuary",
       "shallowest": {
         "MONS_DRAUGR": 1,
         "MONS_MUMMY": 1,
@@ -74132,7 +74132,7 @@
     },
     {
       "id": "BRANCH_BAILEY",
-      "name": "Bailey",
+      "place": "a Bailey",
       "shallowest": {
         "MONS_GNOLL": 1,
         "MONS_ORC": 1,
@@ -74142,7 +74142,7 @@
     },
     {
       "id": "BRANCH_ICE_CAVE",
-      "name": "Ice Cave",
+      "place": "an Ice Cave",
       "shallowest": {
         "MONS_FREEZING_WRAITH": 1,
         "MONS_ICE_BEAST": 1,
@@ -74157,7 +74157,7 @@
     },
     {
       "id": "BRANCH_VOLCANO",
-      "name": "Volcano",
+      "place": "a Volcano",
       "shallowest": {
         "MONS_EFREET": 1,
         "MONS_FIRE_CRAB": 1,
@@ -74174,12 +74174,12 @@
     },
     {
       "id": "BRANCH_WIZLAB",
-      "name": "Wizlab",
+      "place": "a Wizlab",
       "shallowest": {}
     },
     {
       "id": "BRANCH_DEPTHS",
-      "name": "Depths",
+      "place": "Depths",
       "shallowest": {
         "MONS_ALDERKING": 4,
         "MONS_ANCIENT_LICH": 9,
@@ -74233,7 +74233,7 @@
     },
     {
       "id": "BRANCH_DESOLATION",
-      "name": "Desolation",
+      "place": "a Desolation",
       "shallowest": {
         "MONS_CRYSTAL_GUARDIAN": 1,
         "MONS_DANCING_WEAPON": 1,
@@ -74244,17 +74244,17 @@
     },
     {
       "id": "BRANCH_GAUNTLET",
-      "name": "Gauntlet",
+      "place": "a Gauntlet",
       "shallowest": {}
     },
     {
       "id": "BRANCH_ARENA",
-      "name": "Arena",
+      "place": "an Arena",
       "shallowest": {}
     },
     {
       "id": "BRANCH_CRUCIBLE",
-      "name": "Crucible",
+      "place": "a Crucible",
       "shallowest": {
         "MONS_BALRUG": 1,
         "MONS_BLIZZARD_DEMON": 1,
@@ -74275,7 +74275,7 @@
     },
     {
       "id": "BRANCH_NECROPOLIS",
-      "name": "Necropolis",
+      "place": "a Necropolis",
       "shallowest": {
         "MONS_SHADOWGHAST": 1,
         "MONS_WRAITH": 1

@@ -83,6 +83,7 @@ const SERIES: &[Series] = &[Series {
     lighting: &LIGHTING_0_34,
     holiness: &HOLINESS_0_34,
     danger: &DANGER_0_34,
+    place_naming: &PLACE_NAMING_0_34,
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     speed: &speed::SPEED_RULES_0_34,
@@ -135,6 +136,56 @@ const LIGHTING_0_34: LightingRules = LightingRules {
         },
     ],
 };
+
+/// How crawl 0.34's webtiles names the place a level of a branch one level deep is
+/// (`TilesFramework::_send_player`, `tileweb.cc:1232`): the Abyss with `The `, Pandemonium bare,
+/// and a branch the dungeon doesn't lead to by stairs with `article_a` (`english.cc:381`).
+const PLACE_NAMING_0_34: PlaceNamingRules = PlaceNamingRules {
+    naming: branches::PlaceNaming {
+        definite: &[("BRANCH_ABYSS", "The ")],
+        bare: &["BRANCH_PANDEMONIUM"],
+        unconnected_flag: "no_x_level_travel",
+        vowels: "aeiouAEIOU",
+    },
+    evidence: &[
+        Shown {
+            text: "brdepth[place.branch] == 1",
+            file: "tileweb.cc",
+            evidence: Some("if (brdepth[place.branch] == 1)"),
+        },
+        Shown {
+            text: "The ",
+            file: "tileweb.cc",
+            evidence: Some("if (place.branch == BRANCH_ABYSS) short_name.insert(0, \"The \");"),
+        },
+        Shown {
+            text: "BRANCH_PANDEMONIUM",
+            file: "tileweb.cc",
+            evidence: Some(
+                "else if (place.branch != BRANCH_PANDEMONIUM && !is_connected_branch(place.branch))",
+            ),
+        },
+        Shown {
+            text: "no_x_level_travel",
+            file: "branch.cc",
+            evidence: Some("return !testbits(branch->branch_flags, brflag::no_x_level_travel);"),
+        },
+        Shown {
+            text: "aeiouAEIOU",
+            file: "english.cc",
+            evidence: Some(
+                "case 'a': case 'e': case 'i': case 'o': case 'u': case 'A': case 'E': case 'I': case 'O': case 'U':",
+            ),
+        },
+    ],
+};
+
+/// How a crawl release series names the place a level of a branch one level deep is, with what
+/// crawl's source must hold for it.
+struct PlaceNamingRules {
+    naming: branches::PlaceNaming,
+    evidence: &'static [Shown],
+}
 
 /// What crawl 0.34 shows of the statuses that put the player in danger: poison that will kill
 /// (`_describe_poison`, `status.cc:1198`), petrification, liquid fire, which `fill_status_info`
@@ -284,6 +335,8 @@ struct Series {
     holiness: &'static HolinessRules,
     /// What it shows of the statuses that put the player in danger.
     danger: &'static DangerRules,
+    /// How its webtiles names the place a level of a branch one level deep is.
+    place_naming: &'static PlaceNamingRules,
     /// What it decides about dungeon features in code rather than in `feat_defs`.
     features: &'static features::FeatureRules,
     /// What it counts as a Way Out, and what stops each.
@@ -688,6 +741,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &crawl.parse("branch-data.h")?,
             &crawl.parse("mon-pick-data.h")?,
             &monster_type,
+            crawl.place_naming(series.place_naming)?,
         )?,
         danger: crawl.danger(series.danger)?,
         identification: IdentificationSigns {
@@ -1120,6 +1174,17 @@ impl Crawl {
             halo_statuses: texts(rules.halo_statuses)?,
             halo_gear: texts(rules.halo_gear)?,
         })
+    }
+
+    /// How `rules` names places, once crawl's source holds what they say it does.
+    fn place_naming<'r>(
+        &self,
+        rules: &'r PlaceNamingRules,
+    ) -> Result<&'r branches::PlaceNaming, ExtractError> {
+        for shown in rules.evidence {
+            self.shown(shown)?;
+        }
+        Ok(&rules.naming)
     }
 
     /// The texts of `rules`, each found in crawl's source as its rule says.

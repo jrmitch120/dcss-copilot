@@ -114,10 +114,7 @@ fn why_exceptional(
     let place = visible.place.as_ref()?;
     // A branch one level deep reports no depth: its one level is its first.
     let depth = place.depth.unwrap_or(1);
-    let from_depth = *bundle
-        .branch_named(&place.branch)?
-        .shallowest
-        .get(&kind.id)?;
+    let from_depth = *bundle.branch_at(&place.branch)?.shallowest.get(&kind.id)?;
     let levels = from_depth.checked_sub(depth)?;
     (levels >= OUT_OF_DEPTH_LEVELS).then_some(Exceptional::OutOfDepth { from_depth, levels })
 }
