@@ -175,7 +175,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 4,
+              "levels": 3
+            },
+            "alone": "lethal"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -188,6 +204,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "lethal",
+          "alert": "Threat rose to LETHAL.",
           "line": "Ogre can attack before your next action.",
           "detail": "Death 22.1% · worst hit 34 of 19 HP"
         },
@@ -214,6 +231,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
+              },
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "Ogre",
+            "why": "Out of depth: usually met 3 levels deeper",
+            "alone": "lethal"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -238,6 +269,52 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "factCard",
+      "name": "ogre",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 4,
+        "levels": 3
+      },
+      "alone": "lethal"
+    },
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "lethal",
+      "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 53,
+      "turn": 1,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 58,
+      "turn": 2,
+      "event": "alert",
+      "cause": "out-of-depth",
+      "monster": "ogre",
+      "line": "Ogre, out of depth by 3 levels, alone makes this LETHAL."
+    }
+  ],
   "end": {
     "turn": 2,
     "place": {
@@ -399,7 +476,23 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [
+        {
+          "name": "ogre",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 4,
+            "levels": 3
+          },
+          "alone": "lethal"
+        }
+      ],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -412,6 +505,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "lethal",
+        "alert": "Ogre, out of depth by 3 levels, alone makes this LETHAL.",
         "line": "Ogre can attack before your next action.",
         "detail": "Death 22.1% · worst hit 34 of 19 HP"
       },
@@ -438,6 +532,20 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "O",
+              "colour": "brown"
+            },
+            "tile": "mon/humanoids/ogre"
+          },
+          "name": "Ogre",
+          "why": "Out of depth: usually met 3 levels deeper",
+          "alone": "lethal"
+        }
+      ],
       "waysOut": {
         "rows": [
           {

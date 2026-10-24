@@ -7,6 +7,7 @@ use copilot_gk::{Bundle, Library};
 use serde_json::Value;
 
 use crate::Envelope;
+use crate::crawl_ids::mouse_modes;
 use crate::json::string;
 use crate::map::LevelMap;
 use crate::messages::MessageLog;
@@ -71,6 +72,23 @@ struct TabGame {
     ended: bool,
     /// Session Events not yet reported.
     session: Vec<SessionEvent>,
+    /// How far the game has got with its latest wait for the player's command.
+    wait: CommandWait,
+    /// The game settled with the last message, and that isn't reported yet.
+    settled: bool,
+}
+
+/// How far the game has got with a wait for the player's next command. Crawl says it waits for
+/// one (`input_mode`, `MOUSE_MODE_COMMAND`) before it redraws for it, and redraws the player,
+/// then the messages, then the map (`TilesFramework::redraw`), each only if it changed; so the
+/// map ends the redraw, and a redraw without one ends only as the player acts again.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+enum CommandWait {
+    /// The game isn't waiting for a command, or has settled in this wait already.
+    #[default]
+    Idle,
+    /// The game waits for a command and is redrawing for it.
+    Drawing,
 }
 
 /// What one game process has sent, merged. A new process sends its state afresh.
@@ -121,6 +139,7 @@ impl WebtilesSource {
                 .collect();
         };
         let session = std::mem::take(&mut game.session);
+        let settled = std::mem::take(&mut game.settled);
         let visible = game.visible(knowledge);
         let mut events = Vec::new();
         let (last_identity, last_visible) = match &game.reported {
@@ -138,6 +157,10 @@ impl WebtilesSource {
         }
         if last_visible != Some(&visible) {
             events.push(SourceEvent::Visible(Box::new(visible.clone())));
+        }
+        // Another tab's game settling, with nothing new to show, doesn't make it the one followed.
+        if settled && (!switched || !events.is_empty()) {
+            events.push(SourceEvent::Settled);
         }
         if !events.is_empty() {
             game.reported = Some((identity, visible));
@@ -158,8 +181,12 @@ impl TabGame {
                 // The game belongs to the account being watched.
                 self.account = string(msg, "username");
             }
+            Some("input_mode") => self.input_mode(msg, knowledge),
             Some("player") => self.shown.player.merge(msg, knowledge),
-            Some("map") => self.shown.map.merge(msg),
+            Some("map") => {
+                self.shown.map.merge(msg);
+                self.settle();
+            }
             Some("cursor") => self.shown.map.merge_cursor(msg),
             Some("msgs") => self.shown.merge_messages(msg, knowledge),
             Some("game_ended") => {
@@ -177,6 +204,30 @@ impl TabGame {
         }
     }
 
+    /// What the game now waits for, from an `input_mode` message, decoded through `knowledge`: a
+    /// command starts a wait whose redraw follows; anything else ends any wait still redrawing,
+    /// which settles with what it drew.
+    fn input_mode(&mut self, msg: &Value, knowledge: Option<&Bundle>) {
+        let mode = msg
+            .get("mode")
+            .and_then(Value::as_u64)
+            .and_then(|mode| u8::try_from(mode).ok())
+            .and_then(|mode| knowledge?.mouse_mode(mode));
+        if mode.is_some_and(|mode| mode.0 == mouse_modes::COMMAND) {
+            self.wait = CommandWait::Drawing;
+        } else {
+            self.settle();
+        }
+    }
+
+    /// Ends a wait for a command that is still redrawing: the game has settled.
+    fn settle(&mut self) {
+        if self.wait == CommandWait::Drawing {
+            self.wait = CommandWait::Idle;
+            self.settled = true;
+        }
+    }
+
     /// A new game process sends its state in full, so nothing from the previous game carries over.
     fn start(&mut self, role: Role) {
         self.role = Some(role);
@@ -186,6 +237,8 @@ impl TabGame {
         self.stopped = false;
         self.ended = false;
         self.session.clear();
+        self.wait = CommandWait::Idle;
+        self.settled = false;
     }
 
     /// The game process stopped sending, which only the first message that says so reports.

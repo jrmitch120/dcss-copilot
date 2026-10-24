@@ -13,6 +13,7 @@ expression: replay.view_models.last().unwrap().game
   "now": {
     "state": "rated",
     "level": "calm",
+    "alert": null,
     "line": "No hostiles in view.",
     "detail": null
   },
@@ -20,6 +21,7 @@ expression: replay.view_models.last().unwrap().game
     "card": "inView",
     "monsters": []
   },
+  "factCards": [],
   "waysOut": null,
   "runPlan": {
     "state": "notPlanned"

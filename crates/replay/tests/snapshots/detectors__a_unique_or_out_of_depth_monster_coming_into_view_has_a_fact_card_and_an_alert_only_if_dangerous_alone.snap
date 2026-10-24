@@ -1,0 +1,73 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: detections(EXCEPTIONAL)
+---
+[
+  {
+    "envelope": 10,
+    "turn": 201,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 10,
+    "turn": 201,
+    "event": "factCard",
+    "name": "ogre",
+    "position": {
+      "x": 8,
+      "y": 6
+    },
+    "why": {
+      "is": "outOfDepth",
+      "fromDepth": 4,
+      "levels": 3
+    },
+    "alone": "calm"
+  },
+  {
+    "envelope": 14,
+    "turn": 202,
+    "event": "factCard",
+    "name": "Sigmund",
+    "position": {
+      "x": 2,
+      "y": 1
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 14,
+    "turn": 202,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Sigmund",
+    "line": "Sigmund, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 18,
+    "turn": 203,
+    "event": "factCard",
+    "name": "orc warrior",
+    "position": {
+      "x": 0,
+      "y": 1
+    },
+    "why": {
+      "is": "outOfDepth",
+      "fromDepth": 6,
+      "levels": 5
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 18,
+    "turn": 203,
+    "event": "alert",
+    "cause": "out-of-depth",
+    "monster": "orc warrior",
+    "line": "Orc warrior, out of depth by 5 levels, alone makes this DANGEROUS."
+  }
+]

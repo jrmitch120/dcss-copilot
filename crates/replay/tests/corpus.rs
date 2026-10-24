@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use copilot_replay::{Corpus, CorpusError, Recording, Replayer};
+use copilot_replay::{Corpus, CorpusError, Moment, Recording, Replayer};
 
 const ONE_GAME: &str = r#"
 repository = "jrmitch120/dcss-copilot-corpus"
@@ -80,5 +80,23 @@ fn every_corpus_game_replays_on_the_crawl_version_it_is_tagged_with() {
         if let Err(mismatch) = replayer.check_crawl_version(&game.crawl_version) {
             panic!("{} is {mismatch}", game.file);
         }
+    }
+}
+
+#[test]
+#[ignore = "needs the corpus: cargo run -p corpus -- fetch"]
+fn what_the_detectors_notice_across_each_corpus_game_is_as_snapshotted() {
+    let corpus = Corpus::committed().unwrap();
+    let cache = Corpus::cache_dir();
+    for game in &corpus.games {
+        let bytes = game
+            .read_cached(&cache)
+            .unwrap_or_else(|error| panic!("{error}"));
+        let mut replayer = Replayer::new(Recording::read(&bytes[..]).unwrap()).unwrap();
+        replayer.seek(usize::MAX);
+        let detections: Vec<&Moment> = replayer.detections().collect();
+
+        let name = game.file.trim_end_matches(".dcssrec");
+        insta::assert_json_snapshot!(format!("timeline-{name}"), detections);
     }
 }

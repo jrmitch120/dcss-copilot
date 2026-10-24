@@ -185,7 +185,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "orc warrior",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 6,
+              "levels": 5
+            },
+            "alone": "calm"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -198,6 +214,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Orc warrior can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 30 of 102 HP"
         },
@@ -224,6 +241,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "yellow"
+              },
+              "tile": "mon/humanoids/orcs/orc_warrior"
+            },
+            "name": "Orc warrior",
+            "why": "Out of depth: usually met 5 levels deeper",
+            "alone": "calm"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -418,7 +449,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "orc warrior",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 6,
+              "levels": 5
+            },
+            "alone": "calm"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -431,6 +478,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Orc warrior can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 30 of 102 HP"
         },
@@ -457,6 +505,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "yellow"
+              },
+              "tile": "mon/humanoids/orcs/orc_warrior"
+            },
+            "name": "Orc warrior",
+            "why": "Out of depth: usually met 5 levels deeper",
+            "alone": "calm"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -482,6 +544,29 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "factCard",
+      "name": "orc warrior",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 6,
+        "levels": 5
+      },
+      "alone": "calm"
+    }
+  ],
   "end": {
     "turn": 3,
     "place": {
@@ -653,7 +738,23 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [
+        {
+          "name": "orc warrior",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 6,
+            "levels": 5
+          },
+          "alone": "calm"
+        }
+      ],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -666,6 +767,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Orc warrior can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 30 of 102 HP"
       },
@@ -692,6 +794,20 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "o",
+              "colour": "yellow"
+            },
+            "tile": "mon/humanoids/orcs/orc_warrior"
+          },
+          "name": "Orc warrior",
+          "why": "Out of depth: usually met 5 levels deeper",
+          "alone": "calm"
+        }
+      ],
       "waysOut": {
         "rows": [
           {

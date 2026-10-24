@@ -46,7 +46,11 @@ $effect(() => {
       {/if}
       {#if view.game}
         <NowPill now={view.game.now} />
-        <FocusCard focus={view.game.focus} appearance={view.appearance} />
+        <FocusCard
+          focus={view.game.focus}
+          factCards={view.game.factCards}
+          appearance={view.appearance}
+        />
         {#if view.game.waysOut}
           <WaysOut waysOut={view.game.waysOut} />
         {/if}

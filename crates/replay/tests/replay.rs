@@ -5,7 +5,7 @@
 
 use copilot_core::{Position, Screen, SessionEvent, SourceEvent, VisibleState};
 use copilot_gk::Library;
-use copilot_replay::{Applied, Recording, Replayer, replay};
+use copilot_replay::{Applied, Happened, Recording, Replayer, replay};
 
 const MINOTAUR: &[u8] = include_bytes!("recordings/minotaur-first-steps.dcssrec");
 const SPECTATING: &[u8] = include_bytes!("recordings/spectating-trunk-wizard.dcssrec");
@@ -24,6 +24,11 @@ const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield
 const HALOS_AND_UMBRAS: &[u8] = include_bytes!("recordings/rook-in-halos-and-umbras.dcssrec");
 const CARRIED_GEAR: &[u8] = include_bytes!("recordings/carried-gear-comes-into-view.dcssrec");
 const FULL_VIEW: &[u8] = include_bytes!("recordings/carried-gear-in-the-full-view-list.dcssrec");
+const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall.dcssrec");
+const EXCEPTIONAL: &[u8] = include_bytes!("recordings/sigmund-follows-an-ogre-into-view.dcssrec");
+const STATUSES: &[u8] =
+    include_bytes!("recordings/rook-poisoned-then-confused-beside-lava.dcssrec");
+const JOINED: &[u8] = include_bytes!("recordings/joined-as-jackals-bite.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
@@ -204,7 +209,9 @@ fn a_console_style_screen_is_read_once_crawl_has_drawn_it() {
         .timeline
         .iter()
         .filter_map(|moment| match &moment.event {
-            SourceEvent::ScreenRead(read) if read.screen == Screen::Skills => Some(read),
+            Happened::Source(SourceEvent::ScreenRead(read)) if read.screen == Screen::Skills => {
+                Some(read)
+            }
             _ => None,
         })
         .collect();
@@ -220,7 +227,7 @@ fn the_character_overview_gives_the_resistances() {
         .timeline
         .iter()
         .find_map(|moment| match &moment.event {
-            SourceEvent::ScreenRead(read) => read.resistances(),
+            Happened::Source(SourceEvent::ScreenRead(read)) => read.resistances(),
             _ => None,
         });
     insta::assert_json_snapshot!(resistances);
@@ -235,7 +242,9 @@ fn the_character_dump_gives_the_same_resistances_as_the_overview() {
             .timeline
             .iter()
             .find_map(|moment| match &moment.event {
-                SourceEvent::ScreenRead(read) if read.screen == screen => read.resistances(),
+                Happened::Source(SourceEvent::ScreenRead(read)) if read.screen == screen => {
+                    read.resistances()
+                }
                 _ => None,
             })
     };
@@ -352,7 +361,7 @@ fn the_followed_tabs_stream_stopping_before_the_game_is_named_is_still_reported(
         .timeline
         .iter()
         .filter_map(|moment| match moment.event {
-            SourceEvent::Session(session) => Some((moment.envelope, session)),
+            Happened::Source(SourceEvent::Session(session)) => Some((moment.envelope, session)),
             _ => None,
         })
         .collect();
@@ -702,7 +711,7 @@ fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
 
 /// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
 /// first seen.
-const TAGGED: [(&str, &[u8], &[&str]); 15] = [
+const TAGGED: [(&str, &[u8], &[&str]); 19] = [
     ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
     (
         "spectating-trunk-wizard",
@@ -726,6 +735,18 @@ const TAGGED: [(&str, &[u8], &[&str]); 15] = [
         &["0.34.1"],
     ),
     ("jackals-close-in", JACKALS, &["0.34.1"]),
+    ("jackals-close-in-and-fall", JACKALS_FALL, &["0.34.1"]),
+    ("joined-as-jackals-bite", JOINED, &["0.34.1"]),
+    (
+        "sigmund-follows-an-ogre-into-view",
+        EXCEPTIONAL,
+        &["0.34.1"],
+    ),
+    (
+        "rook-poisoned-then-confused-beside-lava",
+        STATUSES,
+        &["0.34.1"],
+    ),
     ("rook-reads-his-kite-shield", KITE_SHIELD, &["0.34.1"]),
     ("rook-in-halos-and-umbras", HALOS_AND_UMBRAS, &["0.34.1"]),
     ("carried-gear-comes-into-view", CARRIED_GEAR, &["0.34.1"]),

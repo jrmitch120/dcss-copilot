@@ -27,6 +27,14 @@ crawl_identifiers! {
     }
 }
 
+crawl_identifiers! {
+    /// `mouse_mode` identifiers: webtiles' `input_mode`.
+    mouse_modes {
+        /// The game waits for the player's next command.
+        COMMAND = "MOUSE_MODE_COMMAND";
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeSet;
@@ -48,6 +56,7 @@ mod tests {
                     monster_threats::ALL,
                     &bundle.monster_threats,
                 ),
+                ("mouse mode", mouse_modes::ALL, &bundle.mouse_modes),
             ] {
                 let known: BTreeSet<&str> = known.values().map(|id| id.0.as_str()).collect();
                 for id in named {

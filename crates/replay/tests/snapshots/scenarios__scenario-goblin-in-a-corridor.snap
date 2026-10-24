@@ -100,7 +100,9 @@ expression: replay
         },
         "fight": {
           "state": "noFight"
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -113,6 +115,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "No hostiles in view.",
           "detail": null
         },
@@ -120,6 +123,7 @@ expression: replay
           "card": "inView",
           "monsters": []
         },
+        "factCards": [],
         "waysOut": null,
         "runPlan": {
           "state": "notPlanned"
@@ -131,6 +135,13 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 74,
+      "turn": 6,
+      "event": "encounterStarted"
+    }
+  ],
   "end": {
     "turn": 6,
     "place": {
@@ -278,7 +289,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -291,6 +304,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Nothing hostile can reach you before your next action.",
         "detail": null
       },
@@ -317,6 +331,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

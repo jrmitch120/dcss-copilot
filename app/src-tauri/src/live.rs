@@ -231,6 +231,7 @@ impl Following {
     /// Decodes one relayed envelope and tells the Advisor what the Game Source learned.
     fn ingest(&mut self, envelope: &Envelope) {
         for event in self.source.ingest(envelope) {
+            // What the detectors notice reaches the panel through the view model.
             self.advisor.apply(event);
         }
     }

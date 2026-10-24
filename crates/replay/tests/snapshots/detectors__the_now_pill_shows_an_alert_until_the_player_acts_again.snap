@@ -1,0 +1,42 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: alerts
+---
+[
+  [
+    100,
+    null
+  ],
+  [
+    101,
+    null
+  ],
+  [
+    102,
+    "Threat rose to DANGEROUS."
+  ],
+  [
+    103,
+    "Threat rose to LETHAL."
+  ],
+  [
+    104,
+    "HP 3 of 20: below a quarter."
+  ],
+  [
+    105,
+    null
+  ],
+  [
+    106,
+    null
+  ],
+  [
+    107,
+    null
+  ],
+  [
+    108,
+    null
+  ]
+]

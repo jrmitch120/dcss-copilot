@@ -181,7 +181,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 5,
+              "levels": 4
+            },
+            "alone": "dangerous"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -194,6 +210,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": "No Way Out is left that you can use.",
           "line": "Centaur can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 46 of 102 HP"
         },
@@ -220,6 +237,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "Centaur",
+            "why": "Out of depth: usually met 4 levels deeper",
+            "alone": "dangerous"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -410,7 +441,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 5,
+              "levels": 4
+            },
+            "alone": "dangerous"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -423,6 +470,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": null,
           "line": "Centaur can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 46 of 91 HP"
         },
@@ -449,6 +497,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "Centaur",
+            "why": "Out of depth: usually met 4 levels deeper",
+            "alone": "dangerous"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -474,6 +536,36 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "factCard",
+      "name": "centaur",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 5,
+        "levels": 4
+      },
+      "alone": "calm"
+    },
+    {
+      "envelope": 109,
+      "turn": 0,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
+    }
+  ],
   "end": {
     "turn": 3,
     "place": {
@@ -641,7 +733,23 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [
+        {
+          "name": "centaur",
+          "position": {
+            "x": -1,
+            "y": 1
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 5,
+            "levels": 4
+          },
+          "alone": "dangerous"
+        }
+      ],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -654,6 +762,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "dangerous",
+        "alert": null,
         "line": "Centaur can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 46 of 92 HP"
       },
@@ -680,6 +789,20 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "c",
+              "colour": "brown"
+            },
+            "tile": "mon/demihumanoids/taurs/centaur"
+          },
+          "name": "Centaur",
+          "why": "Out of depth: usually met 4 levels deeper",
+          "alone": "dangerous"
+        }
+      ],
       "waysOut": {
         "rows": [
           {

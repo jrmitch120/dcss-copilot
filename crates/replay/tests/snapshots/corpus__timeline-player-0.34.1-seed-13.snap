@@ -1,0 +1,927 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 199,
+    "turn": 21,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 229,
+    "turn": 27,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 382,
+    "turn": 57,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 391,
+    "turn": 58,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 1 of 9: below a quarter."
+  },
+  {
+    "envelope": 560,
+    "turn": 98,
+    "event": "allClear"
+  },
+  {
+    "envelope": 564,
+    "turn": 99,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 564,
+    "turn": 99,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 590,
+    "turn": 105,
+    "event": "allClear"
+  },
+  {
+    "envelope": 666,
+    "turn": 121,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 709,
+    "turn": 129,
+    "event": "allClear"
+  },
+  {
+    "envelope": 726,
+    "turn": 145,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 778,
+    "turn": 158,
+    "event": "allClear"
+  },
+  {
+    "envelope": 788,
+    "turn": 181,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 804,
+    "turn": 184,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1060,
+    "turn": 239,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1070,
+    "turn": 255,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1320,
+    "turn": 353,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1370,
+    "turn": 436,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1418,
+    "turn": 483,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1423,
+    "turn": 495,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1507,
+    "turn": 607,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1530,
+    "turn": 656,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1535,
+    "turn": 657,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1616,
+    "turn": 766,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1699,
+    "turn": 891,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1970,
+    "turn": 970,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2004,
+    "turn": 978,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2047,
+    "turn": 983,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2047,
+    "turn": 983,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2119,
+    "turn": 994,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2124,
+    "turn": 1002,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2133,
+    "turn": 1004,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2364,
+    "turn": 1074,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 16: below half."
+  },
+  {
+    "envelope": 2389,
+    "turn": 1078,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 2397,
+    "turn": 1079,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 2 of 16: below a quarter."
+  },
+  {
+    "envelope": 2512,
+    "turn": 1167,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "lethalPoison",
+    "line": "The poison in you will kill you unless you cure it."
+  },
+  {
+    "envelope": 2556,
+    "turn": 1201,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2581,
+    "turn": 1215,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2679,
+    "turn": 1270,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2689,
+    "turn": 1301,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2799,
+    "turn": 1424,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2804,
+    "turn": 1432,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2828,
+    "turn": 1438,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2857,
+    "turn": 1718,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2900,
+    "turn": 1759,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2957,
+    "turn": 1832,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2967,
+    "turn": 1834,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3106,
+    "turn": 1951,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3398,
+    "turn": 2041,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3403,
+    "turn": 2044,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3403,
+    "turn": 2044,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3687,
+    "turn": 2081,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3707,
+    "turn": 2192,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3707,
+    "turn": 2192,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3929,
+    "turn": 2304,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 11 of 24: below half."
+  },
+  {
+    "envelope": 3951,
+    "turn": 2305,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 3973,
+    "turn": 2306,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 5 of 24: below a quarter."
+  },
+  {
+    "envelope": 4030,
+    "turn": 2320,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4113,
+    "turn": 2361,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4159,
+    "turn": 2371,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 10 of 24: below half."
+  },
+  {
+    "envelope": 4181,
+    "turn": 2372,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4221,
+    "turn": 2430,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4231,
+    "turn": 2471,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4282,
+    "turn": 2479,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4363,
+    "turn": 2545,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4383,
+    "turn": 2706,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4402,
+    "turn": 2845,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4495,
+    "turn": 2900,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4542,
+    "turn": 2922,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4561,
+    "turn": 2951,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4705,
+    "turn": 3024,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4722,
+    "turn": 3037,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4757,
+    "turn": 3047,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4980,
+    "turn": 3073,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 7 of 24: below half."
+  },
+  {
+    "envelope": 5016,
+    "turn": 3076,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 4 of 24: below a quarter."
+  },
+  {
+    "envelope": 5020,
+    "turn": 3077,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5075,
+    "turn": 3089,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5131,
+    "turn": 3182,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5139,
+    "turn": 3184,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5236,
+    "turn": 3200,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5257,
+    "turn": 3206,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5262,
+    "turn": 3207,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5415,
+    "turn": 3301,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5445,
+    "turn": 3388,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5510,
+    "turn": 3429,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5520,
+    "turn": 3487,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5547,
+    "turn": 3505,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5651,
+    "turn": 3539,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5693,
+    "turn": 3614,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5698,
+    "turn": 3619,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5733,
+    "turn": 3743,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5756,
+    "turn": 3806,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5852,
+    "turn": 3841,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5869,
+    "turn": 3860,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5869,
+    "turn": 3860,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 6032,
+    "turn": 3912,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6102,
+    "turn": 4001,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6138,
+    "turn": 4025,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6196,
+    "turn": 4048,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6218,
+    "turn": 4053,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 6493,
+    "turn": 4082,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6502,
+    "turn": 4084,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6540,
+    "turn": 4093,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6556,
+    "turn": 4097,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6572,
+    "turn": 4101,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6596,
+    "turn": 4106,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6629,
+    "turn": 4113,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6727,
+    "turn": 4137,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6785,
+    "turn": 4147,
+    "event": "allClear"
+  },
+  {
+    "envelope": 6871,
+    "turn": 4167,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 7033,
+    "turn": 4196,
+    "event": "allClear"
+  },
+  {
+    "envelope": 7051,
+    "turn": 4200,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 7338,
+    "turn": 4244,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 7483,
+    "turn": 4271,
+    "event": "allClear"
+  },
+  {
+    "envelope": 7488,
+    "turn": 4273,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 7564,
+    "turn": 4314,
+    "event": "allClear"
+  },
+  {
+    "envelope": 7569,
+    "turn": 4317,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 7569,
+    "turn": 4317,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 7680,
+    "turn": 4372,
+    "event": "allClear"
+  },
+  {
+    "envelope": 7696,
+    "turn": 4376,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 7778,
+    "turn": 4409,
+    "event": "factCard",
+    "name": "Pargi",
+    "position": {
+      "x": 16,
+      "y": 8
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 7778,
+    "turn": 4409,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Pargi",
+    "line": "Pargi, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 7931,
+    "turn": 4426,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8057,
+    "turn": 4577,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8217,
+    "turn": 4651,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8272,
+    "turn": 4712,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8287,
+    "turn": 4805,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8287,
+    "turn": 4805,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8372,
+    "turn": 4985,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8387,
+    "turn": 5020,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8425,
+    "turn": 5073,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8557,
+    "turn": 5198,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8573,
+    "turn": 5201,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8596,
+    "turn": 5202,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8696,
+    "turn": 5261,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8700,
+    "turn": 5263,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8739,
+    "turn": 5279,
+    "event": "allClear"
+  },
+  {
+    "envelope": 8744,
+    "turn": 5282,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 8806,
+    "turn": 5311,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8867,
+    "turn": 5344,
+    "event": "factCard",
+    "name": "Menkaure",
+    "position": {
+      "x": 23,
+      "y": -7
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 8867,
+    "turn": 5344,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Menkaure",
+    "line": "Menkaure, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 9079,
+    "turn": 5406,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 17 of 36: below half."
+  },
+  {
+    "envelope": 9169,
+    "turn": 5416,
+    "event": "allClear"
+  },
+  {
+    "envelope": 9215,
+    "turn": 5528,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 9396,
+    "turn": 5611,
+    "event": "allClear"
+  },
+  {
+    "envelope": 9406,
+    "turn": 5626,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 9406,
+    "turn": 5626,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 9552,
+    "turn": 5650,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 16 of 36: below half."
+  },
+  {
+    "envelope": 9747,
+    "turn": 5692,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 9814,
+    "turn": 5722,
+    "event": "allClear"
+  },
+  {
+    "envelope": 9844,
+    "turn": 5850,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 9883,
+    "turn": 5980,
+    "event": "allClear"
+  },
+  {
+    "envelope": 9914,
+    "turn": 5992,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 9934,
+    "turn": 5996,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 10118,
+    "turn": 6029,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

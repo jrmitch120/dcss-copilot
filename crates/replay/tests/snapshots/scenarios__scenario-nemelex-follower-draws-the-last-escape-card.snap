@@ -15,6 +15,13 @@ expression: replay
   },
   "turns": [],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 71,
+      "turn": 0,
+      "event": "encounterStarted"
+    }
+  ],
   "end": {
     "turn": 1,
     "place": {
@@ -163,7 +170,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -176,6 +185,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Jackal can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 4 of 19 HP"
       },
@@ -202,6 +212,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

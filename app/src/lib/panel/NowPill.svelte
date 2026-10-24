@@ -11,12 +11,18 @@ let tone = $derived(threatTone(now));
   {#if now.state === "unrated"}
     <div class="lab">UNRATED</div>
     <div class="line">
+      {#if now.alert}
+        <strong class="alert">{now.alert}</strong>
+      {/if}
       The Advisor can't judge danger yet.
       <small>No Threat Level is shown until it can be computed.</small>
     </div>
   {:else}
     <div class="lab">{now.level.toUpperCase()}</div>
     <div class="line">
+      {#if now.alert}
+        <strong class="alert">{now.alert}</strong>
+      {/if}
       {now.line}
       {#if now.detail}
         <small>{now.detail}</small>
@@ -80,6 +86,12 @@ let tone = $derived(threatTone(now));
 .line {
   flex: 1;
   font-size: 14px;
+}
+
+.alert {
+  display: block;
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
 .line small {

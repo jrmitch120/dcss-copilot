@@ -43,3 +43,19 @@ enum COLOURS
     WHITE,
     MAX_TERM_COLOUR
 };
+
+// (trimmed for the extractor test)
+
+enum mouse_mode
+{
+    MOUSE_MODE_NORMAL,
+    MOUSE_MODE_COMMAND,
+    MOUSE_MODE_TARGET,
+    MOUSE_MODE_TARGET_DIR,
+    MOUSE_MODE_TARGET_PATH,
+    MOUSE_MODE_MORE,
+    MOUSE_MODE_MACRO,
+    MOUSE_MODE_PROMPT,
+    MOUSE_MODE_YESNO,
+    MOUSE_MODE_MAX,
+};

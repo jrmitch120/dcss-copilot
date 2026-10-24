@@ -15,6 +15,21 @@ expression: replay
   },
   "turns": [],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 60,
+      "turn": 1,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 65,
+      "turn": 2,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "lethal",
+      "line": "Threat rose to LETHAL."
+    }
+  ],
   "end": {
     "turn": 7,
     "place": {
@@ -200,7 +215,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -213,6 +230,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Nothing hostile can reach you before your next action.",
         "detail": null
       },
@@ -239,6 +257,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

@@ -114,6 +114,14 @@ pub struct Bundle {
     /// Crawl's own ratings of how dangerous a monster is to the player, by their
     /// `mon_threat_level_type` enum value: a monster's webtiles `threat`.
     pub monster_threats: BTreeMap<u8, EnumId>,
+    /// What the game can wait for the player to do, by their `mouse_mode` enum value: webtiles'
+    /// `input_mode`.
+    pub mouse_modes: BTreeMap<u8, EnumId>,
+    /// Every branch of the dungeon, in `branch_type` order, with the monsters crawl makes on its
+    /// levels at random.
+    pub branches: Vec<Branch>,
+    /// What the game shows of the statuses that put the player in danger.
+    pub danger: DangerSigns,
     /// What the game shows as the player learns which kind of item they carry.
     pub identification: IdentificationSigns,
     /// What the game shows that tells the player's Lighting.
@@ -374,6 +382,40 @@ pub enum BodySize {
     Giant,
 }
 
+/// A branch of the dungeon, from `branches` in `branch-data.h`, with the monsters crawl makes at
+/// random on its levels, from `population` in `mon-pick-data.h`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Branch {
+    /// Its `branch_type` identifier, such as `BRANCH_DUNGEON`.
+    pub id: EnumId,
+    /// What the game names the place a level of it is, as webtiles' `place` does: its short
+    /// name, such as `Dungeon` or `Lair`, which crawl gives an article for some branches one
+    /// level deep, such as `a Bazaar` or `The Abyss`.
+    pub place: String,
+    /// The shallowest of its levels crawl makes each monster on at random, by `monster_type`
+    /// identifier, from 1 for its first level. Monsters crawl only places, such as uniques, and
+    /// those it makes at random only in other branches, aren't here.
+    pub shallowest: BTreeMap<EnumId, u32>,
+}
+
+/// What the game shows of the statuses that put the player in danger, as this Crawl Version
+/// shows them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DangerSigns {
+    /// The words the status pane starts the description of poison that will kill the player
+    /// with, such as `lethally poisoned` (`_describe_poison`).
+    pub lethal_poison: String,
+    /// The status lights of turning to stone or being stone, such as `Petr` and `Stone`.
+    pub petrification_lights: Vec<String>,
+    /// The status lights of burning in liquid fire, the sticky flame, such as `Fire`.
+    pub liquid_fire_lights: Vec<String>,
+    /// The status lights of confusion, which may stumble the player into deep water or lava,
+    /// such as `Conf`.
+    pub confusion_lights: Vec<String>,
+}
+
 /// What the game shows that tells how fast the player moves, as `player_speed` and
 /// `player_movement_speed` decide it, as this Crawl Version has them. A species' own size,
 /// swimming and mutations are on its [`Species`], and a form's body on its [`Form`].
@@ -547,6 +589,13 @@ impl Bundle {
         self.species.iter().find(|species| species.name == name)
     }
 
+    /// The dungeon feature with this `dungeon_feature_type` identifier, such as `DNGN_LAVA`, if
+    /// this version defines one.
+    #[must_use]
+    pub fn feature_by_id(&self, id: &EnumId) -> Option<&Feature> {
+        self.features.values().find(|feature| feature.id == *id)
+    }
+
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
     #[must_use]
     pub fn feature(&self, value: u16) -> Option<&Feature> {
@@ -563,6 +612,18 @@ impl Bundle {
     #[must_use]
     pub fn monster_threat(&self, value: u8) -> Option<&EnumId> {
         self.monster_threats.get(&value)
+    }
+
+    /// What the game waits for the player to do when webtiles' `input_mode` is `value`.
+    #[must_use]
+    pub fn mouse_mode(&self, value: u8) -> Option<&EnumId> {
+        self.mouse_modes.get(&value)
+    }
+
+    /// The branch whose levels the game names `place`, as webtiles names where the player is.
+    #[must_use]
+    pub fn branch_at(&self, place: &str) -> Option<&Branch> {
+        self.branches.iter().find(|branch| branch.place == place)
     }
 
     /// What an item with this `base_type` and `sub_type` is, if this version has the class. The

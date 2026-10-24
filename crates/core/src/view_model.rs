@@ -87,6 +87,9 @@ pub struct GameView {
     pub now: NowPill,
     /// The one thing that deserves the player's attention now.
     pub focus: FocusCard,
+    /// A fact card for each kind of unique or Out of Depth monster in view, in map order, shown
+    /// in the focus card.
+    pub fact_cards: Vec<FactCard>,
     /// The player's Ways Out, under the focus card while anything hostile is in view.
     pub ways_out: Option<WaysOutList>,
     /// The Run Plan, summarised along the bottom of the panel.
@@ -156,11 +159,17 @@ pub struct Character {
 )]
 pub enum NowPill {
     /// The Advisor can't judge a Threat Level yet, so it shows none rather than guess.
-    Unrated,
+    Unrated {
+        /// The Alert raised at the player's last action, until they act again.
+        alert: Option<String>,
+    },
     /// The Advisor judged how dangerous this moment is.
     Rated {
         /// The Threat Level.
         level: ThreatLevel,
+        /// The Alert raised at the player's last action, until they act again, such as
+        /// `Threat rose to LETHAL.`.
+        alert: Option<String>,
         /// One sentence about this moment, such as which monsters can attack.
         line: String,
         /// The numbers behind the level, such as the chance of death and the worst-case hit,
@@ -200,6 +209,21 @@ pub enum FocusCard {
         /// each, such as a screen to open.
         gaps: Vec<String>,
     },
+}
+
+/// A unique or Out of Depth monster in view, singled out so the player recognises it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct FactCard {
+    /// How it is drawn.
+    pub depiction: Depiction,
+    /// Its name, as the game names it, capitalised.
+    pub name: String,
+    /// What makes it exceptional, such as `Unique` or `Out of depth: usually met 5 levels
+    /// deeper`.
+    pub why: String,
+    /// The Threat Level it makes on its own, when the Advisor can judge it.
+    pub alone: Option<ThreatLevel>,
 }
 
 /// The Run Plan rail along the bottom of the panel.

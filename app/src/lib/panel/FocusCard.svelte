@@ -1,9 +1,29 @@
 <script lang="ts">
-import type { Appearance, FocusCard, Listing } from "$lib/bindings";
+import type { Appearance, FactCard, FocusCard, Listing } from "$lib/bindings";
 import ListingRow from "./ListingRow.svelte";
+import Tile from "./Tile.svelte";
 
-let { focus, appearance }: { focus: FocusCard; appearance: Appearance } = $props();
+let {
+  focus,
+  factCards,
+  appearance,
+}: { focus: FocusCard; factCards: FactCard[]; appearance: Appearance } = $props();
 </script>
+
+{#snippet facts()}
+  {#each factCards as card, i (i)}
+    <div class="fact">
+      <Tile depiction={card.depiction} {appearance} size={32} />
+      <div>
+        <div class="name">{card.name}</div>
+        <div class="muted small">{card.why}</div>
+      </div>
+      {#if card.alone}
+        <span class="alone {card.alone}">alone: {card.alone.toUpperCase()}</span>
+      {/if}
+    </div>
+  {/each}
+{/snippet}
 
 {#snippet inView(
   monsters: Listing[] | null,
@@ -23,11 +43,13 @@ let { focus, appearance }: { focus: FocusCard; appearance: Appearance } = $props
 
 {#if focus.card === "inView"}
   <section class="card">
+    {@render facts()}
     <div class="lbl">In view</div>
     {@render inView(focus.monsters)}
   </section>
 {:else if focus.card === "fight"}
   <section class="card">
+    {@render facts()}
     <div class="lbl">Fight <em>computed</em></div>
     {@render inView(focus.monsters)}
     <p class="line">{focus.line}</p>
@@ -46,6 +68,42 @@ let { focus, appearance }: { focus: FocusCard; appearance: Appearance } = $props
 <style>
 p {
   margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-low);
+}
+
+.fact .name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.alone {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.alone.calm {
+  color: var(--calm);
+}
+
+.alone.dangerous {
+  color: var(--warning);
+}
+
+.alone.lethal {
+  color: var(--danger);
 }
 
 ul {

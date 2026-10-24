@@ -122,7 +122,9 @@ expression: replay
         },
         "fight": {
           "state": "noFight"
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -135,6 +137,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "No hostiles in view.",
           "detail": null
         },
@@ -142,6 +145,7 @@ expression: replay
           "card": "inView",
           "monsters": []
         },
+        "factCards": [],
         "waysOut": null,
         "runPlan": {
           "state": "notPlanned"
@@ -153,6 +157,13 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 132,
+      "turn": 11,
+      "event": "encounterStarted"
+    }
+  ],
   "end": {
     "turn": 11,
     "place": {
@@ -333,7 +344,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -346,6 +359,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Jackal can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 3 of 19 HP"
       },
@@ -372,6 +386,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

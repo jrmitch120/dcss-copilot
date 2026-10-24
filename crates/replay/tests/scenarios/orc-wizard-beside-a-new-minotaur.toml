@@ -16,3 +16,11 @@ keys = [
   # Wait two turns while it acts.
   ".", ".",
 ]
+
+[[alerts]]
+turn = 0
+cause = "last-way-out-lost"
+
+[[alerts]]
+turn = 1
+cause = "out-of-depth"

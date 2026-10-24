@@ -1,0 +1,250 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 104,
+    "turn": 10,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 144,
+    "turn": 32,
+    "event": "allClear"
+  },
+  {
+    "envelope": 196,
+    "turn": 47,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 242,
+    "turn": 50,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 14: below half."
+  },
+  {
+    "envelope": 274,
+    "turn": 87,
+    "event": "allClear"
+  },
+  {
+    "envelope": 279,
+    "turn": 94,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 364,
+    "turn": 177,
+    "event": "allClear"
+  },
+  {
+    "envelope": 378,
+    "turn": 188,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 454,
+    "turn": 214,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 627,
+    "turn": 261,
+    "event": "allClear"
+  },
+  {
+    "envelope": 642,
+    "turn": 294,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 721,
+    "turn": 306,
+    "event": "allClear"
+  },
+  {
+    "envelope": 770,
+    "turn": 318,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 839,
+    "turn": 339,
+    "event": "allClear"
+  },
+  {
+    "envelope": 849,
+    "turn": 342,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 893,
+    "turn": 350,
+    "event": "allClear"
+  },
+  {
+    "envelope": 959,
+    "turn": 421,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1073,
+    "turn": 653,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1083,
+    "turn": 660,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1136,
+    "turn": 670,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1190,
+    "turn": 699,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1407,
+    "turn": 727,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1432,
+    "turn": 802,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1457,
+    "turn": 804,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1617,
+    "turn": 1019,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1670,
+    "turn": 1026,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1740,
+    "turn": 1034,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1840,
+    "turn": 1202,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1942,
+    "turn": 1214,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1971,
+    "turn": 1294,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2007,
+    "turn": 1342,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2012,
+    "turn": 1368,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2082,
+    "turn": 1389,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2092,
+    "turn": 1438,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2263,
+    "turn": 1679,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2268,
+    "turn": 1697,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2318,
+    "turn": 1843,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2341,
+    "turn": 1937,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2467,
+    "turn": 1979,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2476,
+    "turn": 1990,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2580,
+    "turn": 2001,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2608,
+    "turn": 2040,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2715,
+    "turn": 2075,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2725,
+    "turn": 2114,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2737,
+    "turn": 2117,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2741,
+    "turn": 2118,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2960,
+    "turn": 2136,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 15 of 37: below half."
+  }
+]

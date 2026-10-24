@@ -17,3 +17,7 @@ keys = [
   "&", "m", "ogre\r",
   "\u001b",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"

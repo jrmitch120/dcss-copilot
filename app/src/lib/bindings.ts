@@ -95,6 +95,21 @@ export type Depiction = {
 	tile: TileName | null,
 };
 
+/**  A unique or Out of Depth monster in view, singled out so the player recognises it. */
+export type FactCard = {
+	/**  How it is drawn. */
+	depiction: Depiction,
+	/**  Its name, as the game names it, capitalised. */
+	name: string,
+	/**
+	 *  What makes it exceptional, such as `Unique` or `Out of depth: usually met 5 levels
+	 *  deeper`.
+	 */
+	why: string,
+	/**  The Threat Level it makes on its own, when the Advisor can judge it. */
+	alone: ThreatLevel | null,
+};
+
 /**  The card under the now pill: what deserves the player's attention now. */
 export type FocusCard = 
 /**  Nothing calls for a decision: the card lists what is in view. */
@@ -138,6 +153,11 @@ export type GameView = {
 	now: NowPill,
 	/**  The one thing that deserves the player's attention now. */
 	focus: FocusCard,
+	/**
+	 *  A fact card for each kind of unique or Out of Depth monster in view, in map order, shown
+	 *  in the focus card.
+	 */
+	factCards: FactCard[],
 	/**  The player's Ways Out, under the focus card while anything hostile is in view. */
 	waysOut: WaysOutList | null,
 	/**  The Run Plan, summarised along the bottom of the panel. */
@@ -258,11 +278,18 @@ export type ModelsAndKeysView = {
 /**  The threat label and one line at the top of the panel. */
 export type NowPill = 
 /**  The Advisor can't judge a Threat Level yet, so it shows none rather than guess. */
-{ state: "unrated" } | 
+{ state: "unrated"; 
+/**  The Alert raised at the player's last action, until they act again. */
+alert: string | null } | 
 /**  The Advisor judged how dangerous this moment is. */
 { state: "rated"; 
 /**  The Threat Level. */
 level: ThreatLevel; 
+/**
+ *  The Alert raised at the player's last action, until they act again, such as
+ *  `Threat rose to LETHAL.`.
+ */
+alert: string | null; 
 /**  One sentence about this moment, such as which monsters can attack. */
 line: string; 
 /**

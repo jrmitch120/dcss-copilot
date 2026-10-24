@@ -21,6 +21,9 @@ pub enum SourceEvent {
     ScreenRead(ScreenRead),
     /// Something happened to the source's view of the game, rather than in the game.
     Session(SessionEvent),
+    /// The game has finished reacting to the player and waits for their next command, and the
+    /// Visible State reported before this is all it shows: a Settled Update.
+    Settled,
 }
 
 /// Something that happened to a Game Source's view of the game it follows, rather than in the

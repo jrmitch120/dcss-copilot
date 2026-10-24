@@ -1,0 +1,369 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 107,
+    "turn": 6,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 284,
+    "turn": 47,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 304,
+    "turn": 51,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 14: below half."
+  },
+  {
+    "envelope": 361,
+    "turn": 54,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 380,
+    "turn": 55,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 3 of 14: below a quarter."
+  },
+  {
+    "envelope": 435,
+    "turn": 108,
+    "event": "allClear"
+  },
+  {
+    "envelope": 468,
+    "turn": 175,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 588,
+    "turn": 234,
+    "event": "allClear"
+  },
+  {
+    "envelope": 598,
+    "turn": 244,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 653,
+    "turn": 261,
+    "event": "allClear"
+  },
+  {
+    "envelope": 668,
+    "turn": 300,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 783,
+    "turn": 382,
+    "event": "allClear"
+  },
+  {
+    "envelope": 797,
+    "turn": 440,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1054,
+    "turn": 584,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1059,
+    "turn": 611,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1446,
+    "turn": 975,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1467,
+    "turn": 1000,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1572,
+    "turn": 1048,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1834,
+    "turn": 1119,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1844,
+    "turn": 1147,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1865,
+    "turn": 1148,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1886,
+    "turn": 1149,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 2059,
+    "turn": 1161,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 10 of 26: below half."
+  },
+  {
+    "envelope": 2077,
+    "turn": 1163,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "lethalPoison",
+    "line": "The poison in you will kill you unless you cure it."
+  },
+  {
+    "envelope": 2086,
+    "turn": 1164,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 4 of 26: below a quarter."
+  },
+  {
+    "envelope": 2116,
+    "turn": 1169,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2181,
+    "turn": 1307,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2308,
+    "turn": 1451,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2360,
+    "turn": 1470,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2585,
+    "turn": 1575,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 3373,
+    "turn": 1789,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3386,
+    "turn": 1803,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3386,
+    "turn": 1803,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3411,
+    "turn": 1875,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3416,
+    "turn": 1877,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3438,
+    "turn": 1883,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3612,
+    "turn": 1986,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3617,
+    "turn": 1987,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3648,
+    "turn": 1994,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3671,
+    "turn": 2002,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3710,
+    "turn": 2050,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3922,
+    "turn": 2175,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4238,
+    "turn": 2220,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4274,
+    "turn": 2285,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4316,
+    "turn": 2322,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4441,
+    "turn": 2379,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4446,
+    "turn": 2387,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4797,
+    "turn": 2595,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4822,
+    "turn": 2705,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4885,
+    "turn": 2781,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4890,
+    "turn": 2787,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4960,
+    "turn": 2791,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4987,
+    "turn": 2824,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5039,
+    "turn": 2843,
+    "event": "factCard",
+    "name": "Natasha",
+    "position": {
+      "x": -16,
+      "y": -6
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 5039,
+    "turn": 2843,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Natasha",
+    "line": "Natasha, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 5222,
+    "turn": 2926,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5227,
+    "turn": 3026,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5227,
+    "turn": 3026,
+    "event": "factCard",
+    "name": "Crazy Yiuf",
+    "position": {
+      "x": -25,
+      "y": 9
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 5227,
+    "turn": 3026,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Crazy Yiuf",
+    "line": "Crazy Yiuf, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 5321,
+    "turn": 3034,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

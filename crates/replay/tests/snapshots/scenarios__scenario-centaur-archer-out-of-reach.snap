@@ -180,7 +180,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 5,
+              "levels": 4
+            },
+            "alone": "calm"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -193,6 +209,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Centaur can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 22 of 102 HP"
         },
@@ -219,6 +236,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "Centaur",
+            "why": "Out of depth: usually met 4 levels deeper",
+            "alone": "calm"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -408,7 +439,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "centaur",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 5,
+              "levels": 4
+            },
+            "alone": "calm"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -421,6 +468,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Centaur can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 22 of 93 HP"
         },
@@ -447,6 +495,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "c",
+                "colour": "brown"
+              },
+              "tile": "mon/demihumanoids/taurs/centaur"
+            },
+            "name": "Centaur",
+            "why": "Out of depth: usually met 4 levels deeper",
+            "alone": "calm"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -472,6 +534,29 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "factCard",
+      "name": "centaur",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 5,
+        "levels": 4
+      },
+      "alone": "calm"
+    }
+  ],
   "end": {
     "turn": 3,
     "place": {
@@ -638,7 +723,23 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [
+        {
+          "name": "centaur",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 5,
+            "levels": 4
+          },
+          "alone": "calm"
+        }
+      ],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -651,6 +752,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Centaur can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 22 of 84 HP"
       },
@@ -677,6 +779,20 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "c",
+              "colour": "brown"
+            },
+            "tile": "mon/demihumanoids/taurs/centaur"
+          },
+          "name": "Centaur",
+          "why": "Out of depth: usually met 4 levels deeper",
+          "alone": "calm"
+        }
+      ],
       "waysOut": {
         "rows": [
           {

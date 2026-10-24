@@ -16,3 +16,15 @@ keys = [
   # Wait two turns for it to close in.
   ".", ".",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"
+
+[[alerts]]
+turn = 1
+cause = "last-way-out-lost"
+
+[[alerts]]
+turn = 2
+cause = "out-of-depth"
