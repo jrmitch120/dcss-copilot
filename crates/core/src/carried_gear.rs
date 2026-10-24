@@ -1,9 +1,9 @@
 //! Carried Gear: what one monster has been seen to wield, quiver or carry, read off what the game
-//! says of it in its messages.
+//! says of it in its messages and lists of it in the full-view list.
 //!
-//! Crawl lists a monster's gear in the same words in two places (`get_monster_equipment_desc`,
-//! `directn.cc:3442`): the sighting message as monsters come into view, and the look text when the
-//! look cursor rests on one. Line numbers are crawl 0.34.1's.
+//! Crawl lists a monster's gear in the same words in three places (`get_monster_equipment_desc`,
+//! `directn.cc:3442`): the sighting message as monsters come into view, the look text when the
+//! look cursor rests on one, and the full-view list (`Ctrl-X`). Line numbers are crawl 0.34.1's.
 
 use copilot_gk::{Bundle, EnumId, ItemKind, MissileKind};
 use serde::Serialize;
@@ -171,6 +171,18 @@ const ENCOUNTER: &str = "You encounter ";
 /// `directn.cc:932`).
 const LOOK_PREFIXES: [&str; 3] = ["Here: ", "Look: ", "Aim: "];
 
+/// How crawl names what a monster in the full-view list constricts or is constricted by, after
+/// its gear (`monster_info::constriction_description`, `mon-info.cc:1561`, with the names set at
+/// `mon-info.cc:812` and `mon-info.cc:826`).
+const CONSTRICTIONS: [&str; 2] = [", constricted by ", ", constricting "];
+
+/// How hurt crawl says a monster in the full-view list is, after its gear: a degree, then
+/// `wounded`, or `damaged` for the undead, the nonliving and plants; or `almost dead` or `almost
+/// destroyed` (`get_damage_level_string`, `mon-util.cc:5350`).
+const DAMAGE_DEGREES: [&str; 4] = ["lightly", "moderately", "heavily", "severely"];
+const DAMAGE_STATES: [&str; 2] = ["wounded", "damaged"];
+const ALMOST_DEAD: [&str; 2] = ["almost dead", "almost destroyed"];
+
 /// The words that start each part of a monster's gear as crawl lists it.
 const SLOT_WORDS: [(&str, GearSlot); 4] = [
     ("wielding ", GearSlot::Wielding),
@@ -315,6 +327,55 @@ fn look(line: &str, bundle: &Bundle) -> Option<Said> {
         name: without_article(name).to_owned(),
         gear,
     })
+}
+
+/// One monster's description in the full-view list (`_full_describe_menu`, `directn.cc:592`):
+/// `an orc (asleep), wielding a +0 club, lightly wounded, constricted by a naga`, its name with
+/// its article, what else is said of it in brackets, its gear after a comma, then how hurt it is
+/// and what it constricts or is constricted by. Its name, without its article, and its gear,
+/// with items named through `bundle`: nothing, when nothing is listed, as the full-view list
+/// lists everything (`DESC_FULL`).
+pub(crate) fn full_view(description: &str, bundle: &Bundle) -> Option<(String, CarriedGear)> {
+    let text = CONSTRICTIONS
+        .iter()
+        .filter_map(|constriction| description.find(constriction))
+        .min()
+        .map_or(description, |at| &description[..at]);
+    let text = match text.rsplit_once(", ") {
+        Some((rest, hurt)) if is_damage(hurt) => rest,
+        _ => text,
+    };
+    let listing_at = text.match_indices(", ").map(|(at, _)| at).find(|&at| {
+        let after = &text[at + ", ".len()..];
+        SLOT_WORDS.iter().any(|(word, _)| after.starts_with(word))
+    });
+    let (named, gear) = match listing_at {
+        Some(at) => (
+            &text[..at],
+            gear(&text[at + ", ".len()..], Unlisted::Nothing, bundle)?,
+        ),
+        None => (
+            text,
+            CarriedGear {
+                items: Vec::new(),
+                unlisted: Unlisted::Nothing,
+            },
+        ),
+    };
+    // Its attitude and statuses aren't part of its name (`directn.cc:3485`).
+    let name = match named.strip_suffix(')').and_then(|named| named.rfind(" (")) {
+        Some(at) => &named[..at],
+        None => named,
+    };
+    Some((without_article(name).to_owned(), gear))
+}
+
+/// Whether `words` say how hurt a monster is, as `lightly wounded` or `almost dead`.
+fn is_damage(words: &str) -> bool {
+    ALMOST_DEAD.contains(&words)
+        || words.split_once(' ').is_some_and(|(degree, state)| {
+            DAMAGE_DEGREES.contains(&degree) && DAMAGE_STATES.contains(&state)
+        })
 }
 
 /// Whether `name` starts with `article` capitalised, as `The orc` does.

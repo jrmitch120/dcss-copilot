@@ -1,0 +1,601 @@
+---
+source: crates/replay/tests/replay.rs
+expression: threats
+---
+[
+  {
+    "turn": null,
+    "threat": {
+      "state": "unrated",
+      "gaps": [
+        {
+          "gap": "hitPoints"
+        },
+        {
+          "gap": "monstersInView"
+        }
+      ]
+    }
+  },
+  {
+    "turn": 100,
+    "threat": {
+      "state": "rated",
+      "level": "calm",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 0
+      },
+      "worstHit": 0,
+      "hostilesInView": 0,
+      "bestPlanWin": null,
+      "acting": [],
+      "gear": [],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": []
+    }
+  },
+  {
+    "turn": 101,
+    "threat": {
+      "state": "rated",
+      "level": "calm",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 0
+      },
+      "worstHit": 0,
+      "hostilesInView": 1,
+      "bestPlanWin": null,
+      "acting": [],
+      "gear": [
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 101,
+            "source": "sighting",
+            "unlisted": "plainLargeRocks"
+          },
+          "unplayed": []
+        }
+      ],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": [
+        "attackFlavours",
+        "statuses",
+        "paths",
+        "awareness",
+        "defenceFractions"
+      ]
+    }
+  },
+  {
+    "turn": 102,
+    "threat": {
+      "state": "rated",
+      "level": "calm",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 10000
+      },
+      "worstHit": 12,
+      "hostilesInView": 2,
+      "bestPlanWin": null,
+      "acting": [
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "casts": [
+            "Magic Dart",
+            "Throw Flame"
+          ],
+          "spellsNotModelled": [
+            "Confuse",
+            "Invisibility"
+          ],
+          "movesNotModelled": [],
+          "shoots": [
+            "+1 heavy sling",
+            "wand of flame"
+          ]
+        }
+      ],
+      "gear": [
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 101,
+            "source": "sighting",
+            "unlisted": "plainLargeRocks"
+          },
+          "unplayed": []
+        },
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 102,
+            "source": "sighting",
+            "unlisted": "plainLargeRocks"
+          },
+          "unplayed": []
+        }
+      ],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": [
+        "attackFlavours",
+        "statuses",
+        "paths",
+        "awareness",
+        "defenceFractions",
+        "otherSpells",
+        "otherWands",
+        "playerResistances"
+      ]
+    }
+  },
+  {
+    "turn": 103,
+    "threat": {
+      "state": "rated",
+      "level": "calm",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 0
+      },
+      "worstHit": 0,
+      "hostilesInView": 0,
+      "bestPlanWin": null,
+      "acting": [],
+      "gear": [],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": []
+    }
+  },
+  {
+    "turn": 104,
+    "threat": {
+      "state": "rated",
+      "level": "calm",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 10000
+      },
+      "worstHit": 21,
+      "hostilesInView": 6,
+      "bestPlanWin": null,
+      "acting": [
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": -1
+          },
+          "distance": 4,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "sling"
+          ]
+        },
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "boomerang"
+          ]
+        },
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "casts": [
+            "Magic Dart",
+            "Throw Flame"
+          ],
+          "spellsNotModelled": [
+            "Confuse",
+            "Invisibility"
+          ],
+          "movesNotModelled": [],
+          "shoots": [
+            "+1 heavy sling",
+            "wand of flame"
+          ]
+        },
+        {
+          "name": "kobold",
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "distance": 2,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "dart",
+            "stone"
+          ]
+        },
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": 1
+          },
+          "distance": 4,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "sling"
+          ]
+        },
+        {
+          "name": "centaur",
+          "position": {
+            "x": 8,
+            "y": 1
+          },
+          "distance": 8,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "orcbow",
+            "shortbow",
+            "wand of flame"
+          ]
+        }
+      ],
+      "gear": [
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": -1
+          },
+          "distance": 4,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "basis": {
+            "basis": "carried",
+            "state": "stale",
+            "turn": 102,
+            "source": "sighting",
+            "unlisted": "plainLargeRocks"
+          },
+          "unplayed": []
+        },
+        {
+          "name": "kobold",
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "distance": 2,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": 1
+          },
+          "distance": 4,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "centaur",
+          "position": {
+            "x": 8,
+            "y": 1
+          },
+          "distance": 8,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 104,
+            "source": "sighting",
+            "unlisted": "plainWeaponsAndLargeRocks"
+          },
+          "unplayed": []
+        }
+      ],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": [
+        "monsterEquipment",
+        "attackFlavours",
+        "statuses",
+        "paths",
+        "awareness",
+        "defenceFractions",
+        "carriedGear",
+        "otherSpells",
+        "otherWands",
+        "playerResistances"
+      ]
+    }
+  },
+  {
+    "turn": 105,
+    "threat": {
+      "state": "rated",
+      "level": "dangerous",
+      "hp": 60,
+      "death": {
+        "times": 0,
+        "trials": 10000
+      },
+      "worstHit": 27,
+      "hostilesInView": 6,
+      "bestPlanWin": null,
+      "acting": [
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": -1
+          },
+          "distance": 4,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "sling"
+          ]
+        },
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "+3 shortbow of flaming",
+            "wand of flame"
+          ]
+        },
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "casts": [
+            "Magic Dart",
+            "Throw Flame"
+          ],
+          "spellsNotModelled": [
+            "Confuse",
+            "Invisibility"
+          ],
+          "movesNotModelled": [],
+          "shoots": [
+            "+1 heavy sling",
+            "wand of flame"
+          ]
+        },
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": 1
+          },
+          "distance": 4,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "sling"
+          ]
+        },
+        {
+          "name": "centaur",
+          "position": {
+            "x": 8,
+            "y": 1
+          },
+          "distance": 8,
+          "casts": [],
+          "spellsNotModelled": [],
+          "movesNotModelled": [],
+          "shoots": [
+            "+0 shortbow",
+            "arrows",
+            "wand of flame"
+          ]
+        }
+      ],
+      "gear": [
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": -1
+          },
+          "distance": 4,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "orc",
+          "position": {
+            "x": 3,
+            "y": 0
+          },
+          "distance": 3,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 105,
+            "source": "fullView",
+            "unlisted": "nothing"
+          },
+          "unplayed": []
+        },
+        {
+          "name": "Sigmund",
+          "position": {
+            "x": 5,
+            "y": 0
+          },
+          "distance": 5,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 105,
+            "source": "fullView",
+            "unlisted": "nothing"
+          },
+          "unplayed": []
+        },
+        {
+          "name": "kobold",
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "distance": 2,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 105,
+            "source": "fullView",
+            "unlisted": "nothing"
+          },
+          "unplayed": []
+        },
+        {
+          "name": "goblin",
+          "position": {
+            "x": 4,
+            "y": 1
+          },
+          "distance": 4,
+          "basis": {
+            "basis": "possible",
+            "mayShoot": true
+          },
+          "unplayed": []
+        },
+        {
+          "name": "centaur",
+          "position": {
+            "x": 8,
+            "y": 1
+          },
+          "distance": 8,
+          "basis": {
+            "basis": "carried",
+            "state": "known",
+            "turn": 105,
+            "source": "fullView",
+            "unlisted": "nothing"
+          },
+          "unplayed": []
+        }
+      ],
+      "lighting": "plain",
+      "resistances": null,
+      "notModelled": [
+        "monsterEquipment",
+        "attackFlavours",
+        "statuses",
+        "paths",
+        "awareness",
+        "defenceFractions",
+        "carriedGear",
+        "otherSpells",
+        "otherWands",
+        "playerResistances"
+      ]
+    }
+  }
+]

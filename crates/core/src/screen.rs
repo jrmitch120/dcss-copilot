@@ -453,6 +453,87 @@ fn bane(entry: &str) -> Option<&str> {
     (digits(whole) && digits(tenth)).then_some(description)
 }
 
+/// The tag crawl gives the full-view list, which the ordinary pickup menu shares
+/// (`_full_describe_menu`, `directn.cc:557`).
+const FULL_VIEW_TAG: &str = "pickup";
+
+/// What the full-view list's title starts with when it lists monsters: `Visible`, then what it
+/// lists, as `Monsters/Items/Features` (`_full_describe_menu`, `directn.cc:542`).
+const FULL_VIEW_TITLE: &str = "Visible Monsters";
+
+/// The subtitle the full-view list puts above its monsters; its items and features follow under
+/// subtitles of their own (`_full_describe_menu`, `directn.cc:578`).
+const MONSTERS_SUBTITLE: &str = "Monsters";
+
+/// How the full-view list starts each further line of an entry it wraps (`_full_describe_menu`,
+/// `directn.cc:621`).
+const WRAPPED: &str = "         ";
+
+impl ScreenRead {
+    /// Crawl's description of each monster, when this is the full-view list (`Ctrl-X`,
+    /// `full_describe_view`, `directn.cc:880`), as `an orc (asleep), wielding a +0 club,
+    /// lightly wounded`: an entry wrapped onto further lines joined back into one, and without
+    /// its hotkey, its glyph and the coordinates the `monster_item_view_coordinates` option
+    /// adds. Its items and features aren't monsters'.
+    #[must_use]
+    pub(crate) fn full_view_monsters(&self) -> Option<Vec<String>> {
+        let full_view = self.screen == Screen::Other(FULL_VIEW_TAG.to_owned())
+            && self
+                .title
+                .as_deref()
+                .is_some_and(|title| title.starts_with(FULL_VIEW_TITLE));
+        if !full_view {
+            return None;
+        }
+        let mut monsters: Vec<String> = Vec::new();
+        let entries = self
+            .lines
+            .iter()
+            .skip_while(|line| line.trim() != MONSTERS_SUBTITLE)
+            .skip(1);
+        for line in entries {
+            if let Some(wrapped) = line.strip_prefix(WRAPPED) {
+                if let Some(monster) = monsters.last_mut() {
+                    monster.push(' ');
+                    monster.push_str(wrapped.trim());
+                }
+                continue;
+            }
+            // The next subtitle ends the monsters.
+            let Some(entry) = menu_entry(line) else { break };
+            monsters.push(without_coordinates(without_glyph(entry)).to_owned());
+        }
+        Some(monsters)
+    }
+}
+
+/// A full-view entry without the glyph in brackets crawl starts it with outside local tiles, as
+/// `(o) an orc`.
+fn without_glyph(entry: &str) -> &str {
+    let mut chars = entry.chars();
+    if chars.next() == Some('(') && chars.next().is_some() {
+        chars.as_str().strip_prefix(") ").unwrap_or(entry)
+    } else {
+        entry
+    }
+}
+
+/// A full-view entry without the coordinates relative to the player that the
+/// `monster_item_view_coordinates` option adds, as `(3, -1) an orc`.
+fn without_coordinates(entry: &str) -> &str {
+    let Some((coordinates, rest)) = entry
+        .strip_prefix('(')
+        .and_then(|entry| entry.split_once(") "))
+    else {
+        return entry;
+    };
+    let number = |text: &str| text.trim().parse::<i32>().is_ok();
+    match coordinates.split_once(", ") {
+        Some((x, y)) if number(x) && number(y) => rest,
+        _ => entry,
+    }
+}
+
 impl ScreenRead {
     /// The resistances, when this is the character overview or the character dump, which draws
     /// the same lines (`dump_overview_screen` in crawl's `output.cc`).
@@ -561,6 +642,49 @@ mod tests {
             lines: lines.iter().map(|&line| line.to_owned()).collect(),
             colours: BTreeMap::new(),
         }
+    }
+
+    fn menu(title: &str, lines: &[&str]) -> ScreenRead {
+        ScreenRead {
+            title: Some(title.to_owned()),
+            ..read(Screen::Other(FULL_VIEW_TAG.to_owned()), lines)
+        }
+    }
+
+    /// The ordinary pickup menu shares the full-view list's tag: only the title tells them apart.
+    #[test]
+    fn only_the_full_view_list_of_the_menus_tagged_pickup_lists_monsters() {
+        let pickup = menu(
+            "Pick up what? 1/52 slots (_ for help)",
+            &["Hand Weapons", " a - a +0 club"],
+        );
+
+        assert_eq!(pickup.full_view_monsters(), None);
+    }
+
+    /// With the `monster_item_view_coordinates` option, which no Scenario sets, crawl puts
+    /// where each monster stands before its name.
+    #[test]
+    fn the_full_view_list_reads_each_monster_without_the_coordinates_an_option_adds() {
+        let list = menu(
+            "Visible Monsters/Items (select to target/travel, ! to examine)",
+            &[
+                "Monsters",
+                " a - (o) (3, 0) an orc, wielding a +0 club",
+                " b - (N) (-1, -2) a naga, wielding a +0 trident and carrying a wand of",
+                "         flame",
+                "Items",
+                " c - ()) (1, 0) a +0 club",
+            ],
+        );
+
+        assert_eq!(
+            list.full_view_monsters().unwrap(),
+            [
+                "an orc, wielding a +0 club",
+                "a naga, wielding a +0 trident and carrying a wand of flame",
+            ]
+        );
     }
 
     /// Scenarios are played in wizard mode, which shows exact power, so the percentages a

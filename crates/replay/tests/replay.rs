@@ -23,6 +23,7 @@ const JACKALS: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
 const HALOS_AND_UMBRAS: &[u8] = include_bytes!("recordings/rook-in-halos-and-umbras.dcssrec");
 const CARRIED_GEAR: &[u8] = include_bytes!("recordings/carried-gear-comes-into-view.dcssrec");
+const FULL_VIEW: &[u8] = include_bytes!("recordings/carried-gear-in-the-full-view-list.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
@@ -586,9 +587,41 @@ fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it
     // Sigmund leave view. 108: they come back: the orc as a new Sighting with nothing read,
     // Sigmund with his gear, Stale. 109: a centaur carrying an unidentified launcher in its off
     // hand. 110: a merfolk quivering a net. 111: a kobold quivering poisoned darts and carrying a wand of paralysis.
+    insta::assert_json_snapshot!(carried_gear_by_turn(CARRIED_GEAR));
+}
+
+#[test]
+fn carried_gear_is_read_off_the_full_view_list_for_each_monster_it_names_alone() {
+    // Rook on D:4, turn by turn, in crawl's words:
+    // 101: a lone orc wielding a +0 club. 102: Sigmund with a +1 heavy sling and a bone wand.
+    // 103: both leave view. 104: they come back, the orc as a new Sighting with nothing read and
+    // Sigmund's gear Stale, with a centaur listed carrying a wand of flame, a friendly naga, a
+    // kobold and two goblins. 105: `Ctrl-X` lists them all: Sigmund's gear is Known again; the
+    // orc's is read; the centaur's, wrapped onto a second line and lightly wounded, is read in
+    // full in place of what its sighting listed; the naga's, after its bracket and before the
+    // goblin it constricts; the neutral, sleeping kobold, almost dead, has nothing; the two
+    // goblins share a name, so neither is read. The items and features it lists aren't read.
+    insta::assert_json_snapshot!(carried_gear_by_turn(FULL_VIEW));
+}
+
+#[test]
+fn the_threat_level_plays_the_carried_gear_the_full_view_list_reads() {
+    // As above: the orc that came back is played with its kind's Possible Gear until the list
+    // reads its +3 shortbow of flaming and its wand of flame, and from then on with those.
+    let threats: Vec<_> = fact_sheets_by_turn(FULL_VIEW)
+        .into_iter()
+        .map(|turn| serde_json::json!({ "turn": turn["turn"], "threat": turn["factSheet"]["threat"] }))
+        .collect();
+
+    insta::assert_json_snapshot!(threats);
+}
+
+/// Each monster in view as each turn of `recording` ended, with the Carried Gear the Advisor
+/// remembers for it.
+fn carried_gear_by_turn(recording: &[u8]) -> Vec<serde_json::Value> {
     let library = Library::shipped().unwrap();
     let bundle = library.for_version("0.34.1").unwrap();
-    let mut replayer = replayer(CARRIED_GEAR);
+    let mut replayer = replayer(recording);
     let mut by_turn: Vec<serde_json::Value> = Vec::new();
     while !replayer.at_end() {
         replayer.step();
@@ -613,8 +646,7 @@ fn carried_gear_is_read_off_what_the_game_says_of_each_monster_and_kept_while_it
             _ => by_turn.push(turn),
         }
     }
-
-    insta::assert_json_snapshot!(by_turn);
+    by_turn
 }
 
 #[test]
@@ -670,7 +702,7 @@ fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
 
 /// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
 /// first seen.
-const TAGGED: [(&str, &[u8], &[&str]); 14] = [
+const TAGGED: [(&str, &[u8], &[&str]); 15] = [
     ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
     (
         "spectating-trunk-wizard",
@@ -697,6 +729,7 @@ const TAGGED: [(&str, &[u8], &[&str]); 14] = [
     ("rook-reads-his-kite-shield", KITE_SHIELD, &["0.34.1"]),
     ("rook-in-halos-and-umbras", HALOS_AND_UMBRAS, &["0.34.1"]),
     ("carried-gear-comes-into-view", CARRIED_GEAR, &["0.34.1"]),
+    ("carried-gear-in-the-full-view-list", FULL_VIEW, &["0.34.1"]),
 ];
 
 #[test]

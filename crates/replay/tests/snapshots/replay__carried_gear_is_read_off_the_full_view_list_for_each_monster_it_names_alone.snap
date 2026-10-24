@@ -1,0 +1,411 @@
+---
+source: crates/replay/tests/replay.rs
+expression: carried_gear_by_turn(FULL_VIEW)
+---
+[
+  {
+    "turn": null,
+    "inView": []
+  },
+  {
+    "turn": 100,
+    "inView": []
+  },
+  {
+    "turn": 101,
+    "inView": [
+      {
+        "name": "orc",
+        "sighting": 40,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+0 club",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_CLUB"
+                },
+                "plus": 0,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "plainLargeRocks"
+          },
+          "turn": 101,
+          "source": "sighting"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 102,
+    "inView": [
+      {
+        "name": "orc",
+        "sighting": 40,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+0 club",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_CLUB"
+                },
+                "plus": 0,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "plainLargeRocks"
+          },
+          "turn": 101,
+          "source": "sighting"
+        }
+      },
+      {
+        "name": "Sigmund",
+        "sighting": 41,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+1 heavy sling",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_SLING"
+                },
+                "plus": 1,
+                "brand": {
+                  "brand": "weapon",
+                  "name": "SPWPN_HEAVY"
+                },
+                "pair": false
+              },
+              {
+                "slot": "carrying",
+                "name": "bone wand",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": null
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "plainLargeRocks"
+          },
+          "turn": 102,
+          "source": "sighting"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 103,
+    "inView": []
+  },
+  {
+    "turn": 104,
+    "inView": [
+      {
+        "name": "goblin",
+        "sighting": 48,
+        "gear": null
+      },
+      {
+        "name": "orc",
+        "sighting": 42,
+        "gear": null
+      },
+      {
+        "name": "Sigmund",
+        "sighting": 43,
+        "gear": {
+          "state": "stale",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+1 heavy sling",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_SLING"
+                },
+                "plus": 1,
+                "brand": {
+                  "brand": "weapon",
+                  "name": "SPWPN_HEAVY"
+                },
+                "pair": false
+              },
+              {
+                "slot": "carrying",
+                "name": "bone wand",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": null
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "plainLargeRocks"
+          },
+          "turn": 102,
+          "source": "sighting"
+        }
+      },
+      {
+        "name": "naga",
+        "sighting": 45,
+        "gear": null
+      },
+      {
+        "name": "kobold",
+        "sighting": 46,
+        "gear": null
+      },
+      {
+        "name": "goblin",
+        "sighting": 47,
+        "gear": null
+      },
+      {
+        "name": "centaur",
+        "sighting": 44,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "carrying",
+                "name": "wand of flame",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": "WAND_FLAME"
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "plainWeaponsAndLargeRocks"
+          },
+          "turn": 104,
+          "source": "sighting"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 105,
+    "inView": [
+      {
+        "name": "goblin",
+        "sighting": 48,
+        "gear": null
+      },
+      {
+        "name": "orc",
+        "sighting": 42,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+3 shortbow of flaming",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_SHORTBOW"
+                },
+                "plus": 3,
+                "brand": {
+                  "brand": "weapon",
+                  "name": "SPWPN_FLAMING"
+                },
+                "pair": false
+              },
+              {
+                "slot": "carrying",
+                "name": "wand of flame",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": "WAND_FLAME"
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "nothing"
+          },
+          "turn": 105,
+          "source": "fullView"
+        }
+      },
+      {
+        "name": "Sigmund",
+        "sighting": 43,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+1 heavy sling",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_SLING"
+                },
+                "plus": 1,
+                "brand": {
+                  "brand": "weapon",
+                  "name": "SPWPN_HEAVY"
+                },
+                "pair": false
+              },
+              {
+                "slot": "carrying",
+                "name": "bone wand",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": null
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "nothing"
+          },
+          "turn": 105,
+          "source": "fullView"
+        }
+      },
+      {
+        "name": "naga",
+        "sighting": 45,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+0 trident",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_TRIDENT"
+                },
+                "plus": 0,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "nothing"
+          },
+          "turn": 105,
+          "source": "fullView"
+        }
+      },
+      {
+        "name": "kobold",
+        "sighting": 46,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [],
+            "unlisted": "nothing"
+          },
+          "turn": 105,
+          "source": "fullView"
+        }
+      },
+      {
+        "name": "goblin",
+        "sighting": 47,
+        "gear": null
+      },
+      {
+        "name": "centaur",
+        "sighting": 44,
+        "gear": {
+          "state": "known",
+          "value": {
+            "items": [
+              {
+                "slot": "wielding",
+                "name": "+0 shortbow",
+                "kind": {
+                  "class": "OBJ_WEAPONS",
+                  "subType": "WPN_SHORTBOW"
+                },
+                "plus": 0,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              },
+              {
+                "slot": "quivering",
+                "name": "arrows",
+                "kind": {
+                  "class": "OBJ_MISSILES",
+                  "subType": "MI_ARROW"
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              },
+              {
+                "slot": "carrying",
+                "name": "wand of flame",
+                "kind": {
+                  "class": "OBJ_WANDS",
+                  "subType": "WAND_FLAME"
+                },
+                "plus": null,
+                "brand": {
+                  "brand": "none"
+                },
+                "pair": false
+              }
+            ],
+            "unlisted": "nothing"
+          },
+          "turn": 105,
+          "source": "fullView"
+        }
+      }
+    ]
+  }
+]

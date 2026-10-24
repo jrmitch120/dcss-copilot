@@ -277,8 +277,8 @@ pub enum NotModelled {
     /// holds something the Advisor can't name as a weapon, or it is an animated object, such as a
     /// dancing weapon, which fights as the item it is. It fights as if it wields nothing, with no
     /// weapon's damage, accuracy, brand or reach, and still makes the attacks only a weapon
-    /// makes. Its look text (`x`) tells it. Monsters' armour and shields aren't counted either,
-    /// which matters only to the player's own attacks.
+    /// makes. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it. Monsters' armour
+    /// and shields aren't counted either, which matters only to the player's own attacks.
     MonsterEquipment,
     /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
     /// draining, nets, clouds left behind and the like.
@@ -319,7 +319,7 @@ pub enum NotModelled {
     /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by its
     /// kind's Possible Gear, the odds crawl makes its kind with, +0 and unbranded, as the Advisor
     /// hasn't read its Carried Gear: it came back into view, or came with others whose message
-    /// didn't list it. Its look text (`x`) tells it.
+    /// didn't list it. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it.
     CarriedGear,
     /// A monster in reach may carry a wand the simulation doesn't play out, such as paralysis or
     /// polymorph: it is assumed never to zap it, and to shoot or fight instead.
