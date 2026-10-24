@@ -5,7 +5,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-use copilot_core::{Advisor, Appearance, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, Assistance, Connection, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
@@ -117,8 +117,9 @@ impl Live {
             app_version: self.app_version.to_owned(),
             connection,
             appearance: state.settings.appearance(),
+            assistance: state.settings.assistance(),
             unreadable_game_knowledge: self.unreadable_knowledge.clone(),
-            game: state.game.advisor.game_view(),
+            game: state.game.advisor.game_view(state.settings.assistance()),
         }
     }
 
@@ -168,6 +169,14 @@ impl Live {
     /// If the choice couldn't be saved, so it lasts only until the app exits.
     pub fn set_appearance(&self, appearance: Appearance) -> Result<(), SettingsError> {
         self.lock().settings.set_appearance(appearance)
+    }
+
+    /// The player chose how much the Advisor offers beyond Information.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_assistance(&self, assistance: Assistance) -> Result<(), SettingsError> {
+        self.lock().settings.set_assistance(assistance)
     }
 
     /// The model a slot calls.
@@ -305,7 +314,7 @@ fn start_recording(
 mod tests {
     use serde_json::json;
 
-    use copilot_core::Appearance;
+    use copilot_core::{Appearance, Assistance};
     use copilot_llm::{Effort, Provider, Thinking};
 
     use super::*;
@@ -375,6 +384,20 @@ mod tests {
 
         let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
         assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
+    }
+
+    #[test]
+    fn the_players_assistance_level_reaches_the_panel_and_is_remembered_across_restarts() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(live.view_model().assistance, Assistance::Hints);
+
+        live.set_assistance(Assistance::Info).unwrap();
+        assert_eq!(live.view_model().assistance, Assistance::Info);
+
+        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(restarted.view_model().assistance, Assistance::Info);
     }
 
     #[test]

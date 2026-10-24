@@ -191,6 +191,20 @@ expression: detections
     "line": "Crazy Yiuf, a unique, alone makes this DANGEROUS."
   },
   {
+    "envelope": 1854,
+    "turn": 1721,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Escape hatch in the ceiling · ~26 steps · partly out of view"
+  },
+  {
+    "envelope": 1859,
+    "turn": 1722,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~70% win, ~67% HP lost. If it turns LETHAL: Passwall · spell · ~88% fail as of turn 1217"
+  },
+  {
     "envelope": 1877,
     "turn": 1724,
     "event": "alert",
@@ -211,6 +225,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 1891,
+    "turn": 1726,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — Melee: ~9% win, ~100% HP lost"
   },
   {
     "envelope": 1899,

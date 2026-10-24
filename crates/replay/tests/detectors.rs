@@ -4,7 +4,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{AlertCause, Detection, NowPill, ThreatLevel, ViewModel};
+use copilot_core::{AlertCause, Assistance, Detection, NowPill, ThreatLevel, ViewModel};
 use copilot_replay::{Happened, Moment, Recording, Replayer, replay};
 
 const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall.dcssrec");
@@ -163,4 +163,41 @@ fn the_toolbar_badge_calls_for_the_panel_only_at_a_lethal_moment_with_no_trusted
         lethal_turns(replay(OKLOB).unwrap().view_models),
         [(Some(3), false), (Some(4), false)]
     );
+}
+
+#[test]
+fn the_panel_shows_the_suggested_action_in_hints_and_coach_and_not_in_info() {
+    // Turn 4: LETHAL, standing on an escape hatch the oklob plant can't follow them down.
+    let replayer = replayed(OKLOB);
+    let shown = |assistance| {
+        replayer
+            .view_model_at(assistance)
+            .game
+            .unwrap()
+            .suggested_action
+            .map(|card| card.rule)
+    };
+
+    assert_eq!(shown(Assistance::Info), None);
+    assert_eq!(shown(Assistance::Hints).as_deref(), Some("Leave by stairs"));
+    assert_eq!(shown(Assistance::Coach).as_deref(), Some("Leave by stairs"));
+}
+
+#[test]
+fn the_panel_shows_a_suggested_action_at_dangerous_and_lethal_moments_only() {
+    // Turn 102: the jackals bite, DANGEROUS. 103: LETHAL. 105: the last falls.
+    let mut shown: Vec<(Option<u32>, Option<String>)> = Vec::new();
+    for view in replay(JACKALS_FALL).unwrap().view_models {
+        let Some(game) = view.game else { continue };
+        let card = game
+            .suggested_action
+            .map(|card| format!("{:?} · {}: {}", card.level, card.rule, card.action));
+        let turn = game.character.turn;
+        match shown.last_mut() {
+            Some((last, was)) if *last == turn => *was = card,
+            _ => shown.push((turn, card)),
+        }
+    }
+
+    insta::assert_json_snapshot!(shown);
 }

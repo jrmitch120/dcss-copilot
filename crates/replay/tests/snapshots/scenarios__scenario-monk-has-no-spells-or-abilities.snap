@@ -117,6 +117,7 @@ expression: replay
         "line": "No hostiles in view.",
         "detail": null
       },
+      "suggestedAction": null,
       "focus": {
         "card": "inView",
         "monsters": []

@@ -16,6 +16,13 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
+    "envelope": 317,
+    "turn": 134,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 13 steps away"
+  },
+  {
     "envelope": 396,
     "turn": 196,
     "event": "allClear"
@@ -31,6 +38,13 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 436,
+    "turn": 207,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 5 steps away"
   },
   {
     "envelope": 1064,
@@ -61,6 +75,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 1620,
+    "turn": 1308,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
+  },
+  {
     "envelope": 1643,
     "turn": 1359,
     "event": "allClear"
@@ -77,5 +98,12 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 1673,
+    "turn": 1362,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — The Advisor can't judge this fight"
   }
 ]

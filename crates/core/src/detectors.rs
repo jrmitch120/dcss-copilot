@@ -1,6 +1,7 @@
 //! The detectors: what the Advisor notices on its own at each Settled Update, by comparing it with
 //! the one before. They tell when an Encounter starts and when the player is All Clear, raise
-//! Tactical Alerts, and show a fact card as a unique or Out of Depth monster comes into view.
+//! Tactical Alerts, show a fact card as a unique or Out of Depth monster comes into view, and
+//! hold the Suggested Action steady through the Encounter.
 
 use std::collections::BTreeSet;
 
@@ -9,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::dangerous_status::DangerousStatus;
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, ThreatLevel};
+use crate::suggested_action::{SuggestedAction, SuggestionRule};
 use crate::view_model::capitalised;
 use crate::visible_state::VisibleState;
 use crate::ways_out::Usable;
@@ -34,6 +36,15 @@ pub enum Detection {
     FactCard(ExceptionalMonster),
     /// A Tactical Alert.
     Alert(Alert),
+    /// The rules picked a new Suggested Action this Encounter, which the panel shows from now
+    /// on, at DANGEROUS and LETHAL moments.
+    SuggestedAction {
+        /// The rule that picked it.
+        rule: SuggestionRule,
+        /// What it picked, in one line, such as `Leave by stairs: Stone staircase leading down ·
+        /// 4 steps`.
+        line: String,
+    },
 }
 
 /// A Tactical Alert: what it is about, and what it says.
@@ -220,6 +231,9 @@ struct Encounter {
     had_way_out: bool,
     /// The player actions in a row the player has been clear for.
     clear_actions: u32,
+    /// The Suggested Action picked last, held steady while it can still be done, through any
+    /// lull below DANGEROUS.
+    suggested: Option<SuggestedAction>,
 }
 
 /// What the detectors read off one Settled Update.
@@ -344,6 +358,24 @@ impl Detectors {
         }
         encounter.held = pending.into_iter().map(|(cause, _)| cause).collect();
 
+        if let Some(suggested) = SuggestedAction::steady(
+            encounter.suggested.as_ref(),
+            fact_sheet,
+            visible.stats.hp_max,
+        ) {
+            if !encounter
+                .suggested
+                .as_ref()
+                .is_some_and(|held| held.same_pick(&suggested))
+            {
+                detections.push(Detection::SuggestedAction {
+                    rule: suggested.rule(),
+                    line: suggested.line(),
+                });
+            }
+            encounter.suggested = Some(suggested);
+        }
+
         if !now.clear() {
             encounter.clear_actions = 0;
         } else if acted {
@@ -354,6 +386,12 @@ impl Detectors {
             detections.push(Detection::AllClear);
         }
         detections
+    }
+
+    /// The Suggested Action held through the Encounter under way, as the last Settled Update
+    /// left it.
+    pub(crate) fn held_suggestion(&self) -> Option<&SuggestedAction> {
+        self.encounter.as_ref()?.suggested.as_ref()
     }
 }
 

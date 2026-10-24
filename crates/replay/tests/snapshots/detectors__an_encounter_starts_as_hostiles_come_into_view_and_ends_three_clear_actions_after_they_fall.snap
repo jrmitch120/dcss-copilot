@@ -17,12 +17,26 @@ expression: detections(JACKALS_FALL)
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 14,
+    "turn": 102,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 18,
     "turn": 103,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 18,
+    "turn": 103,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — The Advisor can't judge this fight"
   },
   {
     "envelope": 22,

@@ -8,6 +8,7 @@ import Footer from "./Footer.svelte";
 import Header from "./Header.svelte";
 import NowPill from "./NowPill.svelte";
 import RunPlanRail from "./RunPlanRail.svelte";
+import SuggestedAction from "./SuggestedAction.svelte";
 import WaysOut from "./WaysOut.svelte";
 
 /** The whole panel for `view`, in the app's window or a browser's side panel. */
@@ -16,7 +17,12 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
 
 <main class="panel">
   {#if view.game}
-    <Header character={view.game.character} now={view.game.now} />
+    <Header
+      character={view.game.character}
+      now={view.game.now}
+      assistance={view.assistance}
+      {actions}
+    />
   {/if}
   <div class="body">
     <ConnectionNotice connection={view.connection} following={view.game !== null} {actions} />
@@ -28,6 +34,9 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
     {/if}
     {#if view.game}
       <NowPill now={view.game.now} />
+      {#if view.game.suggestedAction}
+        <SuggestedAction suggested={view.game.suggestedAction} />
+      {/if}
       <FocusCard
         focus={view.game.focus}
         factCards={view.game.factCards}

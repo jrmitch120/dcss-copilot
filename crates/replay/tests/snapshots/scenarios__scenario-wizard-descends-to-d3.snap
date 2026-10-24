@@ -165,6 +165,7 @@ expression: replay
           "line": "Nothing hostile can reach you before your next action.",
           "detail": null
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -310,6 +311,7 @@ expression: replay
           "line": "No hostiles in view.",
           "detail": null
         },
+        "suggestedAction": null,
         "focus": {
           "card": "inView",
           "monsters": []
@@ -425,6 +427,7 @@ expression: replay
         "line": "No hostiles in view.",
         "detail": null
       },
+      "suggestedAction": null,
       "focus": {
         "card": "inView",
         "monsters": []

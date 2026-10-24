@@ -29,3 +29,11 @@ cause = "threat-level-rose"
 [[alerts]]
 turn = 4
 cause = "threat-level-rose"
+
+[[suggested_actions]]
+turn = 2
+rule = "fall-back-to-stairs"
+
+[[suggested_actions]]
+turn = 4
+rule = "leave-by-stairs"

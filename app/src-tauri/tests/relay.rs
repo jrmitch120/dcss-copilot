@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use copilot_app_lib::relay::{
     BrowserApprovals, BrowserLink, PanelCommand, RelayEvent, SidePanelEvent, serve,
 };
-use copilot_core::Appearance;
+use copilot_core::{Appearance, Assistance};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
 use tokio::net::{TcpListener, TcpStream};
@@ -75,7 +75,7 @@ async fn hello(app: &App, protocol: u32) -> Socket {
 
 /// Connects as the extension, and is allowed: the socket, and the app's way back to it.
 async fn allowed(app: &mut App) -> (Socket, BrowserLink) {
-    let mut socket = hello(app, 2).await;
+    let mut socket = hello(app, 3).await;
     receive(&mut socket).await;
     player_answers(app, true).await;
     receive(&mut socket).await;
@@ -123,7 +123,7 @@ async fn web_pages_cannot_connect() {
 async fn a_new_browser_waits_for_the_player_to_allow_it_then_relays_envelopes() {
     let data_dir = tempfile::tempdir().unwrap();
     let mut app = start_app(data_dir.path()).await;
-    let mut socket = hello(&app, 2).await;
+    let mut socket = hello(&app, 3).await;
 
     assert_eq!(
         receive(&mut socket).await,
@@ -132,7 +132,7 @@ async fn a_new_browser_waits_for_the_player_to_allow_it_then_relays_envelopes() 
     player_answers(&mut app, true).await;
     assert_eq!(
         receive(&mut socket).await,
-        Some(json!({ "type": "welcome", "protocol": 2 }))
+        Some(json!({ "type": "welcome", "protocol": 3 }))
     );
     assert!(matches!(
         app.events.recv().await,
@@ -180,16 +180,16 @@ async fn a_new_browser_waits_for_the_player_to_allow_it_then_relays_envelopes() 
 async fn the_players_answer_is_remembered_across_restarts() {
     let data_dir = tempfile::tempdir().unwrap();
     let mut app = start_app(data_dir.path()).await;
-    let mut socket = hello(&app, 2).await;
+    let mut socket = hello(&app, 3).await;
     receive(&mut socket).await;
     player_answers(&mut app, true).await;
 
     let restarted = start_app(data_dir.path()).await;
-    let mut socket = hello(&restarted, 2).await;
+    let mut socket = hello(&restarted, 3).await;
 
     assert_eq!(
         receive(&mut socket).await,
-        Some(json!({ "type": "welcome", "protocol": 2 }))
+        Some(json!({ "type": "welcome", "protocol": 3 }))
     );
 }
 
@@ -197,7 +197,7 @@ async fn the_players_answer_is_remembered_across_restarts() {
 async fn a_denied_browser_is_refused_now_and_later() {
     let data_dir = tempfile::tempdir().unwrap();
     let mut app = start_app(data_dir.path()).await;
-    let mut socket = hello(&app, 2).await;
+    let mut socket = hello(&app, 3).await;
     receive(&mut socket).await;
 
     player_answers(&mut app, false).await;
@@ -207,7 +207,7 @@ async fn a_denied_browser_is_refused_now_and_later() {
     );
     assert_eq!(receive(&mut socket).await, None);
 
-    let mut again = hello(&app, 2).await;
+    let mut again = hello(&app, 3).await;
     assert_eq!(
         receive(&mut again).await,
         Some(json!({ "type": "refused", "reason": "browser-denied" }))
@@ -218,17 +218,17 @@ async fn a_denied_browser_is_refused_now_and_later() {
 async fn the_current_and_previous_relay_protocol_versions_are_accepted() {
     let data_dir = tempfile::tempdir().unwrap();
     let mut app = start_app(data_dir.path()).await;
-    let mut socket = hello(&app, 2).await;
+    let mut socket = hello(&app, 3).await;
     receive(&mut socket).await;
     player_answers(&mut app, true).await;
 
-    let mut previous = hello(&app, 1).await;
+    let mut previous = hello(&app, 2).await;
     assert_eq!(
         receive(&mut previous).await,
-        Some(json!({ "type": "welcome", "protocol": 2 }))
+        Some(json!({ "type": "welcome", "protocol": 3 }))
     );
 
-    for unsupported in [0, 3, u32::MAX] {
+    for unsupported in [0, 1, 4, u32::MAX] {
         let mut newer = hello(&app, unsupported).await;
         assert_eq!(
             receive(&mut newer).await,
@@ -287,6 +287,30 @@ async fn a_browser_is_sent_the_panel_and_its_side_panels_commands_are_answered()
     assert_eq!(
         receive(&mut socket).await,
         Some(json!({ "type": "panel-command-done", "id": 7, "error": "the disk is full" }))
+    );
+
+    send(
+        &mut socket,
+        json!({
+            "type": "panel-command",
+            "id": 8,
+            "command": { "kind": "set-assistance", "assistance": "coach" },
+        }),
+    )
+    .await;
+    let SidePanelEvent::Command(request) = side_panel_event(&mut app).await else {
+        panic!("expected a command");
+    };
+    assert_eq!(
+        request.command,
+        PanelCommand::SetAssistance {
+            assistance: Assistance::Coach
+        }
+    );
+    request.answer(Ok(()));
+    assert_eq!(
+        receive(&mut socket).await,
+        Some(json!({ "type": "panel-command-done", "id": 8, "error": null }))
     );
 
     socket.close(None).await.unwrap();

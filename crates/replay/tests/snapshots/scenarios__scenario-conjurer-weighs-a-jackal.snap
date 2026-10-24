@@ -244,6 +244,7 @@ expression: replay
           "line": "Jackal can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 3 of 13 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -309,6 +310,13 @@ expression: replay
       "event": "alert",
       "cause": "last-way-out-lost",
       "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 63,
+      "turn": 0,
+      "event": "suggestedAction",
+      "rule": "fight-carefully",
+      "line": "Fight carefully — Melee: ~74% win, ~62% HP lost. If it turns LETHAL: no Way Out left"
     }
   ],
   "end": {
@@ -541,6 +549,7 @@ expression: replay
         "line": "Jackal can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 3 of 13 HP"
       },
+      "suggestedAction": null,
       "focus": {
         "card": "fight",
         "monsters": [

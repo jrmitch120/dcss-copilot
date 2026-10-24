@@ -17,11 +17,25 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 284,
+    "turn": 47,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 304,
     "turn": 51,
     "event": "alert",
     "cause": "hit-points-below-half",
     "line": "HP 6 of 14: below half."
+  },
+  {
+    "envelope": 322,
+    "turn": 52,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
   },
   {
     "envelope": 361,
@@ -30,6 +44,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 361,
+    "turn": 54,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — The Advisor can't judge this fight"
   },
   {
     "envelope": 380,
@@ -107,6 +128,20 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 1572,
+    "turn": 1048,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~79% win, ~60% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
+    "envelope": 1749,
+    "turn": 1062,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 8 steps away"
+  },
+  {
     "envelope": 1834,
     "turn": 1119,
     "event": "allClear"
@@ -125,11 +160,25 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 1865,
+    "turn": 1148,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · ~22 steps · partly out of view"
+  },
+  {
     "envelope": 1886,
     "turn": 1149,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1886,
+    "turn": 1149,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 2059,
@@ -181,6 +230,13 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
+    "envelope": 2585,
+    "turn": 1575,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
+  },
+  {
     "envelope": 3373,
     "turn": 1789,
     "event": "allClear"
@@ -199,6 +255,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 3386,
+    "turn": 1803,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 5 steps away"
+  },
+  {
     "envelope": 3411,
     "turn": 1875,
     "event": "allClear"
@@ -215,6 +278,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3438,
+    "turn": 1883,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 3612,
@@ -253,6 +323,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4238,
+    "turn": 2220,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~89% win, ~46% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 4274,
@@ -327,6 +404,13 @@ expression: detections
     "line": "Natasha, a unique, alone makes this DANGEROUS."
   },
   {
+    "envelope": 5039,
+    "turn": 2843,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~85% win, ~53% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 5222,
     "turn": 2926,
     "event": "allClear"
@@ -359,11 +443,32 @@ expression: detections
     "line": "Crazy Yiuf, a unique, alone makes this DANGEROUS."
   },
   {
+    "envelope": 5227,
+    "turn": 3026,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Escape hatch in the floor · ~50 steps · partly out of view"
+  },
+  {
+    "envelope": 5269,
+    "turn": 3029,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~49% win, ~79% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 5321,
     "turn": 3034,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5321,
+    "turn": 3034,
+    "event": "suggestedAction",
+    "rule": "heal-out-of-it",
+    "line": "Heal out of it — Curing ×3 · heals"
   }
 ]

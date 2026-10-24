@@ -26,3 +26,7 @@ keys = [
 [[alerts]]
 turn = 0
 cause = "last-way-out-lost"
+
+[[suggested_actions]]
+turn = 0
+rule = "fight-carefully"

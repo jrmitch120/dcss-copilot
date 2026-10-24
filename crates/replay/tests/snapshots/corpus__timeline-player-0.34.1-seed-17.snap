@@ -27,12 +27,26 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 395,
+    "turn": 120,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
+  },
+  {
     "envelope": 651,
     "turn": 177,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 651,
+    "turn": 177,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — Melee: ~56% win, ~50% HP lost"
   },
   {
     "envelope": 669,

@@ -41,6 +41,15 @@ impl WaysOut {
 }
 
 impl Escape {
+    /// The Way Out as one line, such as `Stone staircase leading down · 7 steps`: its name, then
+    /// the fact its row shows beside it.
+    pub(crate) fn summary(&self) -> String {
+        match self.named() {
+            (name, Some(detail)) => format!("{name} · {detail}"),
+            (name, None) => name,
+        }
+    }
+
     /// Its name as the panel lists it, and a short fact beside it.
     fn named(&self) -> (String, Option<String>) {
         match self {

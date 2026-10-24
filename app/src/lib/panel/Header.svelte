@@ -1,10 +1,29 @@
 <script lang="ts">
-import type { Character, NowPill } from "$lib/bindings";
+import type { Assistance, Character, NowPill } from "$lib/bindings";
+import type { PanelActions } from "./actions";
+import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
 
-let { character, now }: { character: Character; now: NowPill } = $props();
+let {
+  character,
+  now,
+  assistance,
+  actions,
+}: { character: Character; now: NowPill; assistance: Assistance; actions: PanelActions } = $props();
 
 let tone = $derived(threatTone(now));
+let saveError = $state<string | null>(null);
+
+const LEVELS: [Assistance, string][] = [
+  ["info", "Info"],
+  ["hints", "Hints"],
+  ["coach", "Coach"],
+];
+
+async function choose(level: Assistance) {
+  const error = await actions.setAssistance(level);
+  saveError = error === null ? null : `This choice lasts only until DCSS Copilot closes: ${error}`;
+}
 
 function stat(value: number | null): string {
   return value === null ? "?" : String(value);
@@ -18,7 +37,12 @@ function stat(value: number | null): string {
     · {character.species} · HP {stat(character.hp)}/{stat(character.hpMax)}
     · T {stat(character.turn)}
   </span>
+  <span class="sp"></span>
+  <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
 </header>
+{#if saveError}
+  <p class="error small">{saveError}</p>
+{/if}
 
 <style>
 header {
@@ -66,5 +90,15 @@ header {
 
 .who b {
   color: var(--text-strong);
+}
+
+.sp {
+  flex: 1;
+}
+
+.error {
+  margin: 0;
+  padding: 6px 14px 0;
+  color: var(--error);
 }
 </style>

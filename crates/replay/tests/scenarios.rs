@@ -121,7 +121,7 @@ fn a_scenario_whose_advisor_raises_other_alerts_than_its_manifest_expects_is_ref
 }
 
 #[test]
-fn a_scenario_cannot_expect_suggested_actions_the_advisor_does_not_show_yet() {
+fn a_scenario_whose_advisor_shows_other_suggested_actions_than_its_manifest_expects_is_refused() {
     let scenario = manifest(
         r#"
         description = "A kobold on D:3"
@@ -139,9 +139,34 @@ fn a_scenario_cannot_expect_suggested_actions_the_advisor_does_not_show_yet() {
     let error = scenario.play().unwrap_err();
 
     assert!(
-        matches!(error, ScenarioError::SuggestedActionsNotYetShown),
+        matches!(
+            &error,
+            ScenarioError::SuggestedActionsDiffer { expected, shown }
+                if expected.len() == 1 && shown.is_empty()
+        ),
         "{error}"
     );
+}
+
+#[test]
+fn a_manifest_expecting_a_suggested_action_by_a_misspelt_rule_is_refused() {
+    let error = Scenario::parse(
+        r#"
+        description = "A kobold on D:3"
+        recording = "kobold.dcssrec"
+        crawl_version = "0.34.1"
+        [setup]
+        rc = ""
+        keys = []
+        [[suggested_actions]]
+        turn = 5
+        rule = "leave-by-the-stairs"
+        "#,
+        Path::new("scenario.toml"),
+    )
+    .unwrap_err();
+
+    assert!(error.to_string().contains("leave-by-the-stairs"), "{error}");
 }
 
 #[test]

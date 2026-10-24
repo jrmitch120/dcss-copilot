@@ -2,7 +2,7 @@
 
 How the extension hands a webtiles game to the app, and shows the app's panel in the browser's Side Panel (ADR 0001, ADR 0004). The integer **relay protocol version** is the only compatibility contract between the two: the app accepts the current version and the previous one. Bump it whenever a frame below changes shape.
 
-Current version: **2**. Version 2 added the `side-panel-opened`, `panel-command`, `view` and `panel-command-done` frames, so the panel shows in the browser's Side Panel.
+Current version: **3**. Version 2 added the `side-panel-opened`, `panel-command`, `view` and `panel-command-done` frames, so the panel shows in the browser's Side Panel; version 3 added the `set-assistance` command, so the player sets their Assistance Level there too.
 
 ## Capture
 
@@ -34,18 +34,18 @@ Every frame is one JSON text message tagged by `type`. The Rust side of each fra
 
 | Frame | When |
 |---|---|
-| `{"type":"hello","protocol":2}` | First frame on every connection. |
+| `{"type":"hello","protocol":3}` | First frame on every connection. |
 | `{"type":"envelope","envelope":{…}}` | Each captured message, replayed buffer first. |
 | `{"type":"overflow","origin":"…","tab":12}` | A tab's buffer overflowed before it could be replayed. |
 | `{"type":"side-panel-opened"}` | A Side Panel opened while none was, or one is open as the app welcomes the browser. The app's own window gives way to it. |
-| `{"type":"panel-command","id":4,"command":{"kind":"set-appearance","appearance":"glyphs"}}` | The player pressed something in a Side Panel. `command` is `set-appearance` or `open-settings`; `id` is the extension's, for the answer. |
+| `{"type":"panel-command","id":4,"command":{"kind":"set-appearance","appearance":"glyphs"}}` | The player pressed something in a Side Panel. `command` is `set-appearance`, `set-assistance` (with `"assistance":"info"`, `"hints"` or `"coach"`) or `open-settings`; `id` is the extension's, for the answer. |
 | `{"type":"ping"}` | Every 20 s, to keep the extension's service worker alive. |
 
 ### App → extension
 
 | Frame | When |
 |---|---|
-| `{"type":"welcome","protocol":2}` | The browser is allowed and the protocol is supported. Envelopes may follow. |
+| `{"type":"welcome","protocol":3}` | The browser is allowed and the protocol is supported. Envelopes may follow. |
 | `{"type":"awaiting-approval"}` | First connect from this browser: the app is asking the player "Allow this browser?". `welcome` or `refused` follows, unless a newer connection is asked instead: then the app closes this one without a frame and the extension retries. |
 | `{"type":"view","view":{…}}` | The panel's view model, for the Side Panels and the Toolbar Badge: after `welcome`, then on every change. |
 | `{"type":"panel-command-done","id":4,"error":null}` | The command with this `id` was done, or `error` says why it couldn't be. |

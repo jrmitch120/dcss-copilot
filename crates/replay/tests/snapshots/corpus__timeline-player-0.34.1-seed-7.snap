@@ -128,6 +128,13 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 1011,
+    "turn": 727,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "No way out: fight — The Advisor can't judge this fight"
+  },
+  {
     "envelope": 1036,
     "turn": 728,
     "event": "alert",
