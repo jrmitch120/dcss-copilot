@@ -216,7 +216,8 @@ async fn welcomed(socket: &mut Socket) -> Result<(), FakeExtensionError> {
         };
         match serde_json::from_str(&text)? {
             AppFrame::Welcome { .. } => return Ok(()),
-            AppFrame::AwaitingApproval => {}
+            // The app asks to resize only a window it was told of, and the fake reports none.
+            AppFrame::AwaitingApproval | AppFrame::ResizeWindow { .. } => {}
             AppFrame::Refused { reason } => return Err(FakeExtensionError::Refused(reason)),
         }
     }

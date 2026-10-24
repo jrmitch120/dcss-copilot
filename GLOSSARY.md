@@ -254,6 +254,10 @@ _Avoid_: Status bar, banner
 The panel collapsed out of the way: a small always-on-top window in the corner of the browser showing the Now Pill's label and line and a badge counting the Decision Points that wait. It expands itself into the panel only as a LETHAL moment with no trusted Way Out arrives; the player expands it otherwise.
 _Avoid_: Mini mode, HUD, overlay
 
+**Game Window**:
+The browser window holding the webtiles tab the player turned to last. The extension reports where it is on screen, and the panel docks to its edge.
+_Avoid_: Browser window (when meaning this one), host window
+
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
 _Avoid_: Main card, hero card

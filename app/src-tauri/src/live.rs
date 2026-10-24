@@ -145,6 +145,8 @@ impl Live {
             }
             RelayEvent::Overflow => state.buffer_overflowed = true,
             RelayEvent::Envelope(envelope) => state.ingest(&envelope),
+            // The shell docks the panel by it; it says nothing of the game.
+            RelayEvent::BrowserWindow(_) => {}
         }
     }
 

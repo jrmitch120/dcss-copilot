@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppLink, type Socket } from "../lib/app-link";
 import { type Comm, wrapComm } from "../lib/page-relay";
+import type { GameWindow, WindowBounds } from "../lib/protocol";
 
 const ORIGIN = "https://crawl.example.org";
 const TAB = 7;
@@ -46,6 +47,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
   };
   const sockets: FakeSocket[] = [];
   const retries: (() => void)[] = [];
+  const resized: WindowBounds[] = [];
   let clock = 1_000;
 
   const link = createAppLink({
@@ -56,6 +58,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     },
     requestReplay: () => page.replay(),
     retryLater: (reconnect) => retries.push(reconnect),
+    resizeWindow: (bounds) => resized.push(bounds),
   });
   const page = wrapComm(comm, {
     origin: ORIGIN,
@@ -68,6 +71,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     handledByPage,
     sockets,
     retries,
+    resized,
     link,
     /** The game server sends the page a message. */
     serverSends(msg: unknown) {
@@ -79,7 +83,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
       link.start();
       const socket = sockets.at(-1) as FakeSocket;
       socket.open();
-      socket.receive({ type: "welcome", protocol: 1 });
+      socket.receive({ type: "welcome", protocol: 2 });
       return socket;
     },
   };
@@ -92,7 +96,7 @@ describe("extension relay", () => {
     const socket = relay.sockets[0] as FakeSocket;
     socket.open();
 
-    expect(socket.sent).toEqual([{ type: "hello", protocol: 1 }]);
+    expect(socket.sent).toEqual([{ type: "hello", protocol: 2 }]);
   });
 
   it("forwards each message unchanged in an envelope once the app welcomes the browser", () => {
@@ -218,7 +222,7 @@ describe("handshake", () => {
     relay.serverSends({ msg: "player", hp: 17 });
     expect(socket.envelopes()).toEqual([]);
 
-    socket.receive({ type: "welcome", protocol: 1 });
+    socket.receive({ type: "welcome", protocol: 2 });
     expect(socket.envelopes().map(messageOf)).toEqual([
       { msg: "player", name: "Mira" },
       { msg: "player", hp: 17 },
@@ -246,6 +250,44 @@ describe("handshake", () => {
     (relay.sockets[0] as FakeSocket).close();
 
     expect(relay.retries).toHaveLength(1);
+  });
+});
+
+describe("game window", () => {
+  const MAXIMIZED: GameWindow = {
+    bounds: { left: 0, top: 25, width: 1920, height: 1055 },
+    state: "maximized",
+  };
+
+  it("tells the app where the game window is once welcomed, and again on every connection", () => {
+    const relay = relayHarness();
+    relay.link.windowMoved(MAXIMIZED);
+
+    const first = relay.connectAndWelcome();
+    const moved: GameWindow = { ...MAXIMIZED, state: "normal" };
+    relay.link.windowMoved(moved);
+    first.close();
+    const second = relay.connectAndWelcome();
+
+    const windows = (socket: FakeSocket) =>
+      socket.sent.filter((f) => (f as { type: string }).type === "window");
+    expect(windows(first)).toEqual([
+      { type: "window", ...MAXIMIZED },
+      { type: "window", ...moved },
+    ]);
+    expect(windows(second)).toEqual([{ type: "window", ...moved }]);
+  });
+
+  it("resizes the game window when the app makes room for its panel", () => {
+    const relay = relayHarness();
+    const socket = relay.connectAndWelcome();
+
+    socket.receive({
+      type: "resize-window",
+      bounds: { left: 0, top: 25, width: 1500, height: 1055 },
+    });
+
+    expect(relay.resized).toEqual([{ left: 0, top: 25, width: 1500, height: 1055 }]);
   });
 });
 

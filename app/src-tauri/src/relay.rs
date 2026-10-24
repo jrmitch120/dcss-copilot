@@ -7,8 +7,8 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use copilot_webtiles::Envelope;
-pub use copilot_webtiles::relay_protocol::RELAY_PORT;
 use copilot_webtiles::relay_protocol::{AppFrame, ExtensionFrame, RELAY_PROTOCOL_VERSION, Refusal};
+pub use copilot_webtiles::relay_protocol::{RELAY_PORT, WindowBounds, WindowState};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use tokio::net::{TcpListener, TcpStream};
@@ -35,6 +35,8 @@ pub enum RelayEvent {
     Envelope(Envelope),
     /// A tab's buffer overflowed before it could be replayed, so its game is missing its start.
     Overflow,
+    /// An allowed browser reported where the window holding its game is.
+    BrowserWindow(BrowserWindow),
     /// An allowed browser disconnected.
     Disconnected,
 }
@@ -63,6 +65,29 @@ impl ApprovalRequest {
         // The browser may have gone away meanwhile; its next connect is answered from memory.
         let _ = self.answer.send(allowed);
         saved
+    }
+}
+
+/// Where a browser's game window is, and the way to ask that browser to move it.
+#[derive(Debug)]
+pub struct BrowserWindow {
+    /// Its outer bounds.
+    pub bounds: WindowBounds,
+    /// Whether it is minimized, maximized or fullscreen.
+    pub state: WindowState,
+    /// The browser that reported it.
+    pub browser: BrowserLink,
+}
+
+/// The way back to one connected browser.
+#[derive(Debug, Clone)]
+pub struct BrowserLink(mpsc::UnboundedSender<AppFrame>);
+
+impl BrowserLink {
+    /// Asks the browser to move and resize its game window to `bounds`. A browser that has
+    /// disconnected meanwhile is not asked.
+    pub fn resize(&self, bounds: WindowBounds) {
+        let _ = self.0.send(AppFrame::ResizeWindow { bounds });
     }
 }
 
@@ -288,12 +313,30 @@ async fn session(
     relayed
 }
 
-/// Passes the extension's frames on to the app until the browser disconnects.
+/// Passes the extension's frames on to the app, and the app's requests back, until the browser
+/// disconnects.
 async fn relay(socket: &mut Socket, events: &mpsc::Sender<RelayEvent>) -> Result<(), SessionError> {
-    while let Some(frame) = next_frame(socket).await? {
+    let (link, mut requests) = mpsc::unbounded_channel();
+    let link = BrowserLink(link);
+    loop {
+        let frame = tokio::select! {
+            frame = next_frame(socket) => frame?,
+            Some(request) = requests.recv() => {
+                send(socket, &request).await?;
+                continue;
+            }
+        };
+        let Some(frame) = frame else {
+            break;
+        };
         let event = match frame {
             ExtensionFrame::Envelope { envelope } => RelayEvent::Envelope(envelope),
             ExtensionFrame::Overflow { .. } => RelayEvent::Overflow,
+            ExtensionFrame::Window { bounds, state } => RelayEvent::BrowserWindow(BrowserWindow {
+                bounds,
+                state,
+                browser: link.clone(),
+            }),
             ExtensionFrame::Hello { .. } | ExtensionFrame::Ping => continue,
         };
         if events.send(event).await.is_err() {

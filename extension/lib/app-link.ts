@@ -3,9 +3,11 @@
 import {
   type AppFrame,
   type ExtensionFrame,
+  type GameWindow,
   type PageEnvelope,
   type PageReport,
   RELAY_PROTOCOL_VERSION,
+  type WindowBounds,
 } from "./protocol";
 
 /** The part of `WebSocket` the link uses. */
@@ -24,6 +26,8 @@ export interface AppLink {
   report(tab: number, report: PageReport): void;
   /** Forget a tab that closed or navigated away. */
   tabClosed(tab: number): void;
+  /** Tell the app where the game window is now, so it can dock beside it. */
+  windowMoved(window: GameWindow): void;
   /** Ping the app, so an idle connection keeps the service worker alive. */
   keepAlive(): void;
 }
@@ -39,11 +43,15 @@ export function createAppLink(options: {
   requestReplay(tab: number): void;
   /** Call `reconnect` after a pause. */
   retryLater(reconnect: () => void): void;
+  /** Move and resize the game window, as the app asks to make room for its panel. */
+  resizeWindow(bounds: WindowBounds): void;
 }): AppLink {
   let socket: Socket | null = null;
   let welcomed = false;
   /** Every tab with a webtiles page, and whether its replay has been forwarded on this connection. */
   const tabs = new Map<number, { replayed: boolean }>();
+  /** Where the game window was last reported, told to each connection once it is welcomed. */
+  let gameWindow: GameWindow | null = null;
 
   function send(frame: ExtensionFrame): void {
     socket?.send(JSON.stringify(frame));
@@ -61,7 +69,10 @@ export function createAppLink(options: {
   function onFrame(frame: AppFrame): void {
     if (frame.type === "welcome") {
       welcomed = true;
+      if (gameWindow) send({ type: "window", ...gameWindow });
       for (const tab of tabs.keys()) askForReplay(tab);
+    } else if (frame.type === "resize-window") {
+      options.resizeWindow(frame.bounds);
     } else if (frame.type === "refused") {
       socket?.close();
     }
@@ -104,6 +115,11 @@ export function createAppLink(options: {
 
     tabClosed(tab) {
       tabs.delete(tab);
+    },
+
+    windowMoved(window) {
+      gameWindow = window;
+      if (welcomed) send({ type: "window", ...window });
     },
 
     keepAlive() {
