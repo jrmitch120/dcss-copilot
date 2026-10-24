@@ -77,10 +77,9 @@ impl Panels {
     /// The player opened the panel window, from the tray or by launching the app again.
     pub fn show(&self, app: &AppHandle) {
         let mut state = self.lock();
-        self.change(app, &mut state, Lifecycle::show);
-        if let Some(window) = app.get_webview_window(PANEL_WINDOW) {
-            report(window.set_focus(), "focus the panel");
-        }
+        state.lifecycle.show();
+        // Showing already or not, the player wants it in front.
+        arrange(app, state.lifecycle.presence());
     }
 
     /// The player closed the panel window, to the tray.
@@ -110,14 +109,18 @@ impl Panels {
     }
 }
 
-/// Shows or hides the panel window as `presence` says.
+/// Shows or hides the panel window as `presence` says. A window that shows comes to the front,
+/// so a question for the player isn't left behind the browser.
 fn arrange(app: &AppHandle, presence: Presence) {
     let Some(window) = app.get_webview_window(PANEL_WINDOW) else {
         return;
     };
     match presence {
         Presence::Hidden => report(window.hide(), "hide the panel"),
-        Presence::Shown => report(window.show(), "show the panel"),
+        Presence::Shown => {
+            report(window.show(), "show the panel");
+            report(window.set_focus(), "bring the panel to the front");
+        }
     }
 }
 

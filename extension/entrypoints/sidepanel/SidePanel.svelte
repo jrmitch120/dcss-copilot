@@ -12,7 +12,8 @@ const RECONNECT_MS = 1_000;
 
 const SAYS: Record<Exclude<LinkStatus, "connected">, string> = {
   "no-app": "DCSS Copilot isn't running. Start it, and the panel shows here.",
-  "awaiting-approval": "DCSS Copilot is asking whether to allow this browser. Answer in the app.",
+  "awaiting-approval":
+    "Allow this browser in the DCSS Copilot app: its window is asking now. Can't see it? Open it from DCSS Copilot's icon in the menu bar or system tray.",
   "browser-denied": "DCSS Copilot was told not to allow this browser.",
   "unsupported-protocol":
     "This extension and the DCSS Copilot app are different versions. Update both to the latest.",
