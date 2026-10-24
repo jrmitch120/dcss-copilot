@@ -36,6 +36,10 @@ _Avoid_: Packet, event, frame (a frame is one websocket message of the relay pro
 The one integer the browser extension and the app agree on to understand each other. The app accepts its own version and the previous one, so the two can update separately.
 _Avoid_: API version, app version
 
+**Game Key**:
+What tells one game apart from every other: the server, the account, the character's name and species, and when a Game Source first saw the game. A game process for a character whose latest game hasn't ended, at a turn no earlier than that game was last seen at, picks that game up again under its key; one for a game that ended, or whose turn went backwards, is a new game with a key of its own.
+_Avoid_: Game id, save, run id
+
 **Tournament Game**:
 A game that counts for the official DCSS tournament: played on the tournament's own Crawl Version, on an official server, within the tournament's dates. Games on other versions during those dates are not Tournament Games. The Advisor gives only Information in a Tournament Game.
 _Avoid_: Tourney game, competitive game

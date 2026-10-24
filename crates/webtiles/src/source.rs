@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use copilot_core::{
-    CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent, VisibleState,
+    CharacterKey, CrawlVersion, GameEnd, GameIdentity, GameKey, KnownGames, Role, SessionEvent,
+    SourceEvent, VisibleState,
 };
 use copilot_gk::{Bundle, Library};
 use serde_json::Value;
@@ -31,24 +32,7 @@ pub struct WebtilesSource {
     tabs: HashMap<TabKey, TabGame>,
     followed: Option<TabKey>,
     /// Every game seen so far, to tell a resynced game from a new one.
-    seen: HashMap<GameKey, SeenGame>,
-}
-
-/// What tells one game apart from another before its first-seen time is known.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct GameKey {
-    server: String,
-    account: Option<String>,
-    character: String,
-    species: String,
-}
-
-/// What the source last saw of a game.
-#[derive(Debug, Clone, Copy)]
-struct SeenGame {
-    first_seen_ms: u64,
-    turn: Option<u32>,
-    ended: bool,
+    known: KnownGames,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -64,7 +48,8 @@ struct TabGame {
     role: Option<Role>,
     /// What the game process has sent since it started.
     shown: Shown,
-    first_seen_ms: Option<u64>,
+    /// The game this process plays, once it has named it.
+    game: Option<GameKey>,
     reported: Option<(GameIdentity, VisibleState)>,
     /// The game process has stopped sending: the game ended, or the player left it.
     stopped: bool,
@@ -108,7 +93,7 @@ impl WebtilesSource {
             knowledge,
             tabs: HashMap::new(),
             followed: None,
-            seen: HashMap::new(),
+            known: KnownGames::default(),
         }
     }
 
@@ -125,7 +110,7 @@ impl WebtilesSource {
         let game = self.tabs.entry(key.clone()).or_default();
         game.apply(&envelope.msg, knowledge);
 
-        let identity = game.identify(envelope, crawl_version, &mut self.seen);
+        let identity = game.identify(envelope, crawl_version, &mut self.known);
         let switched = self.followed.as_ref() != Some(&key);
         let Some(identity) = identity else {
             // A game process can stop before it names its game. In the followed tab, that is the
@@ -232,7 +217,7 @@ impl TabGame {
     fn start(&mut self, role: Role) {
         self.role = Some(role);
         self.shown = Shown::default();
-        self.first_seen_ms = None;
+        self.game = None;
         self.reported = None;
         self.stopped = false;
         self.ended = false;
@@ -279,51 +264,39 @@ impl TabGame {
 
     /// The game's identity, on `crawl_version`, once the game has named the character and
     /// species. The first call that succeeds tells whether this process joined a new game or
-    /// resynced one already `seen`, which fixes when the game was first seen.
+    /// resynced one already `known`, which fixes when the game was first seen.
     fn identify(
         &mut self,
         envelope: &Envelope,
         crawl_version: Option<CrawlVersion>,
-        seen: &mut HashMap<GameKey, SeenGame>,
+        known: &mut KnownGames,
     ) -> Option<GameIdentity> {
         let player = &self.shown.player;
         let (Some(name), Some(species)) = (&player.name, &player.species) else {
             return None;
         };
-        let key = GameKey {
-            server: envelope.origin.clone(),
-            account: self.account.clone(),
-            character: name.clone(),
-            species: species.clone(),
-        };
-        let first_seen_ms = if let Some(first_seen_ms) = self.first_seen_ms {
-            first_seen_ms
+        let key = if let Some(key) = &self.game {
+            key.clone()
         } else {
-            let (first_seen_ms, event) = match seen.get(&key) {
-                Some(game) if game.continues_at(player.turn) => {
-                    (game.first_seen_ms, SessionEvent::Resynced)
-                }
-                _ => (envelope.ts, SessionEvent::Joined),
+            let character = CharacterKey {
+                server: envelope.origin.clone(),
+                account: self.account.clone(),
+                character: name.clone(),
+                species: species.clone(),
             };
-            self.first_seen_ms = Some(first_seen_ms);
+            let (key, event) = known.identify(&character, player.turn, envelope.ts);
+            self.game = Some(key.clone());
             // Before anything else this process has said about the game.
             self.session.insert(0, event);
-            first_seen_ms
+            key
         };
-        seen.insert(
-            key,
-            SeenGame {
-                first_seen_ms,
-                turn: player.turn,
-                ended: self.ended,
-            },
-        );
+        known.saw(&key, envelope.ts, player.turn, self.ended);
         Some(GameIdentity {
-            server: envelope.origin.clone(),
-            account: self.account.clone(),
-            character: name.clone(),
-            species: species.clone(),
-            first_seen_ms,
+            server: key.character.server,
+            account: key.character.account,
+            character: key.character.character,
+            species: key.character.species,
+            first_seen_ms: key.first_seen_ms,
             crawl_version,
             wizard: player.wizard,
             role: self.role,
@@ -341,18 +314,6 @@ impl Shown {
                 inventory.learn_from_message(&message.text, bundle);
             }
         }
-    }
-}
-
-impl SeenGame {
-    /// A game process at `turn` can be this game picked up again: it hasn't ended and its turn
-    /// hasn't gone backwards.
-    fn continues_at(&self, turn: Option<u32>) -> bool {
-        !self.ended
-            && match (self.turn, turn) {
-                (Some(last), Some(now)) => now >= last,
-                _ => true,
-            }
     }
 }
 

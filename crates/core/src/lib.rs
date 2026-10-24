@@ -12,6 +12,7 @@ mod exceptional;
 mod fact_sheet;
 mod fight_outcome;
 mod game_source;
+mod known_games;
 mod screen;
 mod suggested_action;
 mod view_model;
@@ -33,6 +34,7 @@ pub use fact_sheet::{
 };
 pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
+pub use known_games::{CharacterKey, GameKey, KnownGame, KnownGames};
 pub use screen::{
     KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutations, Skills,
     SpellPower, SpellReach,

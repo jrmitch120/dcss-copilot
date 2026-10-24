@@ -10,6 +10,7 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
+use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
@@ -45,28 +46,6 @@ struct Followed {
     stopped: bool,
 }
 
-/// What tells one game apart from every other, for as long as it is played: the spec's game key.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct GameKey {
-    server: String,
-    account: Option<String>,
-    character: String,
-    species: String,
-    first_seen_ms: u64,
-}
-
-impl GameKey {
-    fn of(identity: &GameIdentity) -> Self {
-        Self {
-            server: identity.server.clone(),
-            account: identity.account.clone(),
-            character: identity.character.clone(),
-            species: identity.species.clone(),
-            first_seen_ms: identity.first_seen_ms,
-        }
-    }
-}
-
 impl Advisor {
     /// An Advisor following no game yet, judging games with the Game Knowledge in `knowledge`.
     #[must_use]
@@ -85,7 +64,7 @@ impl Advisor {
     pub fn apply(&mut self, event: SourceEvent) -> Vec<Detection> {
         match event {
             SourceEvent::Identified(identity) => {
-                self.games.entry(GameKey::of(&identity)).or_default();
+                self.games.entry(identity.key()).or_default();
                 self.identity = Some(identity);
             }
             SourceEvent::Visible(visible) => {
@@ -96,7 +75,7 @@ impl Advisor {
                 if let Some(game) = self
                     .identity
                     .as_ref()
-                    .map(GameKey::of)
+                    .map(GameIdentity::key)
                     .and_then(|key| self.games.get_mut(&key))
                 {
                     game.accumulated.update(&self.visible, &visible, knowledge);
@@ -162,7 +141,7 @@ impl Advisor {
     }
 
     fn followed_key(&self) -> Option<GameKey> {
-        self.identity.as_ref().map(GameKey::of)
+        self.identity.as_ref().map(GameIdentity::key)
     }
 
     /// What is kept of the followed game, once a Game Source has identified it.

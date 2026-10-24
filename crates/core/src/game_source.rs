@@ -5,6 +5,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use crate::known_games::{CharacterKey, GameKey};
 use crate::screen::ScreenRead;
 use crate::visible_state::VisibleState;
 
@@ -84,6 +85,20 @@ pub struct GameIdentity {
 }
 
 impl GameIdentity {
+    /// The Game Key that tells this game apart from every other.
+    #[must_use]
+    pub fn key(&self) -> GameKey {
+        GameKey {
+            character: CharacterKey {
+                server: self.server.clone(),
+                account: self.account.clone(),
+                character: self.character.clone(),
+                species: self.species.clone(),
+            },
+            first_seen_ms: self.first_seen_ms,
+        }
+    }
+
     /// The Game Knowledge in `library` for this game's Crawl Version, once the game has reported
     /// its version and if the library has a bundle for it.
     #[must_use]
