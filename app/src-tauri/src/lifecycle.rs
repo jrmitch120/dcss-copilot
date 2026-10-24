@@ -79,7 +79,7 @@ impl Lifecycle {
 
 #[cfg(test)]
 mod tests {
-    use copilot_core::{Appearance, Assistance, ViewModel};
+    use copilot_core::{Appearance, AssistanceLevel, ViewModel};
     use copilot_replay::replay;
 
     use super::*;
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn the_window_shows_to_ask_the_player_and_gives_way_to_a_side_panel_after() {
         let mut lifecycle = Lifecycle::new(Presence::Hidden);
-        let mut view = ViewModel::initial("1.2.3", Appearance::Tiles, Assistance::Hints);
+        let mut view = ViewModel::initial("1.2.3", Appearance::Tiles, AssistanceLevel::Hints);
 
         view.connection = Connection::AllowBrowser {
             browser: "chrome-extension://abc".to_owned(),

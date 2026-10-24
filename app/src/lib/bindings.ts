@@ -12,7 +12,7 @@ export const commands = {
 	/**  The player chose to draw monsters and items as tiles or glyphs. */
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  The player chose how much the Advisor offers beyond Information. */
-	setAssistance: (assistance: Assistance) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
+	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -52,7 +52,7 @@ export type AskBox =
  *  How much the Advisor offers beyond Information, as the player sets it: the Assistance Level.
  *  Every detector runs at every level; the level only decides what the panel shows.
  */
-export type Assistance = 
+export type AssistanceLevel = 
 /**  Information only: the facts, and no LLM. */
 "info" | 
 /**
@@ -61,7 +61,7 @@ export type Assistance =
  */
 "hints" | 
 /**
- *  Adds the LLM's judgment of the Suggested Action, and full Strategic Advice with Run Plan
+ *  Adds the LLM's judgment of Tactical picks, and full Strategic Advice with Run Plan
  *  changes.
  */
 "coach";
@@ -457,7 +457,7 @@ export type ViewModel = {
 	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
 	appearance: Appearance,
 	/**  How much the Advisor offers beyond Information, as the player set it. */
-	assistance: Assistance,
+	assistance: AssistanceLevel,
 	/**
 	 *  Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
 	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.

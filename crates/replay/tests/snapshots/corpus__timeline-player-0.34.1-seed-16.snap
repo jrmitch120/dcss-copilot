@@ -635,7 +635,7 @@ expression: detections
     "turn": 4258,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~1% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~1% win, ~100% HP lost"
   },
   {
     "envelope": 5709,
@@ -667,7 +667,7 @@ expression: detections
     "turn": 4281,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~2% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
   },
   {
     "envelope": 5782,
@@ -692,7 +692,7 @@ expression: detections
     "turn": 4288,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~17% win, ~95% HP lost"
+    "line": "Last resort: fight — Melee: ~17% win, ~95% HP lost"
   },
   {
     "envelope": 5801,
@@ -717,6 +717,6 @@ expression: detections
     "turn": 4293,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~25% win, ~90% HP lost"
+    "line": "Last resort: fight — Melee: ~25% win, ~90% HP lost"
   }
 ]

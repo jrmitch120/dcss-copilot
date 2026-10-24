@@ -5,7 +5,7 @@ use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-use copilot_core::{Advisor, Appearance, Assistance, Connection, ViewModel};
+use copilot_core::{Advisor, Appearance, AssistanceLevel, Connection, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
@@ -175,7 +175,7 @@ impl Live {
     ///
     /// # Errors
     /// If the choice couldn't be saved, so it lasts only until the app exits.
-    pub fn set_assistance(&self, assistance: Assistance) -> Result<(), SettingsError> {
+    pub fn set_assistance(&self, assistance: AssistanceLevel) -> Result<(), SettingsError> {
         self.lock().settings.set_assistance(assistance)
     }
 
@@ -314,7 +314,7 @@ fn start_recording(
 mod tests {
     use serde_json::json;
 
-    use copilot_core::{Appearance, Assistance};
+    use copilot_core::{Appearance, AssistanceLevel};
     use copilot_llm::{Effort, Provider, Thinking};
 
     use super::*;
@@ -391,13 +391,13 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
         let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
-        assert_eq!(live.view_model().assistance, Assistance::Hints);
+        assert_eq!(live.view_model().assistance, AssistanceLevel::Hints);
 
-        live.set_assistance(Assistance::Info).unwrap();
-        assert_eq!(live.view_model().assistance, Assistance::Info);
+        live.set_assistance(AssistanceLevel::Info).unwrap();
+        assert_eq!(live.view_model().assistance, AssistanceLevel::Info);
 
         let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
-        assert_eq!(restarted.view_model().assistance, Assistance::Info);
+        assert_eq!(restarted.view_model().assistance, AssistanceLevel::Info);
     }
 
     #[test]

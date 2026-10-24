@@ -48,7 +48,8 @@ pub enum SuggestionRule {
     /// LETHAL: escape, with one that takes the player away at once before one that takes them
     /// away after a delay.
     BestEscape,
-    /// LETHAL: nothing better is left, so fight by the best Attack Plan, whatever its odds.
+    /// LETHAL: none of the rules above applies, so fight by the best Attack Plan, whatever its
+    /// odds. It gives way as soon as one of them could.
     Fight,
     /// DANGEROUS: the best Attack Plan wins almost always and leaves hit points to spare.
     FightOn,
@@ -81,7 +82,7 @@ impl SuggestionRule {
             Self::LeaveByStairs => "Leave by stairs",
             Self::HealOutOfIt => "Heal out of it",
             Self::BestEscape => "Escape",
-            Self::Fight => "No way out: fight",
+            Self::Fight => "Last resort: fight",
             Self::FightOn => "Fight on",
             Self::FallBackToACorridor => "Fall back to a corridor",
             Self::FallBackToStairs => "Fall back to stairs",
@@ -107,19 +108,47 @@ pub(crate) struct SuggestedAction {
 enum CandidateAction {
     /// Take a staircase, or use an item, ability or spell: one of the Ways Out.
     WayOut(Escape),
-    /// Hold a corridor: the one the player stands in, or the nearest square of one they can walk
-    /// to.
-    Corridor(Option<CorridorSquare>),
+    /// Hold a corridor.
+    Corridor(CorridorToHold),
     /// Fight what is in view.
     Fight {
-        /// The Attack Plan to fight by, and how it came out when the Fight Outcome last judged
-        /// it, once it has.
-        plan: Option<PlanOutcome>,
-        /// The Fight Outcome judges the fight now, so the odds of `plan` are current.
-        judged: bool,
+        /// The Attack Plan to fight by, and how it comes out.
+        odds: Odds,
         /// The player's hit points the fight starts from.
         hp: i32,
     },
+}
+
+/// The corridor a Suggested Action holds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum CorridorToHold {
+    /// The one the player stands in.
+    StandingIn,
+    /// The nearest square of one, which the player can walk to from the open ground they stand
+    /// on.
+    Near(CorridorSquare),
+}
+
+/// The Attack Plan a fight is fought by, and how it comes out.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Odds {
+    /// As the Fight Outcome judges it now.
+    Now(PlanOutcome),
+    /// As the Fight Outcome last judged it, while it can't judge the fight now, such as with too
+    /// many hostiles in view.
+    LastJudged(PlanOutcome),
+    /// The Fight Outcome hasn't judged a plan to fight by.
+    Unjudged,
+}
+
+impl Odds {
+    /// The plan, whether or not its odds are current.
+    fn plan(&self) -> Option<&PlanOutcome> {
+        match self {
+            Self::Now(plan) | Self::LastJudged(plan) => Some(plan),
+            Self::Unjudged => None,
+        }
+    }
 }
 
 impl SuggestedAction {
@@ -205,36 +234,40 @@ impl SuggestedAction {
             CandidateAction::Corridor(_) => {
                 CandidateAction::Corridor(corridor(&fact_sheet.ways_out)?)
             }
-            CandidateAction::Fight { plan, .. } => {
+            CandidateAction::Fight { odds, .. } => {
                 let hp = fact_sheet.threat_hp()?;
-                match (&fact_sheet.fight, plan) {
+                match (&fact_sheet.fight, odds.plan()) {
                     (Fight::NoFight, _) => return None,
                     (Fight::Judged(outcome), Some(plan)) => CandidateAction::Fight {
-                        plan: Some(
+                        odds: Odds::Now(
                             outcome
                                 .plans
                                 .iter()
-                                .find(|now| now.plan.name() == plan.plan.name())?
+                                .find(|now| same_plan(now, plan))?
                                 .clone(),
                         ),
-                        judged: true,
                         hp: outcome.hp,
                     },
                     (fight @ Fight::Judged(_), None) => fight_action(fight, hp),
                     (Fight::TooMany { .. } | Fight::Unjudged { .. }, plan) => {
                         CandidateAction::Fight {
-                            plan: plan.clone(),
-                            judged: false,
+                            odds: plan.cloned().map_or(Odds::Unjudged, Odds::LastJudged),
                             hp,
                         }
                     }
                 }
             }
         };
-        let falls_short = self.rule == SuggestionRule::FightOn
-            && action.win().is_some()
-            && !action.fights_on(hp_max, FIGHT_ON_HOLDS_WITHIN_POINTS);
-        (!falls_short).then(|| Self {
+        let gives_way = match self.rule {
+            // Its card would say "Fight on" over odds the rule would never take.
+            SuggestionRule::FightOn => {
+                action.win().is_some() && !action.fights_on(hp_max, FIGHT_ON_HOLDS_WITHIN_POINTS)
+            }
+            // It is the last resort only while no rule above it could apply.
+            SuggestionRule::Fight => lethal_way_out(&fact_sheet.ways_out).is_some(),
+            _ => false,
+        };
+        (!gives_way).then(|| Self {
             rule: self.rule,
             action,
             if_lethal: (self.rule == SuggestionRule::FightCarefully)
@@ -247,15 +280,7 @@ impl SuggestedAction {
     /// fights by.
     fn clearly_better_than(&self, held: &Self) -> bool {
         match (self.action.win(), held.action.win()) {
-            (Some(fresh), Some(held)) => {
-                let fresh_points = u64::from(fresh.times) * 100 * u64::from(held.trials);
-                let held_points = u64::from(held.times) * 100 * u64::from(fresh.trials);
-                fresh_points
-                    >= held_points
-                        + CLEARLY_BETTER_WIN_POINTS
-                            * u64::from(fresh.trials)
-                            * u64::from(held.trials)
-            }
+            (Some(fresh), Some(held)) => fresh.ahead_by_points(held, CLEARLY_BETTER_WIN_POINTS),
             _ => false,
         }
     }
@@ -270,12 +295,12 @@ impl SuggestedAction {
                 }
                 (CandidateAction::Corridor(_), CandidateAction::Corridor(_)) => true,
                 (
-                    CandidateAction::Fight { plan: mine, .. },
-                    CandidateAction::Fight { plan: theirs, .. },
-                ) => {
-                    mine.as_ref().map(|plan| plan.plan.name())
-                        == theirs.as_ref().map(|plan| plan.plan.name())
-                }
+                    CandidateAction::Fight { odds: mine, .. },
+                    CandidateAction::Fight { odds: theirs, .. },
+                ) => match (mine.plan(), theirs.plan()) {
+                    (Some(mine), Some(theirs)) => same_plan(mine, theirs),
+                    (mine, theirs) => mine.is_none() && theirs.is_none(),
+                },
                 _ => false,
             }
     }
@@ -305,24 +330,25 @@ impl SuggestedAction {
             rule: self.rule.name().to_owned(),
             action: match &self.action {
                 CandidateAction::WayOut(escape) => escape.summary(),
-                CandidateAction::Corridor(None) => "The corridor you stand in".to_owned(),
-                CandidateAction::Corridor(Some(square)) => match square.steps {
+                CandidateAction::Corridor(CorridorToHold::StandingIn) => {
+                    "The corridor you stand in".to_owned()
+                }
+                CandidateAction::Corridor(CorridorToHold::Near(square)) => match square.steps {
                     1 => "The corridor 1 step away".to_owned(),
                     steps => format!("The corridor {steps} steps away"),
                 },
                 CandidateAction::Fight {
-                    plan: Some(plan),
-                    judged: true,
+                    odds: Odds::Now(plan),
                     hp,
                 } => plan.summary(*hp),
                 CandidateAction::Fight {
-                    plan: Some(plan),
-                    judged: false,
+                    odds: Odds::LastJudged(plan),
                     ..
                 } => format!("{}: can't be judged now", capitalised(&plan.plan.name())),
-                CandidateAction::Fight { plan: None, .. } => {
-                    "The Advisor can't judge this fight".to_owned()
-                }
+                CandidateAction::Fight {
+                    odds: Odds::Unjudged,
+                    ..
+                } => "The Advisor can't judge this fight".to_owned(),
             },
             if_lethal: (self.rule == SuggestionRule::FightCarefully).then(|| {
                 self.if_lethal
@@ -338,8 +364,7 @@ impl CandidateAction {
     fn win(&self) -> Option<Chance> {
         match self {
             Self::Fight {
-                plan: Some(plan),
-                judged: true,
+                odds: Odds::Now(plan),
                 ..
             } => Some(plan.win),
             Self::WayOut(_) | Self::Corridor(_) | Self::Fight { .. } => None,
@@ -351,8 +376,7 @@ impl CandidateAction {
     fn fights_on(&self, hp_max: Option<i32>, slack: u64) -> bool {
         let (
             Self::Fight {
-                plan: Some(plan),
-                judged: true,
+                odds: Odds::Now(plan),
                 hp,
             },
             Some(hp_max),
@@ -360,8 +384,9 @@ impl CandidateAction {
         else {
             return false;
         };
-        let wins = u64::from(plan.win.times) * 100
-            >= FIGHT_ON_WIN_PERCENT.saturating_sub(slack) * u64::from(plan.win.trials);
+        let wins = plan
+            .win
+            .at_least_percent(FIGHT_ON_WIN_PERCENT.saturating_sub(slack));
         let hp_left = u64::try_from(hp - plan.hp_lost).unwrap_or(0);
         let spares = hp_left * 100
             >= FIGHT_ON_HP_LEFT_PERCENT.saturating_sub(slack)
@@ -384,13 +409,15 @@ impl FactSheet {
 fn fight_action(fight: &Fight, hp: i32) -> CandidateAction {
     match fight {
         Fight::Judged(outcome) => CandidateAction::Fight {
-            plan: outcome.plans.first().cloned(),
-            judged: true,
+            odds: outcome
+                .plans
+                .first()
+                .cloned()
+                .map_or(Odds::Unjudged, Odds::Now),
             hp: outcome.hp,
         },
         Fight::NoFight | Fight::TooMany { .. } | Fight::Unjudged { .. } => CandidateAction::Fight {
-            plan: None,
-            judged: false,
+            odds: Odds::Unjudged,
             hp,
         },
     }
@@ -456,16 +483,21 @@ fn usable(ways_out: &WaysOut) -> impl Iterator<Item = &WayOut> {
         .filter(|way_out| way_out.usable == Usable::Yes)
 }
 
-/// The corridor to hold: `Some(None)` when the player stands in one, and the nearest square of
-/// one when they stand on open ground and can walk to it.
-fn corridor(ways_out: &WaysOut) -> Option<Option<CorridorSquare>> {
+/// The corridor to hold, when the player stands in one or can walk to one.
+fn corridor(ways_out: &WaysOut) -> Option<CorridorToHold> {
     match ways_out.ground {
-        Some(Ground::Corridor { .. }) => Some(None),
+        Some(Ground::Corridor { .. }) => Some(CorridorToHold::StandingIn),
         Some(Ground::OpenGround {
             nearest_corridor, ..
-        }) => nearest_corridor.map(Some),
+        }) => nearest_corridor.map(CorridorToHold::Near),
         None => None,
     }
+}
+
+/// Whether two outcomes are of the same Attack Plan, by name: a plan's wand charges and missiles
+/// count down as it is fought, and it is still the same plan.
+fn same_plan(one: &PlanOutcome, other: &PlanOutcome) -> bool {
+    one.plan.name() == other.plan.name()
 }
 
 /// Whether two Ways Out are the same one, whatever their facts now: the same staircase, the item
@@ -930,6 +962,29 @@ mod tests {
         assert_eq!(
             judged_again.card().action,
             "Fireball, then melee: ~50% win, ~60% HP lost"
+        );
+    }
+
+    #[test]
+    fn a_last_resort_fight_gives_way_once_a_way_out_the_lethal_rules_take_opens() {
+        let lethal = moment(
+            ThreatLevel::Lethal,
+            1,
+            vec![unusable(stairs(1, 6, false))],
+            judged(vec![plan(None, 950, 5)]),
+        );
+        let eased = moment(
+            ThreatLevel::Dangerous,
+            1,
+            vec![usable(stairs(1, 5, false))],
+            judged(vec![plan(None, 600, 30)]),
+        );
+
+        let held = SuggestedAction::pick(&lethal, Some(HP_MAX)).unwrap();
+        assert_eq!(held.card().rule, "Last resort: fight");
+        assert_eq!(
+            after(&lethal, &eased).rule,
+            SuggestionRule::FallBackToStairs
         );
     }
 

@@ -17,7 +17,7 @@ pub struct ViewModel {
     /// Whether monsters and items are drawn as DCSS tiles or glyphs.
     pub appearance: Appearance,
     /// How much the Advisor offers beyond Information, as the player set it.
-    pub assistance: Assistance,
+    pub assistance: AssistanceLevel,
     /// Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
     /// followed without it: monsters and items aren't decoded and no Threat Level is judged.
     pub unreadable_game_knowledge: Option<String>,
@@ -28,7 +28,7 @@ pub struct ViewModel {
 impl ViewModel {
     /// The view before any browser has connected.
     #[must_use]
-    pub fn initial(app_version: &str, appearance: Appearance, assistance: Assistance) -> Self {
+    pub fn initial(app_version: &str, appearance: Appearance, assistance: AssistanceLevel) -> Self {
         Self {
             app_version: app_version.to_owned(),
             connection: Connection::NoBrowser,
@@ -83,19 +83,19 @@ pub enum Appearance {
 /// Every detector runs at every level; the level only decides what the panel shows.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub enum Assistance {
+pub enum AssistanceLevel {
     /// Information only: the facts, and no LLM.
     Info,
     /// Adds the Suggested Action at DANGEROUS and LETHAL moments, and a one-line LLM nudge at
     /// each Decision Point.
     #[default]
     Hints,
-    /// Adds the LLM's judgment of the Suggested Action, and full Strategic Advice with Run Plan
+    /// Adds the LLM's judgment of Tactical picks, and full Strategic Advice with Run Plan
     /// changes.
     Coach,
 }
 
-impl Assistance {
+impl AssistanceLevel {
     /// Whether the panel shows the Suggested Action.
     #[must_use]
     pub fn suggests(self) -> bool {
@@ -435,7 +435,7 @@ mod tests {
         let json = serde_json::to_value(ViewModel::initial(
             "1.2.3",
             Appearance::Tiles,
-            Assistance::Hints,
+            AssistanceLevel::Hints,
         ))
         .unwrap();
         assert_eq!(

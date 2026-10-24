@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use copilot_app_lib::relay::{
     BrowserApprovals, BrowserLink, PanelCommand, RelayEvent, SidePanelEvent, serve,
 };
-use copilot_core::{Appearance, Assistance};
+use copilot_core::{Appearance, AssistanceLevel};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
 use tokio::net::{TcpListener, TcpStream};
@@ -304,7 +304,7 @@ async fn a_browser_is_sent_the_panel_and_its_side_panels_commands_are_answered()
     assert_eq!(
         request.command,
         PanelCommand::SetAssistance {
-            assistance: Assistance::Coach
+            assistance: AssistanceLevel::Coach
         }
     );
     request.answer(Ok(()));

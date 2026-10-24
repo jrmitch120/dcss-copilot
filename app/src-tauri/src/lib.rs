@@ -12,7 +12,7 @@ mod settings;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 
-use copilot_core::{Appearance, Assistance, ViewModel};
+use copilot_core::{Appearance, AssistanceLevel, ViewModel};
 use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -115,7 +115,7 @@ fn set_appearance(
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
 fn set_assistance(
-    assistance: Assistance,
+    assistance: AssistanceLevel,
     app: AppHandle,
     live: State<'_, Live>,
 ) -> Result<(), String> {

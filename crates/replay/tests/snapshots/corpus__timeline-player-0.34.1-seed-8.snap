@@ -284,7 +284,7 @@ expression: detections
     "turn": 2204,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~2% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
   },
   {
     "envelope": 4235,
@@ -292,5 +292,12 @@ expression: detections
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 6 of 39: below a quarter."
+  },
+  {
+    "envelope": 4240,
+    "turn": 2206,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading down · ~29 steps · partly out of view"
   }
 ]

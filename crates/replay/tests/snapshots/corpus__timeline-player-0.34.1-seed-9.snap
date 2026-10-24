@@ -50,7 +50,7 @@ expression: detections
     "turn": 54,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — The Advisor can't judge this fight"
+    "line": "Last resort: fight — The Advisor can't judge this fight"
   },
   {
     "envelope": 380,

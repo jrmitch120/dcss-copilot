@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { Assistance, Character, NowPill } from "$lib/bindings";
-import type { PanelActions } from "./actions";
+import type { AssistanceLevel, Character, NowPill } from "$lib/bindings";
+import { type PanelActions, unsaved } from "./actions";
 import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
 
@@ -9,20 +9,21 @@ let {
   now,
   assistance,
   actions,
-}: { character: Character; now: NowPill; assistance: Assistance; actions: PanelActions } = $props();
+}: { character: Character; now: NowPill; assistance: AssistanceLevel; actions: PanelActions } =
+  $props();
 
 let tone = $derived(threatTone(now));
 let saveError = $state<string | null>(null);
 
-const LEVELS: [Assistance, string][] = [
+const LEVELS: [AssistanceLevel, string][] = [
   ["info", "Info"],
   ["hints", "Hints"],
   ["coach", "Coach"],
 ];
 
-async function choose(level: Assistance) {
+async function choose(level: AssistanceLevel) {
   const error = await actions.setAssistance(level);
-  saveError = error === null ? null : `This choice lasts only until DCSS Copilot closes: ${error}`;
+  saveError = unsaved(error);
 }
 
 function stat(value: number | null): string {

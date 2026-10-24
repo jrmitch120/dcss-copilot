@@ -12,7 +12,7 @@ use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attack
 use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
-    AskBox, Assistance, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
+    AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
     RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
@@ -218,7 +218,7 @@ impl Advisor {
     /// Each part shows only what the Advisor can tell: without the facts to judge a Threat Level,
     /// and with no Run Plan yet, it says so rather than guess.
     #[must_use]
-    pub fn game_view(&self, assistance: Assistance) -> Option<GameView> {
+    pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
         Some(GameView {
             character: Character {

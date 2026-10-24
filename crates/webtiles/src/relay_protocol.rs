@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use copilot_core::{Appearance, Assistance};
+use copilot_core::{Appearance, AssistanceLevel};
 
 use crate::Envelope;
 
@@ -63,7 +63,7 @@ pub enum PanelCommand {
     /// Set how much the Advisor offers beyond Information. Since protocol 3.
     SetAssistance {
         /// The player's choice.
-        assistance: Assistance,
+        assistance: AssistanceLevel,
     },
     /// Open the app's Settings window.
     OpenSettings,

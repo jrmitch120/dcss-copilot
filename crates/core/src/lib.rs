@@ -39,9 +39,9 @@ pub use screen::{
 };
 pub use suggested_action::SuggestionRule;
 pub use view_model::{
-    Appearance, AskBox, Assistance, Character, Colour, Connection, Depiction, FactCard, FocusCard,
-    GameView, Glyph, Listing, NowPill, RunPlanRail, SuggestedActionCard, TileName, ToolbarBadge,
-    ViewModel, WayOutRow, WaysOutList,
+    Appearance, AskBox, AssistanceLevel, Character, Colour, Connection, Depiction, FactCard,
+    FocusCard, GameView, Glyph, Listing, NowPill, RunPlanRail, SuggestedActionCard, TileName,
+    ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

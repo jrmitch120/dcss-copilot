@@ -1,0 +1,772 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz861716361",
+    "character": "wiz861716361",
+    "species": "Minotaur",
+    "firstSeenMs": 1792861717566,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 6,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "dangerous",
+          "hp": 19,
+          "death": {
+            "times": 0,
+            "trials": 10000
+          },
+          "worstHit": 5,
+          "hostilesInView": 3,
+          "bestPlanWin": {
+            "times": 1498,
+            "trials": 2000
+          },
+          "acting": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": -8
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": -5
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": -2,
+                "y": -4
+              },
+              "distance": 2,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": -8
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 6,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": -1,
+                "y": -5
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 6,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            },
+            {
+              "name": "jackal",
+              "position": {
+                "x": -2,
+                "y": -4
+              },
+              "distance": 2,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 6,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 4,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "inTheWay",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": -5
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -4
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": true
+                      },
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": -8
+                        },
+                        "moves": 5,
+                        "arrivesAfter": 3,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 6,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "inTheWay",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": -5
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -2,
+                          "y": -4
+                        },
+                        "moves": 3,
+                        "arrivesAfter": 2,
+                        "faster": true
+                      },
+                      {
+                        "name": "jackal",
+                        "position": {
+                          "x": -1,
+                          "y": -8
+                        },
+                        "moves": 7,
+                        "arrivesAfter": 5,
+                        "faster": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "ground": {
+            "ground": "corridor",
+            "openSides": 2
+          },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay",
+            "monstersOutOfView"
+          ]
+        },
+        "fight": {
+          "state": "judged",
+          "hp": 19,
+          "plans": [
+            {
+              "plan": {
+                "opening": null,
+                "base": {
+                  "with": "melee"
+                }
+              },
+              "win": {
+                "times": 1498,
+                "trials": 2000
+              },
+              "death": {
+                "times": 502,
+                "trials": 2000
+              },
+              "hpLost": 12
+            }
+          ],
+          "notPlayed": [],
+          "gaps": [],
+          "notModelled": [
+            "playerSpeed",
+            "summons",
+            "allies",
+            "hexes",
+            "selfBuffs",
+            "mixingWands",
+            "movingBetweenAttacks",
+            "monsterWounds",
+            "ownAttackExtras",
+            "ownFractions"
+          ]
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
+      },
+      "game": {
+        "character": {
+          "name": "wiz861716361",
+          "species": "Minotaur",
+          "hp": 19,
+          "hpMax": 19,
+          "turn": 6
+        },
+        "now": {
+          "state": "rated",
+          "level": "dangerous",
+          "alert": "No Way Out is left that you can use.",
+          "line": "3 monsters can attack before your next action. Your best plan wins only ~75% of fights.",
+          "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+        },
+        "suggestedAction": {
+          "level": "dangerous",
+          "rule": "Fall back to a corridor",
+          "action": "The corridor you stand in",
+          "ifLethal": null
+        },
+        "focus": {
+          "card": "fight",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "h",
+                  "colour": "brown"
+                },
+                "tile": "mon/animals/jackal"
+              },
+              "name": "jackal",
+              "detail": null,
+              "count": 3
+            }
+          ],
+          "line": "Fight on (melee): ~75% win, ~63% HP lost",
+          "others": [],
+          "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
+          "gaps": []
+        },
+        "factCards": [],
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Escape hatch in the floor",
+              "detail": "4 steps",
+              "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+            }
+          ],
+          "ground": "In a corridor: 2 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        },
+        "live": true,
+        "badge": {
+          "decisionsWaiting": 0,
+          "callsForPanel": false
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "detections": [
+    {
+      "envelope": 75,
+      "turn": 6,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 116,
+      "turn": 6,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 116,
+      "turn": 6,
+      "event": "suggestedAction",
+      "rule": "fall-back-to-a-corridor",
+      "line": "Fall back to a corridor — The corridor you stand in"
+    }
+  ],
+  "end": {
+    "turn": 10,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "dangerous",
+        "hp": 16,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 6,
+        "hostilesInView": 3,
+        "bestPlanWin": {
+          "times": 1290,
+          "trials": 2000
+        },
+        "acting": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -7
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -5
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -4
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -7
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 6,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -5
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 6,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          },
+          {
+            "name": "jackal",
+            "position": {
+              "x": -1,
+              "y": -4
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 6,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 4,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "inTheWay",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -5
+                      }
+                    }
+                  ]
+                },
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -4
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": true
+                    },
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -7
+                      },
+                      "moves": 4,
+                      "arrivesAfter": 3,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 6,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "inTheWay",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -5
+                      }
+                    }
+                  ]
+                },
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -4
+                      },
+                      "moves": 3,
+                      "arrivesAfter": 2,
+                      "faster": true
+                    },
+                    {
+                      "name": "jackal",
+                      "position": {
+                        "x": -1,
+                        "y": -7
+                      },
+                      "moves": 6,
+                      "arrivesAfter": 4,
+                      "faster": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "corridor",
+          "openSides": 2
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "judged",
+        "hp": 16,
+        "plans": [
+          {
+            "plan": {
+              "opening": null,
+              "base": {
+                "with": "melee"
+              }
+            },
+            "win": {
+              "times": 1290,
+              "trials": 2000
+            },
+            "death": {
+              "times": 710,
+              "trials": 2000
+            },
+            "hpLost": 11
+          }
+        ],
+        "notPlayed": [],
+        "gaps": [],
+        "notModelled": [
+          "playerSpeed",
+          "summons",
+          "allies",
+          "hexes",
+          "selfBuffs",
+          "mixingWands",
+          "movingBetweenAttacks",
+          "monsterWounds",
+          "ownAttackExtras",
+          "ownFractions"
+        ]
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
+    },
+    "game": {
+      "character": {
+        "name": "wiz861716361",
+        "species": "Minotaur",
+        "hp": 16,
+        "hpMax": 19,
+        "turn": 10
+      },
+      "now": {
+        "state": "rated",
+        "level": "dangerous",
+        "alert": null,
+        "line": "3 monsters can attack before your next action. Your best plan wins only ~64% of fights.",
+        "detail": "Death under 0.1% · worst hit 6 of 16 HP"
+      },
+      "suggestedAction": {
+        "level": "dangerous",
+        "rule": "Fall back to a corridor",
+        "action": "The corridor you stand in",
+        "ifLethal": null
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "h",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/jackal"
+            },
+            "name": "jackal",
+            "detail": null,
+            "count": 3
+          }
+        ],
+        "line": "Fight on (melee): ~64% win, ~69% HP lost",
+        "others": [],
+        "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
+        "gaps": []
+      },
+      "factCards": [],
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Escape hatch in the floor",
+            "detail": "4 steps",
+            "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+          }
+        ],
+        "ground": "In a corridor: 2 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      }
+    }
+  }
+}

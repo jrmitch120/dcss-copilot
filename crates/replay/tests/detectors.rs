@@ -4,7 +4,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{AlertCause, Assistance, Detection, NowPill, ThreatLevel, ViewModel};
+use copilot_core::{AlertCause, AssistanceLevel, Detection, NowPill, ThreatLevel, ViewModel};
 use copilot_replay::{Happened, Moment, Recording, Replayer, replay};
 
 const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall.dcssrec");
@@ -178,9 +178,15 @@ fn the_panel_shows_the_suggested_action_in_hints_and_coach_and_not_in_info() {
             .map(|card| card.rule)
     };
 
-    assert_eq!(shown(Assistance::Info), None);
-    assert_eq!(shown(Assistance::Hints).as_deref(), Some("Leave by stairs"));
-    assert_eq!(shown(Assistance::Coach).as_deref(), Some("Leave by stairs"));
+    assert_eq!(shown(AssistanceLevel::Info), None);
+    assert_eq!(
+        shown(AssistanceLevel::Hints).as_deref(),
+        Some("Leave by stairs")
+    );
+    assert_eq!(
+        shown(AssistanceLevel::Coach).as_deref(),
+        Some("Leave by stairs")
+    );
 }
 
 #[test]

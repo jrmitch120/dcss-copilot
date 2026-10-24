@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { Appearance } from "$lib/bindings";
-import type { PanelActions } from "./actions";
+import { type PanelActions, unsaved } from "./actions";
 import Segmented from "./Segmented.svelte";
 
 let {
@@ -18,7 +18,7 @@ const CHOICES: [Appearance, string][] = [
 
 async function choose(choice: Appearance) {
   const error = await actions.setAppearance(choice);
-  saveError = error === null ? null : `This choice lasts only until DCSS Copilot closes: ${error}`;
+  saveError = unsaved(error);
 }
 
 async function openSettings() {

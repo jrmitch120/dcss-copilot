@@ -231,7 +231,7 @@ expression: detections
     "turn": 1726,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "No way out: fight — Melee: ~9% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~9% win, ~100% HP lost"
   },
   {
     "envelope": 1899,

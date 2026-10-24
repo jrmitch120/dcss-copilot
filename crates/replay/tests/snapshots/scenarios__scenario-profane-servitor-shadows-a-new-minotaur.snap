@@ -196,7 +196,7 @@ expression: replay
         },
         "suggestedAction": {
           "level": "lethal",
-          "rule": "No way out: fight",
+          "rule": "Last resort: fight",
           "action": "The Advisor can't judge this fight",
           "ifLethal": null
         },
@@ -272,7 +272,7 @@ expression: replay
       "turn": 0,
       "event": "suggestedAction",
       "rule": "fight",
-      "line": "No way out: fight — The Advisor can't judge this fight"
+      "line": "Last resort: fight — The Advisor can't judge this fight"
     },
     {
       "envelope": 54,
@@ -464,7 +464,7 @@ expression: replay
       },
       "suggestedAction": {
         "level": "lethal",
-        "rule": "No way out: fight",
+        "rule": "Last resort: fight",
         "action": "The Advisor can't judge this fight",
         "ifLethal": null
       },

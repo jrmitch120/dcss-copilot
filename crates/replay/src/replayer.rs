@@ -4,7 +4,8 @@
 use std::ops::Range;
 
 use copilot_core::{
-    Advisor, Appearance, Assistance, Connection, CrawlVersion, Detection, SourceEvent, ViewModel,
+    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, Detection, SourceEvent,
+    ViewModel,
 };
 use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
@@ -260,13 +261,13 @@ impl Replayer {
     /// default Assistance Level.
     #[must_use]
     pub fn view_model(&self) -> ViewModel {
-        self.view_model_at(Assistance::default())
+        self.view_model_at(AssistanceLevel::default())
     }
 
     /// What the panel would show at the player's `assistance` level, with the browser connected
     /// and the default Appearance.
     #[must_use]
-    pub fn view_model_at(&self, assistance: Assistance) -> ViewModel {
+    pub fn view_model_at(&self, assistance: AssistanceLevel) -> ViewModel {
         ViewModel {
             app_version: self.recording.header.app_version.clone(),
             connection: Connection::Connected {
