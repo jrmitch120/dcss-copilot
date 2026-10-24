@@ -145,6 +145,27 @@ fn a_scenario_cannot_expect_suggested_actions_the_advisor_does_not_show_yet() {
 }
 
 #[test]
+fn a_manifest_expecting_an_alert_with_a_misspelt_cause_is_refused() {
+    let error = Scenario::parse(
+        r#"
+        description = "A kobold on D:3"
+        recording = "kobold.dcssrec"
+        crawl_version = "0.34.1"
+        [setup]
+        rc = ""
+        keys = []
+        [[alerts]]
+        turn = 5
+        cause = "threat-level-risen"
+        "#,
+        Path::new("scenario.toml"),
+    )
+    .unwrap_err();
+
+    assert!(error.to_string().contains("threat-level-risen"), "{error}");
+}
+
+#[test]
 fn a_manifest_with_a_misspelt_field_is_refused() {
     let error = Scenario::parse(
         r#"

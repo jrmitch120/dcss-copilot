@@ -156,6 +156,10 @@ _Avoid_: Unsupported, ignored, edge cases
 A monster at least three levels shallower than the shallowest level crawl makes its kind on at random in the branch the player is in. A kind crawl doesn't make at random in that branch, such as a unique, is never Out of Depth.
 _Avoid_: OOD
 
+**Exceptional Monster**:
+A hostile in view the Advisor singles out for the player to recognise: a unique, or one Out of Depth. It has a Fact Card while it stays in view, and raises an Alert as it comes into view if it alone makes the moment DANGEROUS.
+_Avoid_: Notable monster, special monster
+
 **Dangerous Status**:
 A status on the player the Advisor raises an Alert for as it lands, whatever is in view: poison that will kill them, petrification, liquid fire, or confusion beside deep water or lava. While one lasts the player isn't All Clear.
 _Avoid_: Bad status, debuff
@@ -251,7 +255,7 @@ The one card under the Now Pill holding what deserves the player's attention now
 _Avoid_: Main card, hero card
 
 **Fact Card**:
-A card in the Focus Card singling out a unique or Out of Depth monster in view, while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.
+A card in the Focus Card singling out an Exceptional Monster while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.
 _Avoid_: Monster card, info card
 
 **Run Plan Rail**:

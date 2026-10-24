@@ -4,7 +4,7 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use copilot_core::{CrawlVersion, Detection, FactSheet, GameIdentity, GameView, Place};
+use copilot_core::{AlertKind, CrawlVersion, Detection, FactSheet, GameIdentity, GameView, Place};
 use serde::{Deserialize, Serialize};
 
 use crate::{CrawlVersionMismatch, Happened, Moment, Recording, ReplayError, Replayer};
@@ -55,8 +55,8 @@ pub struct Setup {
 pub struct ExpectedAlert {
     /// The turn it fires on.
     pub turn: u32,
-    /// What raised it, as its `cause` is written, such as `threat-level-rose`.
-    pub cause: String,
+    /// What kind of cause raised it, such as `threat-level-rose`.
+    pub cause: AlertKind,
 }
 
 impl ExpectedAlert {
@@ -65,10 +65,9 @@ impl ExpectedAlert {
         let Happened::Detected(Detection::Alert(alert)) = &moment.event else {
             return None;
         };
-        let cause = serde_json::to_value(&alert.cause).ok()?;
         Some(Self {
             turn: moment.turn?,
-            cause: cause.get("cause")?.as_str()?.to_owned(),
+            cause: alert.cause.kind(),
         })
     }
 }

@@ -4,7 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::dangerous_status::DangerousStatus;
 use crate::exceptional::{Exceptional, ExceptionalMonster};
@@ -86,7 +86,42 @@ pub enum AlertCause {
     },
 }
 
+/// What kind of cause raised an Alert, whatever it was about, as the timeline writes its `cause`
+/// and a Scenario's manifest names it, such as `threat-level-rose`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AlertKind {
+    /// [`AlertCause::ThreatLevelRose`].
+    ThreatLevelRose,
+    /// [`AlertCause::UniqueInView`].
+    UniqueInView,
+    /// [`AlertCause::OutOfDepth`].
+    OutOfDepth,
+    /// [`AlertCause::HitPointsBelowHalf`].
+    HitPointsBelowHalf,
+    /// [`AlertCause::HitPointsBelowQuarter`].
+    HitPointsBelowQuarter,
+    /// [`AlertCause::LastWayOutLost`].
+    LastWayOutLost,
+    /// [`AlertCause::DangerousStatus`].
+    DangerousStatus,
+}
+
 impl AlertCause {
+    /// What kind of cause it is.
+    #[must_use]
+    pub fn kind(&self) -> AlertKind {
+        match self {
+            Self::ThreatLevelRose { .. } => AlertKind::ThreatLevelRose,
+            Self::UniqueInView { .. } => AlertKind::UniqueInView,
+            Self::OutOfDepth { .. } => AlertKind::OutOfDepth,
+            Self::HitPointsBelowHalf => AlertKind::HitPointsBelowHalf,
+            Self::HitPointsBelowQuarter => AlertKind::HitPointsBelowQuarter,
+            Self::LastWayOutLost => AlertKind::LastWayOutLost,
+            Self::DangerousStatus { .. } => AlertKind::DangerousStatus,
+        }
+    }
+
     /// How urgent it is, as the one Alert raised at a player action: the highest wins. The spec
     /// (#24) ranks none; this puts what can kill the player soonest first, and a unique or Out of
     /// Depth monster ahead of the rise in the Threat Level it brings.
@@ -402,5 +437,39 @@ fn shouted(level: ThreatLevel) -> &'static str {
         ThreatLevel::Calm => "CALM",
         ThreatLevel::Dangerous => "DANGEROUS",
         ThreatLevel::Lethal => "LETHAL",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn each_cause_is_written_as_its_kind_is_named() {
+        let causes = [
+            AlertCause::ThreatLevelRose {
+                to: ThreatLevel::Lethal,
+            },
+            AlertCause::UniqueInView {
+                monster: "Sigmund".to_owned(),
+            },
+            AlertCause::OutOfDepth {
+                monster: "ogre".to_owned(),
+            },
+            AlertCause::HitPointsBelowHalf,
+            AlertCause::HitPointsBelowQuarter,
+            AlertCause::LastWayOutLost,
+            AlertCause::DangerousStatus {
+                status: DangerousStatus::LiquidFire,
+            },
+        ];
+        for cause in causes {
+            let written = serde_json::to_value(&cause).unwrap();
+            assert_eq!(
+                written["cause"],
+                serde_json::to_value(cause.kind()).unwrap(),
+                "{cause:?}"
+            );
+        }
     }
 }

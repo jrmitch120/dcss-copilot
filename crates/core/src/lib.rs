@@ -23,7 +23,7 @@ pub use accumulated_state::{
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
 pub use dangerous_status::DangerousStatus;
-pub use detectors::{Alert, AlertCause, Detection};
+pub use detectors::{Alert, AlertCause, AlertKind, Detection};
 pub use engine::oracle;
 pub use exceptional::{Exceptional, ExceptionalMonster};
 pub use fact_sheet::{
