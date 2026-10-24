@@ -70,6 +70,10 @@ _Avoid_: Tick, frame, turn (when meaning this)
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
 _Avoid_: History, memory, cache
 
+**Change Log**:
+Every change to a game's Accumulated State, in the order it was made, each with the turn and time of the message that made it. It is only ever added to, so it tells what the Advisor knew of the game at any moment; it goes only with its game, when the player clears history or the game is pruned.
+_Avoid_: History (when meaning this), audit log, journal
+
 **Known, Stale, Missing**:
 How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
 _Avoid_: Fresh, expired, cached

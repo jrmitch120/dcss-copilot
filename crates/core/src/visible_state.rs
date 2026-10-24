@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use copilot_gk::{EnumId, ItemKind};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::screen::ScreenRead;
 use crate::view_model::{Colour, Glyph};
@@ -320,7 +320,7 @@ pub struct VisibleMonster {
 /// view. A monster that leaves view and comes back is a new Sighting, as crawl gives it a new
 /// client id on purpose (`reset_client_id`, `player-notices.cc:553`), so the player can't be sure
 /// it is the one they saw before.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Sighting(pub u64);
 
 /// Whose side a monster is on.

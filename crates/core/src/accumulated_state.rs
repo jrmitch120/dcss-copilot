@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 
 use copilot_gk::{Bundle, EnumId, ItemKind};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, object_classes};
@@ -18,7 +18,7 @@ use crate::visible_state::{
 use crate::ways_out;
 
 /// What the Advisor remembers of one game.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccumulatedState {
     /// The character's resistances, as the character overview or dump last showed them, with
@@ -82,7 +82,7 @@ pub struct AccumulatedState {
 }
 
 /// Where the game listed a monster's Carried Gear: in which message, or on the full-view list.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum GearSource {
     /// The sighting message as it came into view.
@@ -106,7 +106,7 @@ struct Unplaced {
 
 /// A fact the Advisor remembers, and how current it is: an engine input is Known, Stale or
 /// Missing.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(
     tag = "state",
     rename_all = "camelCase",
@@ -124,7 +124,7 @@ pub enum Remembered<T, S = Screen> {
 }
 
 /// A remembered value, with where and when it was read.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AsOf<T, S = Screen> {
     /// What was read.
@@ -137,7 +137,7 @@ pub struct AsOf<T, S = Screen> {
 
 /// What the mutations screen showed, and the experience level the character had then, which
 /// tells which of the mutations it lists their species gave them.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MutationsRead {
     /// What it showed.
@@ -147,7 +147,7 @@ pub struct MutationsRead {
 }
 
 /// A shield the character can wear, by how many attacks it can block before their next action.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Shield {
     /// `ARM_BUCKLER`.
