@@ -45,7 +45,9 @@ expression: by_turn
             "gap": "monstersInView"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -186,7 +188,9 @@ expression: by_turn
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -363,7 +367,9 @@ expression: by_turn
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -541,7 +547,9 @@ expression: by_turn
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   }
 ]

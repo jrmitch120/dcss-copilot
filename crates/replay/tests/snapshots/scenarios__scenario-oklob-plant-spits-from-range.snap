@@ -153,7 +153,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -166,6 +168,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 34 of 102 HP"
         },
@@ -192,6 +195,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -354,7 +358,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -367,6 +373,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": null,
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 34 of 71 HP"
         },
@@ -393,6 +400,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -555,7 +563,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -568,6 +578,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": "Threat rose to DANGEROUS.",
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 35 of 52 HP"
         },
@@ -594,6 +605,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -619,6 +631,29 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 77,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 96,
+      "turn": 2,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "dangerous",
+      "line": "Threat rose to DANGEROUS."
+    },
+    {
+      "envelope": 121,
+      "turn": 4,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "lethal",
+      "line": "Threat rose to LETHAL."
+    }
+  ],
   "end": {
     "turn": 4,
     "place": {
@@ -758,7 +793,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -771,6 +808,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "lethal",
+        "alert": "Threat rose to LETHAL.",
         "line": "Oklob plant can attack before your next action.",
         "detail": "Death 7.5% · worst hit 35 of 28 HP"
       },
@@ -797,6 +835,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

@@ -1,6 +1,6 @@
 # The Not Modelled ledger
 
-Everything the engine leaves out of the Threat Level, the Fight Outcome and the judging of Ways Out, in one list: the backlog to read when deciding what to model next. The Fact Sheet lists what it leaves out at a moment as Not Modelled, but some of what the engine leaves out has no `NotModelled` variant, and the crawl oracle's harnesses leave out more besides (`docs/crawl-oracle.md`). Each entry here says:
+Everything the engine leaves out of the Threat Level, the Fight Outcome and the judging of Ways Out, and what the detectors leave out, in one list: the backlog to read when deciding what to model next. The Fact Sheet lists what it leaves out at a moment as Not Modelled, but some of what the engine leaves out has no `NotModelled` variant, and the crawl oracle's harnesses leave out more besides (`docs/crawl-oracle.md`). Each entry here says:
 
 - **What crawl does**, citing crawl 0.34.1's function as the code cites the formulas it ports.
 - **What the engine assumes** instead.
@@ -446,6 +446,32 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **Surfaced as:** `ownConditions`, when a spell, or an ability read only from a Stale ability list, is among the Ways Out.
 - **Harness:** none.
 - **Impact and cost:** a spell shown usable may not be; each spell's conditions are their own port. An ability's unseen conditions, such as an emptied deck or a sanctuary placed since, may change without the list going Stale.
+
+## The detectors
+
+### A redraw without a map
+
+- **What crawl does:** as it waits for a command it says so (`input_mode`, `MOUSE_MODE_COMMAND`), then redraws the player, the messages and the map, each only if it changed (`TilesFramework::redraw`), and sends no message that marks the redraw's end.
+- **What the engine assumes:** the map ends the redraw, so the game settles as it arrives; a redraw without one, as when nothing in view moved, settles only as the player presses their next key.
+- **Surfaced as:** accepted simplification: settling at each message of the redraw would judge a moment whose monsters haven't moved yet. About 3% of the corpus's command waits draw no map.
+- **Harness:** none.
+- **Impact and cost:** an Alert at such a moment, as hit points fall in a fight where nothing moves, comes one key press late. A relay that marked the end of each batch the server sends would close it, at the cost of a new relay protocol version.
+
+### Out of Depth by the branch's own population
+
+- **What crawl does:** it makes monsters at random from each branch's population table (`population` in `mon-pick-data.h`), sometimes from deeper in it (`_fuzz_mons_level`), and places others by vault or from other branches' tables.
+- **What the engine assumes:** a monster is Out of Depth when the shallowest level its kind is made on in this branch's table is three or more levels deeper than the player; how rare it is there isn't weighed, and a kind the table doesn't make, such as one a vault places, is never Out of Depth.
+- **Surfaced as:** accepted simplification: the spec's rule, read as plainly as crawl's tables allow.
+- **Harness:** none.
+- **Impact and cost:** errs low for a monster from another branch's table. Judging those would need each branch's absolute depth (`branches` in `branch-data.h`).
+
+### Confusion beside deep water or lava
+
+- **What crawl does:** it stops a confused step into deep water the player can't swim in or lava they can't fly over, and wastes it ("You nearly stumble into…", `_adjust_confused_movement`); it asks before a confused move beside them only while flight, or a form that keeps the player safe, may run out (`cancel_confused_move`).
+- **What the engine assumes:** confusion beside deep water or lava is a Dangerous Status, as the spec names it, whether or not the player swims or flies, and however long their flight lasts.
+- **Surfaced as:** accepted simplification: the spec's rule. Its Alert says only that the player is confused beside them.
+- **Harness:** none.
+- **Impact and cost:** in crawl 0.34 the danger is mostly wasted steps; the Alert is worth it only as flight runs out. Reading flight, swimming and how long each lasts would let it fire only then.
 
 [#40]: https://github.com/jrmitch120/dcss-copilot/issues/40
 [#77]: https://github.com/jrmitch120/dcss-copilot/issues/77

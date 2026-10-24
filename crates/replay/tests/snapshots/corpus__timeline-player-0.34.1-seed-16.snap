@@ -1,0 +1,575 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 176,
+    "turn": 9,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 202,
+    "turn": 14,
+    "event": "allClear"
+  },
+  {
+    "envelope": 232,
+    "turn": 29,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 270,
+    "turn": 35,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 17: below half."
+  },
+  {
+    "envelope": 805,
+    "turn": 312,
+    "event": "allClear"
+  },
+  {
+    "envelope": 810,
+    "turn": 315,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 874,
+    "turn": 355,
+    "event": "allClear"
+  },
+  {
+    "envelope": 890,
+    "turn": 379,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1171,
+    "turn": 506,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 14 of 30: below half."
+  },
+  {
+    "envelope": 1208,
+    "turn": 513,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 6 of 30: below a quarter."
+  },
+  {
+    "envelope": 1213,
+    "turn": 608,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1233,
+    "turn": 644,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1287,
+    "turn": 659,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1292,
+    "turn": 664,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1410,
+    "turn": 683,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1459,
+    "turn": 691,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1504,
+    "turn": 696,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 17 of 38: below half."
+  },
+  {
+    "envelope": 1509,
+    "turn": 697,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1544,
+    "turn": 782,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1575,
+    "turn": 813,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1584,
+    "turn": 814,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1704,
+    "turn": 838,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1785,
+    "turn": 917,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1858,
+    "turn": 948,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1863,
+    "turn": 965,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2156,
+    "turn": 1152,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2166,
+    "turn": 1158,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2226,
+    "turn": 1189,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2231,
+    "turn": 1210,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2363,
+    "turn": 1392,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2374,
+    "turn": 1404,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2661,
+    "turn": 1683,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2744,
+    "turn": 1719,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2777,
+    "turn": 1750,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2872,
+    "turn": 1779,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2898,
+    "turn": 1793,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2977,
+    "turn": 1928,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3111,
+    "turn": 1964,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3187,
+    "turn": 2027,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3254,
+    "turn": 2054,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3290,
+    "turn": 2095,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3299,
+    "turn": 2096,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3416,
+    "turn": 2242,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3421,
+    "turn": 2267,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3450,
+    "turn": 2367,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3460,
+    "turn": 2392,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3520,
+    "turn": 2531,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3531,
+    "turn": 2545,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3635,
+    "turn": 2584,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3645,
+    "turn": 2672,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3710,
+    "turn": 2755,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3768,
+    "turn": 2827,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3807,
+    "turn": 2877,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3835,
+    "turn": 2889,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3945,
+    "turn": 2959,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3985,
+    "turn": 3115,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4080,
+    "turn": 3178,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4108,
+    "turn": 3225,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4158,
+    "turn": 3235,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4224,
+    "turn": 3536,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4224,
+    "turn": 3536,
+    "event": "factCard",
+    "name": "Blorkula the orcula",
+    "position": {
+      "x": -5,
+      "y": -7
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 4224,
+    "turn": 3536,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Blorkula the orcula",
+    "line": "Blorkula the orcula, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 4419,
+    "turn": 3651,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4424,
+    "turn": 3653,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4450,
+    "turn": 3655,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4492,
+    "turn": 3663,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 20 of 46: below half."
+  },
+  {
+    "envelope": 4501,
+    "turn": 3664,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 11 of 46: below a quarter."
+  },
+  {
+    "envelope": 4556,
+    "turn": 3672,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4680,
+    "turn": 3811,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4737,
+    "turn": 3876,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4755,
+    "turn": 3878,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4760,
+    "turn": 3879,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4839,
+    "turn": 3970,
+    "event": "allClear"
+  },
+  {
+    "envelope": 4844,
+    "turn": 3972,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 4860,
+    "turn": 3975,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5223,
+    "turn": 4026,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5233,
+    "turn": 4083,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5233,
+    "turn": 4083,
+    "event": "factCard",
+    "name": "Blorkula the orcula",
+    "position": {
+      "x": -5,
+      "y": 25
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 5233,
+    "turn": 4083,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Blorkula the orcula",
+    "line": "Blorkula the orcula, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 5251,
+    "turn": 4086,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5263,
+    "turn": 4089,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5263,
+    "turn": 4089,
+    "event": "factCard",
+    "name": "Blorkula the orcula",
+    "position": {
+      "x": -11,
+      "y": 23
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "calm"
+  },
+  {
+    "envelope": 5280,
+    "turn": 4092,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5399,
+    "turn": 4147,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5422,
+    "turn": 4218,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5470,
+    "turn": 4236,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5549,
+    "turn": 4253,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 28 of 57: below half."
+  },
+  {
+    "envelope": 5558,
+    "turn": 4254,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5571,
+    "turn": 4255,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 8 of 59: below a quarter."
+  },
+  {
+    "envelope": 5750,
+    "turn": 4279,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5758,
+    "turn": 4281,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5758,
+    "turn": 4281,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5782,
+    "turn": 4287,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5786,
+    "turn": 4288,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5786,
+    "turn": 4288,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5801,
+    "turn": 4291,
+    "event": "allClear"
+  },
+  {
+    "envelope": 5809,
+    "turn": 4293,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 5809,
+    "turn": 4293,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

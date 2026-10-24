@@ -175,7 +175,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -188,6 +190,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "lethal",
+          "alert": "Threat rose to LETHAL.",
           "line": "Profane servitor can attack before your next action.",
           "detail": "Death 72.5% · worst hit 67 of 19 HP"
         },
@@ -214,6 +217,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -238,6 +242,21 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 50,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 50,
+      "turn": 0,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "lethal",
+      "line": "Threat rose to LETHAL."
+    }
+  ],
   "end": {
     "turn": 1,
     "place": {
@@ -399,7 +418,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -412,6 +433,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "lethal",
+        "alert": null,
         "line": "Profane servitor can attack before your next action.",
         "detail": "Death 72.5% · worst hit 67 of 19 HP"
       },
@@ -438,6 +460,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

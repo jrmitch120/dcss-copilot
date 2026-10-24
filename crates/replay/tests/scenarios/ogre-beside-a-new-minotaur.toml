@@ -16,3 +16,7 @@ keys = [
   # Wait two turns for it to close in.
   ".", ".",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"

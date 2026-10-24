@@ -1,0 +1,130 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 66,
+    "turn": 9,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 121,
+    "turn": 19,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 9 of 19: below half."
+  },
+  {
+    "envelope": 135,
+    "turn": 22,
+    "event": "allClear"
+  },
+  {
+    "envelope": 225,
+    "turn": 83,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 262,
+    "turn": 91,
+    "event": "allClear"
+  },
+  {
+    "envelope": 272,
+    "turn": 112,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 299,
+    "turn": 136,
+    "event": "allClear"
+  },
+  {
+    "envelope": 316,
+    "turn": 140,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 392,
+    "turn": 172,
+    "event": "allClear"
+  },
+  {
+    "envelope": 407,
+    "turn": 180,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 438,
+    "turn": 201,
+    "event": "allClear"
+  },
+  {
+    "envelope": 452,
+    "turn": 210,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 603,
+    "turn": 295,
+    "event": "allClear"
+  },
+  {
+    "envelope": 613,
+    "turn": 408,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 673,
+    "turn": 416,
+    "event": "allClear"
+  },
+  {
+    "envelope": 712,
+    "turn": 436,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 885,
+    "turn": 661,
+    "event": "allClear"
+  },
+  {
+    "envelope": 890,
+    "turn": 663,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 949,
+    "turn": 714,
+    "event": "allClear"
+  },
+  {
+    "envelope": 964,
+    "turn": 718,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 964,
+    "turn": 718,
+    "event": "factCard",
+    "name": "Terence",
+    "position": {
+      "x": 17,
+      "y": 9
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "calm"
+  },
+  {
+    "envelope": 1011,
+    "turn": 727,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

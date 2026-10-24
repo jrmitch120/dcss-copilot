@@ -10,12 +10,14 @@ use specta::Type;
 use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
 use crate::carried_gear::{Unlisted, Unplayed};
 use crate::crawl_ids::{attack_flavours, genera, monster_types};
+use crate::dangerous_status::{self, DangerousStatus};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
 use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
+use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
 use crate::screen::{Resistances, Screen};
 use crate::visible_state::{
@@ -50,6 +52,11 @@ pub struct FactSheet {
     pub ways_out: WaysOut,
     /// Each Attack Plan played out against the hostiles in view, in a small fight.
     pub fight: Fight,
+    /// The hostiles in view that are uniques or out of depth, in map order.
+    pub exceptional: Vec<ExceptionalMonster>,
+    /// The statuses on the player that put them in danger, in the order [`DangerousStatus`]
+    /// lists them.
+    pub dangerous_statuses: Vec<DangerousStatus>,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -507,10 +514,23 @@ impl FactSheet {
         knowledge: Option<&Bundle>,
     ) -> Self {
         let (threat, fight) = judge(visible, remembered, species, knowledge);
+        let overall = match &threat {
+            Threat::Rated(assessment) => Some(assessment.level),
+            Threat::Unrated { .. } => None,
+        };
+        let exceptional = exceptional::in_view(visible, knowledge, overall, |alone| {
+            let (threat, _) = judge(alone, remembered, species, knowledge);
+            match threat {
+                Threat::Rated(assessment) => Some(assessment.level),
+                Threat::Unrated { .. } => None,
+            }
+        });
         Self {
             threat,
             ways_out: WaysOut::compute(visible, remembered, species, knowledge),
             fight,
+            exceptional,
+            dangerous_statuses: dangerous_status::on_the_player(visible, knowledge),
         }
     }
 }

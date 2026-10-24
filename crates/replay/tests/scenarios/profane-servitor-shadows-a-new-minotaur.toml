@@ -16,3 +16,7 @@ keys = [
   # Wait a turn.
   ".",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"

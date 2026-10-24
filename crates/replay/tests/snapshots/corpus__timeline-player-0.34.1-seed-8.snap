@@ -1,0 +1,242 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 198,
+    "turn": 5,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 287,
+    "turn": 22,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 634,
+    "turn": 68,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 14: below half."
+  },
+  {
+    "envelope": 670,
+    "turn": 76,
+    "event": "allClear"
+  },
+  {
+    "envelope": 692,
+    "turn": 108,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 692,
+    "turn": 108,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 764,
+    "turn": 140,
+    "event": "allClear"
+  },
+  {
+    "envelope": 800,
+    "turn": 163,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1213,
+    "turn": 401,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1218,
+    "turn": 404,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1320,
+    "turn": 460,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1330,
+    "turn": 470,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1538,
+    "turn": 549,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1543,
+    "turn": 552,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1790,
+    "turn": 666,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1829,
+    "turn": 672,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2423,
+    "turn": 874,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2438,
+    "turn": 877,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2691,
+    "turn": 1085,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2716,
+    "turn": 1236,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2789,
+    "turn": 1311,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2794,
+    "turn": 1313,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 2800,
+    "turn": 1314,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2888,
+    "turn": 1367,
+    "event": "allClear"
+  },
+  {
+    "envelope": 2918,
+    "turn": 1403,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3191,
+    "turn": 1596,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3206,
+    "turn": 1687,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3429,
+    "turn": 1789,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3434,
+    "turn": 1812,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3455,
+    "turn": 1813,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3703,
+    "turn": 1857,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3723,
+    "turn": 1941,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3723,
+    "turn": 1941,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 3757,
+    "turn": 1943,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3846,
+    "turn": 1952,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 16 of 34: below half."
+  },
+  {
+    "envelope": 3866,
+    "turn": 2022,
+    "event": "allClear"
+  },
+  {
+    "envelope": 3871,
+    "turn": 2091,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 3898,
+    "turn": 2092,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4171,
+    "turn": 2196,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 4216,
+    "turn": 2202,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 19 of 39: below half."
+  },
+  {
+    "envelope": 4230,
+    "turn": 2204,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

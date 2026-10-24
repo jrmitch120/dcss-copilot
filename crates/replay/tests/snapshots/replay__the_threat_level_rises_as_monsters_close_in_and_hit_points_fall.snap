@@ -44,7 +44,9 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "monstersInView"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -144,7 +146,9 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -281,7 +285,9 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   },
   {
@@ -418,7 +424,9 @@ expression: fact_sheets_by_turn(JACKALS)
             "gap": "wielded"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     }
   }
 ]

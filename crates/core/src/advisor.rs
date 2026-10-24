@@ -6,11 +6,13 @@ use std::sync::OnceLock;
 use copilot_gk::{Bundle, Library, Monster};
 
 use crate::accumulated_state::AccumulatedState;
+use crate::detectors::{Alert, Detection, Detectors};
+use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, attacks_player};
 use crate::game_source::{GameIdentity, SourceEvent};
 use crate::view_model::{
-    AskBox, Character, Depiction, FocusCard, GameView, Listing, NowPill, RunPlanRail, TileName,
-    capitalised,
+    AskBox, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill, RunPlanRail,
+    TileName, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -21,11 +23,23 @@ pub struct Advisor {
     knowledge: Library,
     identity: Option<GameIdentity>,
     visible: VisibleState,
-    /// What is remembered of each game followed so far, by its game key.
-    remembered: HashMap<GameKey, AccumulatedState>,
+    /// What is kept of each game followed so far, by its game key.
+    games: HashMap<GameKey, Followed>,
     /// The Fact Sheet for this moment, computed when first asked for: playing a fight out is
     /// costly, and many events pass before anything reads it.
     fact_sheet: OnceLock<FactSheet>,
+}
+
+/// What the Advisor keeps of one game it has followed.
+#[derive(Debug, Clone, Default)]
+struct Followed {
+    /// What it remembers of the game.
+    accumulated: AccumulatedState,
+    /// What its detectors remember.
+    detectors: Detectors,
+    /// The last Alert raised, with the turn it was raised on: the now pill shows it until the
+    /// player acts.
+    alert: Option<(Alert, Option<u32>)>,
 }
 
 /// What tells one game apart from every other, for as long as it is played: the spec's game key.
@@ -59,15 +73,16 @@ impl Advisor {
             knowledge,
             identity: None,
             visible: VisibleState::default(),
-            remembered: HashMap::new(),
+            games: HashMap::new(),
         }
     }
 
-    /// Takes in what the Game Source learned.
-    pub fn apply(&mut self, event: SourceEvent) {
+    /// Takes in what the Game Source learned, and returns what the detectors noticed: at a
+    /// Settled Update, and only then, they judge it against the one before.
+    pub fn apply(&mut self, event: SourceEvent) -> Vec<Detection> {
         match event {
             SourceEvent::Identified(identity) => {
-                self.remembered.entry(GameKey::of(&identity)).or_default();
+                self.games.entry(GameKey::of(&identity)).or_default();
                 self.identity = Some(identity);
             }
             SourceEvent::Visible(visible) => {
@@ -75,13 +90,13 @@ impl Advisor {
                     .identity
                     .as_ref()
                     .and_then(|identity| identity.knowledge(&self.knowledge));
-                if let Some(remembered) = self
+                if let Some(game) = self
                     .identity
                     .as_ref()
                     .map(GameKey::of)
-                    .and_then(|key| self.remembered.get_mut(&key))
+                    .and_then(|key| self.games.get_mut(&key))
                 {
-                    remembered.update(&self.visible, &visible, knowledge);
+                    game.accumulated.update(&self.visible, &visible, knowledge);
                 }
                 self.visible = *visible;
             }
@@ -90,24 +105,50 @@ impl Advisor {
                     .identity
                     .as_ref()
                     .and_then(|identity| identity.knowledge(&self.knowledge));
-                if let Some(remembered) = self
-                    .followed_key()
-                    .and_then(|key| self.remembered.get_mut(&key))
-                {
-                    remembered.read(&read, &self.visible, knowledge);
+                if let Some(game) = self.followed_key().and_then(|key| self.games.get_mut(&key)) {
+                    game.accumulated.read(&read, &self.visible, knowledge);
                 }
             }
             // A game's sessions don't change what is remembered of it: a resynced game is the
-            // same game, and a new game has its own game key. Nothing judges a Settled Update yet.
-            SourceEvent::Session(_) | SourceEvent::Settled => return,
+            // same game, and a new game has its own game key.
+            SourceEvent::Session(_) => return Vec::new(),
+            SourceEvent::Settled => return self.settle(),
         }
         self.fact_sheet = OnceLock::new();
+        Vec::new()
+    }
+
+    /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise
+    /// for the now pill.
+    fn settle(&mut self) -> Vec<Detection> {
+        let Some(key) = self.followed_key() else {
+            return Vec::new();
+        };
+        let hostile = self.hostile_in_view();
+        let fact_sheet = self.fact_sheet.get_or_init(|| self.compute_fact_sheet());
+        let Some(game) = self.games.get_mut(&key) else {
+            return Vec::new();
+        };
+        let detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
+        if let Some(alert) = detections.iter().find_map(|detection| match detection {
+            Detection::Alert(alert) => Some(alert),
+            _ => None,
+        }) {
+            game.alert = Some((alert.clone(), self.visible.turn));
+        }
+        detections
     }
 
     /// What is remembered of the followed game, once a Game Source has identified it.
     #[must_use]
     pub fn accumulated(&self) -> Option<&AccumulatedState> {
-        self.remembered.get(&self.followed_key()?)
+        Some(&self.games.get(&self.followed_key()?)?.accumulated)
+    }
+
+    /// The Alert the now pill shows: the last one raised, until the player acts.
+    fn current_alert(&self) -> Option<&Alert> {
+        let (alert, turn) = self.games.get(&self.followed_key()?)?.alert.as_ref()?;
+        (*turn == self.visible.turn).then_some(alert)
     }
 
     fn followed_key(&self) -> Option<GameKey> {
@@ -122,18 +163,20 @@ impl Advisor {
     /// What the engine computed about this moment.
     #[must_use]
     pub fn fact_sheet(&self) -> &FactSheet {
-        self.fact_sheet.get_or_init(|| {
-            let species = self
-                .identity
-                .as_ref()
-                .map(|identity| identity.species.as_str());
-            FactSheet::compute(
-                &self.visible,
-                self.accumulated(),
-                species,
-                self.game_knowledge(),
-            )
-        })
+        self.fact_sheet.get_or_init(|| self.compute_fact_sheet())
+    }
+
+    fn compute_fact_sheet(&self) -> FactSheet {
+        let species = self
+            .identity
+            .as_ref()
+            .map(|identity| identity.species.as_str());
+        FactSheet::compute(
+            &self.visible,
+            self.accumulated(),
+            species,
+            self.game_knowledge(),
+        )
     }
 
     /// The game being followed, once a Game Source has identified it.
@@ -163,8 +206,12 @@ impl Advisor {
                 hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
-            now: now_pill(&self.fact_sheet().threat),
+            now: now_pill(
+                &self.fact_sheet().threat,
+                self.current_alert().map(|alert| alert.line.clone()),
+            ),
             focus: self.focus(),
+            fact_cards: self.fact_cards(),
             ways_out: self
                 .hostile_in_view()
                 .then(|| self.fact_sheet().ways_out.list()),
@@ -190,6 +237,31 @@ impl Advisor {
         fight.unwrap_or(FocusCard::InView { monsters })
     }
 
+    /// A fact card for each kind of unique or Out of Depth monster in view, in map order.
+    fn fact_cards(&self) -> Vec<FactCard> {
+        let mut cards: Vec<FactCard> = Vec::new();
+        for exceptional in &self.fact_sheet().exceptional {
+            if cards
+                .iter()
+                .any(|card| card.name == capitalised(&exceptional.name))
+            {
+                continue;
+            }
+            // The Fact Sheet found it among the monsters in view, where it is drawn from.
+            let Some(seen) = self.visible.monsters.iter().flatten().find(|monster| {
+                monster.position == exceptional.position && monster.name == exceptional.name
+            }) else {
+                continue;
+            };
+            let kind = seen
+                .id
+                .as_ref()
+                .and_then(|id| self.game_knowledge()?.monster_by_id(id));
+            cards.push(fact_card(exceptional, listing(seen, kind).depiction));
+        }
+        cards
+    }
+
     /// Whether a monster in view would attack the player, other than Firewood, or one whose
     /// side or kind the Advisor can't tell, which might.
     fn hostile_in_view(&self) -> bool {
@@ -205,16 +277,32 @@ impl Advisor {
     }
 }
 
+/// The fact card for `exceptional`, drawn as `depiction`.
+fn fact_card(exceptional: &ExceptionalMonster, depiction: Depiction) -> FactCard {
+    FactCard {
+        depiction,
+        name: capitalised(&exceptional.name),
+        why: match exceptional.why {
+            Exceptional::Unique => "Unique".to_owned(),
+            Exceptional::OutOfDepth { levels, .. } => {
+                format!("Out of depth: usually met {levels} levels deeper")
+            }
+        },
+        alone: exceptional.alone,
+    }
+}
+
 /// The smallest chance of death the now pill puts a number on, in percent: below it, the
 /// Monte Carlo's sampling error is as large as the number.
 const DEATH_SHOWN_FROM_PERCENT: f64 = 0.1;
 
-/// The now pill for a moment's threat.
-fn now_pill(threat: &Threat) -> NowPill {
+/// The now pill for a moment's threat, with the `alert` raised at it.
+fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
     match threat {
-        Threat::Unrated { .. } => NowPill::Unrated,
+        Threat::Unrated { .. } => NowPill::Unrated { alert },
         Threat::Rated(assessment) => NowPill::Rated {
             level: assessment.level,
+            alert,
             line: threat_line(assessment),
             detail: threat_detail(assessment),
         },

@@ -146,7 +146,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -159,6 +161,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Nothing hostile can reach you before your next action.",
           "detail": null
         },
@@ -185,6 +188,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -282,7 +286,9 @@ expression: replay
         },
         "fight": {
           "state": "noFight"
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -295,6 +301,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "No hostiles in view.",
           "detail": null
         },
@@ -302,6 +309,7 @@ expression: replay
           "card": "inView",
           "monsters": []
         },
+        "factCards": [],
         "waysOut": null,
         "runPlan": {
           "state": "notPlanned"
@@ -310,6 +318,13 @@ expression: replay
           "state": "needsModel"
         }
       }
+    }
+  ],
+  "detections": [
+    {
+      "envelope": 43,
+      "turn": 0,
+      "event": "encounterStarted"
     }
   ],
   "end": {
@@ -381,7 +396,9 @@ expression: replay
       },
       "fight": {
         "state": "noFight"
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -394,6 +411,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "No hostiles in view.",
         "detail": null
       },
@@ -401,6 +419,7 @@ expression: replay
         "card": "inView",
         "monsters": []
       },
+      "factCards": [],
       "waysOut": null,
       "runPlan": {
         "state": "notPlanned"

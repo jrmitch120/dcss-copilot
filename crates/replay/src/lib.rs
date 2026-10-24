@@ -13,7 +13,7 @@ pub use fake_extension::{
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
-pub use replayer::{Applied, CrawlVersionMismatch, Moment, Replayer};
+pub use replayer::{Applied, CrawlVersionMismatch, Happened, Moment, Replayer};
 pub use scenario::{
     ExpectedAlert, ExpectedSuggestedAction, SCENARIO_EXTENSION, Scenario, ScenarioError,
     ScenarioReplay, Setup, Snapshot,
@@ -35,7 +35,7 @@ pub struct Replay {
     pub crawl_versions: Vec<CrawlVersion>,
     /// The followed game's Visible State at the end.
     pub visible: VisibleState,
-    /// The screen reads and session events, in order.
+    /// The screen reads, session events and what the detectors noticed, in order.
     pub timeline: Vec<Moment>,
     /// The Recording was cut short, so this is only what was saved before it ended.
     pub truncated: bool,

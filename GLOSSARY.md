@@ -152,6 +152,14 @@ _Avoid_: Darkvision, see in the dark
 What the Threat Level's simulation, the Fight Outcome or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, the ways crawl moves a monster otherwise than walking straight at the player, such as a tentacle moving with its parent, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed. The Not Modelled ledger (`docs/not-modelled.md`) lists everything the engine leaves out, whether or not the Fact Sheet names it, as the backlog of what to model next.
 _Avoid_: Unsupported, ignored, edge cases
 
+**Out of Depth**:
+A monster at least three levels shallower than the shallowest level crawl makes its kind on at random in the branch the player is in. A kind crawl doesn't make at random in that branch, such as a unique, is never Out of Depth.
+_Avoid_: OOD
+
+**Dangerous Status**:
+A status on the player the Advisor raises an Alert for as it lands, whatever is in view: poison that will kill them, petrification, liquid fire, or confusion beside deep water or lava. While one lasts the player isn't All Clear.
+_Avoid_: Bad status, debuff
+
 **Formula Variant**:
 One version of a crawl formula as the engine ports it, such as a monster's to-hit as crawl 0.34 computes it. A Game Knowledge bundle names the variant of each formula its Crawl Version uses, so the engine picks its code by name and never compares version strings.
 _Avoid_: Formula version, ruleset
@@ -197,11 +205,11 @@ The Candidate Action the Advisor's own rules pick for a dangerous moment, shown 
 _Avoid_: Default action, rule pick
 
 **Encounter**:
-A stretch of danger, from the moment a hostile comes into view or the Threat Level leaves CALM until the player is All Clear. The Advisor raises each Tactical Alert at most once per Encounter for the same cause.
+A stretch of danger, from the moment a hostile comes into view, the Threat Level leaves CALM or a Dangerous Status lands until the player is All Clear. The Advisor raises each Tactical Alert at most once per Encounter for the same cause, and at most one at each player action.
 _Avoid_: Fight, combat, engagement
 
 **All Clear**:
-The player has stayed out of danger for a few actions in a row: the Threat Level is CALM, no hostile is in view, and no dangerous status is active. It ends an Encounter and releases held Strategic Advice.
+The player has stayed out of danger for three actions in a row: the Threat Level is CALM, no hostile is in view, and no Dangerous Status is active. It ends an Encounter and releases held Strategic Advice.
 _Avoid_: Calm (which is a Threat Level), safe, lull
 
 ### Advice
@@ -241,6 +249,10 @@ _Avoid_: Status bar, banner
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
 _Avoid_: Main card, hero card
+
+**Fact Card**:
+A card in the Focus Card singling out a unique or Out of Depth monster in view, while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.
+_Avoid_: Monster card, info card
 
 **Run Plan Rail**:
 The Run Plan summarised along the bottom of the panel, one row per part of the plan.

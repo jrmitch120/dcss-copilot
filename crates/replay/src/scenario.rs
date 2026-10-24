@@ -4,10 +4,10 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use copilot_core::{CrawlVersion, FactSheet, GameIdentity, GameView, Place};
+use copilot_core::{CrawlVersion, Detection, FactSheet, GameIdentity, GameView, Place};
 use serde::{Deserialize, Serialize};
 
-use crate::{CrawlVersionMismatch, Recording, ReplayError, Replayer};
+use crate::{CrawlVersionMismatch, Happened, Moment, Recording, ReplayError, Replayer};
 
 /// The file extension scenario manifests are saved with, beside their Recording.
 pub const SCENARIO_EXTENSION: &str = "toml";
@@ -55,8 +55,22 @@ pub struct Setup {
 pub struct ExpectedAlert {
     /// The turn it fires on.
     pub turn: u32,
-    /// What raised it, such as `threat-level-rose`.
+    /// What raised it, as its `cause` is written, such as `threat-level-rose`.
     pub cause: String,
+}
+
+impl ExpectedAlert {
+    /// The Alert a [`Detection`] at `moment` raised, as a manifest lists it, if it raised one.
+    fn raised(moment: &Moment) -> Option<Self> {
+        let Happened::Detected(Detection::Alert(alert)) = &moment.event else {
+            return None;
+        };
+        let cause = serde_json::to_value(&alert.cause).ok()?;
+        Some(Self {
+            turn: moment.turn?,
+            cause: cause.get("cause")?.as_str()?.to_owned(),
+        })
+    }
 }
 
 /// A Suggested Action a scenario expects on a turn.
@@ -79,6 +93,9 @@ pub struct ScenarioReplay {
     pub turns: Vec<Snapshot>,
     /// Each level the game arrived on, as its first turn there ended.
     pub new_levels: Vec<Snapshot>,
+    /// What the detectors noticed, in order: the timeline of Encounters, All Clears, fact cards
+    /// and Alerts.
+    pub detections: Vec<Moment>,
     /// The end of the Recording, which is the end of the game if it ended.
     pub end: Snapshot,
 }
@@ -130,11 +147,17 @@ pub enum ScenarioError {
     /// The manifest asks for a snapshot on a turn the followed game never reported.
     #[error("scenario asks for a snapshot on turn {0}, which the game never reported")]
     TurnNeverReached(u32),
-    /// The manifest expects Alerts or Suggested Actions, which the Advisor can't raise yet.
-    #[error(
-        "scenario expects Alerts or Suggested Actions, but the Advisor raises none yet (#37, #38)"
-    )]
-    AdviceNotYetRaised,
+    /// The Advisor raised other Alerts than the manifest expects.
+    #[error("scenario expects the Alerts {expected:?}, but the Advisor raised {raised:?}")]
+    AlertsDiffer {
+        /// What the manifest expects.
+        expected: Vec<ExpectedAlert>,
+        /// What the Advisor raised.
+        raised: Vec<ExpectedAlert>,
+    },
+    /// The manifest expects Suggested Actions, which the Advisor can't show yet.
+    #[error("scenario expects Suggested Actions, but the Advisor shows none yet (#38)")]
+    SuggestedActionsNotYetShown,
 }
 
 impl Scenario {
@@ -170,10 +193,11 @@ impl Scenario {
     ///
     /// # Errors
     /// If the Recording can't be replayed, its games report another Crawl Version than its tag, a
-    /// snapshot turn is never reached, or the manifest expects advice the Advisor can't raise.
+    /// snapshot turn is never reached, the Advisor raises other Alerts than the manifest expects,
+    /// or the manifest expects Suggested Actions, which the Advisor can't show yet.
     pub fn play(&self) -> Result<ScenarioReplay, ScenarioError> {
-        if !self.alerts.is_empty() || !self.suggested_actions.is_empty() {
-            return Err(ScenarioError::AdviceNotYetRaised);
+        if !self.suggested_actions.is_empty() {
+            return Err(ScenarioError::SuggestedActionsNotYetShown);
         }
         let replay_error = |source| ScenarioError::Replay {
             path: self.recording.clone(),
@@ -221,10 +245,27 @@ impl Scenario {
             .zip(turns)
             .map(|(wanted, taken)| taken.ok_or(ScenarioError::TurnNeverReached(*wanted)))
             .collect::<Result<_, _>>()?;
+        let detections: Vec<Moment> = replayer
+            .timeline()
+            .iter()
+            .filter(|moment| matches!(moment.event, Happened::Detected(_)))
+            .cloned()
+            .collect();
+        let raised: Vec<ExpectedAlert> = detections
+            .iter()
+            .filter_map(ExpectedAlert::raised)
+            .collect();
+        if raised != self.alerts {
+            return Err(ScenarioError::AlertsDiffer {
+                expected: self.alerts.clone(),
+                raised,
+            });
+        }
         Ok(ScenarioReplay {
             identity: replayer.advisor().identity().cloned(),
             turns,
             new_levels,
+            detections,
             end: Snapshot::of(&replayer),
         })
     }

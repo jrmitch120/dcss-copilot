@@ -280,7 +280,9 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -293,6 +295,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": null,
           "line": "Nothing hostile can reach you before your next action.",
           "detail": null
         },
@@ -319,6 +322,7 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -344,6 +348,13 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 129,
+      "turn": 0,
+      "event": "encounterStarted"
+    }
+  ],
   "end": {
     "turn": 0,
     "place": {
@@ -610,7 +621,9 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -623,6 +636,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Nothing hostile can reach you before your next action.",
         "detail": null
       },
@@ -649,6 +663,7 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

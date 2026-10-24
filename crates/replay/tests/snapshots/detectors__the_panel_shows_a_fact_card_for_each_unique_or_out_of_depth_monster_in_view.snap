@@ -1,0 +1,42 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: replayer.view_model().game.unwrap().fact_cards
+---
+[
+  {
+    "depiction": {
+      "glyph": {
+        "text": "o",
+        "colour": "brown"
+      },
+      "tile": "mon/humanoids/orcs/orc_warrior"
+    },
+    "name": "Orc warrior",
+    "why": "Out of depth: usually met 5 levels deeper",
+    "alone": "dangerous"
+  },
+  {
+    "depiction": {
+      "glyph": {
+        "text": "@",
+        "colour": "brown"
+      },
+      "tile": "mon/unique/sigmund"
+    },
+    "name": "Sigmund",
+    "why": "Unique",
+    "alone": "dangerous"
+  },
+  {
+    "depiction": {
+      "glyph": {
+        "text": "O",
+        "colour": "brown"
+      },
+      "tile": "mon/humanoids/ogre"
+    },
+    "name": "Ogre",
+    "why": "Out of depth: usually met 3 levels deeper",
+    "alone": "calm"
+  }
+]

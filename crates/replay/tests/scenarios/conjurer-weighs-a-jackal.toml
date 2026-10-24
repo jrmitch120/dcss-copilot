@@ -20,3 +20,7 @@ keys = [
   # Wait a turn.
   ".", "\u001b",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"

@@ -183,7 +183,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "orc wizard",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 4,
+              "levels": 3
+            },
+            "alone": "dangerous"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -196,6 +212,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": "No Way Out is left that you can use.",
           "line": "Orc wizard can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 10 of 19 HP"
         },
@@ -222,6 +239,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "magenta"
+              },
+              "tile": "mon/humanoids/orcs/orc_wizard"
+            },
+            "name": "Orc wizard",
+            "why": "Out of depth: usually met 3 levels deeper",
+            "alone": "dangerous"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -413,7 +444,23 @@ expression: replay
               "gap": "skills"
             }
           ]
-        }
+        },
+        "exceptional": [
+          {
+            "name": "orc wizard",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 4,
+              "levels": 3
+            },
+            "alone": "dangerous"
+          }
+        ],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -426,6 +473,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
+          "alert": null,
           "line": "Orc wizard can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 10 of 19 HP"
         },
@@ -452,6 +500,20 @@ expression: replay
             "Open the skills screen (m) to judge a fight."
           ]
         },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "magenta"
+              },
+              "tile": "mon/humanoids/orcs/orc_wizard"
+            },
+            "name": "Orc wizard",
+            "why": "Out of depth: usually met 3 levels deeper",
+            "alone": "dangerous"
+          }
+        ],
         "waysOut": {
           "rows": [
             {
@@ -476,6 +538,36 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "factCard",
+      "name": "orc wizard",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 4,
+        "levels": 3
+      },
+      "alone": "dangerous"
+    },
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
+    }
+  ],
   "end": {
     "turn": 2,
     "place": {
@@ -645,7 +737,23 @@ expression: replay
             "gap": "skills"
           }
         ]
-      }
+      },
+      "exceptional": [
+        {
+          "name": "orc wizard",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 4,
+            "levels": 3
+          },
+          "alone": "dangerous"
+        }
+      ],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -658,6 +766,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "dangerous",
+        "alert": null,
         "line": "Orc wizard can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 10 of 16 HP"
       },
@@ -684,6 +793,20 @@ expression: replay
           "Open the skills screen (m) to judge a fight."
         ]
       },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "o",
+              "colour": "magenta"
+            },
+            "tile": "mon/humanoids/orcs/orc_wizard"
+          },
+          "name": "Orc wizard",
+          "why": "Out of depth: usually met 3 levels deeper",
+          "alone": "dangerous"
+        }
+      ],
       "waysOut": {
         "rows": [
           {

@@ -1,0 +1,81 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 250,
+    "turn": 96,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 317,
+    "turn": 134,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 396,
+    "turn": 196,
+    "event": "allClear"
+  },
+  {
+    "envelope": 436,
+    "turn": 207,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 436,
+    "turn": 207,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1064,
+    "turn": 683,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1069,
+    "turn": 685,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1456,
+    "turn": 1298,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1514,
+    "turn": 1303,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1620,
+    "turn": 1308,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1643,
+    "turn": 1359,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1647,
+    "turn": 1361,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1673,
+    "turn": 1362,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

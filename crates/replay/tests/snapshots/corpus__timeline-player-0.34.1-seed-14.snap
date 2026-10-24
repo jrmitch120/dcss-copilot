@@ -1,0 +1,215 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 171,
+    "turn": 6,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 290,
+    "turn": 91,
+    "event": "allClear"
+  },
+  {
+    "envelope": 333,
+    "turn": 103,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 375,
+    "turn": 123,
+    "event": "allClear"
+  },
+  {
+    "envelope": 380,
+    "turn": 126,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 411,
+    "turn": 132,
+    "event": "allClear"
+  },
+  {
+    "envelope": 416,
+    "turn": 133,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 699,
+    "turn": 232,
+    "event": "allClear"
+  },
+  {
+    "envelope": 726,
+    "turn": 278,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 764,
+    "turn": 337,
+    "event": "allClear"
+  },
+  {
+    "envelope": 774,
+    "turn": 378,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 964,
+    "turn": 546,
+    "event": "allClear"
+  },
+  {
+    "envelope": 974,
+    "turn": 552,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1003,
+    "turn": 635,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1008,
+    "turn": 638,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1035,
+    "turn": 967,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1064,
+    "turn": 1004,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1098,
+    "turn": 1012,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1103,
+    "turn": 1018,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1171,
+    "turn": 1046,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1180,
+    "turn": 1048,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1259,
+    "turn": 1075,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1264,
+    "turn": 1085,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1368,
+    "turn": 1164,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1373,
+    "turn": 1168,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1547,
+    "turn": 1240,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1586,
+    "turn": 1287,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1632,
+    "turn": 1333,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1637,
+    "turn": 1334,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1748,
+    "turn": 1385,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1758,
+    "turn": 1398,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1797,
+    "turn": 1412,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1831,
+    "turn": 1533,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1854,
+    "turn": 1721,
+    "event": "factCard",
+    "name": "Crazy Yiuf",
+    "position": {
+      "x": 12,
+      "y": 26
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 1854,
+    "turn": 1721,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Crazy Yiuf",
+    "line": "Crazy Yiuf, a unique, alone makes this DANGEROUS."
+  },
+  {
+    "envelope": 1877,
+    "turn": 1724,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1882,
+    "turn": 1725,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 15 of 33: below half."
+  },
+  {
+    "envelope": 1891,
+    "turn": 1726,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

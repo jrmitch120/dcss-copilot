@@ -21,3 +21,11 @@ keys = [
   # Wait two turns while it spits.
   ".", ".",
 ]
+
+[[alerts]]
+turn = 2
+cause = "threat-level-rose"
+
+[[alerts]]
+turn = 4
+cause = "threat-level-rose"

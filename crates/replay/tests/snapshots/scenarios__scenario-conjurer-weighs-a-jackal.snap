@@ -225,7 +225,9 @@ expression: replay
             "ownFractions",
             "miscasts"
           ]
-        }
+        },
+        "exceptional": [],
+        "dangerousStatuses": []
       },
       "game": {
         "character": {
@@ -238,6 +240,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
+          "alert": "Threat rose to DANGEROUS.",
           "line": "Jackal can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 3 of 13 HP"
         },
@@ -264,6 +267,7 @@ expression: replay
           "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
           "gaps": []
         },
+        "factCards": [],
         "waysOut": {
           "rows": [
             {
@@ -288,6 +292,21 @@ expression: replay
     }
   ],
   "newLevels": [],
+  "detections": [
+    {
+      "envelope": 50,
+      "turn": 0,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 63,
+      "turn": 0,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "dangerous",
+      "line": "Threat rose to DANGEROUS."
+    }
+  ],
   "end": {
     "turn": 1,
     "place": {
@@ -499,7 +518,9 @@ expression: replay
           "ownFractions",
           "miscasts"
         ]
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -512,6 +533,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "Jackal can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 3 of 13 HP"
       },
@@ -538,6 +560,7 @@ expression: replay
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
         "gaps": []
       },
+      "factCards": [],
       "waysOut": {
         "rows": [
           {

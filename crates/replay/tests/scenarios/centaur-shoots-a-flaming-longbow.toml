@@ -22,3 +22,7 @@ keys = [
   # Wait two turns while it acts; Escape clears any --more--.
   "\u001b", ".", "\u001b", ".",
 ]
+
+[[alerts]]
+turn = 0
+cause = "threat-level-rose"

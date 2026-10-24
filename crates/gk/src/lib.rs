@@ -587,6 +587,13 @@ impl Bundle {
         self.species.iter().find(|species| species.name == name)
     }
 
+    /// The dungeon feature with this `dungeon_feature_type` identifier, such as `DNGN_LAVA`, if
+    /// this version defines one.
+    #[must_use]
+    pub fn feature_by_id(&self, id: &EnumId) -> Option<&Feature> {
+        self.features.values().find(|feature| feature.id == *id)
+    }
+
     /// The dungeon feature whose `dungeon_feature_type` enum value is `value`.
     #[must_use]
     pub fn feature(&self, value: u16) -> Option<&Feature> {

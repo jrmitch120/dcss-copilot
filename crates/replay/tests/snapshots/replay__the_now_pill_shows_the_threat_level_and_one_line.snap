@@ -4,29 +4,34 @@ expression: pills
 ---
 [
   {
-    "state": "unrated"
+    "state": "unrated",
+    "alert": null
   },
   {
     "state": "rated",
     "level": "calm",
+    "alert": null,
     "line": "Nothing hostile can reach you before your next action.",
     "detail": null
   },
   {
     "state": "rated",
     "level": "calm",
+    "alert": null,
     "line": "Nothing hostile can reach you before your next action.",
     "detail": null
   },
   {
     "state": "rated",
     "level": "dangerous",
+    "alert": null,
     "line": "3 monsters can attack before your next action.",
     "detail": "Death under 0.1% · worst hit 6 of 12 HP"
   },
   {
     "state": "rated",
     "level": "lethal",
+    "alert": null,
     "line": "3 monsters can attack before your next action.",
     "detail": "Death 25.8% · worst hit 6 of 3 HP"
   }

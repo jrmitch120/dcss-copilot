@@ -93,7 +93,7 @@ fn a_scenario_asking_for_a_turn_its_game_never_reports_is_refused() {
 }
 
 #[test]
-fn a_scenario_cannot_expect_advice_the_advisor_does_not_raise_yet() {
+fn a_scenario_whose_advisor_raises_other_alerts_than_its_manifest_expects_is_refused() {
     let scenario = manifest(
         r#"
         description = "A kobold on D:3"
@@ -111,7 +111,35 @@ fn a_scenario_cannot_expect_advice_the_advisor_does_not_raise_yet() {
     let error = scenario.play().unwrap_err();
 
     assert!(
-        matches!(error, ScenarioError::AdviceNotYetRaised),
+        matches!(
+            &error,
+            ScenarioError::AlertsDiffer { expected, raised }
+                if expected.len() == 1 && raised.is_empty()
+        ),
+        "{error}"
+    );
+}
+
+#[test]
+fn a_scenario_cannot_expect_suggested_actions_the_advisor_does_not_show_yet() {
+    let scenario = manifest(
+        r#"
+        description = "A kobold on D:3"
+        recording = "../recordings/kobold-on-d3.dcssrec"
+        crawl_version = "0.34.1"
+        [setup]
+        rc = ""
+        keys = []
+        [[suggested_actions]]
+        turn = 5
+        rule = "leave-by-stairs"
+        "#,
+    );
+
+    let error = scenario.play().unwrap_err();
+
+    assert!(
+        matches!(error, ScenarioError::SuggestedActionsNotYetShown),
         "{error}"
     );
 }

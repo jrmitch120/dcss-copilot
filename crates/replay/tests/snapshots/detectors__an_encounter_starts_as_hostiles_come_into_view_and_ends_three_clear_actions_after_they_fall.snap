@@ -1,0 +1,32 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: detections(JACKALS_FALL)
+---
+[
+  {
+    "envelope": 10,
+    "turn": 101,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 14,
+    "turn": 102,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 18,
+    "turn": 103,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 37,
+    "turn": 107,
+    "event": "allClear"
+  }
+]

@@ -15,6 +15,7 @@ expression: replay
   },
   "turns": [],
   "newLevels": [],
+  "detections": [],
   "end": {
     "turn": 0,
     "place": {
@@ -97,7 +98,9 @@ expression: replay
       },
       "fight": {
         "state": "noFight"
-      }
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
     },
     "game": {
       "character": {
@@ -110,6 +113,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "calm",
+        "alert": null,
         "line": "No hostiles in view.",
         "detail": null
       },
@@ -117,6 +121,7 @@ expression: replay
         "card": "inView",
         "monsters": []
       },
+      "factCards": [],
       "waysOut": null,
       "runPlan": {
         "state": "notPlanned"

@@ -1,0 +1,157 @@
+---
+source: crates/replay/tests/corpus.rs
+expression: detections
+---
+[
+  {
+    "envelope": 24,
+    "turn": 941,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 359,
+    "turn": 1062,
+    "event": "allClear"
+  },
+  {
+    "envelope": 364,
+    "turn": 1073,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 398,
+    "turn": 1078,
+    "event": "allClear"
+  },
+  {
+    "envelope": 455,
+    "turn": 1087,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 559,
+    "turn": 1103,
+    "event": "allClear"
+  },
+  {
+    "envelope": 564,
+    "turn": 1118,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 695,
+    "turn": 1168,
+    "event": "allClear"
+  },
+  {
+    "envelope": 700,
+    "turn": 1171,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 754,
+    "turn": 1208,
+    "event": "allClear"
+  },
+  {
+    "envelope": 767,
+    "turn": 1227,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 818,
+    "turn": 1251,
+    "event": "factCard",
+    "name": "Natasha",
+    "position": {
+      "x": 29,
+      "y": 18
+    },
+    "why": {
+      "is": "unique"
+    },
+    "alone": "dangerous"
+  },
+  {
+    "envelope": 818,
+    "turn": 1251,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 898,
+    "turn": 1295,
+    "event": "allClear"
+  },
+  {
+    "envelope": 903,
+    "turn": 1298,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 903,
+    "turn": 1298,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 917,
+    "turn": 1300,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1143,
+    "turn": 1504,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1148,
+    "turn": 1536,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1200,
+    "turn": 1611,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1246,
+    "turn": 1660,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1257,
+    "turn": 1661,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1267,
+    "turn": 1663,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1471,
+    "turn": 1718,
+    "event": "allClear"
+  },
+  {
+    "envelope": 1475,
+    "turn": 1720,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 1572,
+    "turn": 1729,
+    "event": "allClear"
+  }
+]

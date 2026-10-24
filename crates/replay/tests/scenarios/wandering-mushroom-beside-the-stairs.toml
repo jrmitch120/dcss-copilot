@@ -23,3 +23,7 @@ keys = [
   "l", "l", "l", "l", "l",
   "\u001b",
 ]
+
+[[alerts]]
+turn = 2
+cause = "threat-level-rose"

@@ -125,5 +125,7 @@ expression: replayer.advisor().fact_sheet()
         "gap": "skills"
       }
     ]
-  }
+  },
+  "exceptional": [],
+  "dangerousStatuses": []
 }

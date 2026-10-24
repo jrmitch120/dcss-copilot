@@ -5,7 +5,10 @@ mod accumulated_state;
 mod advisor;
 mod carried_gear;
 mod crawl_ids;
+mod dangerous_status;
+mod detectors;
 mod engine;
+mod exceptional;
 mod fact_sheet;
 mod fight_outcome;
 mod game_source;
@@ -19,7 +22,10 @@ pub use accumulated_state::{
 };
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
+pub use dangerous_status::DangerousStatus;
+pub use detectors::{Alert, AlertCause, Detection};
 pub use engine::oracle;
+pub use exceptional::{Exceptional, ExceptionalMonster};
 pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, Gap, GearBasis, GearPlayed, KnownOrStale, NotModelled,
     Threat, ThreatAssessment, ThreatLevel,
@@ -31,8 +37,8 @@ pub use screen::{
     SpellPower, SpellReach,
 };
 pub use view_model::{
-    Appearance, AskBox, Character, Colour, Connection, Depiction, FocusCard, GameView, Glyph,
-    Listing, NowPill, RunPlanRail, TileName, ViewModel, WayOutRow, WaysOutList,
+    Appearance, AskBox, Character, Colour, Connection, Depiction, FactCard, FocusCard, GameView,
+    Glyph, Listing, NowPill, RunPlanRail, TileName, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

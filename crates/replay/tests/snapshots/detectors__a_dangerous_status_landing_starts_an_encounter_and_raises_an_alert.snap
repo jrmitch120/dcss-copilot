@@ -1,0 +1,37 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: detections(STATUSES)
+---
+[
+  {
+    "envelope": 10,
+    "turn": 301,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 10,
+    "turn": 301,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "lethalPoison",
+    "line": "The poison in you will kill you unless you cure it."
+  },
+  {
+    "envelope": 21,
+    "turn": 304,
+    "event": "allClear"
+  },
+  {
+    "envelope": 29,
+    "turn": 306,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 29,
+    "turn": 306,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "confusionBesideDeepWaterOrLava",
+    "line": "You are confused beside deep water or lava."
+  }
+]
