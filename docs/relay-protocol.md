@@ -1,8 +1,8 @@
 # Relay protocol
 
-How the extension hands a webtiles game to the app (ADR 0001). The integer **relay protocol version** is the only compatibility contract between the two: the app accepts the current version and the previous one. Bump it whenever a frame below changes shape.
+How the extension hands a webtiles game to the app, and shows the app's panel in the browser's Side Panel (ADR 0001, ADR 0004). The integer **relay protocol version** is the only compatibility contract between the two: the app accepts the current version and the previous one. Bump it whenever a frame below changes shape.
 
-Current version: **1**.
+Current version: **2**. Version 2 added the `side-panel-opened`, `panel-command`, `view` and `panel-command-done` frames, so the panel shows in the browser's Side Panel.
 
 ## Capture
 
@@ -34,20 +34,30 @@ Every frame is one JSON text message tagged by `type`. The Rust side of each fra
 
 | Frame | When |
 |---|---|
-| `{"type":"hello","protocol":1}` | First frame on every connection. |
+| `{"type":"hello","protocol":2}` | First frame on every connection. |
 | `{"type":"envelope","envelope":{…}}` | Each captured message, replayed buffer first. |
 | `{"type":"overflow","origin":"…","tab":12}` | A tab's buffer overflowed before it could be replayed. |
+| `{"type":"side-panel-opened"}` | A Side Panel opened while none was, or one is open as the app welcomes the browser. The app's own window gives way to it. |
+| `{"type":"panel-command","id":4,"command":{"kind":"set-appearance","appearance":"glyphs"}}` | The player pressed something in a Side Panel. `command` is `set-appearance` or `open-settings`; `id` is the extension's, for the answer. |
 | `{"type":"ping"}` | Every 20 s, to keep the extension's service worker alive. |
 
 ### App → extension
 
 | Frame | When |
 |---|---|
-| `{"type":"welcome","protocol":1}` | The browser is allowed and the protocol is supported. Envelopes may follow. |
+| `{"type":"welcome","protocol":2}` | The browser is allowed and the protocol is supported. Envelopes may follow. |
 | `{"type":"awaiting-approval"}` | First connect from this browser: the app is asking the player "Allow this browser?". `welcome` or `refused` follows, unless a newer connection is asked instead: then the app closes this one without a frame and the extension retries. |
+| `{"type":"view","view":{…}}` | The panel's view model, for the Side Panels and the Toolbar Badge: after `welcome`, then on every change. |
+| `{"type":"panel-command-done","id":4,"error":null}` | The command with this `id` was done, or `error` says why it couldn't be. |
 | `{"type":"refused","reason":"unsupported-protocol"}` | The extension's protocol is neither the app's current nor previous version. The app closes the connection. |
 | `{"type":"refused","reason":"browser-denied"}` | The player answered no, now or earlier. The app closes the connection. |
 
 The player's answer is remembered per browser origin.
+
+## Side Panels
+
+The extension shows the app's panel in the browser's Side Panel (Firefox calls it the sidebar), opened from the extension's toolbar button. A `view` is the same view model the app's own panel draws, in the shape of `app/src/lib/bindings.ts`, and the Side Panel draws it with the app's Svelte components. While no Side Panel is open, the extension shows the Toolbar Badge from the latest view instead.
+
+A Side Panel can't answer "Allow this browser?": there is no frame for it, so a browser can never allow itself. These frames carry no game messages: the extension still reads nothing of a game.
 
 Each connection starts afresh: every tab replays its buffer, so the app rebuilds each game from its first message and a dev build starts a new Recording.

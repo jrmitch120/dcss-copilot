@@ -1,7 +1,9 @@
 // The relay protocol between the extension and the app. See docs/relay-protocol.md.
 
+import type { Appearance, ViewModel } from "$lib/bindings";
+
 /** The only compatibility contract with the app, which accepts this version and the previous one. */
-export const RELAY_PROTOCOL_VERSION = 1;
+export const RELAY_PROTOCOL_VERSION = 2;
 
 /** Where the app listens. */
 export const APP_URL = "ws://127.0.0.1:47821";
@@ -26,13 +28,28 @@ export type PageReport =
   | { kind: "live"; envelope: PageEnvelope }
   | { kind: "replay"; origin: string; envelopes: PageEnvelope[]; overflowed: boolean };
 
+/** What the player can do from the side panel. Only the app answers "Allow this browser?". */
+export type PanelCommand =
+  | { kind: "set-appearance"; appearance: Appearance }
+  | { kind: "open-settings" };
+
 export type ExtensionFrame =
   | { type: "hello"; protocol: number }
   | { type: "envelope"; envelope: Envelope }
   | { type: "overflow"; origin: string; tab: number }
+  | { type: "side-panel-opened" }
+  | { type: "panel-command"; id: number; command: PanelCommand }
   | { type: "ping" };
 
 export type AppFrame =
   | { type: "welcome"; protocol: number }
   | { type: "awaiting-approval" }
-  | { type: "refused"; reason: "unsupported-protocol" | "browser-denied" };
+  | { type: "view"; view: ViewModel }
+  | { type: "panel-command-done"; id: number; error: string | null }
+  | { type: "refused"; reason: Refusal };
+
+/** Why the app refused this browser. */
+export type Refusal = "unsupported-protocol" | "browser-denied";
+
+/** The frames the app sends for the side panels and the Toolbar Badge. */
+export type PanelFrame = Extract<AppFrame, { type: "view" | "panel-command-done" }>;

@@ -7,8 +7,8 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use copilot_webtiles::Envelope;
-pub use copilot_webtiles::relay_protocol::RELAY_PORT;
 use copilot_webtiles::relay_protocol::{AppFrame, ExtensionFrame, RELAY_PROTOCOL_VERSION, Refusal};
+pub use copilot_webtiles::relay_protocol::{PanelCommand, RELAY_PORT};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use tokio::net::{TcpListener, TcpStream};
@@ -29,12 +29,14 @@ const ACCEPT_RETRY: Duration = Duration::from_millis(100);
 pub enum RelayEvent {
     /// A browser connected for the first time: the player must be asked "Allow this browser?".
     ApprovalNeeded(ApprovalRequest),
-    /// An allowed browser connected.
-    Connected,
+    /// An allowed browser connected: the panel's view goes to it from now on.
+    Connected(BrowserLink),
     /// An allowed browser relayed an envelope.
     Envelope(Envelope),
     /// A tab's buffer overflowed before it could be replayed, so its game is missing its start.
     Overflow,
+    /// An allowed browser opened a side panel, or the player pressed something in one.
+    SidePanel(SidePanelEvent),
     /// An allowed browser disconnected.
     Disconnected,
 }
@@ -63,6 +65,56 @@ impl ApprovalRequest {
         // The browser may have gone away meanwhile; its next connect is answered from memory.
         let _ = self.answer.send(allowed);
         saved
+    }
+}
+
+/// What a browser's side panel did.
+#[derive(Debug)]
+pub enum SidePanelEvent {
+    /// The browser opened a side panel, where the panel now shows.
+    Opened,
+    /// The player pressed something in a side panel.
+    Command(PanelRequest),
+}
+
+/// A command from a side panel, waiting for the app to do it.
+#[derive(Debug)]
+pub struct PanelRequest {
+    id: u32,
+    /// What the player asked for.
+    pub command: PanelCommand,
+    browser: BrowserLink,
+}
+
+impl PanelRequest {
+    /// Tells the side panel the command was done, or why it couldn't be.
+    pub fn answer(self, done: Result<(), String>) {
+        self.browser.send(AppFrame::PanelCommandDone {
+            id: self.id,
+            error: done.err(),
+        });
+    }
+}
+
+/// The way back to one connected browser.
+#[derive(Debug, Clone)]
+pub struct BrowserLink(mpsc::UnboundedSender<AppFrame>);
+
+impl BrowserLink {
+    /// Sends the browser the panel's `view`, for its side panels and toolbar badge. False once
+    /// the browser has disconnected.
+    pub fn show(&self, view: &serde_json::Value) -> bool {
+        self.send(AppFrame::View { view: view.clone() })
+    }
+
+    /// A link to no browser, for tests that only need a connection to have happened.
+    #[cfg(test)]
+    pub(crate) fn unconnected() -> Self {
+        Self(mpsc::unbounded_channel().0)
+    }
+
+    fn send(&self, frame: AppFrame) -> bool {
+        self.0.send(frame).is_ok()
     }
 }
 
@@ -282,18 +334,44 @@ async fn session(
         },
     )
     .await?;
-    let _ = events.send(RelayEvent::Connected).await;
-    let relayed = relay(&mut socket, &events).await;
+    let (link, outgoing) = mpsc::unbounded_channel();
+    let link = BrowserLink(link);
+    let _ = events.send(RelayEvent::Connected(link.clone())).await;
+    let relayed = relay(&mut socket, &events, link, outgoing).await;
     let _ = events.send(RelayEvent::Disconnected).await;
     relayed
 }
 
-/// Passes the extension's frames on to the app until the browser disconnects.
-async fn relay(socket: &mut Socket, events: &mpsc::Sender<RelayEvent>) -> Result<(), SessionError> {
-    while let Some(frame) = next_frame(socket).await? {
+/// Passes the extension's frames on to the app, and the app's frames back, until the browser
+/// disconnects.
+async fn relay(
+    socket: &mut Socket,
+    events: &mpsc::Sender<RelayEvent>,
+    link: BrowserLink,
+    mut outgoing: mpsc::UnboundedReceiver<AppFrame>,
+) -> Result<(), SessionError> {
+    loop {
+        let frame = tokio::select! {
+            frame = next_frame(socket) => frame?,
+            Some(to_send) = outgoing.recv() => {
+                send(socket, &to_send).await?;
+                continue;
+            }
+        };
+        let Some(frame) = frame else {
+            break;
+        };
         let event = match frame {
             ExtensionFrame::Envelope { envelope } => RelayEvent::Envelope(envelope),
             ExtensionFrame::Overflow { .. } => RelayEvent::Overflow,
+            ExtensionFrame::SidePanelOpened => RelayEvent::SidePanel(SidePanelEvent::Opened),
+            ExtensionFrame::PanelCommand { id, command } => {
+                RelayEvent::SidePanel(SidePanelEvent::Command(PanelRequest {
+                    id,
+                    command,
+                    browser: link.clone(),
+                }))
+            }
             ExtensionFrame::Hello { .. } | ExtensionFrame::Ping => continue,
         };
         if events.send(event).await.is_err() {

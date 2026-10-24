@@ -15,6 +15,8 @@ export const commands = {
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
+	/**  The player turned start at login on or off. */
+	setStartAtLogin: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_at_login", { on })),
 	/**  The player chose a slot's model and how it thinks. */
 	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
@@ -143,7 +145,7 @@ notModelled: string | null;
 gaps: string[] };
 
 /**
- *  The docked panel for the followed game, top to bottom: header, now pill, focus card,
+ *  The panel for the followed game, top to bottom: header, now pill, focus card,
  *  Run Plan rail and ask box. The footer belongs to the app, not the game.
  */
 export type GameView = {
@@ -164,6 +166,13 @@ export type GameView = {
 	runPlan: RunPlanRail,
 	/**  Where the player asks the Advisor questions. */
 	ask: AskBox,
+	/**
+	 *  The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
+	 *  resynced it.
+	 */
+	live: boolean,
+	/**  What the Toolbar Badge shows while the panel is closed. */
+	badge: ToolbarBadge,
 };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
@@ -320,6 +329,8 @@ export type SettingsView = {
 	appVersion: string,
 	/**  Settings → Models and keys. */
 	models: ModelsAndKeysView,
+	/**  Settings → Connection and window. */
+	window: WindowView,
 };
 
 /**  One slot's model, and what it could be changed to. */
@@ -365,6 +376,23 @@ export type ThreatLevel =
  *  tile Game Knowledge names, and draws the glyph instead should one fail to load.
  */
 export type TileName = string;
+
+/**
+ *  The panel's stand-in while it is closed: the extension's toolbar button, badged with the
+ *  Decision Points that wait, or with a call to open the panel.
+ */
+export type ToolbarBadge = {
+	/**
+	 *  How many Decision Points wait for the player. Nothing raises Decision Points yet, so
+	 *  none wait.
+	 */
+	decisionsWaiting: number,
+	/**
+	 *  This moment is LETHAL and no Way Out is trusted: the only moment the badge calls the
+	 *  player to open the panel.
+	 */
+	callsForPanel: boolean,
+};
 
 /**
  *  Everything the panel renders, pushed by the core to the webview.
@@ -417,6 +445,12 @@ export type WaysOutList = {
 	ground: string | null,
 	/**  What keeps the Advisor from judging more, such as a screen to open, one sentence each. */
 	gaps: string[],
+};
+
+/**  How the app's window behaves, in Settings → Connection and window. */
+export type WindowView = {
+	/**  The app starts in the tray at login. */
+	startAtLogin: boolean,
 };
 
 /* Tauri Specta runtime */

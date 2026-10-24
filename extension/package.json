@@ -1,6 +1,6 @@
 {
   "name": "@dcss-copilot/extension",
-  "description": "Relays a webtiles game to the DCSS Copilot app",
+  "description": "Relays a webtiles game to the DCSS Copilot app, and shows its panel in the browser's side panel",
   "private": true,
   "version": "0.1.0",
   "license": "GPL-3.0-or-later",
@@ -12,11 +12,14 @@
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
-    "check": "tsc --noEmit",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "postinstall": "wxt prepare"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "svelte": "^5.56.3",
+    "svelte-check": "^4.6.0",
     "typescript": "~6.0.3",
     "vitest": "^5",
     "wxt": "^0.21.3"

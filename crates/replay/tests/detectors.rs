@@ -4,7 +4,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{AlertCause, Detection, NowPill, ThreatLevel};
+use copilot_core::{AlertCause, Detection, NowPill, ThreatLevel, ViewModel};
 use copilot_replay::{Happened, Moment, Recording, Replayer, replay};
 
 const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall.dcssrec");
@@ -12,6 +12,7 @@ const EXCEPTIONAL: &[u8] = include_bytes!("recordings/sigmund-follows-an-ogre-in
 const STATUSES: &[u8] =
     include_bytes!("recordings/rook-poisoned-then-confused-beside-lava.dcssrec");
 const JOINED: &[u8] = include_bytes!("recordings/joined-as-jackals-bite.dcssrec");
+const OKLOB: &[u8] = include_bytes!("scenarios/oklob-plant-spits-from-range.dcssrec");
 /// A Recording without the game's `input_mode` messages, so no update of it ever settles.
 const NEVER_SETTLES: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 
@@ -127,4 +128,39 @@ fn a_redraw_without_a_map_settles_only_as_the_player_acts_again() {
 #[test]
 fn the_detectors_judge_only_settled_updates() {
     assert_eq!(detections(NEVER_SETTLES), []);
+}
+
+/// Each LETHAL turn of `views`, with whether the Toolbar Badge calls for the panel then. It never
+/// does on any other turn.
+fn lethal_turns(views: Vec<ViewModel>) -> Vec<(Option<u32>, bool)> {
+    let mut turns = Vec::new();
+    for game in views.into_iter().filter_map(|view| view.game) {
+        let lethal = matches!(
+            game.now,
+            NowPill::Rated {
+                level: ThreatLevel::Lethal,
+                ..
+            }
+        );
+        assert!(lethal || !game.badge.calls_for_panel, "{game:?}");
+        let turn = (game.character.turn, game.badge.calls_for_panel);
+        if lethal && turns.last() != Some(&turn) {
+            turns.push(turn);
+        }
+    }
+    turns
+}
+
+#[test]
+fn the_toolbar_badge_calls_for_the_panel_only_at_a_lethal_moment_with_no_trusted_way_out() {
+    // Turns 103 to 105: LETHAL, with no staircase known and nothing carried to escape with.
+    assert_eq!(
+        lethal_turns(replay(JACKALS_FALL).unwrap().view_models),
+        [(Some(103), true), (Some(104), true), (Some(105), true)]
+    );
+    // Turns 3 and 4: LETHAL, but an escape hatch in view can be taken.
+    assert_eq!(
+        lethal_turns(replay(OKLOB).unwrap().view_models),
+        [(Some(3), false), (Some(4), false)]
+    );
 }

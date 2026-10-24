@@ -128,7 +128,7 @@ impl Live {
         match event {
             // Replacing an unanswered request closes its connection, which retries.
             RelayEvent::ApprovalNeeded(request) => state.approval = Some(request),
-            RelayEvent::Connected => {
+            RelayEvent::Connected(_) => {
                 // A connection replays every tab from its first message, so with no other browser
                 // connected nothing known so far is still current.
                 if state.browsers == 0 {
@@ -145,6 +145,8 @@ impl Live {
             }
             RelayEvent::Overflow => state.buffer_overflowed = true,
             RelayEvent::Envelope(envelope) => state.ingest(&envelope),
+            // Where the panel shows is the shell's to decide; it says nothing of the game.
+            RelayEvent::SidePanel(_) => {}
         }
     }
 
@@ -307,6 +309,7 @@ mod tests {
     use copilot_llm::{Effort, Provider, Thinking};
 
     use super::*;
+    use crate::relay::BrowserLink;
     use crate::settings::Settings;
 
     fn live() -> Live {
@@ -347,7 +350,7 @@ mod tests {
     #[test]
     fn a_browser_connecting_when_none_is_starts_afresh_because_its_tabs_replay_from_the_start() {
         let live = live();
-        live.handle(RelayEvent::Connected);
+        live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
         live.handle(envelope(json!({ "msg": "game_started" })));
         live.handle(envelope(
             json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": 500 }),
@@ -355,7 +358,7 @@ mod tests {
         assert!(live.view_model().game.is_some());
 
         live.handle(RelayEvent::Disconnected);
-        live.handle(RelayEvent::Connected);
+        live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
 
         assert_eq!(live.view_model().game, None);
     }

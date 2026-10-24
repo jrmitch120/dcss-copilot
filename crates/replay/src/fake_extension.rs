@@ -8,7 +8,8 @@ use copilot_gk::BundleError;
 use copilot_webtiles::relay_protocol::{
     AppFrame, ExtensionFrame, RELAY_PORT, RELAY_PROTOCOL_VERSION, Refusal,
 };
-use futures_util::{SinkExt, StreamExt};
+use futures_util::stream::SplitSink;
+use futures_util::{Sink, SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::HeaderValue;
@@ -38,7 +39,16 @@ pub struct FakeExtension {
     page: Replayer,
     url: String,
     origin: String,
-    socket: Option<Socket>,
+    connection: Option<Connection>,
+}
+
+/// A welcomed connection to the app.
+struct Connection {
+    /// Where the page's envelopes go.
+    frames: SplitSink<Socket, Message>,
+    /// Reads and drops what the app sends, such as the panel's views, so they never back up and
+    /// stall the app.
+    drained: tokio::task::JoinHandle<()>,
 }
 
 /// Why the fake extension couldn't reach the app or relay to it.
@@ -72,7 +82,7 @@ impl FakeExtension {
             page: Replayer::new(recording)?,
             url: url.to_owned(),
             origin: origin.to_owned(),
-            socket: None,
+            connection: None,
         })
     }
 
@@ -85,7 +95,7 @@ impl FakeExtension {
     /// The app has welcomed the connection and it hasn't dropped since.
     #[must_use]
     pub fn is_connected(&self) -> bool {
-        self.socket.is_some()
+        self.connection.is_some()
     }
 
     /// Connects, says hello, waits for the app's welcome (through "Allow this browser?" if the
@@ -109,17 +119,21 @@ impl FakeExtension {
         .await?;
         socket.flush().await?;
         welcomed(&mut socket).await?;
-        self.socket = Some(socket);
+        let (frames, mut incoming) = socket.split();
+        let drained = tokio::spawn(async move { while let Some(Ok(_)) = incoming.next().await {} });
+        self.connection = Some(Connection { frames, drained });
         self.relay(0..self.page.position()).await
     }
 
     /// Closes the connection, if there is one, as when the browser closes.
     pub async fn disconnect(&mut self) {
-        if let Some(mut socket) = self.socket.take() {
+        if let Some(mut connection) = self.connection.take() {
             // Waiting for the app's closing reply means the app has seen this connection end
             // before any new one starts.
-            if socket.close(None).await.is_ok() {
-                while let Some(Ok(_)) = socket.next().await {}
+            if connection.frames.close().await.is_ok() {
+                let _ = connection.drained.await;
+            } else {
+                connection.drained.abort();
             }
         }
     }
@@ -164,7 +178,7 @@ impl FakeExtension {
     }
 
     async fn deliver(&mut self, applied: Applied) -> Result<Applied, FakeExtensionError> {
-        if self.socket.is_none() {
+        if self.connection.is_none() {
             return Ok(applied);
         }
         if applied.restarted {
@@ -177,7 +191,7 @@ impl FakeExtension {
     }
 
     async fn relay(&mut self, envelopes: std::ops::Range<usize>) -> Result<(), FakeExtensionError> {
-        let Some(socket) = &mut self.socket else {
+        let Some(Connection { frames: socket, .. }) = &mut self.connection else {
             return Ok(());
         };
         let mut relayed = Ok(());
@@ -194,14 +208,17 @@ impl FakeExtension {
             relayed = socket.flush().await.map_err(FakeExtensionError::from);
         }
         if relayed.is_err() {
-            self.socket = None;
+            self.connection = None;
         }
         relayed
     }
 }
 
 /// Queues a frame; the caller flushes.
-async fn send(socket: &mut Socket, frame: &ExtensionFrame) -> Result<(), FakeExtensionError> {
+async fn send(
+    socket: &mut (impl Sink<Message, Error = tungstenite::Error> + Unpin),
+    frame: &ExtensionFrame,
+) -> Result<(), FakeExtensionError> {
     socket
         .feed(Message::text(serde_json::to_string(frame)?))
         .await?;
@@ -216,7 +233,10 @@ async fn welcomed(socket: &mut Socket) -> Result<(), FakeExtensionError> {
         };
         match serde_json::from_str(&text)? {
             AppFrame::Welcome { .. } => return Ok(()),
-            AppFrame::AwaitingApproval => {}
+            // The fake opens no side panel, so it has no use for the panel's views.
+            AppFrame::AwaitingApproval
+            | AppFrame::View { .. }
+            | AppFrame::PanelCommandDone { .. } => {}
             AppFrame::Refused { reason } => return Err(FakeExtensionError::Refused(reason)),
         }
     }

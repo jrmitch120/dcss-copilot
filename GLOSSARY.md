@@ -181,7 +181,7 @@ Each Attack Plan played out many times against the hostiles in view, in a small 
 _Avoid_: Fight odds, combat sim, win rate
 
 **Way Out**:
-An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is. An ability is stopped by the statuses that stop it in particular as soon as the status pane shows them; one the ability menu greyed out for a reason the Advisor couldn't see stays stopped as of the turn the menu was read, and approximate once the ability list is Stale.
+An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is. An ability is stopped by the statuses that stop it in particular as soon as the status pane shows them; one the ability menu greyed out for a reason the Advisor couldn't see stays stopped as of the turn the menu was read, and approximate once the ability list is Stale. A Way Out is trusted when it can be used now and its verdict isn't approximate: not judged over remembered squares, nor from a Stale menu.
 _Avoid_: Escape (when meaning the whole list), panic button
 
 **Cut Off**:
@@ -249,6 +249,14 @@ _Avoid_: Advice (when no recommendation is made)
 **Now Pill**:
 The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level, because a Gap leaves an input it needs Missing, it shows UNRATED rather than CALM.
 _Avoid_: Status bar, banner
+
+**Side Panel**:
+The browser's own panel at the side of its window, where the extension shows the panel for a webtiles game. It is part of the browser window, so it moves, minimizes and comes back to the front with it. Browsers open it only when the player clicks, from the extension's toolbar button.
+_Avoid_: Sidebar (except as Firefox's name for it), docked window
+
+**Toolbar Badge**:
+The panel's stand-in on the extension's toolbar button while no Side Panel is open: its tooltip shows the Now Pill's label, any Alert and its line, and its badge counts the Decision Points that wait. Only a LETHAL moment with no trusted Way Out turns the badge to a call to open the panel.
+_Avoid_: Collapsed pill, notification
 
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.

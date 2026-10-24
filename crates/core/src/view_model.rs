@@ -76,7 +76,7 @@ pub enum Appearance {
     Glyphs,
 }
 
-/// The docked panel for the followed game, top to bottom: header, now pill, focus card,
+/// The panel for the followed game, top to bottom: header, now pill, focus card,
 /// Run Plan rail and ask box. The footer belongs to the app, not the game.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -96,6 +96,24 @@ pub struct GameView {
     pub run_plan: RunPlanRail,
     /// Where the player asks the Advisor questions.
     pub ask: AskBox,
+    /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
+    /// resynced it.
+    pub live: bool,
+    /// What the Toolbar Badge shows while the panel is closed.
+    pub badge: ToolbarBadge,
+}
+
+/// The panel's stand-in while it is closed: the extension's toolbar button, badged with the
+/// Decision Points that wait, or with a call to open the panel.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolbarBadge {
+    /// How many Decision Points wait for the player. Nothing raises Decision Points yet, so
+    /// none wait.
+    pub decisions_waiting: u32,
+    /// This moment is LETHAL and no Way Out is trusted: the only moment the badge calls the
+    /// player to open the panel.
+    pub calls_for_panel: bool,
 }
 
 /// The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not.

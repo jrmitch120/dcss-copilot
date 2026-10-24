@@ -272,6 +272,11 @@ expression: replay
         },
         "ask": {
           "state": "needsModel"
+        },
+        "live": true,
+        "badge": {
+          "decisionsWaiting": 0,
+          "callsForPanel": false
         }
       }
     },
@@ -533,6 +538,11 @@ expression: replay
         },
         "ask": {
           "state": "needsModel"
+        },
+        "live": true,
+        "badge": {
+          "decisionsWaiting": 0,
+          "callsForPanel": false
         }
       }
     }
@@ -834,6 +844,11 @@ expression: replay
       },
       "ask": {
         "state": "needsModel"
+      },
+      "live": true,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
       }
     }
   }

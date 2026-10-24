@@ -15,7 +15,8 @@
         "label": "main",
         "title": "DCSS Copilot",
         "width": 420,
-        "height": 800
+        "height": 800,
+        "visible": false
       }
     ],
     "security": {

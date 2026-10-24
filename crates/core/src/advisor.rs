@@ -8,11 +8,11 @@ use copilot_gk::{Bundle, Library, Monster};
 use crate::accumulated_state::AccumulatedState;
 use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
-use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, attacks_player};
-use crate::game_source::{GameIdentity, SourceEvent};
+use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
+use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
 use crate::view_model::{
     AskBox, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill, RunPlanRail,
-    TileName, capitalised,
+    TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -40,6 +40,8 @@ struct Followed {
     /// The last Alert raised, with the turn it was raised on: the now pill shows it until the
     /// player acts.
     alert: Option<(Alert, Option<u32>)>,
+    /// Its stream stopped or it ended, and it hasn't been picked up since.
+    stopped: bool,
 }
 
 /// What tells one game apart from every other, for as long as it is played: the spec's game key.
@@ -109,9 +111,16 @@ impl Advisor {
                     game.accumulated.read(&read, &self.visible, knowledge);
                 }
             }
-            // A game's sessions don't change what is remembered of it: a resynced game is the
-            // same game, and a new game has its own game key.
-            SourceEvent::Session(_) => return Vec::new(),
+            // Sessions change only whether a game is live; a new game has a key of its own.
+            SourceEvent::Session(session) => {
+                if let Some(game) = self.followed_game_mut() {
+                    game.stopped = matches!(
+                        session,
+                        SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
+                    );
+                }
+                return Vec::new();
+            }
             SourceEvent::Settled => return self.settle(),
         }
         self.fact_sheet = OnceLock::new();
@@ -142,17 +151,28 @@ impl Advisor {
     /// What is remembered of the followed game, once a Game Source has identified it.
     #[must_use]
     pub fn accumulated(&self) -> Option<&AccumulatedState> {
-        Some(&self.games.get(&self.followed_key()?)?.accumulated)
+        Some(&self.followed_game()?.accumulated)
     }
 
     /// The Alert the now pill shows: the last one raised, until the player acts.
     fn current_alert(&self) -> Option<&Alert> {
-        let (alert, turn) = self.games.get(&self.followed_key()?)?.alert.as_ref()?;
+        let (alert, turn) = self.followed_game()?.alert.as_ref()?;
         (*turn == self.visible.turn).then_some(alert)
     }
 
     fn followed_key(&self) -> Option<GameKey> {
         self.identity.as_ref().map(GameKey::of)
+    }
+
+    /// What is kept of the followed game, once a Game Source has identified it.
+    fn followed_game(&self) -> Option<&Followed> {
+        self.games.get(&self.followed_key()?)
+    }
+
+    /// As [`Advisor::followed_game`], to change.
+    fn followed_game_mut(&mut self) -> Option<&mut Followed> {
+        let key = self.followed_key()?;
+        self.games.get_mut(&key)
     }
 
     /// The Game Knowledge for the followed game's Crawl Version, if the Advisor has it.
@@ -217,6 +237,12 @@ impl Advisor {
                 .then(|| self.fact_sheet().ways_out.list()),
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
+            live: !self.followed_game().is_some_and(|game| game.stopped),
+            badge: ToolbarBadge {
+                decisions_waiting: 0,
+                calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
+                    && !self.fact_sheet().ways_out.any_trusted(),
+            },
         })
     }
 }

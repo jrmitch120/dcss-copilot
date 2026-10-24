@@ -1,0 +1,9 @@
+# The panel shows in the browser's Side Panel
+
+For a webtiles game, the panel shows in the browser's own Side Panel, drawn by the extension, rather than in an app window docked beside the browser. The app sends every connected browser its view model over the relay, and the Side Panel draws it with the app's own Svelte components. The Side Panel's buttons send the app commands back, but no command can answer "Allow this browser?", which only the app's window asks, so a browser can never allow itself. We chose this because the Side Panel is part of the browser window: it moves, minimizes and comes back to the front with it. A separate window falls behind others each time the player switches back to the browser, and Wayland lets no app place its windows at all. The cost is that browsers open a Side Panel only when the player clicks, so the panel can't appear by itself; the Toolbar Badge stands in for it while it's closed. The extension still decodes nothing of a game (ADR 0001): it relays the app's view as it relays the game's messages. The app keeps a window of its own, opened from the tray, for asking the player and for Game Sources with no browser.
+
+## Considered Options
+
+- **App window docked beside the browser:** built first (#62), following the browser window from bounds the extension reported, with an always-on-top pill when collapsed. Still a separate window: it fell behind other apps' windows when the player switched back to the browser, needed placing per OS, and could only float on Wayland.
+- **App window kept above the browser:** reorder the app's window above the browser each time the browser comes forward. Needs per-OS window tricks, flickers into place on macOS, and Wayland can't do it.
+- **Send views only while a Side Panel is open:** less traffic, but the Toolbar Badge would go stale exactly while the panel is closed, when it matters.

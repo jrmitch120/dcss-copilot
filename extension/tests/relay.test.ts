@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createAppLink, type Socket } from "../lib/app-link";
+import { createAppLink, type LinkStatus, type Socket } from "../lib/app-link";
 import { type Comm, wrapComm } from "../lib/page-relay";
+import type { PanelFrame } from "../lib/protocol";
 
 const ORIGIN = "https://crawl.example.org";
 const TAB = 7;
@@ -46,6 +47,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
   };
   const sockets: FakeSocket[] = [];
   const retries: (() => void)[] = [];
+  const statuses: LinkStatus[] = [];
+  const toSidePanels: PanelFrame[] = [];
   let clock = 1_000;
 
   const link = createAppLink({
@@ -56,6 +59,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     },
     requestReplay: () => page.replay(),
     retryLater: (reconnect) => retries.push(reconnect),
+    status: (status) => statuses.push(status),
+    toSidePanels: (frame) => toSidePanels.push(frame),
   });
   const page = wrapComm(comm, {
     origin: ORIGIN,
@@ -68,6 +73,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     handledByPage,
     sockets,
     retries,
+    statuses,
+    toSidePanels,
     link,
     /** The game server sends the page a message. */
     serverSends(msg: unknown) {
@@ -79,7 +86,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
       link.start();
       const socket = sockets.at(-1) as FakeSocket;
       socket.open();
-      socket.receive({ type: "welcome", protocol: 1 });
+      socket.receive({ type: "welcome", protocol: 2 });
       return socket;
     },
   };
@@ -92,7 +99,7 @@ describe("extension relay", () => {
     const socket = relay.sockets[0] as FakeSocket;
     socket.open();
 
-    expect(socket.sent).toEqual([{ type: "hello", protocol: 1 }]);
+    expect(socket.sent).toEqual([{ type: "hello", protocol: 2 }]);
   });
 
   it("forwards each message unchanged in an envelope once the app welcomes the browser", () => {
@@ -218,7 +225,7 @@ describe("handshake", () => {
     relay.serverSends({ msg: "player", hp: 17 });
     expect(socket.envelopes()).toEqual([]);
 
-    socket.receive({ type: "welcome", protocol: 1 });
+    socket.receive({ type: "welcome", protocol: 2 });
     expect(socket.envelopes().map(messageOf)).toEqual([
       { msg: "player", name: "Mira" },
       { msg: "player", hp: 17 },
@@ -246,6 +253,67 @@ describe("handshake", () => {
     (relay.sockets[0] as FakeSocket).close();
 
     expect(relay.retries).toHaveLength(1);
+  });
+});
+
+describe("side panels", () => {
+  const sidePanelFrames = (socket: FakeSocket) =>
+    socket.sent.filter((f) =>
+      /^(side-panel-opened|panel-command)$/.test((f as { type: string }).type),
+    );
+
+  it("tells the app as a side panel opens, and on every connection while one is open", () => {
+    const relay = relayHarness();
+    relay.link.sidePanel(true);
+
+    const first = relay.connectAndWelcome();
+    relay.link.sidePanel(false);
+    relay.link.sidePanel(true);
+    first.close();
+    const second = relay.connectAndWelcome();
+
+    expect(sidePanelFrames(first)).toEqual([
+      { type: "side-panel-opened" },
+      { type: "side-panel-opened" },
+    ]);
+    expect(sidePanelFrames(second)).toEqual([{ type: "side-panel-opened" }]);
+  });
+
+  it("passes the side panels' commands to the app, and the app's views and answers back", () => {
+    const relay = relayHarness();
+    const socket = relay.connectAndWelcome();
+
+    relay.link.panelCommand(3, { kind: "set-appearance", appearance: "glyphs" });
+    socket.receive({ type: "view", view: { appVersion: "1.2.3" } });
+    socket.receive({ type: "panel-command-done", id: 3, error: null });
+
+    expect(sidePanelFrames(socket)).toEqual([
+      {
+        type: "panel-command",
+        id: 3,
+        command: { kind: "set-appearance", appearance: "glyphs" },
+      },
+    ]);
+    expect(relay.toSidePanels).toEqual([
+      { type: "view", view: { appVersion: "1.2.3" } },
+      { type: "panel-command-done", id: 3, error: null },
+    ]);
+  });
+
+  it("tells the side panels where the browser stands with the app", () => {
+    const relay = relayHarness();
+    relay.link.start();
+    const asking = relay.sockets[0] as FakeSocket;
+    asking.open();
+    asking.receive({ type: "awaiting-approval" });
+    asking.receive({ type: "welcome", protocol: 2 });
+    asking.close();
+    relay.retries[0]?.();
+    const refused = relay.sockets[1] as FakeSocket;
+    refused.open();
+    refused.receive({ type: "refused", reason: "browser-denied" });
+
+    expect(relay.statuses).toEqual(["awaiting-approval", "connected", "no-app", "browser-denied"]);
   });
 });
 

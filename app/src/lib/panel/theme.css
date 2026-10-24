@@ -49,10 +49,36 @@
   --mono: ui-monospace, Menlo, Consolas, monospace;
   --radius-card: 14px;
   --radius-pill: 16px;
+  --scrollbar: rgba(255, 255, 255, 0.16);
+  --scrollbar-hover: rgba(255, 255, 255, 0.28);
+
+  /* Scrollbars and native controls draw dark, not on a white track. */
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+
+/* WebKit, as the macOS app's webview, ignores scrollbar-color; Chrome ignores these when it's set. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--scrollbar);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
 }
 
 html,
