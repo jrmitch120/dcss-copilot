@@ -15,5 +15,12 @@ expression: detections(JOINED)
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 6,
+    "turn": 400,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — The Advisor can't judge this fight"
   }
 ]

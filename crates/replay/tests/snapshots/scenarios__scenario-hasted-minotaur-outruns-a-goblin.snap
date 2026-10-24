@@ -301,6 +301,7 @@ expression: replay
           "line": "Goblin can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 4 of 19 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -568,6 +569,7 @@ expression: replay
         "line": "Goblin can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 4 of 19 HP"
       },
+      "suggestedAction": null,
       "focus": {
         "card": "fight",
         "monsters": [

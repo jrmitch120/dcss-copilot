@@ -28,3 +28,7 @@ cause = "last-way-out-lost"
 [[alerts]]
 turn = 2
 cause = "out-of-depth"
+
+[[suggested_actions]]
+turn = 0
+rule = "fight"

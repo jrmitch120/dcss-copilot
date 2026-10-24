@@ -1,0 +1,33 @@
+description = "A Minotaur Berserker walks from the start of a seeded game on D:1, over its escape hatch, into the one-wide corridor north of it, then enters wizard mode, creates three jackals, opens the skills screen and waits while the pack comes at them"
+recording = "jackal-pack-corners-a-minotaur-in-a-corridor.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [6]       # the pack in view, holding the corridor
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Northwest, then five squares north, into the corridor.
+  "y", "k", "k", "k", "k", "k",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Create three jackals by name.
+  "m", "jackal\r",
+  "&", "m", "jackal\r",
+  "&", "m", "jackal\r",
+  "\u001b",
+  # Open the skills screen, then close it, so the fight can be judged.
+  "m", "\u001b",
+  # Wait while they come at them; Escape clears any --more--.
+  ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b",
+]
+
+[[alerts]]
+turn = 6
+cause = "last-way-out-lost"
+
+[[suggested_actions]]
+turn = 6
+rule = "fall-back-to-a-corridor"

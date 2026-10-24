@@ -218,6 +218,7 @@ expression: replay
           "line": "Orc warrior can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 30 of 102 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -487,6 +488,7 @@ expression: replay
           "line": "Orc warrior can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 30 of 102 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -781,6 +783,7 @@ expression: replay
         "line": "Orc warrior can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 30 of 102 HP"
       },
+      "suggestedAction": null,
       "focus": {
         "card": "fight",
         "monsters": [

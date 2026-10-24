@@ -1,10 +1,30 @@
 <script lang="ts">
-import type { Character, NowPill } from "$lib/bindings";
+import type { AssistanceLevel, Character, NowPill } from "$lib/bindings";
+import { type PanelActions, unsaved } from "./actions";
+import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
 
-let { character, now }: { character: Character; now: NowPill } = $props();
+let {
+  character,
+  now,
+  assistance,
+  actions,
+}: { character: Character; now: NowPill; assistance: AssistanceLevel; actions: PanelActions } =
+  $props();
 
 let tone = $derived(threatTone(now));
+let saveError = $state<string | null>(null);
+
+const LEVELS: [AssistanceLevel, string][] = [
+  ["info", "Info"],
+  ["hints", "Hints"],
+  ["coach", "Coach"],
+];
+
+async function choose(level: AssistanceLevel) {
+  const error = await actions.setAssistance(level);
+  saveError = unsaved(error);
+}
 
 function stat(value: number | null): string {
   return value === null ? "?" : String(value);
@@ -18,11 +38,19 @@ function stat(value: number | null): string {
     · {character.species} · HP {stat(character.hp)}/{stat(character.hpMax)}
     · T {stat(character.turn)}
   </span>
+  <span class="levels">
+    <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
+  </span>
 </header>
+{#if saveError}
+  <p class="error small">{saveError}</p>
+{/if}
 
 <style>
+/* The toggle wraps below rather than crowd out the character's hit points and turn. */
 header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 11px 14px 9px;
@@ -56,6 +84,9 @@ header {
 }
 
 .who {
+  flex: 1 0 auto;
+  /* As wide as the header beside the dot, past which it is cut short. */
+  max-width: calc(100% - 16px);
   font-size: 12.5px;
   color: var(--unrated);
   white-space: nowrap;
@@ -66,5 +97,15 @@ header {
 
 .who b {
   color: var(--text-strong);
+}
+
+.levels {
+  margin-left: auto;
+}
+
+.error {
+  margin: 0;
+  padding: 6px 14px 0;
+  color: var(--error);
 }
 </style>

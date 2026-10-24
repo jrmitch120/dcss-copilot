@@ -26,12 +26,26 @@ expression: detections
     "line": "HP 6 of 17: below half."
   },
   {
+    "envelope": 270,
+    "turn": 35,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~100% win, ~17% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 287,
     "turn": 36,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 292,
+    "turn": 37,
+    "event": "suggestedAction",
+    "rule": "fight-on",
+    "line": "Fight on — Melee: ~100% win, ~14% HP lost"
   },
   {
     "envelope": 805,
@@ -180,6 +194,13 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 2661,
+    "turn": 1683,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 2744,
@@ -344,6 +365,13 @@ expression: detections
     "line": "Blorkula the orcula, a unique, alone makes this DANGEROUS."
   },
   {
+    "envelope": 4224,
+    "turn": 3536,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · underfoot"
+  },
+  {
     "envelope": 4419,
     "turn": 3651,
     "event": "allClear"
@@ -362,6 +390,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 4450,
+    "turn": 3655,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: Heal wounds ×2 · heals"
+  },
+  {
     "envelope": 4492,
     "turn": 3663,
     "event": "alert",
@@ -374,6 +409,13 @@ expression: detections
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 11 of 46: below a quarter."
+  },
+  {
+    "envelope": 4501,
+    "turn": 3664,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~78% win, ~55% HP lost. If it turns LETHAL: Heal wounds ×2 · heals"
   },
   {
     "envelope": 4556,
@@ -404,6 +446,20 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 4760,
+    "turn": 3879,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: Heal wounds · heals"
+  },
+  {
+    "envelope": 4803,
+    "turn": 3885,
+    "event": "suggestedAction",
+    "rule": "fight-on",
+    "line": "Fight on — Melee: ~93% win, ~43% HP lost"
+  },
+  {
     "envelope": 4839,
     "turn": 3970,
     "event": "allClear"
@@ -420,6 +476,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4860,
+    "turn": 3975,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 5 steps away"
   },
   {
     "envelope": 5223,
@@ -454,6 +517,13 @@ expression: detections
     "line": "Blorkula the orcula, a unique, alone makes this DANGEROUS."
   },
   {
+    "envelope": 5233,
+    "turn": 4083,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Escape hatch in the floor · ~8 steps · partly out of view"
+  },
+  {
     "envelope": 5251,
     "turn": 4086,
     "event": "allClear"
@@ -486,6 +556,20 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 5280,
+    "turn": 4092,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Escape hatch in the floor · 2 steps"
+  },
+  {
+    "envelope": 5315,
+    "turn": 4130,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~87% win, ~55% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 5399,
     "turn": 4147,
     "event": "allClear"
@@ -504,6 +588,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 5470,
+    "turn": 4236,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
+  },
+  {
     "envelope": 5549,
     "turn": 4253,
     "event": "alert",
@@ -519,11 +610,39 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 5558,
+    "turn": 4254,
+    "event": "suggestedAction",
+    "rule": "heal-out-of-it",
+    "line": "Heal out of it — Heal wounds · heals"
+  },
+  {
     "envelope": 5571,
     "turn": 4255,
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 8 of 59: below a quarter."
+  },
+  {
+    "envelope": 5582,
+    "turn": 4256,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
+  },
+  {
+    "envelope": 5610,
+    "turn": 4258,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — Melee: ~1% win, ~100% HP lost"
+  },
+  {
+    "envelope": 5709,
+    "turn": 4271,
+    "event": "suggestedAction",
+    "rule": "leave-by-stairs",
+    "line": "Leave by stairs — Stone staircase leading down · ~10 steps · partly out of view"
   },
   {
     "envelope": 5750,
@@ -544,6 +663,13 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 5758,
+    "turn": 4281,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
+  },
+  {
     "envelope": 5782,
     "turn": 4287,
     "event": "allClear"
@@ -562,6 +688,13 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 5786,
+    "turn": 4288,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — Melee: ~17% win, ~95% HP lost"
+  },
+  {
     "envelope": 5801,
     "turn": 4291,
     "event": "allClear"
@@ -578,5 +711,12 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 5809,
+    "turn": 4293,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — Melee: ~25% win, ~90% HP lost"
   }
 ]

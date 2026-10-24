@@ -205,7 +205,7 @@ Something the player could legally do right now, such as attacking, fleeing to a
 _Avoid_: Option, move, choice
 
 **Suggested Action**:
-The Candidate Action the Advisor's own rules pick for a dangerous moment, shown before (and without) any LLM judgment.
+The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor among several hostiles, falling back to stairs, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, or a last-resort fight could be traded for a Way Out.
 _Avoid_: Default action, rule pick
 
 **Encounter**:
@@ -239,6 +239,10 @@ _Avoid_: Build, strategy (when meaning this artifact)
 **Great Find**:
 An item, spell or upgrade that is exceptionally valuable to this particular game, judged against its Run Plan rather than general rarity. Tiered as Nice, Great or Run-changing. Ones seen but not yet obtained (on the floor, in a shop) are Spotted.
 _Avoid_: Loot alert, rare drop
+
+**Assistance Level**:
+How much the Advisor offers beyond Information, as the player sets it in the panel's header: Info (facts only, no LLM), Hints (adds the Suggested Action and a one-line nudge at each Decision Point) or Coach (adds LLM judgment of Tactical picks and full Strategic Advice). Every detector runs at every level; the level decides only what the panel shows.
+_Avoid_: Mode, tier, verbosity
 
 **Information**:
 Factual lookups the player asks for or that are surfaced alongside play, such as monster details or a resistance breakdown. Not a recommendation.
@@ -289,5 +293,5 @@ The most the player is willing to spend on LLM advice in one game. The player ca
 _Avoid_: Run budget, quota, cap
 
 **Step Down**:
-What the Advisor does when the Game Budget runs out: it drops to a lower assistance level rather than going quiet.
+What the Advisor does when the Game Budget runs out: it drops to a lower Assistance Level rather than going quiet.
 _Avoid_: Throttle, cut off

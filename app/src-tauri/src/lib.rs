@@ -12,7 +12,7 @@ mod settings;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 
-use copilot_core::{Appearance, ViewModel};
+use copilot_core::{Appearance, AssistanceLevel, ViewModel};
 use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -106,6 +106,20 @@ fn set_appearance(
     live: State<'_, Live>,
 ) -> Result<(), String> {
     let saved = live.set_appearance(appearance);
+    push_view_model(&app, &live);
+    saved.map_err(|error| error.to_string())
+}
+
+/// The player chose how much the Advisor offers beyond Information.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_assistance(
+    assistance: AssistanceLevel,
+    app: AppHandle,
+    live: State<'_, Live>,
+) -> Result<(), String> {
+    let saved = live.set_assistance(assistance);
     push_view_model(&app, &live);
     saved.map_err(|error| error.to_string())
 }
@@ -235,6 +249,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             view_model,
             answer_browser,
             set_appearance,
+            set_assistance,
             open_settings,
             settings_view,
             set_start_at_login,
@@ -420,6 +435,9 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
             let done = match request.command {
                 PanelCommand::SetAppearance { appearance } => {
                     set_appearance(appearance, app.clone(), app.state())
+                }
+                PanelCommand::SetAssistance { assistance } => {
+                    set_assistance(assistance, app.clone(), app.state())
                 }
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };

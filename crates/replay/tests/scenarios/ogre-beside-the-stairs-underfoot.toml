@@ -21,3 +21,7 @@ keys = [
 [[alerts]]
 turn = 0
 cause = "threat-level-rose"
+
+[[suggested_actions]]
+turn = 0
+rule = "fight"

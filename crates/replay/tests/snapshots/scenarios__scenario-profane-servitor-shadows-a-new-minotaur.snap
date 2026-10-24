@@ -194,6 +194,12 @@ expression: replay
           "line": "Profane servitor can attack before your next action.",
           "detail": "Death 72.5% · worst hit 67 of 19 HP"
         },
+        "suggestedAction": {
+          "level": "lethal",
+          "rule": "Last resort: fight",
+          "action": "The Advisor can't judge this fight",
+          "ifLethal": null
+        },
         "focus": {
           "card": "fight",
           "monsters": [
@@ -260,6 +266,13 @@ expression: replay
       "cause": "threat-level-rose",
       "to": "lethal",
       "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 50,
+      "turn": 0,
+      "event": "suggestedAction",
+      "rule": "fight",
+      "line": "Last resort: fight — The Advisor can't judge this fight"
     },
     {
       "envelope": 54,
@@ -448,6 +461,12 @@ expression: replay
         "alert": "No Way Out is left that you can use.",
         "line": "Profane servitor can attack before your next action.",
         "detail": "Death 72.5% · worst hit 67 of 19 HP"
+      },
+      "suggestedAction": {
+        "level": "lethal",
+        "rule": "Last resort: fight",
+        "action": "The Advisor can't judge this fight",
+        "ifLethal": null
       },
       "focus": {
         "card": "fight",

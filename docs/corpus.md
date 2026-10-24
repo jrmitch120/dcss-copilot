@@ -31,7 +31,7 @@ cargo run -p corpus -- fetch                  # into target/corpus, or $DCSS_COP
 cargo test --release -p copilot-replay --test corpus -- --ignored
 ```
 
-`fetch` downloads only what isn't cached already, and refuses a download whose SHA-256 isn't the pinned one. No Git LFS is involved: the files are ordinary release assets. The corpus tests are `#[ignore]`d, so `cargo test` never needs the network. They check each game replays on the Crawl Version it is tagged with, and snapshot what the detectors noticed across each, `corpus__timeline-<game>.snap`: which Encounters, All Clears, Fact Cards and Alerts came on which turn. That judges a Fact Sheet at every Settled Update of every game, so run them with `--release`.
+`fetch` downloads only what isn't cached already, and refuses a download whose SHA-256 isn't the pinned one. No Git LFS is involved: the files are ordinary release assets. The corpus tests are `#[ignore]`d, so `cargo test` never needs the network. They check each game replays on the Crawl Version it is tagged with, and snapshot what the detectors noticed across each, `corpus__timeline-<game>.snap`: which Encounters, All Clears, Fact Cards, Alerts and Suggested Actions came on which turn. That judges a Fact Sheet at every Settled Update of every game, so run them with `--release`.
 
 ### Recording a game
 
@@ -93,7 +93,7 @@ rule = "leave-by-stairs"
 - `rc` is the new account's rc file. `combo` picks the character, weapon included so crawl asks nothing, and `game_seed` picks the dungeon.
 - Each entry of `keys` is typed once the game has settled from the one before, so a prompt it opens has been drawn. `"&", "wiz\r"` enters wizard mode; crawl then asks straight away for a wizard command, such as `m` to create a monster by name or `d` to take the stairs down. `l` sets the experience level, so a character can survive a threat that would otherwise kill it outright. A `--more--` swallows the next key, so follow a move that may raise one with `"\u001b"` (Escape), which is harmless when there is none.
 - `alerts` are the Alerts the Advisor must raise, in order: exactly these, each on its turn, with its `cause` as the timeline writes it, such as `threat-level-rose`, `unique-in-view`, `out-of-depth`, `hit-points-below-half`, `hit-points-below-quarter`, `last-way-out-lost` or `dangerous-status`. No `alerts` means none may be raised.
-- `suggested_actions` are refused until the Advisor shows them (#38), rather than being silently ignored.
+- `suggested_actions` are the Suggested Actions the Advisor must show, in order: exactly these, each on the turn its rules pick it anew, with its `rule` as the timeline writes it: `leave-by-stairs`, `heal-out-of-it`, `best-escape` or `fight` at LETHAL, and `fight-on`, `fall-back-to-a-corridor`, `fall-back-to-stairs` or `fight-carefully` at DANGEROUS. No `suggested_actions` means none may be shown.
 
 Playing a scenario snapshots the Fact Sheet and the panel at each turn in `snapshot_turns` as it ended, at each level the game arrives on as its first turn there ended, and at the end of the Recording, with what the detectors noticed along the way. `crates/replay/tests/scenarios.rs` plays every scenario in the directory and snapshots each with `insta`, so a new scenario needs no new test. Review its snapshot like any other.
 

@@ -1,9 +1,9 @@
 // The relay protocol between the extension and the app. See docs/relay-protocol.md.
 
-import type { Appearance, ViewModel } from "$lib/bindings";
+import type { Appearance, AssistanceLevel, ViewModel } from "$lib/bindings";
 
 /** The only compatibility contract with the app, which accepts this version and the previous one. */
-export const RELAY_PROTOCOL_VERSION = 2;
+export const RELAY_PROTOCOL_VERSION = 3;
 
 /** Where the app listens. */
 export const APP_URL = "ws://127.0.0.1:47821";
@@ -31,6 +31,7 @@ export type PageReport =
 /** What the player can do from the side panel. Only the app answers "Allow this browser?". */
 export type PanelCommand =
   | { kind: "set-appearance"; appearance: Appearance }
+  | { kind: "set-assistance"; assistance: AssistanceLevel }
   | { kind: "open-settings" };
 
 export type ExtensionFrame =

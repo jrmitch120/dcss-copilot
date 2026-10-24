@@ -80,6 +80,13 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
+    "envelope": 818,
+    "turn": 1251,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
+  },
+  {
     "envelope": 846,
     "turn": 1252,
     "event": "alert",
@@ -106,11 +113,39 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 903,
+    "turn": 1298,
+    "event": "suggestedAction",
+    "rule": "leave-by-stairs",
+    "line": "Leave by stairs — Stone staircase leading up · ~8 steps · partly out of view"
+  },
+  {
     "envelope": 917,
     "turn": 1300,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 917,
+    "turn": 1300,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — The Advisor can't judge this fight"
+  },
+  {
+    "envelope": 937,
+    "turn": 1304,
+    "event": "suggestedAction",
+    "rule": "heal-out-of-it",
+    "line": "Heal out of it — Heal wounds · heals"
+  },
+  {
+    "envelope": 963,
+    "turn": 1306,
+    "event": "suggestedAction",
+    "rule": "leave-by-stairs",
+    "line": "Leave by stairs — Escape hatch in the ceiling · ~4 steps · partly out of view"
   },
   {
     "envelope": 1143,
@@ -138,6 +173,13 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1257,
+    "turn": 1661,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 1471,

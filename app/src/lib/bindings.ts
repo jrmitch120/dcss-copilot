@@ -11,6 +11,8 @@ export const commands = {
 	answerBrowser: (allow: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_browser", { allow })),
 	/**  The player chose to draw monsters and items as tiles or glyphs. */
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
+	/**  The player chose how much the Advisor offers beyond Information. */
+	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -45,6 +47,24 @@ export type Appearance =
 export type AskBox = 
 /**  Answering needs a model, and none is set up. */
 { state: "needsModel" };
+
+/**
+ *  How much the Advisor offers beyond Information, as the player sets it: the Assistance Level.
+ *  Every detector runs at every level; the level only decides what the panel shows.
+ */
+export type AssistanceLevel = 
+/**  Information only: the facts, and no LLM. */
+"info" | 
+/**
+ *  Adds the Suggested Action at DANGEROUS and LETHAL moments, and a one-line LLM nudge at
+ *  each Decision Point.
+ */
+"hints" | 
+/**
+ *  Adds the LLM's judgment of Tactical picks, and full Strategic Advice with Run Plan
+ *  changes.
+ */
+"coach";
 
 /**  The character in the game being followed. A stat is `None` until the game reports it. */
 export type Character = {
@@ -127,7 +147,7 @@ monsters: Listing[] | null } |
 /**  The monsters in view, as [`FocusCard::InView`] lists them. */
 monsters: Listing[] | null; 
 /**
- *  The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+ *  The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
  *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
  */
 line: string; 
@@ -153,6 +173,11 @@ export type GameView = {
 	character: Character,
 	/**  How dangerous this moment is, at a glance. */
 	now: NowPill,
+	/**
+	 *  What the Advisor's own rules suggest doing, at a DANGEROUS or LETHAL moment, when the
+	 *  player's Assistance Level shows it.
+	 */
+	suggestedAction: SuggestedActionCard | null,
 	/**  The one thing that deserves the player's attention now. */
 	focus: FocusCard,
 	/**
@@ -348,6 +373,30 @@ export type SlotView = {
 };
 
 /**
+ *  The Suggested Action, under the now pill: what the Advisor's own rules pick, and the rule that
+ *  picked it.
+ */
+export type SuggestedActionCard = {
+	/**
+	 *  The Threat Level the rule is for, LETHAL or DANGEROUS. The pick holds steady, so the
+	 *  moment may have eased since.
+	 */
+	level: ThreatLevel,
+	/**  The rule that picked it, such as `Leave by stairs`. */
+	rule: string,
+	/**
+	 *  What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
+	 *  ~95% win, ~20% HP lost`.
+	 */
+	action: string,
+	/**
+	 *  At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
+	 *  spell · 4% fail`, or that none is left.
+	 */
+	ifLethal: string | null,
+};
+
+/**
  *  A thinking setting, as the Settings window offers it: one flat list, where `Thinking` nests the
  *  effort inside adaptive thinking, so it isn't `Thinking` itself.
  */
@@ -407,6 +456,8 @@ export type ViewModel = {
 	connection: Connection,
 	/**  Whether monsters and items are drawn as DCSS tiles or glyphs. */
 	appearance: Appearance,
+	/**  How much the Advisor offers beyond Information, as the player set it. */
+	assistance: AssistanceLevel,
 	/**
 	 *  Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
 	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.

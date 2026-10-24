@@ -17,6 +17,7 @@ expression: replay.view_models.last().unwrap().game
     "line": "No hostiles in view.",
     "detail": null
   },
+  "suggestedAction": null,
   "focus": {
     "card": "inView",
     "monsters": []

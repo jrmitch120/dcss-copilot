@@ -1,0 +1,42 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: shown
+---
+[
+  [
+    100,
+    null
+  ],
+  [
+    101,
+    null
+  ],
+  [
+    102,
+    "Dangerous · Fight carefully: The Advisor can't judge this fight"
+  ],
+  [
+    103,
+    "Lethal · Last resort: fight: The Advisor can't judge this fight"
+  ],
+  [
+    104,
+    "Lethal · Last resort: fight: The Advisor can't judge this fight"
+  ],
+  [
+    105,
+    null
+  ],
+  [
+    106,
+    null
+  ],
+  [
+    107,
+    null
+  ],
+  [
+    108,
+    null
+  ]
+]

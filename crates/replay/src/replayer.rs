@@ -4,7 +4,8 @@
 use std::ops::Range;
 
 use copilot_core::{
-    Advisor, Appearance, Connection, CrawlVersion, Detection, SourceEvent, ViewModel,
+    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, Detection, SourceEvent,
+    ViewModel,
 };
 use copilot_gk::{BundleError, Library};
 use copilot_webtiles::{Envelope, WebtilesSource};
@@ -256,18 +257,27 @@ impl Replayer {
             .filter(|moment| matches!(moment.event, Happened::Detected(_)))
     }
 
-    /// What the panel would show, with the browser connected and the default Appearance.
+    /// What the panel would show, with the browser connected, the default Appearance and the
+    /// default Assistance Level.
     #[must_use]
     pub fn view_model(&self) -> ViewModel {
+        self.view_model_at(AssistanceLevel::default())
+    }
+
+    /// What the panel would show at the player's `assistance` level, with the browser connected
+    /// and the default Appearance.
+    #[must_use]
+    pub fn view_model_at(&self, assistance: AssistanceLevel) -> ViewModel {
         ViewModel {
             app_version: self.recording.header.app_version.clone(),
             connection: Connection::Connected {
                 buffer_overflowed: false,
             },
             appearance: Appearance::default(),
+            assistance,
             // A replay fails rather than run without the shipped Game Knowledge.
             unreadable_game_knowledge: None,
-            game: self.game.advisor.game_view(),
+            game: self.game.advisor.game_view(assistance),
         }
     }
 

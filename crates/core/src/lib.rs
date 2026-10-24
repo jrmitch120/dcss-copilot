@@ -13,6 +13,7 @@ mod fact_sheet;
 mod fight_outcome;
 mod game_source;
 mod screen;
+mod suggested_action;
 mod view_model;
 mod visible_state;
 mod ways_out;
@@ -36,10 +37,11 @@ pub use screen::{
     KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutations, Skills,
     SpellPower, SpellReach,
 };
+pub use suggested_action::SuggestionRule;
 pub use view_model::{
-    Appearance, AskBox, Character, Colour, Connection, Depiction, FactCard, FocusCard, GameView,
-    Glyph, Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, ViewModel, WayOutRow,
-    WaysOutList,
+    Appearance, AskBox, AssistanceLevel, Character, Colour, Connection, Depiction, FactCard,
+    FocusCard, GameView, Glyph, Listing, NowPill, RunPlanRail, SuggestedActionCard, TileName,
+    ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

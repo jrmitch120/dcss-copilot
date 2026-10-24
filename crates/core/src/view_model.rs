@@ -16,6 +16,8 @@ pub struct ViewModel {
     pub connection: Connection,
     /// Whether monsters and items are drawn as DCSS tiles or glyphs.
     pub appearance: Appearance,
+    /// How much the Advisor offers beyond Information, as the player set it.
+    pub assistance: AssistanceLevel,
     /// Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
     /// followed without it: monsters and items aren't decoded and no Threat Level is judged.
     pub unreadable_game_knowledge: Option<String>,
@@ -26,11 +28,12 @@ pub struct ViewModel {
 impl ViewModel {
     /// The view before any browser has connected.
     #[must_use]
-    pub fn initial(app_version: &str, appearance: Appearance) -> Self {
+    pub fn initial(app_version: &str, appearance: Appearance, assistance: AssistanceLevel) -> Self {
         Self {
             app_version: app_version.to_owned(),
             connection: Connection::NoBrowser,
             appearance,
+            assistance,
             unreadable_game_knowledge: None,
             game: None,
         }
@@ -76,6 +79,33 @@ pub enum Appearance {
     Glyphs,
 }
 
+/// How much the Advisor offers beyond Information, as the player sets it: the Assistance Level.
+/// Every detector runs at every level; the level only decides what the panel shows.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum AssistanceLevel {
+    /// Information only: the facts, and no LLM.
+    Info,
+    /// Adds the Suggested Action at DANGEROUS and LETHAL moments, and a one-line LLM nudge at
+    /// each Decision Point.
+    #[default]
+    Hints,
+    /// Adds the LLM's judgment of Tactical picks, and full Strategic Advice with Run Plan
+    /// changes.
+    Coach,
+}
+
+impl AssistanceLevel {
+    /// Whether the panel shows the Suggested Action.
+    #[must_use]
+    pub fn suggests(self) -> bool {
+        match self {
+            Self::Info => false,
+            Self::Hints | Self::Coach => true,
+        }
+    }
+}
+
 /// The panel for the followed game, top to bottom: header, now pill, focus card,
 /// Run Plan rail and ask box. The footer belongs to the app, not the game.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
@@ -85,6 +115,9 @@ pub struct GameView {
     pub character: Character,
     /// How dangerous this moment is, at a glance.
     pub now: NowPill,
+    /// What the Advisor's own rules suggest doing, at a DANGEROUS or LETHAL moment, when the
+    /// player's Assistance Level shows it.
+    pub suggested_action: Option<SuggestedActionCard>,
     /// The one thing that deserves the player's attention now.
     pub focus: FocusCard,
     /// A fact card for each kind of unique or Out of Depth monster in view, in map order, shown
@@ -196,6 +229,24 @@ pub enum NowPill {
     },
 }
 
+/// The Suggested Action, under the now pill: what the Advisor's own rules pick, and the rule that
+/// picked it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct SuggestedActionCard {
+    /// The Threat Level the rule is for, LETHAL or DANGEROUS. The pick holds steady, so the
+    /// moment may have eased since.
+    pub level: ThreatLevel,
+    /// The rule that picked it, such as `Leave by stairs`.
+    pub rule: String,
+    /// What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
+    /// ~95% win, ~20% HP lost`.
+    pub action: String,
+    /// At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
+    /// spell · 4% fail`, or that none is left.
+    pub if_lethal: Option<String>,
+}
+
 /// The card under the now pill: what deserves the player's attention now.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(
@@ -215,7 +266,7 @@ pub enum FocusCard {
     Fight {
         /// The monsters in view, as [`FocusCard::InView`] lists them.
         monsters: Option<Vec<Listing>>,
-        /// The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+        /// The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
         /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
         line: String,
         /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
@@ -381,13 +432,19 @@ mod tests {
 
     #[test]
     fn serializes_with_camel_case_fields_for_the_webview() {
-        let json = serde_json::to_value(ViewModel::initial("1.2.3", Appearance::Tiles)).unwrap();
+        let json = serde_json::to_value(ViewModel::initial(
+            "1.2.3",
+            Appearance::Tiles,
+            AssistanceLevel::Hints,
+        ))
+        .unwrap();
         assert_eq!(
             json,
             serde_json::json!({
                 "appVersion": "1.2.3",
                 "connection": { "state": "noBrowser" },
                 "appearance": "tiles",
+                "assistance": "hints",
                 "unreadableGameKnowledge": null,
                 "game": null
             })

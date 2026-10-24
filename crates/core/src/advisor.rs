@@ -10,9 +10,10 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
+use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
-    AskBox, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill, RunPlanRail,
-    TileName, ToolbarBadge, capitalised,
+    AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
+    RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -211,12 +212,13 @@ impl Advisor {
         &self.visible
     }
 
-    /// The panel for the followed game, once a Game Source has identified it.
+    /// The panel for the followed game, once a Game Source has identified it, at the player's
+    /// `assistance` level.
     ///
     /// Each part shows only what the Advisor can tell: without the facts to judge a Threat Level,
     /// and with no Run Plan yet, it says so rather than guess.
     #[must_use]
-    pub fn game_view(&self) -> Option<GameView> {
+    pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
         Some(GameView {
             character: Character {
@@ -230,6 +232,11 @@ impl Advisor {
                 &self.fact_sheet().threat,
                 self.current_alert().map(|alert| alert.line.clone()),
             ),
+            suggested_action: assistance
+                .suggests()
+                .then(|| self.suggested_action())
+                .flatten()
+                .map(|suggested| suggested.card()),
             focus: self.focus(),
             fact_cards: self.fact_cards(),
             ways_out: self
@@ -261,6 +268,16 @@ impl Advisor {
             .then(|| self.fact_sheet().fight.card(monsters.clone()))
             .flatten();
         fight.unwrap_or(FocusCard::InView { monsters })
+    }
+
+    /// The Suggested Action at this moment: the one held through the Encounter as of now, unless
+    /// something meaningful changed since the last Settled Update, when the detectors will pick
+    /// anew.
+    fn suggested_action(&self) -> Option<SuggestedAction> {
+        let held = self
+            .followed_game()
+            .and_then(|game| game.detectors.held_suggestion());
+        SuggestedAction::steady(held, self.fact_sheet(), self.visible.stats.hp_max)
     }
 
     /// A fact card for each kind of unique or Out of Depth monster in view, in map order.

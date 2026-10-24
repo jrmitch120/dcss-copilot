@@ -93,6 +93,12 @@ pub struct PlanOutcome {
 }
 
 impl PlanOutcome {
+    /// The plan and its odds as one line, against the `hp` its fights started from, such as
+    /// `Melee: ~60% win, ~70% HP lost`.
+    pub(crate) fn summary(&self, hp: i32) -> String {
+        format!("{}: {}", capitalised(&self.plan.name()), odds(self, hp))
+    }
+
     /// The hit points lost as a whole percentage of those the fights started from.
     #[must_use]
     pub fn hp_lost_percent(&self, hp: i32) -> i32 {
@@ -707,11 +713,9 @@ impl Fight {
                 let mut plans = outcome.plans.iter();
                 let line = plans.next().map_or_else(
                     || "No plan to fight with.".to_owned(),
-                    |best| format!("Fight on ({}): {}", best.plan.name(), odds(best, hp)),
+                    |best| format!("Best plan ({}): {}", best.plan.name(), odds(best, hp)),
                 );
-                let others = plans
-                    .map(|plan| format!("{}: {}", capitalised(&plan.plan.name()), odds(plan, hp)))
-                    .collect();
+                let others = plans.map(|plan| plan.summary(hp)).collect();
                 let words: Vec<&str> = outcome
                     .not_modelled
                     .iter()
@@ -1209,7 +1213,7 @@ mod tests {
             panic!("no fight card");
         };
         assert!(
-            line.starts_with("Fight on (Magic Dart, then melee): ~"),
+            line.starts_with("Best plan (Magic Dart, then melee): ~"),
             "{line}"
         );
         assert!(

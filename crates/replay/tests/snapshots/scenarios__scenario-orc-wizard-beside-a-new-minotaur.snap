@@ -216,6 +216,12 @@ expression: replay
           "line": "Orc wizard can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 10 of 19 HP"
         },
+        "suggestedAction": {
+          "level": "dangerous",
+          "rule": "Fight carefully",
+          "action": "The Advisor can't judge this fight",
+          "ifLethal": "no Way Out left"
+        },
         "focus": {
           "card": "fight",
           "monsters": [
@@ -482,6 +488,12 @@ expression: replay
           "line": "Orc wizard can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 10 of 19 HP"
         },
+        "suggestedAction": {
+          "level": "dangerous",
+          "rule": "Fight carefully",
+          "action": "The Advisor can't judge this fight",
+          "ifLethal": "no Way Out left"
+        },
         "focus": {
           "card": "fight",
           "monsters": [
@@ -576,6 +588,13 @@ expression: replay
       "event": "alert",
       "cause": "last-way-out-lost",
       "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 49,
+      "turn": 0,
+      "event": "suggestedAction",
+      "rule": "fight-carefully",
+      "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: no Way Out left"
     },
     {
       "envelope": 53,
@@ -787,6 +806,12 @@ expression: replay
         "alert": null,
         "line": "Orc wizard can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 10 of 16 HP"
+      },
+      "suggestedAction": {
+        "level": "dangerous",
+        "rule": "Fight carefully",
+        "action": "The Advisor can't judge this fight",
+        "ifLethal": "no Way Out left"
       },
       "focus": {
         "card": "fight",

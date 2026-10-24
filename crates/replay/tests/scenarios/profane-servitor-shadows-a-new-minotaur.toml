@@ -24,3 +24,7 @@ cause = "threat-level-rose"
 [[alerts]]
 turn = 1
 cause = "last-way-out-lost"
+
+[[suggested_actions]]
+turn = 0
+rule = "fight"

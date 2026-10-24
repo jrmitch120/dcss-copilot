@@ -1,0 +1,968 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz860296860",
+    "character": "wiz860296860",
+    "species": "Minotaur",
+    "firstSeenMs": 1792860298042,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [
+    {
+      "turn": 5,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 1,
+          "death": {
+            "times": 4201,
+            "trials": 10000
+          },
+          "worstHit": 36,
+          "hostilesInView": 1,
+          "bestPlanWin": null,
+          "acting": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 2,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "inTheWay",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "c",
+                "name": "scroll labelled YMAYFF GACUBBO",
+                "kindName": "teleportation",
+                "quantity": 1,
+                "effect": "escapesLater"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "d",
+                "name": "clear potion",
+                "kindName": "heal wounds",
+                "quantity": 1,
+                "effect": "heals"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay",
+            "monstersOutOfView"
+          ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
+        },
+        "exceptional": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 4,
+              "levels": 3
+            },
+            "alone": "lethal"
+          }
+        ],
+        "dangerousStatuses": []
+      },
+      "game": {
+        "character": {
+          "name": "wiz860296860",
+          "species": "Minotaur",
+          "hp": 1,
+          "hpMax": 19,
+          "turn": 5
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "alert": "Threat rose to LETHAL.",
+          "line": "Ogre can attack before your next action.",
+          "detail": "Death 42.0% · worst hit 36 of 1 HP"
+        },
+        "suggestedAction": {
+          "level": "lethal",
+          "rule": "Heal out of it",
+          "action": "Heal wounds · heals",
+          "ifLethal": null
+        },
+        "focus": {
+          "card": "fight",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "O",
+                  "colour": "brown"
+                },
+                "tile": "mon/humanoids/ogre"
+              },
+              "name": "ogre",
+              "detail": null,
+              "count": 1
+            }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
+          ]
+        },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
+              },
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "Ogre",
+            "why": "Out of depth: usually met 3 levels deeper",
+            "alone": "lethal"
+          }
+        ],
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Ogre is in the way"
+            },
+            {
+              "usable": true,
+              "name": "Teleportation",
+              "detail": "escapes after a delay",
+              "whyNot": null
+            },
+            {
+              "usable": true,
+              "name": "Heal wounds",
+              "detail": "heals",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        },
+        "live": true,
+        "badge": {
+          "decisionsWaiting": 0,
+          "callsForPanel": false
+        }
+      }
+    },
+    {
+      "turn": 6,
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "factSheet": {
+        "threat": {
+          "state": "rated",
+          "level": "lethal",
+          "hp": 1,
+          "death": {
+            "times": 4201,
+            "trials": 10000
+          },
+          "worstHit": 36,
+          "hostilesInView": 1,
+          "bestPlanWin": null,
+          "acting": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "casts": [],
+              "spellsNotModelled": [],
+              "movesNotModelled": [],
+              "shoots": []
+            }
+          ],
+          "gear": [
+            {
+              "name": "ogre",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "distance": 1,
+              "basis": {
+                "basis": "carried",
+                "state": "known",
+                "turn": 2,
+                "source": "sighting",
+                "unlisted": "plainLargeRocks"
+              },
+              "unplayed": []
+            }
+          ],
+          "lighting": "plain",
+          "resistances": null,
+          "notModelled": [
+            "attackFlavours",
+            "statuses",
+            "paths",
+            "awareness",
+            "defenceFractions"
+          ]
+        },
+        "waysOut": {
+          "options": [
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "stone staircase leading down",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": 0
+                },
+                "steps": 1,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "inTheWay",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "stairs",
+                "name": "escape hatch in the floor",
+                "direction": "down",
+                "position": {
+                  "x": -1,
+                  "y": -2
+                },
+                "steps": 2,
+                "overRememberedSquares": false
+              },
+              "usable": {
+                "state": "no",
+                "because": [
+                  {
+                    "blocker": "cutOff",
+                    "by": [
+                      {
+                        "name": "ogre",
+                        "position": {
+                          "x": -1,
+                          "y": 0
+                        },
+                        "moves": 1,
+                        "arrivesAfter": 1,
+                        "faster": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "c",
+                "name": "scroll labelled YMAYFF GACUBBO",
+                "kindName": "teleportation",
+                "quantity": 1,
+                "effect": "escapesLater"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            },
+            {
+              "option": {
+                "kind": "item",
+                "letter": "d",
+                "name": "clear potion",
+                "kindName": "heal wounds",
+                "quantity": 1,
+                "effect": "heals"
+              },
+              "usable": {
+                "state": "yes"
+              }
+            }
+          ],
+          "ground": {
+            "ground": "openGround",
+            "openSides": 5,
+            "nearestCorridor": null
+          },
+          "pace": {
+            "moveTime": 10,
+            "waterMoveTime": 16,
+            "actionTime": 10,
+            "because": [],
+            "mutationsRead": null
+          },
+          "gaps": [
+            {
+              "gap": "abilityMenu"
+            }
+          ],
+          "notModelled": [
+            "swimmingAndFlying",
+            "unexploredSquares",
+            "playerSpeed",
+            "hitsOnTheWay",
+            "monstersOutOfView"
+          ]
+        },
+        "fight": {
+          "state": "unjudged",
+          "gaps": [
+            {
+              "gap": "skills"
+            }
+          ]
+        },
+        "exceptional": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "why": {
+              "is": "outOfDepth",
+              "fromDepth": 4,
+              "levels": 3
+            },
+            "alone": "lethal"
+          }
+        ],
+        "dangerousStatuses": []
+      },
+      "game": {
+        "character": {
+          "name": "wiz860296860",
+          "species": "Minotaur",
+          "hp": 1,
+          "hpMax": 19,
+          "turn": 6
+        },
+        "now": {
+          "state": "rated",
+          "level": "lethal",
+          "alert": "HP 1 of 19: below a quarter.",
+          "line": "Ogre can attack before your next action.",
+          "detail": "Death 42.0% · worst hit 36 of 1 HP"
+        },
+        "suggestedAction": {
+          "level": "lethal",
+          "rule": "Heal out of it",
+          "action": "Heal wounds · heals",
+          "ifLethal": null
+        },
+        "focus": {
+          "card": "fight",
+          "monsters": [
+            {
+              "depiction": {
+                "glyph": {
+                  "text": "O",
+                  "colour": "brown"
+                },
+                "tile": "mon/humanoids/ogre"
+              },
+              "name": "ogre",
+              "detail": null,
+              "count": 1
+            }
+          ],
+          "line": "The Advisor can't judge a fight yet.",
+          "others": [],
+          "notModelled": null,
+          "gaps": [
+            "Open the skills screen (m) to judge a fight."
+          ]
+        },
+        "factCards": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
+              },
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "Ogre",
+            "why": "Out of depth: usually met 3 levels deeper",
+            "alone": "lethal"
+          }
+        ],
+        "waysOut": {
+          "rows": [
+            {
+              "usable": false,
+              "name": "Stone staircase leading down",
+              "detail": "1 step",
+              "whyNot": "Ogre is in the way"
+            },
+            {
+              "usable": true,
+              "name": "Teleportation",
+              "detail": "escapes after a delay",
+              "whyNot": null
+            },
+            {
+              "usable": true,
+              "name": "Heal wounds",
+              "detail": "heals",
+              "whyNot": null
+            }
+          ],
+          "ground": "On open ground: 5 sides open",
+          "gaps": [
+            "Open the ability menu (a) to judge your abilities."
+          ]
+        },
+        "runPlan": {
+          "state": "notPlanned"
+        },
+        "ask": {
+          "state": "needsModel"
+        },
+        "live": true,
+        "badge": {
+          "decisionsWaiting": 0,
+          "callsForPanel": false
+        }
+      }
+    }
+  ],
+  "newLevels": [],
+  "detections": [
+    {
+      "envelope": 106,
+      "turn": 2,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 106,
+      "turn": 2,
+      "event": "factCard",
+      "name": "ogre",
+      "position": {
+        "x": -2,
+        "y": -1
+      },
+      "why": {
+        "is": "outOfDepth",
+        "fromDepth": 4,
+        "levels": 3
+      },
+      "alone": "calm"
+    },
+    {
+      "envelope": 127,
+      "turn": 5,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "lethal",
+      "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 127,
+      "turn": 5,
+      "event": "suggestedAction",
+      "rule": "best-escape",
+      "line": "Escape — Teleportation · escapes after a delay"
+    },
+    {
+      "envelope": 140,
+      "turn": 6,
+      "event": "alert",
+      "cause": "hit-points-below-quarter",
+      "line": "HP 1 of 19: below a quarter."
+    },
+    {
+      "envelope": 140,
+      "turn": 6,
+      "event": "suggestedAction",
+      "rule": "heal-out-of-it",
+      "line": "Heal out of it — Heal wounds · heals"
+    }
+  ],
+  "end": {
+    "turn": 7,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "lethal",
+        "hp": 1,
+        "death": {
+          "times": 4201,
+          "trials": 10000
+        },
+        "worstHit": 36,
+        "hostilesInView": 1,
+        "bestPlanWin": null,
+        "acting": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "ogre",
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 2,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "inTheWay",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": -1,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "ogre",
+                      "position": {
+                        "x": -1,
+                        "y": 0
+                      },
+                      "moves": 1,
+                      "arrivesAfter": 1,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "c",
+              "name": "scroll labelled YMAYFF GACUBBO",
+              "kindName": "teleportation",
+              "quantity": 1,
+              "effect": "escapesLater"
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "item",
+              "letter": "d",
+              "name": "clear potion",
+              "kindName": "heal wounds",
+              "quantity": 1,
+              "effect": "heals"
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "unjudged",
+        "gaps": [
+          {
+            "gap": "skills"
+          }
+        ]
+      },
+      "exceptional": [
+        {
+          "name": "ogre",
+          "position": {
+            "x": -1,
+            "y": 0
+          },
+          "why": {
+            "is": "outOfDepth",
+            "fromDepth": 4,
+            "levels": 3
+          },
+          "alone": "lethal"
+        }
+      ],
+      "dangerousStatuses": []
+    },
+    "game": {
+      "character": {
+        "name": "wiz860296860",
+        "species": "Minotaur",
+        "hp": 1,
+        "hpMax": 19,
+        "turn": 7
+      },
+      "now": {
+        "state": "rated",
+        "level": "lethal",
+        "alert": null,
+        "line": "Ogre can attack before your next action.",
+        "detail": "Death 42.0% · worst hit 36 of 1 HP"
+      },
+      "suggestedAction": {
+        "level": "lethal",
+        "rule": "Heal out of it",
+        "action": "Heal wounds · heals",
+        "ifLethal": null
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "O",
+                "colour": "brown"
+              },
+              "tile": "mon/humanoids/ogre"
+            },
+            "name": "ogre",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "The Advisor can't judge a fight yet.",
+        "others": [],
+        "notModelled": null,
+        "gaps": [
+          "Open the skills screen (m) to judge a fight."
+        ]
+      },
+      "factCards": [
+        {
+          "depiction": {
+            "glyph": {
+              "text": "O",
+              "colour": "brown"
+            },
+            "tile": "mon/humanoids/ogre"
+          },
+          "name": "Ogre",
+          "why": "Out of depth: usually met 3 levels deeper",
+          "alone": "lethal"
+        }
+      ],
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Ogre is in the way"
+          },
+          {
+            "usable": true,
+            "name": "Teleportation",
+            "detail": "escapes after a delay",
+            "whyNot": null
+          },
+          {
+            "usable": true,
+            "name": "Heal wounds",
+            "detail": "heals",
+            "whyNot": null
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      }
+    }
+  }
+}

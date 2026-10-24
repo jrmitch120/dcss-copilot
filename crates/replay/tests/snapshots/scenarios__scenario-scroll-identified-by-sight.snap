@@ -194,6 +194,7 @@ expression: replay
           "line": "Jackal can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 3 of 19 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -447,6 +448,7 @@ expression: replay
         "line": "Jackal can attack before your next action.",
         "detail": "Death under 0.1% · worst hit 3 of 19 HP"
       },
+      "suggestedAction": null,
       "focus": {
         "card": "fight",
         "monsters": [

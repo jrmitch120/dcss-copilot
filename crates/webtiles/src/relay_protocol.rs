@@ -3,13 +3,13 @@
 
 use serde::{Deserialize, Serialize};
 
-use copilot_core::Appearance;
+use copilot_core::{Appearance, AssistanceLevel};
 
 use crate::Envelope;
 
 /// The only compatibility contract between the extension and the app. Bump it whenever a frame
 /// changes shape; the app also accepts the previous version.
-pub const RELAY_PROTOCOL_VERSION: u32 = 2;
+pub const RELAY_PROTOCOL_VERSION: u32 = 3;
 
 /// The port the app listens on for the extension, on 127.0.0.1 only.
 pub const RELAY_PORT: u16 = 47_821;
@@ -59,6 +59,11 @@ pub enum PanelCommand {
     SetAppearance {
         /// The player's choice.
         appearance: Appearance,
+    },
+    /// Set how much the Advisor offers beyond Information. Since protocol 3.
+    SetAssistance {
+        /// The player's choice.
+        assistance: AssistanceLevel,
     },
     /// Open the app's Settings window.
     OpenSettings,

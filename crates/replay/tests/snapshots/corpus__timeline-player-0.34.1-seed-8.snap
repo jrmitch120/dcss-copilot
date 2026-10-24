@@ -17,6 +17,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 287,
+    "turn": 22,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
+  },
+  {
     "envelope": 634,
     "turn": 68,
     "event": "alert",
@@ -40,6 +47,13 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 692,
+    "turn": 108,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~79% win, ~57% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 764,
@@ -129,6 +143,13 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
+    "envelope": 2800,
+    "turn": 1314,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 4 steps away"
+  },
+  {
     "envelope": 2888,
     "turn": 1367,
     "event": "allClear"
@@ -167,6 +188,13 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 3455,
+    "turn": 1813,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
+  },
+  {
     "envelope": 3703,
     "turn": 1857,
     "event": "allClear"
@@ -182,6 +210,13 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 3723,
+    "turn": 1941,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 9 steps away"
   },
   {
     "envelope": 3846,
@@ -209,11 +244,25 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 3898,
+    "turn": 2092,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading down · ~11 steps · partly out of view"
+  },
+  {
     "envelope": 4055,
     "turn": 2187,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 4055,
+    "turn": 2187,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 11 steps away"
   },
   {
     "envelope": 4216,
@@ -231,10 +280,24 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 4230,
+    "turn": 2204,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
+  },
+  {
     "envelope": 4235,
     "turn": 2205,
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 6 of 39: below a quarter."
+  },
+  {
+    "envelope": 4240,
+    "turn": 2206,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading down · ~29 steps · partly out of view"
   }
 ]

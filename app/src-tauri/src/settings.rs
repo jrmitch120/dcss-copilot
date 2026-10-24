@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use copilot_core::Appearance;
+use copilot_core::{Appearance, AssistanceLevel};
 use copilot_llm::{ModelChoice, ModelSlot};
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +19,7 @@ pub struct Settings {
 #[serde(rename_all = "camelCase", default)]
 struct Saved {
     appearance: Appearance,
+    assistance: AssistanceLevel,
     quick_model: ModelChoice,
     deep_model: ModelChoice,
 }
@@ -27,6 +28,7 @@ impl Default for Saved {
     fn default() -> Self {
         Self {
             appearance: Appearance::default(),
+            assistance: AssistanceLevel::default(),
             quick_model: ModelChoice::default_for(ModelSlot::Quick),
             deep_model: ModelChoice::default_for(ModelSlot::Deep),
         }
@@ -102,6 +104,21 @@ impl Settings {
     /// If the settings can't be saved. The change still applies until the app exits.
     pub fn set_appearance(&mut self, appearance: Appearance) -> Result<(), SettingsError> {
         self.saved.appearance = appearance;
+        self.save()
+    }
+
+    /// How much the Advisor offers beyond Information.
+    #[must_use]
+    pub fn assistance(&self) -> AssistanceLevel {
+        self.saved.assistance
+    }
+
+    /// Changes how much the Advisor offers beyond Information, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_assistance(&mut self, assistance: AssistanceLevel) -> Result<(), SettingsError> {
+        self.saved.assistance = assistance;
         self.save()
     }
 

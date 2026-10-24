@@ -172,6 +172,7 @@ expression: replay
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 34 of 102 HP"
         },
+        "suggestedAction": null,
         "focus": {
           "card": "fight",
           "monsters": [
@@ -381,6 +382,12 @@ expression: replay
           "alert": null,
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 34 of 71 HP"
+        },
+        "suggestedAction": {
+          "level": "dangerous",
+          "rule": "Fall back to stairs",
+          "action": "Escape hatch in the floor · underfoot",
+          "ifLethal": null
         },
         "focus": {
           "card": "fight",
@@ -592,6 +599,12 @@ expression: replay
           "line": "Oklob plant can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 35 of 52 HP"
         },
+        "suggestedAction": {
+          "level": "dangerous",
+          "rule": "Fall back to stairs",
+          "action": "Escape hatch in the floor · underfoot",
+          "ifLethal": null
+        },
         "focus": {
           "card": "fight",
           "monsters": [
@@ -661,12 +674,26 @@ expression: replay
       "line": "Threat rose to DANGEROUS."
     },
     {
+      "envelope": 96,
+      "turn": 2,
+      "event": "suggestedAction",
+      "rule": "fall-back-to-stairs",
+      "line": "Fall back to stairs — Escape hatch in the floor · underfoot"
+    },
+    {
       "envelope": 121,
       "turn": 4,
       "event": "alert",
       "cause": "threat-level-rose",
       "to": "lethal",
       "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 121,
+      "turn": 4,
+      "event": "suggestedAction",
+      "rule": "leave-by-stairs",
+      "line": "Leave by stairs — Escape hatch in the floor · underfoot"
     }
   ],
   "end": {
@@ -826,6 +853,12 @@ expression: replay
         "alert": "Threat rose to LETHAL.",
         "line": "Oklob plant can attack before your next action.",
         "detail": "Death 7.5% · worst hit 35 of 28 HP"
+      },
+      "suggestedAction": {
+        "level": "lethal",
+        "rule": "Leave by stairs",
+        "action": "Escape hatch in the floor · underfoot",
+        "ifLethal": null
       },
       "focus": {
         "card": "fight",

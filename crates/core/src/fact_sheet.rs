@@ -189,6 +189,18 @@ impl Chance {
             && u64::from(self.times) * 1000 >= u64::from(per_mille) * u64::from(self.trials)
     }
 
+    /// Whether the chance is at least `percent` in a hundred.
+    pub(crate) fn at_least_percent(self, percent: u64) -> bool {
+        u64::from(self.times) * 100 >= percent * u64::from(self.trials)
+    }
+
+    /// Whether the chance is at least `points` in a hundred more than `other`.
+    pub(crate) fn ahead_by_points(self, other: Self, points: u64) -> bool {
+        let (trials, other_trials) = (u64::from(self.trials), u64::from(other.trials));
+        u64::from(self.times) * 100 * other_trials
+            >= u64::from(other.times) * 100 * trials + points * trials * other_trials
+    }
+
     /// The chance as a percentage.
     #[must_use]
     pub fn percent(self) -> f64 {

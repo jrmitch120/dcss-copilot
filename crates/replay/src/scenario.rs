@@ -4,7 +4,9 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use copilot_core::{AlertKind, CrawlVersion, Detection, FactSheet, GameIdentity, GameView, Place};
+use copilot_core::{
+    AlertKind, CrawlVersion, Detection, FactSheet, GameIdentity, GameView, Place, SuggestionRule,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{CrawlVersionMismatch, Happened, Moment, Recording, ReplayError, Replayer};
@@ -79,7 +81,21 @@ pub struct ExpectedSuggestedAction {
     /// The turn it is shown on.
     pub turn: u32,
     /// The rule that picked it, such as `leave-by-stairs`.
-    pub rule: String,
+    pub rule: SuggestionRule,
+}
+
+impl ExpectedSuggestedAction {
+    /// The Suggested Action a [`Detection`] at `moment` showed, as a manifest lists it, if it
+    /// showed one.
+    fn shown(moment: &Moment) -> Option<Self> {
+        let Happened::Detected(Detection::SuggestedAction { rule, .. }) = &moment.event else {
+            return None;
+        };
+        Some(Self {
+            turn: moment.turn?,
+            rule: *rule,
+        })
+    }
 }
 
 /// What the Advisor made of a scenario.
@@ -92,8 +108,8 @@ pub struct ScenarioReplay {
     pub turns: Vec<Snapshot>,
     /// Each level the game arrived on, as its first turn there ended.
     pub new_levels: Vec<Snapshot>,
-    /// What the detectors noticed, in order: the timeline of Encounters, All Clears, fact cards
-    /// and Alerts.
+    /// What the detectors noticed, in order: the timeline of Encounters, All Clears, fact cards,
+    /// Alerts and Suggested Actions.
     pub detections: Vec<Moment>,
     /// The end of the Recording, which is the end of the game if it ended.
     pub end: Snapshot,
@@ -154,9 +170,16 @@ pub enum ScenarioError {
         /// What the Advisor raised.
         raised: Vec<ExpectedAlert>,
     },
-    /// The manifest expects Suggested Actions, which the Advisor can't show yet.
-    #[error("scenario expects Suggested Actions, but the Advisor shows none yet (#38)")]
-    SuggestedActionsNotYetShown,
+    /// The Advisor showed other Suggested Actions than the manifest expects.
+    #[error(
+        "scenario expects the Suggested Actions {expected:?}, but the Advisor showed {shown:?}"
+    )]
+    SuggestedActionsDiffer {
+        /// What the manifest expects.
+        expected: Vec<ExpectedSuggestedAction>,
+        /// What the Advisor showed.
+        shown: Vec<ExpectedSuggestedAction>,
+    },
 }
 
 impl Scenario {
@@ -192,12 +215,9 @@ impl Scenario {
     ///
     /// # Errors
     /// If the Recording can't be replayed, its games report another Crawl Version than its tag, a
-    /// snapshot turn is never reached, the Advisor raises other Alerts than the manifest expects,
-    /// or the manifest expects Suggested Actions, which the Advisor can't show yet.
+    /// snapshot turn is never reached, or the Advisor raises other Alerts or shows other
+    /// Suggested Actions than the manifest expects.
     pub fn play(&self) -> Result<ScenarioReplay, ScenarioError> {
-        if !self.suggested_actions.is_empty() {
-            return Err(ScenarioError::SuggestedActionsNotYetShown);
-        }
         let replay_error = |source| ScenarioError::Replay {
             path: self.recording.clone(),
             source,
@@ -253,6 +273,16 @@ impl Scenario {
             return Err(ScenarioError::AlertsDiffer {
                 expected: self.alerts.clone(),
                 raised,
+            });
+        }
+        let shown: Vec<ExpectedSuggestedAction> = detections
+            .iter()
+            .filter_map(ExpectedSuggestedAction::shown)
+            .collect();
+        if shown != self.suggested_actions {
+            return Err(ScenarioError::SuggestedActionsDiffer {
+                expected: self.suggested_actions.clone(),
+                shown,
             });
         }
         Ok(ScenarioReplay {

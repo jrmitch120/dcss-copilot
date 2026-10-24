@@ -86,7 +86,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
       link.start();
       const socket = sockets.at(-1) as FakeSocket;
       socket.open();
-      socket.receive({ type: "welcome", protocol: 2 });
+      socket.receive({ type: "welcome", protocol: 3 });
       return socket;
     },
   };
@@ -99,7 +99,7 @@ describe("extension relay", () => {
     const socket = relay.sockets[0] as FakeSocket;
     socket.open();
 
-    expect(socket.sent).toEqual([{ type: "hello", protocol: 2 }]);
+    expect(socket.sent).toEqual([{ type: "hello", protocol: 3 }]);
   });
 
   it("forwards each message unchanged in an envelope once the app welcomes the browser", () => {
@@ -225,7 +225,7 @@ describe("handshake", () => {
     relay.serverSends({ msg: "player", hp: 17 });
     expect(socket.envelopes()).toEqual([]);
 
-    socket.receive({ type: "welcome", protocol: 2 });
+    socket.receive({ type: "welcome", protocol: 3 });
     expect(socket.envelopes().map(messageOf)).toEqual([
       { msg: "player", name: "Mira" },
       { msg: "player", hp: 17 },
@@ -284,6 +284,7 @@ describe("side panels", () => {
     const socket = relay.connectAndWelcome();
 
     relay.link.panelCommand(3, { kind: "set-appearance", appearance: "glyphs" });
+    relay.link.panelCommand(4, { kind: "set-assistance", assistance: "coach" });
     socket.receive({ type: "view", view: { appVersion: "1.2.3" } });
     socket.receive({ type: "panel-command-done", id: 3, error: null });
 
@@ -292,6 +293,11 @@ describe("side panels", () => {
         type: "panel-command",
         id: 3,
         command: { kind: "set-appearance", appearance: "glyphs" },
+      },
+      {
+        type: "panel-command",
+        id: 4,
+        command: { kind: "set-assistance", assistance: "coach" },
       },
     ]);
     expect(relay.toSidePanels).toEqual([
@@ -306,7 +312,7 @@ describe("side panels", () => {
     const asking = relay.sockets[0] as FakeSocket;
     asking.open();
     asking.receive({ type: "awaiting-approval" });
-    asking.receive({ type: "welcome", protocol: 2 });
+    asking.receive({ type: "welcome", protocol: 3 });
     asking.close();
     relay.retries[0]?.();
     const refused = relay.sockets[1] as FakeSocket;
