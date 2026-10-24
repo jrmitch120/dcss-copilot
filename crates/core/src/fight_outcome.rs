@@ -713,7 +713,7 @@ impl Fight {
                 let mut plans = outcome.plans.iter();
                 let line = plans.next().map_or_else(
                     || "No plan to fight with.".to_owned(),
-                    |best| format!("Fight on ({}): {}", best.plan.name(), odds(best, hp)),
+                    |best| format!("Best plan ({}): {}", best.plan.name(), odds(best, hp)),
                 );
                 let others = plans.map(|plan| plan.summary(hp)).collect();
                 let words: Vec<&str> = outcome
@@ -1213,7 +1213,7 @@ mod tests {
             panic!("no fight card");
         };
         assert!(
-            line.starts_with("Fight on (Magic Dart, then melee): ~"),
+            line.starts_with("Best plan (Magic Dart, then melee): ~"),
             "{line}"
         );
         assert!(

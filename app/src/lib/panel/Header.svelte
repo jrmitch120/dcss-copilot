@@ -38,16 +38,19 @@ function stat(value: number | null): string {
     · {character.species} · HP {stat(character.hp)}/{stat(character.hpMax)}
     · T {stat(character.turn)}
   </span>
-  <span class="sp"></span>
-  <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
+  <span class="levels">
+    <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
+  </span>
 </header>
 {#if saveError}
   <p class="error small">{saveError}</p>
 {/if}
 
 <style>
+/* The toggle wraps below rather than crowd out the character's hit points and turn. */
 header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 11px 14px 9px;
@@ -81,6 +84,9 @@ header {
 }
 
 .who {
+  flex: 1 0 auto;
+  /* As wide as the header beside the dot, past which it is cut short. */
+  max-width: calc(100% - 16px);
   font-size: 12.5px;
   color: var(--unrated);
   white-space: nowrap;
@@ -93,8 +99,8 @@ header {
   color: var(--text-strong);
 }
 
-.sp {
-  flex: 1;
+.levels {
+  margin-left: auto;
 }
 
 .error {

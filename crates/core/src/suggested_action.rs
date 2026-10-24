@@ -153,11 +153,15 @@ impl Odds {
 
 impl SuggestedAction {
     /// What the rules pick at the moment of `fact_sheet`, for a player with `hp_max` hit points
-    /// at most: `None` unless the moment is DANGEROUS or LETHAL.
+    /// at most: `None` unless the moment is DANGEROUS or LETHAL and the character still lives.
     fn pick(fact_sheet: &FactSheet, hp_max: Option<i32>) -> Option<Self> {
         let Threat::Rated(assessment) = &fact_sheet.threat else {
             return None;
         };
+        // Crawl shows hit points at or below zero once the character has died.
+        if assessment.hp <= 0 {
+            return None;
+        }
         let ways_out = &fact_sheet.ways_out;
         let fight = || fight_action(&fact_sheet.fight, assessment.hp);
         let picked = |rule, action| Self {
@@ -202,7 +206,8 @@ impl SuggestedAction {
     /// The Suggested Action at the moment of `fact_sheet`, for a player with `hp_max` hit points
     /// at most, given the one `held` so far this Encounter: `held` as of now, unless it can no
     /// longer be done, a rule that outranks it applies, or the rules' fresh pick wins clearly
-    /// more fights. `None` unless the moment is DANGEROUS or LETHAL.
+    /// more fights. `None` unless the moment is DANGEROUS or LETHAL and the character still
+    /// lives.
     pub(crate) fn steady(
         held: Option<&Self>,
         fact_sheet: &FactSheet,
@@ -844,6 +849,21 @@ mod tests {
             cornered.card().if_lethal.as_deref(),
             Some("no Way Out left")
         );
+    }
+
+    #[test]
+    fn nothing_is_suggested_once_the_character_is_dead() {
+        let mut dead = moment(
+            ThreatLevel::Lethal,
+            1,
+            Vec::new(),
+            judged(vec![plan(None, 0, HP)]),
+        );
+        if let Threat::Rated(assessment) = &mut dead.threat {
+            assessment.hp = -2;
+        }
+
+        assert_eq!(rule_at(&dead), None);
     }
 
     #[test]

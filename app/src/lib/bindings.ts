@@ -147,7 +147,7 @@ monsters: Listing[] | null } |
 /**  The monsters in view, as [`FocusCard::InView`] lists them. */
 monsters: Listing[] | null; 
 /**
- *  The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+ *  The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
  *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
  */
 line: string; 

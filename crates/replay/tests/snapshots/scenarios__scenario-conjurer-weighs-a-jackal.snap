@@ -261,7 +261,7 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "Fight on (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
           "others": [
             "Melee: ~74% win, ~62% HP lost"
           ],
@@ -566,7 +566,7 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "Fight on (Magic Dart, then melee): ~98% win, ~15% HP lost",
+        "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
         "others": [
           "Melee: ~74% win, ~62% HP lost"
         ],

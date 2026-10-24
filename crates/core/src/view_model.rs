@@ -266,7 +266,7 @@ pub enum FocusCard {
     Fight {
         /// The monsters in view, as [`FocusCard::InView`] lists them.
         monsters: Option<Vec<Listing>>,
-        /// The fight in one line: the best Attack Plan's odds, such as `Fight on (Fireball, then
+        /// The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
         /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
         line: String,
         /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
