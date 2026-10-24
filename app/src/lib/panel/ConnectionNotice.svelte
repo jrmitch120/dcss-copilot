@@ -1,13 +1,17 @@
 <script lang="ts">
-import { type Connection, commands } from "$lib/bindings";
-import { failure } from "$lib/command";
+import type { Connection } from "$lib/bindings";
+import type { PanelActions } from "./actions";
 
-let { connection, following }: { connection: Connection; following: boolean } = $props();
+let {
+  connection,
+  following,
+  actions,
+}: { connection: Connection; following: boolean; actions: PanelActions } = $props();
 
 let answerError = $state<string | null>(null);
 
-async function answerBrowser(allow: boolean) {
-  answerError = failure(await commands.answerBrowser(allow));
+async function answer(answerBrowser: (allow: boolean) => Promise<string | null>, allow: boolean) {
+  answerError = await answerBrowser(allow);
 }
 </script>
 
@@ -19,10 +23,15 @@ async function answerBrowser(allow: boolean) {
       installed the DCSS Copilot extension.
     </p>
     <p class="origin">{connection.browser}</p>
-    <div class="acts">
-      <button type="button" class="pri" onclick={() => answerBrowser(true)}>Allow</button>
-      <button type="button" onclick={() => answerBrowser(false)}>Don't allow</button>
-    </div>
+    {#if actions.answerBrowser}
+      {@const answerBrowser = actions.answerBrowser}
+      <div class="acts">
+        <button type="button" class="pri" onclick={() => answer(answerBrowser, true)}>Allow</button>
+        <button type="button" onclick={() => answer(answerBrowser, false)}>Don't allow</button>
+      </div>
+    {:else}
+      <p class="small">Answer in the DCSS Copilot app.</p>
+    {/if}
     {#if answerError}
       <p class="error small">
         Your answer couldn't be saved, so you'll be asked again: {answerError}

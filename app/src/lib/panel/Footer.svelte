@@ -1,8 +1,12 @@
 <script lang="ts">
-import { type Appearance, commands } from "$lib/bindings";
-import { failure } from "$lib/command";
+import type { Appearance } from "$lib/bindings";
+import type { PanelActions } from "./actions";
 
-let { appVersion, appearance }: { appVersion: string; appearance: Appearance } = $props();
+let {
+  appVersion,
+  appearance,
+  actions,
+}: { appVersion: string; appearance: Appearance; actions: PanelActions } = $props();
 
 let saveError = $state<string | null>(null);
 
@@ -12,12 +16,12 @@ const CHOICES: [Appearance, string][] = [
 ];
 
 async function choose(choice: Appearance) {
-  const error = failure(await commands.setAppearance(choice));
+  const error = await actions.setAppearance(choice);
   saveError = error === null ? null : `This choice lasts only until DCSS Copilot closes: ${error}`;
 }
 
 async function openSettings() {
-  const error = failure(await commands.openSettings());
+  const error = await actions.openSettings();
   saveError = error === null ? null : `Settings couldn't open: ${error}`;
 }
 </script>

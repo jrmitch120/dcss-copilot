@@ -1,15 +1,16 @@
 <script lang="ts">
 import "$lib/panel/theme.css";
-import type { ViewModel } from "$lib/bindings";
-import AskBox from "$lib/panel/AskBox.svelte";
-import ConnectionNotice from "$lib/panel/ConnectionNotice.svelte";
-import FocusCard from "$lib/panel/FocusCard.svelte";
-import Footer from "$lib/panel/Footer.svelte";
-import Header from "$lib/panel/Header.svelte";
-import NowPill from "$lib/panel/NowPill.svelte";
-import RunPlanRail from "$lib/panel/RunPlanRail.svelte";
-import WaysOut from "$lib/panel/WaysOut.svelte";
+import { commands, type ViewModel } from "$lib/bindings";
+import { failure } from "$lib/command";
+import type { PanelActions } from "$lib/panel/actions";
+import Panel from "$lib/panel/Panel.svelte";
 import { followViewModel } from "$lib/view-model";
+
+const ACTIONS: PanelActions = {
+  setAppearance: async (appearance) => failure(await commands.setAppearance(appearance)),
+  openSettings: async () => failure(await commands.openSettings()),
+  answerBrowser: async (allow) => failure(await commands.answerBrowser(allow)),
+};
 
 let view = $state<ViewModel | null>(null);
 
@@ -20,64 +21,6 @@ $effect(() =>
 );
 </script>
 
-<main class="panel">
-  {#if view}
-    {#if view.game}
-      <Header character={view.game.character} now={view.game.now} />
-    {/if}
-    <div class="body">
-      <ConnectionNotice connection={view.connection} following={view.game !== null} />
-      {#if view.unreadableGameKnowledge}
-        <p class="status error">
-          DCSS Copilot can't read its Game Knowledge, so it can't name or judge monsters:
-          {view.unreadableGameKnowledge}
-        </p>
-      {/if}
-      {#if view.game}
-        <NowPill now={view.game.now} />
-        <FocusCard
-          focus={view.game.focus}
-          factCards={view.game.factCards}
-          appearance={view.appearance}
-        />
-        {#if view.game.waysOut}
-          <WaysOut waysOut={view.game.waysOut} />
-        {/if}
-      {/if}
-    </div>
-    {#if view.game}
-      <RunPlanRail runPlan={view.game.runPlan} />
-      <AskBox ask={view.game.ask} />
-    {/if}
-    <Footer appVersion={view.appVersion} appearance={view.appearance} />
-  {/if}
-</main>
-
-<style>
-.panel {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background:
-    radial-gradient(600px 400px at 100% 0%, var(--bg-glow) 0%, transparent 60%), var(--bg);
-}
-
-.status {
-  margin: 0;
-  font-size: 12.5px;
-}
-
-.error {
-  color: var(--error);
-}
-
-.body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 16px;
-}
-</style>
+{#if view}
+  <Panel {view} actions={ACTIONS} />
+{/if}
