@@ -11,6 +11,7 @@ const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall
 const EXCEPTIONAL: &[u8] = include_bytes!("recordings/sigmund-follows-an-ogre-into-view.dcssrec");
 const STATUSES: &[u8] =
     include_bytes!("recordings/rook-poisoned-then-confused-beside-lava.dcssrec");
+const JOINED: &[u8] = include_bytes!("recordings/joined-as-jackals-bite.dcssrec");
 /// A Recording without the game's `input_mode` messages, so no update of it ever settles.
 const NEVER_SETTLES: &[u8] = include_bytes!("recordings/jackals-close-in.dcssrec");
 
@@ -22,12 +23,7 @@ fn replayed(recording: &[u8]) -> Replayer {
 
 /// What the detectors noticed over the whole of `recording`, in order.
 fn detections(recording: &[u8]) -> Vec<Moment> {
-    replayed(recording)
-        .timeline()
-        .iter()
-        .filter(|moment| matches!(moment.event, Happened::Detected(_)))
-        .cloned()
-        .collect()
+    replayed(recording).detections().cloned().collect()
 }
 
 /// The causes of the Alerts raised on `turn`.
@@ -50,8 +46,9 @@ fn an_encounter_starts_as_hostiles_come_into_view_and_ends_three_clear_actions_a
 }
 
 #[test]
-fn at_most_one_alert_is_raised_at_a_player_action_the_most_urgent() {
-    // Turn 103: hit points fall below half and a quarter as the Threat Level rises to LETHAL.
+fn at_most_one_alert_is_raised_at_a_player_action_and_the_rest_wait_for_the_next() {
+    // Turn 103: hit points fall below half and a quarter as the Threat Level rises to LETHAL. At
+    // 104 they are still below a quarter, which says all that below half would.
     let detections = detections(JACKALS_FALL);
 
     assert_eq!(
@@ -60,6 +57,15 @@ fn at_most_one_alert_is_raised_at_a_player_action_the_most_urgent() {
             to: ThreatLevel::Lethal
         }]
     );
+    assert_eq!(
+        alerts_on(&detections, 104),
+        [AlertCause::HitPointsBelowQuarter]
+    );
+}
+
+#[test]
+fn joining_a_fight_in_progress_starts_an_encounter_and_says_how_dangerous_it_is() {
+    insta::assert_json_snapshot!(detections(JOINED));
 }
 
 #[test]
@@ -98,7 +104,7 @@ fn the_panel_shows_a_fact_card_for_each_unique_or_out_of_depth_monster_in_view()
 #[test]
 fn a_dangerous_status_landing_starts_an_encounter_and_raises_an_alert() {
     // Turn 301: lethal poison, cured at 302. 305: confusion, far from the lava. 306: a step beside
-    // it.
+    // it. 307: liquid fire.
     insta::assert_json_snapshot!(detections(STATUSES));
 }
 

@@ -125,9 +125,8 @@ expression: detections
     "envelope": 2800,
     "turn": 1314,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
     "envelope": 2888,
@@ -185,14 +184,6 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 3757,
-    "turn": 1943,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
-  },
-  {
     "envelope": 3846,
     "turn": 1952,
     "event": "alert",
@@ -218,8 +209,8 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 4171,
-    "turn": 2196,
+    "envelope": 4055,
+    "turn": 2187,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
@@ -238,5 +229,12 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 4235,
+    "turn": 2205,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 6 of 39: below a quarter."
   }
 ]

@@ -25,4 +25,4 @@ keys = [
 
 [[alerts]]
 turn = 0
-cause = "threat-level-rose"
+cause = "last-way-out-lost"

@@ -211,5 +211,20 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 1899,
+    "turn": 1727,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "lethalPoison",
+    "line": "The poison in you will kill you unless you cure it."
+  },
+  {
+    "envelope": 1907,
+    "turn": 1728,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 1 of 33: below a quarter."
   }
 ]

@@ -33,5 +33,13 @@ expression: detections(STATUSES)
     "cause": "dangerous-status",
     "status": "confusionBesideDeepWaterOrLava",
     "line": "You are confused beside deep water or lava."
+  },
+  {
+    "envelope": 33,
+    "turn": 307,
+    "event": "alert",
+    "cause": "dangerous-status",
+    "status": "liquidFire",
+    "line": "You are burning in liquid fire."
   }
 ]

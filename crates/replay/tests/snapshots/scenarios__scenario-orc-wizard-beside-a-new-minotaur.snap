@@ -473,7 +473,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "dangerous",
-          "alert": null,
+          "alert": "Orc wizard, out of depth by 3 levels, alone makes this DANGEROUS.",
           "line": "Orc wizard can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 10 of 19 HP"
         },
@@ -566,6 +566,14 @@ expression: replay
       "event": "alert",
       "cause": "last-way-out-lost",
       "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 53,
+      "turn": 1,
+      "event": "alert",
+      "cause": "out-of-depth",
+      "monster": "orc wizard",
+      "line": "Orc wizard, out of depth by 3 levels, alone makes this DANGEROUS."
     }
   ],
   "end": {

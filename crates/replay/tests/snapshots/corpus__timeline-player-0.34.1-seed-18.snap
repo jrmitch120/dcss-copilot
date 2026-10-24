@@ -127,9 +127,8 @@ expression: detections
     "envelope": 1457,
     "turn": 804,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
     "envelope": 1617,

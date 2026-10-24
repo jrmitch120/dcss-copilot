@@ -28,6 +28,7 @@ const JACKALS_FALL: &[u8] = include_bytes!("recordings/jackals-close-in-and-fall
 const EXCEPTIONAL: &[u8] = include_bytes!("recordings/sigmund-follows-an-ogre-into-view.dcssrec");
 const STATUSES: &[u8] =
     include_bytes!("recordings/rook-poisoned-then-confused-beside-lava.dcssrec");
+const JOINED: &[u8] = include_bytes!("recordings/joined-as-jackals-bite.dcssrec");
 const ENTERS_WIZARD_MODE: &[u8] = include_bytes!("scenarios/ogre-beside-a-new-minotaur.dcssrec");
 const AMONG_FUNGI: &[u8] = include_bytes!("scenarios/jackals-among-fungi.dcssrec");
 
@@ -710,7 +711,7 @@ fn the_light_on_the_player_is_read_off_the_game_as_crawl_judges_it() {
 
 /// Every test Recording in `recordings/`, tagged with the Crawl Versions its games report, in the order
 /// first seen.
-const TAGGED: [(&str, &[u8], &[&str]); 18] = [
+const TAGGED: [(&str, &[u8], &[&str]); 19] = [
     ("minotaur-first-steps", MINOTAUR, &["0.34.1"]),
     (
         "spectating-trunk-wizard",
@@ -735,6 +736,7 @@ const TAGGED: [(&str, &[u8], &[&str]); 18] = [
     ),
     ("jackals-close-in", JACKALS, &["0.34.1"]),
     ("jackals-close-in-and-fall", JACKALS_FALL, &["0.34.1"]),
+    ("joined-as-jackals-bite", JOINED, &["0.34.1"]),
     (
         "sigmund-follows-an-ogre-into-view",
         EXCEPTIONAL,

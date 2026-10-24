@@ -26,6 +26,14 @@ expression: detections
     "line": "HP 6 of 17: below half."
   },
   {
+    "envelope": 287,
+    "turn": 36,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
     "envelope": 805,
     "turn": 312,
     "event": "allClear"
@@ -170,9 +178,8 @@ expression: detections
     "envelope": 2661,
     "turn": 1683,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
     "envelope": 2744,

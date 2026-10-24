@@ -52,9 +52,8 @@ expression: detections
     "envelope": 658,
     "turn": 451,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
     "envelope": 712,
@@ -1250,5 +1249,12 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 13794,
+    "turn": 8988,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 24 of 99: below a quarter."
   }
 ]

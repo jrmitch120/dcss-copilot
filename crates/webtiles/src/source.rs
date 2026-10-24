@@ -86,7 +86,7 @@ struct TabGame {
 enum CommandWait {
     /// The game isn't waiting for a command, or has settled in this wait already.
     #[default]
-    None,
+    Idle,
     /// The game waits for a command and is redrawing for it.
     Drawing,
 }
@@ -223,7 +223,7 @@ impl TabGame {
     /// Ends a wait for a command that is still redrawing: the game has settled.
     fn settle(&mut self) {
         if self.wait == CommandWait::Drawing {
-            self.wait = CommandWait::None;
+            self.wait = CommandWait::Idle;
             self.settled = true;
         }
     }
@@ -237,7 +237,7 @@ impl TabGame {
         self.stopped = false;
         self.ended = false;
         self.session.clear();
-        self.wait = CommandWait::None;
+        self.wait = CommandWait::Idle;
         self.settled = false;
     }
 

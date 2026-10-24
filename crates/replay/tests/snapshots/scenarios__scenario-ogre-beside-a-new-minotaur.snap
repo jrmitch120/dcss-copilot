@@ -298,6 +298,21 @@ expression: replay
       "cause": "threat-level-rose",
       "to": "lethal",
       "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 53,
+      "turn": 1,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
+    },
+    {
+      "envelope": 58,
+      "turn": 2,
+      "event": "alert",
+      "cause": "out-of-depth",
+      "monster": "ogre",
+      "line": "Ogre, out of depth by 3 levels, alone makes this LETHAL."
     }
   ],
   "end": {
@@ -490,7 +505,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "lethal",
-        "alert": null,
+        "alert": "Ogre, out of depth by 3 levels, alone makes this LETHAL.",
         "line": "Ogre can attack before your next action.",
         "detail": "Death 22.1% · worst hit 34 of 19 HP"
       },

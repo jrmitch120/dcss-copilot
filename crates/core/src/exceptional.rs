@@ -112,6 +112,7 @@ fn why_exceptional(
         return Some(Exceptional::Unique);
     }
     let place = visible.place.as_ref()?;
+    // A branch one level deep reports no depth: its one level is its first.
     let depth = place.depth.unwrap_or(1);
     let from_depth = *bundle
         .branch_named(&place.branch)?

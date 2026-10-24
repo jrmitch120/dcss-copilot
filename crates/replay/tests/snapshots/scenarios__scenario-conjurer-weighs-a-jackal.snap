@@ -240,7 +240,7 @@ expression: replay
         "now": {
           "state": "rated",
           "level": "calm",
-          "alert": "Threat rose to DANGEROUS.",
+          "alert": "No Way Out is left that you can use.",
           "line": "Jackal can attack before your next action.",
           "detail": "Death under 0.1% · worst hit 3 of 13 HP"
         },
@@ -302,9 +302,8 @@ expression: replay
       "envelope": 63,
       "turn": 0,
       "event": "alert",
-      "cause": "threat-level-rose",
-      "to": "dangerous",
-      "line": "Threat rose to DANGEROUS."
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
     }
   ],
   "end": {

@@ -25,6 +25,13 @@ expression: detections(JACKALS_FALL)
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 22,
+    "turn": 104,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 3 of 20: below a quarter."
+  },
+  {
     "envelope": 37,
     "turn": 107,
     "event": "allClear"

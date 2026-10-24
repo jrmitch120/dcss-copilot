@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use copilot_replay::{Corpus, CorpusError, Happened, Moment, Recording, Replayer};
+use copilot_replay::{Corpus, CorpusError, Moment, Recording, Replayer};
 
 const ONE_GAME: &str = r#"
 repository = "jrmitch120/dcss-copilot-corpus"
@@ -94,11 +94,7 @@ fn what_the_detectors_notice_across_each_corpus_game_is_as_snapshotted() {
             .unwrap_or_else(|error| panic!("{error}"));
         let mut replayer = Replayer::new(Recording::read(&bytes[..]).unwrap()).unwrap();
         replayer.seek(usize::MAX);
-        let detections: Vec<&Moment> = replayer
-            .timeline()
-            .iter()
-            .filter(|moment| matches!(moment.event, Happened::Detected(_)))
-            .collect();
+        let detections: Vec<&Moment> = replayer.detections().collect();
 
         let name = game.file.trim_end_matches(".dcssrec");
         insta::assert_json_snapshot!(format!("timeline-{name}"), detections);

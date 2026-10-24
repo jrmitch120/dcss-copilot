@@ -248,6 +248,14 @@ impl Replayer {
         &self.game.timeline
     }
 
+    /// What the detectors noticed so far, in order: the timeline without the Game Source's own
+    /// events.
+    pub fn detections(&self) -> impl Iterator<Item = &Moment> {
+        self.timeline()
+            .iter()
+            .filter(|moment| matches!(moment.event, Happened::Detected(_)))
+    }
+
     /// What the panel would show, with the browser connected and the default Appearance.
     #[must_use]
     pub fn view_model(&self) -> ViewModel {

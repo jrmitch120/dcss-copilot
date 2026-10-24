@@ -32,8 +32,8 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
-    "envelope": 410,
-    "turn": 59,
+    "envelope": 380,
+    "turn": 55,
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 3 of 14: below a quarter."
@@ -147,6 +147,13 @@ expression: detections
     "line": "The poison in you will kill you unless you cure it."
   },
   {
+    "envelope": 2086,
+    "turn": 1164,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 4 of 26: below a quarter."
+  },
+  {
     "envelope": 2116,
     "turn": 1169,
     "event": "allClear"
@@ -172,14 +179,6 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
-  },
-  {
-    "envelope": 2756,
-    "turn": 1590,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
   },
   {
     "envelope": 3373,

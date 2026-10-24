@@ -245,12 +245,7 @@ impl Scenario {
             .zip(turns)
             .map(|(wanted, taken)| taken.ok_or(ScenarioError::TurnNeverReached(*wanted)))
             .collect::<Result<_, _>>()?;
-        let detections: Vec<Moment> = replayer
-            .timeline()
-            .iter()
-            .filter(|moment| matches!(moment.event, Happened::Detected(_)))
-            .cloned()
-            .collect();
+        let detections: Vec<Moment> = replayer.detections().cloned().collect();
         let raised: Vec<ExpectedAlert> = detections
             .iter()
             .filter_map(ExpectedAlert::raised)

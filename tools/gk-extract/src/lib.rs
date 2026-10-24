@@ -1209,7 +1209,6 @@ impl Crawl {
     }
 }
 
-/// An enum value as the bundle's integer type for it.
 /// The enumerators of `enum <name>` in `source`, read from `file`, before `end` (or all of
 /// them, when `end` is empty), by value. An enumerator that aliases an earlier one's value keeps
 /// the earlier one's name.
@@ -1237,6 +1236,7 @@ fn values_of<T: TryFrom<i64> + Ord>(
     Ok(values)
 }
 
+/// An enum value as the bundle's integer type for it.
 fn in_range<T: TryFrom<i64>>(id: &str, value: i64) -> Result<T, ExtractError> {
     T::try_from(value).map_err(|_| ExtractError::OutOfRange {
         id: id.to_owned(),

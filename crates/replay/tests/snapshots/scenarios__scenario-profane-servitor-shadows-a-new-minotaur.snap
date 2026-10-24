@@ -255,6 +255,13 @@ expression: replay
       "cause": "threat-level-rose",
       "to": "lethal",
       "line": "Threat rose to LETHAL."
+    },
+    {
+      "envelope": 54,
+      "turn": 1,
+      "event": "alert",
+      "cause": "last-way-out-lost",
+      "line": "No Way Out is left that you can use."
     }
   ],
   "end": {
@@ -433,7 +440,7 @@ expression: replay
       "now": {
         "state": "rated",
         "level": "lethal",
-        "alert": null,
+        "alert": "No Way Out is left that you can use.",
         "line": "Profane servitor can attack before your next action.",
         "detail": "Death 72.5% · worst hit 67 of 19 HP"
       },

@@ -205,6 +205,13 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 2397,
+    "turn": 1079,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 2 of 16: below a quarter."
+  },
+  {
     "envelope": 2512,
     "turn": 1167,
     "event": "alert",
@@ -330,6 +337,13 @@ expression: detections
     "line": "Threat rose to LETHAL."
   },
   {
+    "envelope": 3973,
+    "turn": 2306,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 5 of 24: below a quarter."
+  },
+  {
     "envelope": 4030,
     "turn": 2320,
     "event": "allClear"
@@ -345,6 +359,14 @@ expression: detections
     "event": "alert",
     "cause": "hit-points-below-half",
     "line": "HP 10 of 24: below half."
+  },
+  {
+    "envelope": 4181,
+    "turn": 2372,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
   },
   {
     "envelope": 4221,

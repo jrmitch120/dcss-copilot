@@ -80,6 +80,14 @@ expression: detections
     "line": "No Way Out is left that you can use."
   },
   {
+    "envelope": 846,
+    "turn": 1252,
+    "event": "alert",
+    "cause": "unique-in-view",
+    "monster": "Natasha",
+    "line": "Natasha, a unique, alone makes this DANGEROUS."
+  },
+  {
     "envelope": 898,
     "turn": 1295,
     "event": "allClear"
@@ -130,14 +138,6 @@ expression: detections
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
-  },
-  {
-    "envelope": 1267,
-    "turn": 1663,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
   },
   {
     "envelope": 1471,

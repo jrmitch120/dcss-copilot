@@ -1,0 +1,19 @@
+---
+source: crates/replay/tests/detectors.rs
+expression: detections(JOINED)
+---
+[
+  {
+    "envelope": 6,
+    "turn": 400,
+    "event": "encounterStarted"
+  },
+  {
+    "envelope": 6,
+    "turn": 400,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  }
+]

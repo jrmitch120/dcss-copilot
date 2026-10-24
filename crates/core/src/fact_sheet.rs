@@ -112,6 +112,17 @@ pub struct ThreatAssessment {
     pub not_modelled: Vec<NotModelled>,
 }
 
+impl Threat {
+    /// The Threat Level, when the Advisor judged one.
+    #[must_use]
+    pub fn level(&self) -> Option<ThreatLevel> {
+        match self {
+            Self::Rated(assessment) => Some(assessment.level),
+            Self::Unrated { .. } => None,
+        }
+    }
+}
+
 impl ThreatAssessment {
     /// Whether the best Attack Plan wins too seldom for the moment to be CALM.
     #[must_use]
@@ -514,16 +525,8 @@ impl FactSheet {
         knowledge: Option<&Bundle>,
     ) -> Self {
         let (threat, fight) = judge(visible, remembered, species, knowledge);
-        let overall = match &threat {
-            Threat::Rated(assessment) => Some(assessment.level),
-            Threat::Unrated { .. } => None,
-        };
-        let exceptional = exceptional::in_view(visible, knowledge, overall, |alone| {
-            let (threat, _) = judge(alone, remembered, species, knowledge);
-            match threat {
-                Threat::Rated(assessment) => Some(assessment.level),
-                Threat::Unrated { .. } => None,
-            }
+        let exceptional = exceptional::in_view(visible, knowledge, threat.level(), |alone| {
+            judge(alone, remembered, species, knowledge).0.level()
         });
         Self {
             threat,

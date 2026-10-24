@@ -33,5 +33,12 @@ expression: detections
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 669,
+    "turn": 178,
+    "event": "alert",
+    "cause": "hit-points-below-half",
+    "line": "HP 6 of 15: below half."
   }
 ]
