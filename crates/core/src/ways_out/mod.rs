@@ -331,7 +331,30 @@ pub struct CorridorSquare {
     pub steps: u32,
 }
 
+impl WayOut {
+    /// Whether the Advisor trusts it: it can be used now, judged on what the game shows now
+    /// rather than approximately, over remembered squares or from a Stale menu.
+    #[must_use]
+    pub fn trusted(&self) -> bool {
+        let approximate = match &self.option {
+            Escape::Stairs {
+                over_remembered_squares,
+                ..
+            } => *over_remembered_squares,
+            Escape::Item { .. } => false,
+            Escape::Ability { read, .. } | Escape::Spell { read, .. } => read.stale,
+        };
+        self.usable == Usable::Yes && !approximate
+    }
+}
+
 impl WaysOut {
+    /// Whether any Way Out is trusted.
+    #[must_use]
+    pub fn any_trusted(&self) -> bool {
+        self.options.iter().any(WayOut::trusted)
+    }
+
     /// The Ways Out the engine finds in `visible`, what the Advisor remembers of the game and
     /// the character's `species`, as the game names it, with `knowledge` for the game's Crawl
     /// Version if the Advisor has it.

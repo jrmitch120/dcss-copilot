@@ -28,5 +28,10 @@ expression: replay.view_models.last().unwrap().game
   },
   "ask": {
     "state": "needsModel"
+  },
+  "live": true,
+  "pill": {
+    "decisionsWaiting": 0,
+    "expands": false
   }
 }

@@ -297,6 +297,11 @@ expression: replay
         },
         "ask": {
           "state": "needsModel"
+        },
+        "live": true,
+        "pill": {
+          "decisionsWaiting": 0,
+          "expands": true
         }
       }
     }
@@ -616,6 +621,11 @@ expression: replay
       },
       "ask": {
         "state": "needsModel"
+      },
+      "live": true,
+      "pill": {
+        "decisionsWaiting": 0,
+        "expands": true
       }
     }
   }

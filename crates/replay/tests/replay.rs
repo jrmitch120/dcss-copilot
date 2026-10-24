@@ -784,3 +784,25 @@ fn every_test_recording_is_tagged() {
 
     assert_eq!(committed, tagged);
 }
+
+#[test]
+fn a_followed_game_is_live_until_its_stream_stops_or_it_ends_and_again_once_picked_up() {
+    let mut replayer = replayer(SESSION);
+    let mut changes: Vec<(usize, bool)> = Vec::new();
+    while !replayer.at_end() {
+        let envelope = replayer.position();
+        replayer.step();
+        let Some(game) = replayer.view_model().game else {
+            continue;
+        };
+        if changes.last().map(|(_, live)| *live) != Some(game.live) {
+            changes.push((envelope, game.live));
+        }
+    }
+
+    // Joined at 3, lost at 10, resynced at 13, died at 15, and a new character joined at 18.
+    assert_eq!(
+        changes,
+        [(3, true), (10, false), (13, true), (15, false), (18, true)]
+    );
+}

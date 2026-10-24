@@ -96,6 +96,24 @@ pub struct GameView {
     pub run_plan: RunPlanRail,
     /// Where the player asks the Advisor questions.
     pub ask: AskBox,
+    /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
+    /// resynced it.
+    pub live: bool,
+    /// What the Collapsed Pill shows besides the now pill's label and line.
+    pub pill: CollapsedPill,
+}
+
+/// The panel collapsed out of the way, always on top: the now pill's label and line, a badge,
+/// and whether this moment calls the panel back.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct CollapsedPill {
+    /// How many Decision Points wait for the player, counted on the badge. Nothing raises
+    /// Decision Points yet, so none wait.
+    pub decisions_waiting: u32,
+    /// This moment is LETHAL and no Way Out is trusted, so the pill expands itself into the
+    /// panel: the only moment it does.
+    pub expands: bool,
 }
 
 /// The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not.

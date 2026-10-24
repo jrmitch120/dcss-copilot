@@ -59,6 +59,23 @@ export type Character = {
 };
 
 /**
+ *  The panel collapsed out of the way, always on top: the now pill's label and line, a badge,
+ *  and whether this moment calls the panel back.
+ */
+export type CollapsedPill = {
+	/**
+	 *  How many Decision Points wait for the player, counted on the badge. Nothing raises
+	 *  Decision Points yet, so none wait.
+	 */
+	decisionsWaiting: number,
+	/**
+	 *  This moment is LETHAL and no Way Out is trusted, so the pill expands itself into the
+	 *  panel: the only moment it does.
+	 */
+	expands: boolean,
+};
+
+/**
  *  The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
  *  them, in crawl's order.
  */
@@ -164,6 +181,13 @@ export type GameView = {
 	runPlan: RunPlanRail,
 	/**  Where the player asks the Advisor questions. */
 	ask: AskBox,
+	/**
+	 *  The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
+	 *  resynced it.
+	 */
+	live: boolean,
+	/**  What the Collapsed Pill shows besides the now pill's label and line. */
+	pill: CollapsedPill,
 };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
