@@ -128,21 +128,28 @@ impl Replayer {
     /// `knowledge`, such as none at all.
     #[must_use]
     pub fn with_knowledge(recording: Recording, knowledge: Library) -> Self {
-        let mut game = Game::new(&knowledge);
+        // The Game Source alone tells each envelope's turn: the Advisor needn't follow along.
+        let mut source = WebtilesSource::new(knowledge.clone());
+        let mut turn = None;
         let mut turns = Vec::with_capacity(recording.envelopes.len() + 1);
-        turns.push(None);
+        turns.push(turn);
         let mut crawl_versions = Vec::new();
         for envelope in &recording.envelopes {
-            game.apply(envelope);
-            turns.push(game.advisor.visible().turn);
-            if let Some(version) = game
-                .advisor
-                .identity()
-                .and_then(|identity| identity.crawl_version.as_ref())
-                .filter(|version| !crawl_versions.contains(*version))
-            {
-                crawl_versions.push(version.clone());
+            for event in source.ingest(envelope) {
+                match event {
+                    SourceEvent::Visible(visible) => turn = visible.turn,
+                    SourceEvent::Identified(identity) => {
+                        if let Some(version) = identity
+                            .crawl_version
+                            .filter(|version| !crawl_versions.contains(version))
+                        {
+                            crawl_versions.push(version);
+                        }
+                    }
+                    SourceEvent::ScreenRead(_) | SourceEvent::Session(_) => {}
+                }
             }
+            turns.push(turn);
         }
         Self {
             recording,
