@@ -130,7 +130,7 @@ fn the_detectors_judge_only_settled_updates() {
     assert_eq!(detections(NEVER_SETTLES), []);
 }
 
-/// Each LETHAL turn of `views`, with whether the Collapsed Pill expands itself then. It never
+/// Each LETHAL turn of `views`, with whether the Toolbar Badge calls for the panel then. It never
 /// does on any other turn.
 fn lethal_turns(views: Vec<ViewModel>) -> Vec<(Option<u32>, bool)> {
     let mut turns = Vec::new();
@@ -142,8 +142,8 @@ fn lethal_turns(views: Vec<ViewModel>) -> Vec<(Option<u32>, bool)> {
                 ..
             }
         );
-        assert!(lethal || !game.pill.expands, "{game:?}");
-        let turn = (game.character.turn, game.pill.expands);
+        assert!(lethal || !game.badge.calls_for_panel, "{game:?}");
+        let turn = (game.character.turn, game.badge.calls_for_panel);
         if lethal && turns.last() != Some(&turn) {
             turns.push(turn);
         }
@@ -152,7 +152,7 @@ fn lethal_turns(views: Vec<ViewModel>) -> Vec<(Option<u32>, bool)> {
 }
 
 #[test]
-fn the_collapsed_pill_expands_itself_only_at_a_lethal_moment_with_no_trusted_way_out() {
+fn the_toolbar_badge_calls_for_the_panel_only_at_a_lethal_moment_with_no_trusted_way_out() {
     // Turns 103 to 105: LETHAL, with no staircase known and nothing carried to escape with.
     assert_eq!(
         lethal_turns(replay(JACKALS_FALL).unwrap().view_models),

@@ -250,17 +250,13 @@ _Avoid_: Advice (when no recommendation is made)
 The line at the top of the panel showing the Threat Level and one sentence about this moment. When the Advisor can't judge a Threat Level, because a Gap leaves an input it needs Missing, it shows UNRATED rather than CALM.
 _Avoid_: Status bar, banner
 
-**Collapsed Pill**:
-The panel collapsed out of the way: a small always-on-top window in the corner of the browser showing the Now Pill's label and line and a badge counting the Decision Points that wait. It expands itself into the panel only as a LETHAL moment with no trusted Way Out arrives; the player expands it otherwise.
-_Avoid_: Mini mode, HUD, overlay
+**Side Panel**:
+The browser's own panel at the side of its window, where the extension shows the panel for a webtiles game. It is part of the browser window, so it moves, minimizes and comes back to the front with it. Browsers open it only when the player clicks, from the extension's toolbar button.
+_Avoid_: Sidebar (except as Firefox's name for it), docked window
 
-**Game Window**:
-The browser window holding the webtiles tab the player turned to last. The extension reports where it is on screen, and the panel docks to its edge.
-_Avoid_: Browser window (when meaning this one), host window
-
-**Make Room**:
-The player's option, off by default, to have the browser window shrink so the docked panel fits beside it rather than covering its edge.
-_Avoid_: Resize mode, side-by-side
+**Toolbar Badge**:
+The panel's stand-in on the extension's toolbar button while no Side Panel is open: its tooltip shows the Now Pill's label and line, or its Alert, and its badge counts the Decision Points that wait. Only a LETHAL moment with no trusted Way Out turns the badge to a call to open the panel.
+_Avoid_: Collapsed pill, notification
 
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.

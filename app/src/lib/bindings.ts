@@ -13,16 +13,8 @@ export const commands = {
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
-	/**  The player collapsed the panel to the Collapsed Pill. */
-	collapsePanel: () => __TAURI_INVOKE<void>("collapse_panel"),
-	/**  The player expanded the Collapsed Pill back into the panel. */
-	expandPanel: () => __TAURI_INVOKE<void>("expand_panel"),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
-	/**  The player chose the edge of the browser the panel docks to. */
-	setDockSide: (side: DockSide) => typedError<null, string>(__TAURI_INVOKE("set_dock_side", { side })),
-	/**  The player turned Make Room on or off. */
-	setMakeRoom: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_make_room", { on })),
 	/**  The player turned start at login on or off. */
 	setStartAtLogin: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_at_login", { on })),
 	/**  The player chose a slot's model and how it thinks. */
@@ -69,23 +61,6 @@ export type Character = {
 };
 
 /**
- *  The panel collapsed out of the way, always on top: the now pill's label and line, a badge,
- *  and whether this moment calls the panel back.
- */
-export type CollapsedPill = {
-	/**
-	 *  How many Decision Points wait for the player, counted on the badge. Nothing raises
-	 *  Decision Points yet, so none wait.
-	 */
-	decisionsWaiting: number,
-	/**
-	 *  This moment is LETHAL and no Way Out is trusted, so the pill expands itself into the
-	 *  panel: the only moment it does.
-	 */
-	expands: boolean,
-};
-
-/**
  *  The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
  *  them, in crawl's order.
  */
@@ -121,22 +96,6 @@ export type Depiction = {
 	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
 	tile: TileName | null,
 };
-
-/**  The edge of the browser window the panel docks to. */
-export type DockSide = 
-/**  Its left edge. */
-"left" | 
-/**  Its right edge. */
-"right";
-
-/**  Whether the panel docks beside the browser, or floats where the desktop puts it. */
-export type Docking = 
-/**  It follows the browser window, from the bounds the extension reports. */
-{ state: "docks" } | 
-/**  It is a free floating window, as the desktop won't let apps place their windows. */
-{ state: "floats"; 
-/**  Why, for the player. */
-reason: string };
 
 /**  A unique or Out of Depth monster in view, singled out so the player recognises it. */
 export type FactCard = {
@@ -186,7 +145,7 @@ notModelled: string | null;
 gaps: string[] };
 
 /**
- *  The docked panel for the followed game, top to bottom: header, now pill, focus card,
+ *  The panel for the followed game, top to bottom: header, now pill, focus card,
  *  Run Plan rail and ask box. The footer belongs to the app, not the game.
  */
 export type GameView = {
@@ -212,8 +171,8 @@ export type GameView = {
 	 *  resynced it.
 	 */
 	live: boolean,
-	/**  What the Collapsed Pill shows besides the now pill's label and line. */
-	pill: CollapsedPill,
+	/**  What the Toolbar Badge shows while the panel is closed. */
+	badge: ToolbarBadge,
 };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
@@ -419,6 +378,23 @@ export type ThreatLevel =
 export type TileName = string;
 
 /**
+ *  The panel's stand-in while it is closed: the extension's toolbar button, badged with the
+ *  Decision Points that wait, or with a call to open the panel.
+ */
+export type ToolbarBadge = {
+	/**
+	 *  How many Decision Points wait for the player. Nothing raises Decision Points yet, so
+	 *  none wait.
+	 */
+	decisionsWaiting: number,
+	/**
+	 *  This moment is LETHAL and no Way Out is trusted: the only moment the badge calls the
+	 *  player to open the panel.
+	 */
+	callsForPanel: boolean,
+};
+
+/**
  *  Everything the panel renders, pushed by the core to the webview.
  * 
  *  The webview holds no game logic: it only draws this. TypeScript types are
@@ -471,14 +447,8 @@ export type WaysOutList = {
 	gaps: string[],
 };
 
-/**  How the panel's window behaves, in Settings → Connection and window. */
+/**  How the app's window behaves, in Settings → Connection and window. */
 export type WindowView = {
-	/**  Whether the panel can dock here at all. */
-	docking: Docking,
-	/**  The edge of the browser the panel docks to. */
-	dockSide: DockSide,
-	/**  Make Room: the browser shrinks so the panel fits beside it. */
-	makeRoom: boolean,
 	/**  The app starts in the tray at login. */
 	startAtLogin: boolean,
 };

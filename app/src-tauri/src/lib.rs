@@ -1,14 +1,13 @@
 //! The DCSS Copilot desktop app: wires the core to its windows, tray and keychain.
 
-mod dock;
 mod keys;
 mod lifecycle;
 mod live;
 mod log;
 mod models;
+mod panels;
 pub mod relay;
 mod settings;
-mod windows;
 
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
@@ -24,14 +23,13 @@ use tauri_specta::{Builder, Event, collect_commands, collect_events};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use crate::dock::DockSide;
 use crate::keys::{Keys, OsKeychain};
 use crate::lifecycle::Presence;
 use crate::live::Live;
 use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
-use crate::relay::{BrowserApprovals, RELAY_PORT, RelayEvent};
+use crate::panels::{PANEL_WINDOW, Panels};
+use crate::relay::{BrowserApprovals, PanelCommand, RELAY_PORT, RelayEvent, SidePanelEvent};
 use crate::settings::Settings;
-use crate::windows::{Docking, PANEL_WINDOW, Windows};
 
 /// Where the generated TypeScript bindings for the webview live.
 const BINDINGS_PATH: &str = "../src/lib/bindings.ts";
@@ -68,16 +66,10 @@ pub struct SettingsView {
     window: WindowView,
 }
 
-/// How the panel's window behaves, in Settings → Connection and window.
+/// How the app's window behaves, in Settings → Connection and window.
 #[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WindowView {
-    /// Whether the panel can dock here at all.
-    docking: Docking,
-    /// The edge of the browser the panel docks to.
-    dock_side: DockSide,
-    /// Make Room: the browser shrinks so the panel fits beside it.
-    make_room: bool,
     /// The app starts in the tray at login.
     start_at_login: bool,
 }
@@ -140,54 +132,6 @@ fn open_settings(app: AppHandle) -> Result<(), String> {
     .build()
     .map(drop)
     .map_err(|error| error.to_string())
-}
-
-/// The player collapsed the panel to the Collapsed Pill.
-#[tauri::command]
-#[specta::specta]
-#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn collapse_panel(app: AppHandle, windows: State<'_, Windows>) {
-    windows.collapse(&app);
-}
-
-/// The player expanded the Collapsed Pill back into the panel.
-#[tauri::command]
-#[specta::specta]
-#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn expand_panel(app: AppHandle, windows: State<'_, Windows>) {
-    windows.show(&app);
-}
-
-/// The player chose the edge of the browser the panel docks to.
-#[tauri::command]
-#[specta::specta]
-#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn set_dock_side(
-    side: DockSide,
-    app: AppHandle,
-    live: State<'_, Live>,
-    windows: State<'_, Windows>,
-) -> Result<(), String> {
-    let saved = live.set_dock_side(side);
-    windows.rearrange(&app);
-    push_settings(&app);
-    saved.map_err(unsaved)
-}
-
-/// The player turned Make Room on or off.
-#[tauri::command]
-#[specta::specta]
-#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn set_make_room(
-    on: bool,
-    app: AppHandle,
-    live: State<'_, Live>,
-    windows: State<'_, Windows>,
-) -> Result<(), String> {
-    let saved = live.set_make_room(on);
-    windows.rearrange(&app);
-    push_settings(&app);
-    saved.map_err(unsaved)
 }
 
 /// The player turned start at login on or off.
@@ -292,11 +236,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             answer_browser,
             set_appearance,
             open_settings,
-            collapse_panel,
-            expand_panel,
             settings_view,
-            set_dock_side,
-            set_make_room,
             set_start_at_login,
             set_model,
             save_key,
@@ -325,7 +265,7 @@ pub fn run() {
     tauri::Builder::default()
         // Registered first, so a second launch hands over before anything else starts.
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
-            app.state::<Windows>().show(app);
+            app.state::<Panels>().show(app);
         }))
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
@@ -340,7 +280,7 @@ pub fn run() {
                 api.prevent_close();
                 window
                     .app_handle()
-                    .state::<Windows>()
+                    .state::<Panels>()
                     .hide(window.app_handle());
             }
         })
@@ -349,12 +289,9 @@ pub fn run() {
             let presence = if std::env::args().any(|arg| arg == STARTED_AT_LOGIN) {
                 Presence::Hidden
             } else {
-                Presence::Docked
+                Presence::Shown
             };
-            app.manage(Windows::new(
-                presence,
-                Docking::detect(|variable| std::env::var(variable).ok()),
-            ));
+            app.manage(Panels::new(presence));
             tray(app.handle())?;
             // Dev builds save what they receive, so a session can be replayed.
             let recordings = if cfg!(debug_assertions) {
@@ -380,7 +317,7 @@ pub fn run() {
             ));
             let approvals = app.path().app_config_dir()?.join("browsers.json");
             tauri::async_runtime::spawn(run_relay(app.handle().clone(), approvals));
-            app.state::<Windows>().rearrange(app.handle());
+            app.state::<Panels>().arrange(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())
@@ -389,7 +326,7 @@ pub fn run() {
             RunEvent::Exit => app.state::<Live>().finish_recording(),
             // Clicking the Dock icon of an app whose panel is in the tray.
             #[cfg(target_os = "macos")]
-            RunEvent::Reopen { .. } => app.state::<Windows>().show(app),
+            RunEvent::Reopen { .. } => app.state::<Panels>().show(app),
             _ => {}
         });
 }
@@ -410,7 +347,7 @@ fn tray(app: &AppHandle) -> tauri::Result<()> {
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
-            TRAY_SHOW => app.state::<Windows>().show(app),
+            TRAY_SHOW => app.state::<Panels>().show(app),
             TRAY_SETTINGS => {
                 if let Err(error) = open_settings(app.clone()) {
                     crate::log::error(format_args!("could not open Settings: {error}"));
@@ -427,7 +364,7 @@ fn tray(app: &AppHandle) -> tauri::Result<()> {
             } = event
             {
                 let app = tray.app_handle();
-                app.state::<Windows>().show(app);
+                app.state::<Panels>().show(app);
             }
         });
     if let Some(icon) = app.default_window_icon() {
@@ -462,18 +399,37 @@ async fn run_relay(app: AppHandle, approvals: std::path::PathBuf) {
         sender,
     ));
     while let Some(event) = events.recv().await {
-        if let RelayEvent::BrowserWindow(window) = event {
-            app.state::<Windows>().browser_moved(&app, window);
-            continue;
+        match event {
+            RelayEvent::SidePanel(event) => side_panel(&app, event),
+            event => {
+                if let RelayEvent::Connected(browser) = &event {
+                    app.state::<Panels>().connected(browser.clone());
+                }
+                live.handle(event);
+                push_view_model(&app, &live);
+            }
         }
-        live.handle(event);
-        push_view_model(&app, &live);
+    }
+}
+
+/// A browser opened a side panel, or the player pressed something in one.
+fn side_panel(app: &AppHandle, event: SidePanelEvent) {
+    match event {
+        SidePanelEvent::Opened => app.state::<Panels>().side_panel_opened(app),
+        SidePanelEvent::Command(request) => {
+            let done = match request.command {
+                PanelCommand::SetAppearance { appearance } => {
+                    set_appearance(appearance, app.clone(), app.state())
+                }
+                PanelCommand::OpenSettings => open_settings(app.clone()),
+            };
+            request.answer(done);
+        }
     }
 }
 
 fn current_settings(app: &AppHandle) -> SettingsView {
     let live = app.state::<Live>();
-    let (dock_side, make_room) = live.docking();
     let start_at_login = app.autolaunch().is_enabled().unwrap_or_else(|error| {
         crate::log::error(format_args!(
             "could not tell if the app starts at login: {error}"
@@ -483,12 +439,7 @@ fn current_settings(app: &AppHandle) -> SettingsView {
     SettingsView {
         app_version: env!("CARGO_PKG_VERSION").to_owned(),
         models: models_view(&live, &app.state::<ModelsAndKeys>()),
-        window: WindowView {
-            docking: app.state::<Windows>().docking().clone(),
-            dock_side,
-            make_room,
-            start_at_login,
-        },
+        window: WindowView { start_at_login },
     }
 }
 
@@ -505,15 +456,9 @@ fn push_settings(app: &AppHandle) {
     }
 }
 
-/// Pushes the view model to the panel and the pill, and shows or hides them as it calls for.
+/// Pushes the view model to the panel window and the browsers.
 fn push_view_model(app: &AppHandle, live: &Live) {
-    let view = live.view_model();
-    app.state::<Windows>().viewed(app, &view);
-    if let Err(error) = ViewModelChanged(view).emit(app) {
-        crate::log::error(format_args!(
-            "could not push the view model to the panel: {error}"
-        ));
-    }
+    app.state::<Panels>().push(app, live);
 }
 
 #[cfg(test)]
@@ -533,7 +478,7 @@ mod tests {
 
     use crate::models::tests::{KEY, MemoryKeychain, WORKS, models, replaying};
     use crate::models::{Connect, KeyState, KeyTest, ModelsAndKeys};
-    use crate::relay::RelayEvent;
+    use crate::relay::{BrowserLink, RelayEvent};
     use crate::settings::Settings;
 
     /// Regenerates the bindings; CI fails if this leaves the committed file changed.
@@ -647,7 +592,7 @@ mod tests {
         let models = models(&keychain, replaying(WORKS));
 
         // A session that touches everything a key could leak into.
-        live.handle(RelayEvent::Connected);
+        live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
         live.handle(RelayEvent::Envelope(Envelope {
             origin: "https://crawl.example.org".to_owned(),
             tab: 7,

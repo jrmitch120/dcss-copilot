@@ -69,7 +69,7 @@ async fn heard(app: &mut App, count: usize) -> Vec<String> {
                 let index = all.iter().position(|e| *e == envelope).unwrap();
                 format!("envelope {index}")
             }
-            RelayEvent::Connected => "connected".to_owned(),
+            RelayEvent::Connected(_) => "connected".to_owned(),
             RelayEvent::Disconnected => "disconnected".to_owned(),
             other => format!("{other:?}"),
         });
@@ -147,4 +147,30 @@ async fn a_browser_the_player_denies_is_refused() {
         connected,
         Err(FakeExtensionError::Refused(Refusal::BrowserDenied))
     ));
+}
+
+#[tokio::test]
+async fn the_panels_views_never_stall_what_the_fake_extension_relays() {
+    let data_dir = tempfile::tempdir().unwrap();
+    let mut app = start_app(data_dir.path()).await;
+    let mut extension = fake_extension(&app);
+    connect_allowed(&mut extension, &mut app).await;
+    let Some(RelayEvent::Connected(browser)) = app.events.recv().await else {
+        panic!("expected the browser to connect");
+    };
+
+    // Far more than the socket buffers hold, as the app sends a view after every envelope.
+    let view = serde_json::json!({ "padding": "x".repeat(64 * 1024) });
+    for _ in 0..256 {
+        assert!(browser.show(&view));
+    }
+    let count = envelopes().len();
+    let relayed = tokio::time::timeout(std::time::Duration::from_secs(30), async {
+        tokio::join!(extension.seek(count), heard(&mut app, count))
+    })
+    .await
+    .expect("the relay stalled");
+
+    relayed.0.unwrap();
+    assert_eq!(relayed.1.len(), count);
 }

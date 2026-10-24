@@ -11,8 +11,8 @@ use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
 use crate::view_model::{
-    AskBox, Character, CollapsedPill, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
-    RunPlanRail, TileName, capitalised,
+    AskBox, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill, RunPlanRail,
+    TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -238,9 +238,9 @@ impl Advisor {
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
-            pill: CollapsedPill {
+            badge: ToolbarBadge {
                 decisions_waiting: 0,
-                expands: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
+                calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
         })

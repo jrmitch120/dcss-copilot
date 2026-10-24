@@ -24,8 +24,8 @@ You are the steward of this codebase. Build it thoughtfully and purposefully, wi
 | `crates/store` | SQLite persistence. |
 | `crates/replay` | The Recording format, the in-process replayer and the fake-extension front end. |
 | `app/src-tauri` | The Tauri shell. Wires the crates together and owns windows, the tray and the keychain. |
-| `app/src` | The Svelte 5 panel. Renders the view model; holds no game logic. |
-| `extension` | The WXT extension. A pure relay: forwards raw messages, parses and stores nothing (ADR 0001). |
+| `app/src` | The Svelte 5 panel, drawn in the app's window and the extension's Side Panel. Renders the view model; holds no game logic. |
+| `extension` | The WXT extension. A pure relay: forwards raw messages, parses and stores nothing, and shows the app's panel in the browser's Side Panel from the view model the app sends (ADR 0001, ADR 0004). |
 | `tools/*` | Offline binaries: the Game Knowledge extractor, the crawl oracle, and the corpus recorder and fetcher. |
 
 Each crate is a deep module: a small public surface over a lot of behaviour. Add a new crate only when it brings a separate binary or a dependency that must stay out of `core`; grow existing modules otherwise.

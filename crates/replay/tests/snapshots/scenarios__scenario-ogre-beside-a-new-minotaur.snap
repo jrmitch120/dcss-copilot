@@ -266,9 +266,9 @@ expression: replay
           "state": "needsModel"
         },
         "live": true,
-        "pill": {
+        "badge": {
           "decisionsWaiting": 0,
-          "expands": true
+          "callsForPanel": true
         }
       }
     }
@@ -572,9 +572,9 @@ expression: replay
         "state": "needsModel"
       },
       "live": true,
-      "pill": {
+      "badge": {
         "decisionsWaiting": 0,
-        "expands": true
+        "callsForPanel": true
       }
     }
   }

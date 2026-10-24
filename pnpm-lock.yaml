@@ -209,6 +209,15 @@ importers:
 
   extension:
     devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.1.2
+        version: 7.3.1(svelte@5.57.2)(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0))
+      svelte:
+        specifier: ^5.56.3
+        version: 5.57.2
+      svelte-check:
+        specifier: ^4.6.0
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.2)(typescript@6.0.3)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

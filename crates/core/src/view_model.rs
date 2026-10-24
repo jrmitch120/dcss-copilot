@@ -76,7 +76,7 @@ pub enum Appearance {
     Glyphs,
 }
 
-/// The docked panel for the followed game, top to bottom: header, now pill, focus card,
+/// The panel for the followed game, top to bottom: header, now pill, focus card,
 /// Run Plan rail and ask box. The footer belongs to the app, not the game.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -99,21 +99,21 @@ pub struct GameView {
     /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
     /// resynced it.
     pub live: bool,
-    /// What the Collapsed Pill shows besides the now pill's label and line.
-    pub pill: CollapsedPill,
+    /// What the Toolbar Badge shows while the panel is closed.
+    pub badge: ToolbarBadge,
 }
 
-/// The panel collapsed out of the way, always on top: the now pill's label and line, a badge,
-/// and whether this moment calls the panel back.
+/// The panel's stand-in while it is closed: the extension's toolbar button, badged with the
+/// Decision Points that wait, or with a call to open the panel.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub struct CollapsedPill {
-    /// How many Decision Points wait for the player, counted on the badge. Nothing raises
-    /// Decision Points yet, so none wait.
+pub struct ToolbarBadge {
+    /// How many Decision Points wait for the player. Nothing raises Decision Points yet, so
+    /// none wait.
     pub decisions_waiting: u32,
-    /// This moment is LETHAL and no Way Out is trusted, so the pill expands itself into the
-    /// panel: the only moment it does.
-    pub expands: bool,
+    /// This moment is LETHAL and no Way Out is trusted: the only moment the badge calls the
+    /// player to open the panel.
+    pub calls_for_panel: bool,
 }
 
 /// The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not.

@@ -7,7 +7,10 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-use copilot_app_lib::relay::{BrowserApprovals, RelayEvent, WindowBounds, WindowState, serve};
+use copilot_app_lib::relay::{
+    BrowserApprovals, BrowserLink, PanelCommand, RelayEvent, SidePanelEvent, serve,
+};
+use copilot_core::Appearance;
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
 use tokio::net::{TcpListener, TcpStream};
@@ -70,17 +73,16 @@ async fn hello(app: &App, protocol: u32) -> Socket {
     socket
 }
 
-/// Connects as the extension, and is allowed.
-async fn allowed(app: &mut App) -> Socket {
+/// Connects as the extension, and is allowed: the socket, and the app's way back to it.
+async fn allowed(app: &mut App) -> (Socket, BrowserLink) {
     let mut socket = hello(app, 2).await;
     receive(&mut socket).await;
     player_answers(app, true).await;
     receive(&mut socket).await;
-    assert!(matches!(
-        app.events.recv().await,
-        Some(RelayEvent::Connected)
-    ));
-    socket
+    let Some(RelayEvent::Connected(browser)) = app.events.recv().await else {
+        panic!("expected the browser to connect");
+    };
+    (socket, browser)
 }
 
 /// Waits for the app to be asked "Allow this browser?" and answers.
@@ -134,7 +136,7 @@ async fn a_new_browser_waits_for_the_player_to_allow_it_then_relays_envelopes() 
     );
     assert!(matches!(
         app.events.recv().await,
-        Some(RelayEvent::Connected)
+        Some(RelayEvent::Connected(_))
     ));
 
     let envelope = json!({
@@ -237,46 +239,79 @@ async fn the_current_and_previous_relay_protocol_versions_are_accepted() {
     }
 }
 
+/// The next side panel event the app hears of.
+async fn side_panel_event(app: &mut App) -> SidePanelEvent {
+    match app.events.recv().await.unwrap() {
+        RelayEvent::SidePanel(event) => event,
+        other => panic!("expected a side panel event, got {other:?}"),
+    }
+}
+
 #[tokio::test]
-async fn a_browser_reports_where_its_game_window_is_and_resizes_it_when_asked() {
+async fn a_browser_is_sent_the_panel_and_its_side_panels_commands_are_answered() {
     let data_dir = tempfile::tempdir().unwrap();
     let mut app = start_app(data_dir.path()).await;
-    let mut socket = allowed(&mut app).await;
+    let (mut socket, browser) = allowed(&mut app).await;
+
+    assert!(browser.show(&json!({ "appVersion": "1.2.3" })));
+    assert_eq!(
+        receive(&mut socket).await,
+        Some(json!({ "type": "view", "view": { "appVersion": "1.2.3" } }))
+    );
+
+    send(&mut socket, json!({ "type": "side-panel-opened" })).await;
+    assert!(matches!(
+        side_panel_event(&mut app).await,
+        SidePanelEvent::Opened
+    ));
 
     send(
         &mut socket,
         json!({
-            "type": "window",
-            "bounds": { "left": -1440, "top": 25, "width": 1440, "height": 875 },
-            "state": "maximized",
+            "type": "panel-command",
+            "id": 7,
+            "command": { "kind": "set-appearance", "appearance": "glyphs" },
         }),
     )
     .await;
-    let Some(RelayEvent::BrowserWindow(window)) = app.events.recv().await else {
-        panic!("expected the browser window");
+    let SidePanelEvent::Command(request) = side_panel_event(&mut app).await else {
+        panic!("expected a command");
     };
     assert_eq!(
-        window.bounds,
-        WindowBounds {
-            left: -1440,
-            top: 25,
-            width: 1440,
-            height: 875
+        request.command,
+        PanelCommand::SetAppearance {
+            appearance: Appearance::Glyphs
         }
     );
-    assert_eq!(window.state, WindowState::Maximized);
-
-    window.browser.resize(WindowBounds {
-        left: -1440,
-        top: 25,
-        width: 1020,
-        height: 875,
-    });
+    request.answer(Err("the disk is full".to_owned()));
     assert_eq!(
         receive(&mut socket).await,
-        Some(json!({
-            "type": "resize-window",
-            "bounds": { "left": -1440, "top": 25, "width": 1020, "height": 875 },
-        }))
+        Some(json!({ "type": "panel-command-done", "id": 7, "error": "the disk is full" }))
     );
+
+    socket.close(None).await.unwrap();
+    assert!(matches!(
+        app.events.recv().await,
+        Some(RelayEvent::Disconnected)
+    ));
+    assert!(!browser.show(&json!({})));
+}
+
+#[tokio::test]
+async fn a_side_panel_cannot_answer_allow_this_browser() {
+    let data_dir = tempfile::tempdir().unwrap();
+    let mut app = start_app(data_dir.path()).await;
+    let (mut socket, _) = allowed(&mut app).await;
+
+    send(
+        &mut socket,
+        json!({ "type": "panel-command", "id": 1, "command": { "kind": "answer-browser", "allow": true } }),
+    )
+    .await;
+
+    // Not a command the relay knows: the connection ends rather than the browser allowing itself.
+    assert!(matches!(
+        app.events.recv().await,
+        Some(RelayEvent::Disconnected)
+    ));
 }

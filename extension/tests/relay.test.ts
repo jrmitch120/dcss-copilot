@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createAppLink, type Socket } from "../lib/app-link";
+import { createAppLink, type LinkStatus, type Socket } from "../lib/app-link";
 import { type Comm, wrapComm } from "../lib/page-relay";
-import type { GameWindow, WindowBounds } from "../lib/protocol";
+import type { PanelFrame } from "../lib/protocol";
 
 const ORIGIN = "https://crawl.example.org";
 const TAB = 7;
@@ -47,7 +47,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
   };
   const sockets: FakeSocket[] = [];
   const retries: (() => void)[] = [];
-  const resized: WindowBounds[] = [];
+  const statuses: LinkStatus[] = [];
+  const toSidePanels: PanelFrame[] = [];
   let clock = 1_000;
 
   const link = createAppLink({
@@ -58,7 +59,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     },
     requestReplay: () => page.replay(),
     retryLater: (reconnect) => retries.push(reconnect),
-    resizeWindow: (bounds) => resized.push(bounds),
+    status: (status) => statuses.push(status),
+    toSidePanels: (frame) => toSidePanels.push(frame),
   });
   const page = wrapComm(comm, {
     origin: ORIGIN,
@@ -71,7 +73,8 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
     handledByPage,
     sockets,
     retries,
-    resized,
+    statuses,
+    toSidePanels,
     link,
     /** The game server sends the page a message. */
     serverSends(msg: unknown) {
@@ -253,41 +256,64 @@ describe("handshake", () => {
   });
 });
 
-describe("game window", () => {
-  const MAXIMIZED: GameWindow = {
-    bounds: { left: 0, top: 25, width: 1920, height: 1055 },
-    state: "maximized",
-  };
+describe("side panels", () => {
+  const sidePanelFrames = (socket: FakeSocket) =>
+    socket.sent.filter((f) =>
+      /^(side-panel-opened|panel-command)$/.test((f as { type: string }).type),
+    );
 
-  it("tells the app where the game window is once welcomed, and again on every connection", () => {
+  it("tells the app as a side panel opens, and on every connection while one is open", () => {
     const relay = relayHarness();
-    relay.link.windowMoved(MAXIMIZED);
+    relay.link.sidePanel(true);
 
     const first = relay.connectAndWelcome();
-    const moved: GameWindow = { ...MAXIMIZED, state: "normal" };
-    relay.link.windowMoved(moved);
+    relay.link.sidePanel(false);
+    relay.link.sidePanel(true);
     first.close();
     const second = relay.connectAndWelcome();
 
-    const windows = (socket: FakeSocket) =>
-      socket.sent.filter((f) => (f as { type: string }).type === "window");
-    expect(windows(first)).toEqual([
-      { type: "window", ...MAXIMIZED },
-      { type: "window", ...moved },
+    expect(sidePanelFrames(first)).toEqual([
+      { type: "side-panel-opened" },
+      { type: "side-panel-opened" },
     ]);
-    expect(windows(second)).toEqual([{ type: "window", ...moved }]);
+    expect(sidePanelFrames(second)).toEqual([{ type: "side-panel-opened" }]);
   });
 
-  it("resizes the game window when the app makes room for its panel", () => {
+  it("passes the side panels' commands to the app, and the app's views and answers back", () => {
     const relay = relayHarness();
     const socket = relay.connectAndWelcome();
 
-    socket.receive({
-      type: "resize-window",
-      bounds: { left: 0, top: 25, width: 1500, height: 1055 },
-    });
+    relay.link.panelCommand(3, { kind: "set-appearance", appearance: "glyphs" });
+    socket.receive({ type: "view", view: { appVersion: "1.2.3" } });
+    socket.receive({ type: "panel-command-done", id: 3, error: null });
 
-    expect(relay.resized).toEqual([{ left: 0, top: 25, width: 1500, height: 1055 }]);
+    expect(sidePanelFrames(socket)).toEqual([
+      {
+        type: "panel-command",
+        id: 3,
+        command: { kind: "set-appearance", appearance: "glyphs" },
+      },
+    ]);
+    expect(relay.toSidePanels).toEqual([
+      { type: "view", view: { appVersion: "1.2.3" } },
+      { type: "panel-command-done", id: 3, error: null },
+    ]);
+  });
+
+  it("tells the side panels where the browser stands with the app", () => {
+    const relay = relayHarness();
+    relay.link.start();
+    const asking = relay.sockets[0] as FakeSocket;
+    asking.open();
+    asking.receive({ type: "awaiting-approval" });
+    asking.receive({ type: "welcome", protocol: 2 });
+    asking.close();
+    relay.retries[0]?.();
+    const refused = relay.sockets[1] as FakeSocket;
+    refused.open();
+    refused.receive({ type: "refused", reason: "browser-denied" });
+
+    expect(relay.statuses).toEqual(["awaiting-approval", "connected", "no-app", "browser-denied"]);
   });
 });
 

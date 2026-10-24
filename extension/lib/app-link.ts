@@ -3,11 +3,12 @@
 import {
   type AppFrame,
   type ExtensionFrame,
-  type GameWindow,
   type PageEnvelope,
   type PageReport,
+  type PanelCommand,
+  type PanelFrame,
   RELAY_PROTOCOL_VERSION,
-  type WindowBounds,
+  type Refusal,
 } from "./protocol";
 
 /** The part of `WebSocket` the link uses. */
@@ -19,6 +20,9 @@ export interface Socket {
   onclose: (() => void) | null;
 }
 
+/** Where this browser stands with the app: what a side panel tells the player until it's connected. */
+export type LinkStatus = "no-app" | "awaiting-approval" | Refusal | "connected";
+
 export interface AppLink {
   /** Connect to the app, unless already connected or connecting. */
   start(): void;
@@ -26,8 +30,10 @@ export interface AppLink {
   report(tab: number, report: PageReport): void;
   /** Forget a tab that closed or navigated away. */
   tabClosed(tab: number): void;
-  /** Tell the app where the game window is now, so it can dock beside it. */
-  windowMoved(window: GameWindow): void;
+  /** Whether any side panel is open: the app's window gives way to one opening. */
+  sidePanel(open: boolean): void;
+  /** Pass on a command from a side panel; its answer comes back as a `panel-command-done`. */
+  panelCommand(id: number, command: PanelCommand): void;
   /** Ping the app, so an idle connection keeps the service worker alive. */
   keepAlive(): void;
 }
@@ -43,15 +49,17 @@ export function createAppLink(options: {
   requestReplay(tab: number): void;
   /** Call `reconnect` after a pause. */
   retryLater(reconnect: () => void): void;
-  /** Move and resize the game window, as the app asks to make room for its panel. */
-  resizeWindow(bounds: WindowBounds): void;
+  /** Where this browser stands with the app, each time that changes. */
+  status(status: LinkStatus): void;
+  /** A frame from the app for the side panels and the Toolbar Badge. */
+  toSidePanels(frame: PanelFrame): void;
 }): AppLink {
   let socket: Socket | null = null;
-  let welcomed = false;
+  let status: LinkStatus = "no-app";
+  /** Whether any side panel is open, told to each connection once it is welcomed. */
+  let sidePanelOpen = false;
   /** Every tab with a webtiles page, and whether its replay has been forwarded on this connection. */
   const tabs = new Map<number, { replayed: boolean }>();
-  /** Where the game window was last reported, told to each connection once it is welcomed. */
-  let gameWindow: GameWindow | null = null;
 
   function send(frame: ExtensionFrame): void {
     socket?.send(JSON.stringify(frame));
@@ -66,15 +74,30 @@ export function createAppLink(options: {
     options.requestReplay(tab);
   }
 
+  function welcomed(): boolean {
+    return status === "connected";
+  }
+
+  function changeStatus(next: LinkStatus): void {
+    if (next === status) return;
+    status = next;
+    options.status(next);
+  }
+
   function onFrame(frame: AppFrame): void {
     if (frame.type === "welcome") {
-      welcomed = true;
-      if (gameWindow) send({ type: "window", ...gameWindow });
+      changeStatus("connected");
+      if (sidePanelOpen) send({ type: "side-panel-opened" });
       for (const tab of tabs.keys()) askForReplay(tab);
-    } else if (frame.type === "resize-window") {
-      options.resizeWindow(frame.bounds);
+    } else if (frame.type === "awaiting-approval") {
+      changeStatus("awaiting-approval");
     } else if (frame.type === "refused") {
+      changeStatus(frame.reason);
       socket?.close();
+    } else if (frame.type === "view" || frame.type === "panel-command-done") {
+      options.toSidePanels(frame);
+    } else {
+      console.error("DCSS Copilot sent a frame this extension doesn't know", frame);
     }
   }
 
@@ -88,7 +111,8 @@ export function createAppLink(options: {
     };
     opened.onclose = () => {
       socket = null;
-      welcomed = false;
+      // A refusal stands until the app answers otherwise on a later connection.
+      if (status !== "browser-denied" && status !== "unsupported-protocol") changeStatus("no-app");
       options.retryLater(start);
     };
   }
@@ -100,10 +124,10 @@ export function createAppLink(options: {
       const known = tabs.get(tab);
       if (!known) {
         tabs.set(tab, { replayed: false });
-        if (welcomed) askForReplay(tab);
+        if (welcomed()) askForReplay(tab);
         return;
       }
-      if (!welcomed) return;
+      if (!welcomed()) return;
       if (report.kind === "replay") {
         if (report.overflowed) send({ type: "overflow", origin: report.origin, tab });
         for (const envelope of report.envelopes) forward(tab, envelope);
@@ -117,9 +141,14 @@ export function createAppLink(options: {
       tabs.delete(tab);
     },
 
-    windowMoved(window) {
-      gameWindow = window;
-      if (welcomed) send({ type: "window", ...window });
+    sidePanel(open) {
+      const opened = open && !sidePanelOpen;
+      sidePanelOpen = open;
+      if (opened && welcomed()) send({ type: "side-panel-opened" });
+    },
+
+    panelCommand(id, command) {
+      if (welcomed()) send({ type: "panel-command", id, command });
     },
 
     keepAlive() {

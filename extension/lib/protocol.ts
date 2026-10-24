@@ -1,5 +1,7 @@
 // The relay protocol between the extension and the app. See docs/relay-protocol.md.
 
+import type { Appearance, ViewModel } from "$lib/bindings";
+
 /** The only compatibility contract with the app, which accepts this version and the previous one. */
 export const RELAY_PROTOCOL_VERSION = 2;
 
@@ -26,32 +28,28 @@ export type PageReport =
   | { kind: "live"; envelope: PageEnvelope }
   | { kind: "replay"; origin: string; envelopes: PageEnvelope[]; overflowed: boolean };
 
-/** A browser window's outer bounds, in screen pixels as the `windows` API gives them. */
-export interface WindowBounds {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-/** A browser window's state, as the app knows them. */
-export type WindowState = "normal" | "minimized" | "maximized" | "fullscreen";
-
-/** The browser window holding the game, where the app docks its panel. */
-export interface GameWindow {
-  bounds: WindowBounds;
-  state: WindowState;
-}
+/** What the player can do from the side panel. Only the app answers "Allow this browser?". */
+export type PanelCommand =
+  | { kind: "set-appearance"; appearance: Appearance }
+  | { kind: "open-settings" };
 
 export type ExtensionFrame =
   | { type: "hello"; protocol: number }
   | { type: "envelope"; envelope: Envelope }
   | { type: "overflow"; origin: string; tab: number }
-  | ({ type: "window" } & GameWindow)
+  | { type: "side-panel-opened" }
+  | { type: "panel-command"; id: number; command: PanelCommand }
   | { type: "ping" };
 
 export type AppFrame =
   | { type: "welcome"; protocol: number }
   | { type: "awaiting-approval" }
-  | { type: "resize-window"; bounds: WindowBounds }
-  | { type: "refused"; reason: "unsupported-protocol" | "browser-denied" };
+  | { type: "view"; view: ViewModel }
+  | { type: "panel-command-done"; id: number; error: string | null }
+  | { type: "refused"; reason: Refusal };
+
+/** Why the app refused this browser. */
+export type Refusal = "unsupported-protocol" | "browser-denied";
+
+/** The frames the app sends for the side panels and the Toolbar Badge. */
+export type PanelFrame = Extract<AppFrame, { type: "view" | "panel-command-done" }>;

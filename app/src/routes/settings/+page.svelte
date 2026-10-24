@@ -31,7 +31,7 @@ const SECTIONS: {
     icon: "⇄",
     colour: "#fd79a8",
     title: "Connection and window",
-    words: "dock side left right make room shrink browser start login tray wayland floating",
+    words: "side panel sidebar toolbar start login tray",
   },
   {
     id: "about",
@@ -85,7 +85,7 @@ function choose(id: SectionId) {
     <input
       class="search"
       type="search"
-      placeholder="Search: key, model, dock, version…"
+      placeholder="Search: key, model, login, version…"
       bind:value={query}
     >
     {#each groups as group (group)}

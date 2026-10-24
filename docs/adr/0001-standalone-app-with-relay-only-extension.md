@@ -1,6 +1,6 @@
 # Standalone app with a relay-only browser extension
 
-The Advisor is a standalone Tauri app with a Rust core, docked beside the browser. A browser extension captures webtiles traffic and relays raw messages to it over a localhost websocket. We chose this over showing the Advisor in the extension's side panel, because only a standalone app can serve Game Sources that have no browser (console, local tiles), run local models, and keep API keys out of web contexts. We kept the extension relay-only, rather than having it decode game state, so all version-specific decoding sits behind the Game Source seam next to Game Knowledge, and the raw relay stream doubles as a recording format for the dev harness.
+The Advisor is a standalone Tauri app with a Rust core. A browser extension captures webtiles traffic and relays raw messages to it over a localhost websocket; the panel itself shows in the browser's Side Panel (ADR 0004). We chose this over the whole Advisor living in the extension, because only a standalone app can serve Game Sources that have no browser (console, local tiles), run local models, and keep API keys out of web contexts. We kept the extension relay-only, rather than having it decode game state, so all version-specific decoding sits behind the Game Source seam next to Game Knowledge, and the raw relay stream doubles as a recording format for the dev harness.
 
 ## Considered Options
 

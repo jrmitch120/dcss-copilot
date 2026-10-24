@@ -239,9 +239,9 @@ expression: replay
           "state": "needsModel"
         },
         "live": true,
-        "pill": {
+        "badge": {
           "decisionsWaiting": 0,
-          "expands": false
+          "callsForPanel": false
         }
       }
     }
@@ -498,9 +498,9 @@ expression: replay
         "state": "needsModel"
       },
       "live": true,
-      "pill": {
+      "badge": {
         "decisionsWaiting": 0,
-        "expands": false
+        "callsForPanel": false
       }
     }
   }

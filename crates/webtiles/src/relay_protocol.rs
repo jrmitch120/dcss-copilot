@@ -3,6 +3,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use copilot_core::Appearance;
+
 use crate::Envelope;
 
 /// The only compatibility contract between the extension and the app. Bump it whenever a frame
@@ -33,44 +35,33 @@ pub enum ExtensionFrame {
         /// The tab whose buffer overflowed.
         tab: i64,
     },
-    /// Where the browser window holding the game is, each time it moves, resizes or another
-    /// window takes its place. Since protocol 2.
-    Window {
-        /// Its outer bounds.
-        bounds: WindowBounds,
-        /// Whether it is minimized, maximized or fullscreen.
-        state: WindowState,
+    /// The browser opened a side panel, where the panel now shows, or has one open as it is
+    /// welcomed. Since protocol 2.
+    SidePanelOpened,
+    /// The player pressed something in the side panel. The app answers with
+    /// [`AppFrame::PanelCommandDone`]. Since protocol 2.
+    PanelCommand {
+        /// Chosen by the extension, to match the answer to it.
+        id: u32,
+        /// What the player asked for.
+        command: PanelCommand,
     },
     /// Keeps the extension's service worker alive.
     Ping,
 }
 
-/// A browser window's outer bounds on screen, as the browser's `windows` API gives them: in
-/// screen pixels, which the desktop treats as logical pixels.
+/// What the player can do from the side panel. The player answers "Allow this browser?" in the
+/// app alone, so a browser can never allow itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct WindowBounds {
-    /// Its left edge.
-    pub left: i32,
-    /// Its top edge.
-    pub top: i32,
-    /// Its width.
-    pub width: u32,
-    /// Its height.
-    pub height: u32,
-}
-
-/// A browser window's state, as the browser's `windows` API names it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum WindowState {
-    /// Neither minimized, maximized nor fullscreen.
-    Normal,
-    /// Minimized out of sight.
-    Minimized,
-    /// Filling the screen's work area.
-    Maximized,
-    /// Filling the whole screen.
-    Fullscreen,
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum PanelCommand {
+    /// Draw monsters and items as tiles or glyphs.
+    SetAppearance {
+        /// The player's choice.
+        appearance: Appearance,
+    },
+    /// Open the app's Settings window.
+    OpenSettings,
 }
 
 /// A frame the app sends the extension.
@@ -84,11 +75,18 @@ pub enum AppFrame {
     },
     /// The app is asking the player "Allow this browser?".
     AwaitingApproval,
-    /// Move and resize the browser window holding the game to these bounds, to make room for the
-    /// panel beside it. Since protocol 2.
-    ResizeWindow {
-        /// Its new outer bounds.
-        bounds: WindowBounds,
+    /// The panel's view model, as the app's own panel draws it, for the side panels and the
+    /// toolbar badge: on welcome, then each time it changes. Since protocol 2.
+    View {
+        /// The view model, in the shape of the panel's generated bindings.
+        view: serde_json::Value,
+    },
+    /// The app did a [`PanelCommand`], or couldn't. Since protocol 2.
+    PanelCommandDone {
+        /// The command's id.
+        id: u32,
+        /// Why it couldn't, for the player, or `None` if it was done.
+        error: Option<String>,
     },
     /// The app won't take this connection, and closes it.
     Refused {

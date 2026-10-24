@@ -37,8 +37,8 @@ pub use screen::{
     SpellPower, SpellReach,
 };
 pub use view_model::{
-    Appearance, AskBox, Character, CollapsedPill, Colour, Connection, Depiction, FactCard,
-    FocusCard, GameView, Glyph, Listing, NowPill, RunPlanRail, TileName, ViewModel, WayOutRow,
+    Appearance, AskBox, Character, Colour, Connection, Depiction, FactCard, FocusCard, GameView,
+    Glyph, Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, ViewModel, WayOutRow,
     WaysOutList,
 };
 pub use visible_state::{
