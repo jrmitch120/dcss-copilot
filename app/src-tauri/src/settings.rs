@@ -6,6 +6,8 @@ use copilot_core::Appearance;
 use copilot_llm::{ModelChoice, ModelSlot};
 use serde::{Deserialize, Serialize};
 
+use crate::dock::DockSide;
+
 /// The player's settings and where they are saved.
 #[derive(Debug)]
 pub struct Settings {
@@ -21,6 +23,9 @@ struct Saved {
     appearance: Appearance,
     quick_model: ModelChoice,
     deep_model: ModelChoice,
+    dock_side: DockSide,
+    /// Off by default: shrinking the browser is the player's choice to make.
+    make_room: bool,
 }
 
 impl Default for Saved {
@@ -29,6 +34,8 @@ impl Default for Saved {
             appearance: Appearance::default(),
             quick_model: ModelChoice::default_for(ModelSlot::Quick),
             deep_model: ModelChoice::default_for(ModelSlot::Deep),
+            dock_side: DockSide::default(),
+            make_room: false,
         }
     }
 }
@@ -123,6 +130,36 @@ impl Settings {
             ModelSlot::Quick => self.saved.quick_model = choice,
             ModelSlot::Deep => self.saved.deep_model = choice,
         }
+        self.save()
+    }
+
+    /// The edge of the browser the panel docks to.
+    #[must_use]
+    pub fn dock_side(&self) -> DockSide {
+        self.saved.dock_side
+    }
+
+    /// Changes the edge of the browser the panel docks to, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_dock_side(&mut self, side: DockSide) -> Result<(), SettingsError> {
+        self.saved.dock_side = side;
+        self.save()
+    }
+
+    /// Whether Make Room is on: the browser shrinks so the panel fits beside it.
+    #[must_use]
+    pub fn make_room(&self) -> bool {
+        self.saved.make_room
+    }
+
+    /// Turns Make Room on or off, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_make_room(&mut self, on: bool) -> Result<(), SettingsError> {
+        self.saved.make_room = on;
         self.save()
     }
 

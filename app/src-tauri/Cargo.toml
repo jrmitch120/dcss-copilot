@@ -30,7 +30,11 @@ serde.workspace = true
 serde_json.workspace = true
 specta.workspace = true
 specta-typescript.workspace = true
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
+# Start at login: a launch agent, registry entry or XDG autostart file, per OS.
+tauri-plugin-autostart = "2"
+# The app lives in the tray, so launching it again must show the running one, not start another.
+tauri-plugin-single-instance = "2"
 tauri-specta.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["net", "sync", "rt", "macros", "time"] }

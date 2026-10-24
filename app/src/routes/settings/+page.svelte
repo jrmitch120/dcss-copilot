@@ -2,9 +2,10 @@
 import "$lib/panel/theme.css";
 import { commands, events, type SettingsView } from "$lib/bindings";
 import About from "$lib/settings/About.svelte";
+import ConnectionAndWindow from "$lib/settings/ConnectionAndWindow.svelte";
 import ModelsAndKeys from "$lib/settings/ModelsAndKeys.svelte";
 
-type SectionId = "models" | "about";
+type SectionId = "models" | "window" | "about";
 
 /** Each section, with the words a search finds it by. Layout follows round2.html
     (prototype/setup-settings). */
@@ -23,6 +24,14 @@ const SECTIONS: {
     colour: "var(--info)",
     title: "Models and keys",
     words: "quick deep model thinking provider anthropic api key keychain test replace remove",
+  },
+  {
+    id: "window",
+    group: "Setup",
+    icon: "⇄",
+    colour: "#fd79a8",
+    title: "Connection and window",
+    words: "dock side left right make room shrink browser start login tray wayland floating",
   },
   {
     id: "about",
@@ -76,7 +85,7 @@ function choose(id: SectionId) {
     <input
       class="search"
       type="search"
-      placeholder="Search: key, model, version…"
+      placeholder="Search: key, model, dock, version…"
       bind:value={query}
     >
     {#each groups as group (group)}
@@ -100,6 +109,8 @@ function choose(id: SectionId) {
           <h2>{section.title}</h2>
           {#if section.id === "models"}
             <ModelsAndKeys models={view.models} />
+          {:else if section.id === "window"}
+            <ConnectionAndWindow window={view.window} />
           {:else}
             <About appVersion={view.appVersion} />
           {/if}

@@ -13,8 +13,18 @@ export const commands = {
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
+	/**  The player collapsed the panel to the Collapsed Pill. */
+	collapsePanel: () => __TAURI_INVOKE<void>("collapse_panel"),
+	/**  The player expanded the Collapsed Pill back into the panel. */
+	expandPanel: () => __TAURI_INVOKE<void>("expand_panel"),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
+	/**  The player chose the edge of the browser the panel docks to. */
+	setDockSide: (side: DockSide) => typedError<null, string>(__TAURI_INVOKE("set_dock_side", { side })),
+	/**  The player turned Make Room on or off. */
+	setMakeRoom: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_make_room", { on })),
+	/**  The player turned start at login on or off. */
+	setStartAtLogin: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_at_login", { on })),
 	/**  The player chose a slot's model and how it thinks. */
 	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
@@ -111,6 +121,22 @@ export type Depiction = {
 	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
 	tile: TileName | null,
 };
+
+/**  The edge of the browser window the panel docks to. */
+export type DockSide = 
+/**  Its left edge. */
+"left" | 
+/**  Its right edge. */
+"right";
+
+/**  Whether the panel docks beside the browser, or floats where the desktop puts it. */
+export type Docking = 
+/**  It follows the browser window, from the bounds the extension reports. */
+{ state: "docks" } | 
+/**  It is a free floating window, as the desktop won't let apps place their windows. */
+{ state: "floats"; 
+/**  Why, for the player. */
+reason: string };
 
 /**  A unique or Out of Depth monster in view, singled out so the player recognises it. */
 export type FactCard = {
@@ -344,6 +370,8 @@ export type SettingsView = {
 	appVersion: string,
 	/**  Settings → Models and keys. */
 	models: ModelsAndKeysView,
+	/**  Settings → Connection and window. */
+	window: WindowView,
 };
 
 /**  One slot's model, and what it could be changed to. */
@@ -441,6 +469,18 @@ export type WaysOutList = {
 	ground: string | null,
 	/**  What keeps the Advisor from judging more, such as a screen to open, one sentence each. */
 	gaps: string[],
+};
+
+/**  How the panel's window behaves, in Settings → Connection and window. */
+export type WindowView = {
+	/**  Whether the panel can dock here at all. */
+	docking: Docking,
+	/**  The edge of the browser the panel docks to. */
+	dockSide: DockSide,
+	/**  Make Room: the browser shrinks so the panel fits beside it. */
+	makeRoom: boolean,
+	/**  The app starts in the tray at login. */
+	startAtLogin: boolean,
 };
 
 /* Tauri Specta runtime */

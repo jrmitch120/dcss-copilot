@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Character, NowPill } from "$lib/bindings";
+import { type Character, commands, type NowPill } from "$lib/bindings";
 import { threatTone } from "./tone";
 
 let { character, now }: { character: Character; now: NowPill } = $props();
@@ -18,6 +18,16 @@ function stat(value: number | null): string {
     · {character.species} · HP {stat(character.hp)}/{stat(character.hpMax)}
     · T {stat(character.turn)}
   </span>
+  <span class="sp"></span>
+  <button
+    type="button"
+    class="collapse"
+    title="Collapse to the pill"
+    aria-label="Collapse to the pill"
+    onclick={() => commands.collapsePanel()}
+  >
+    ⤡
+  </button>
 </header>
 
 <style>
@@ -65,6 +75,24 @@ header {
 }
 
 .who b {
+  color: var(--text-strong);
+}
+
+.sp {
+  flex: 1;
+}
+
+.collapse {
+  flex: none;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.collapse:hover {
   color: var(--text-strong);
 }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 import "$lib/panel/theme.css";
-import { commands, events, type ViewModel } from "$lib/bindings";
+import type { ViewModel } from "$lib/bindings";
 import AskBox from "$lib/panel/AskBox.svelte";
 import ConnectionNotice from "$lib/panel/ConnectionNotice.svelte";
 import FocusCard from "$lib/panel/FocusCard.svelte";
@@ -9,26 +9,15 @@ import Header from "$lib/panel/Header.svelte";
 import NowPill from "$lib/panel/NowPill.svelte";
 import RunPlanRail from "$lib/panel/RunPlanRail.svelte";
 import WaysOut from "$lib/panel/WaysOut.svelte";
+import { followViewModel } from "$lib/view-model";
 
 let view = $state<ViewModel | null>(null);
 
-$effect(() => {
-  // Listen before asking, so no push between the two is missed.
-  const unlisten = events.viewModelChanged.listen((event) => {
-    view = event.payload;
-  });
-  commands
-    .viewModel()
-    .then((v) => {
-      view ??= v;
-    })
-    .catch((e: unknown) => {
-      console.error("Could not load the view model", e);
-    });
-  return () => {
-    unlisten.then((stop) => stop());
-  };
-});
+$effect(() =>
+  followViewModel((v) => {
+    view = v;
+  }),
+);
 </script>
 
 <main class="panel">

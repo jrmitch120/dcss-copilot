@@ -258,6 +258,10 @@ _Avoid_: Mini mode, HUD, overlay
 The browser window holding the webtiles tab the player turned to last. The extension reports where it is on screen, and the panel docks to its edge.
 _Avoid_: Browser window (when meaning this one), host window
 
+**Make Room**:
+The player's option, off by default, to have the browser window shrink so the docked panel fits beside it rather than covering its edge.
+_Avoid_: Resize mode, side-by-side
+
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
 _Avoid_: Main card, hero card

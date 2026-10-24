@@ -1,11 +1,14 @@
 //! The DCSS Copilot desktop app: wires the core to its windows, tray and keychain.
 
+mod dock;
 mod keys;
+mod lifecycle;
 mod live;
 mod log;
 mod models;
 pub mod relay;
 mod settings;
+mod windows;
 
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
@@ -13,16 +16,22 @@ use std::sync::{Arc, Mutex};
 use copilot_core::{Appearance, ViewModel};
 use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
 use serde::Serialize;
-use tauri::{AppHandle, Manager, RunEvent, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{AppHandle, Manager, RunEvent, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_specta::{Builder, Event, collect_commands, collect_events};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
+use crate::dock::DockSide;
 use crate::keys::{Keys, OsKeychain};
+use crate::lifecycle::Presence;
 use crate::live::Live;
 use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
-use crate::relay::{BrowserApprovals, RELAY_PORT};
+use crate::relay::{BrowserApprovals, RELAY_PORT, RelayEvent};
 use crate::settings::Settings;
+use crate::windows::{Docking, PANEL_WINDOW, Windows};
 
 /// Where the generated TypeScript bindings for the webview live.
 const BINDINGS_PATH: &str = "../src/lib/bindings.ts";
@@ -37,6 +46,16 @@ pub struct ViewModelChanged(ViewModel);
 /// The Settings window's label, which also names its route in the webview.
 const SETTINGS_WINDOW: &str = "settings";
 
+/// The tray menu's items.
+const TRAY_SHOW: &str = "show";
+/// See [`TRAY_SHOW`].
+const TRAY_SETTINGS: &str = "settings";
+/// See [`TRAY_SHOW`].
+const TRAY_QUIT: &str = "quit";
+
+/// What starting at login passes the app, so it starts in the tray rather than showing the panel.
+const STARTED_AT_LOGIN: &str = "--started-at-login";
+
 /// Everything the Settings window shows.
 #[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -45,6 +64,22 @@ pub struct SettingsView {
     app_version: String,
     /// Settings → Models and keys.
     models: ModelsAndKeysView,
+    /// Settings → Connection and window.
+    window: WindowView,
+}
+
+/// How the panel's window behaves, in Settings → Connection and window.
+#[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowView {
+    /// Whether the panel can dock here at all.
+    docking: Docking,
+    /// The edge of the browser the panel docks to.
+    dock_side: DockSide,
+    /// Make Room: the browser shrinks so the panel fits beside it.
+    make_room: bool,
+    /// The app starts in the tray at login.
+    start_at_login: bool,
 }
 
 /// The core pushes new settings to the Settings window.
@@ -107,12 +142,75 @@ fn open_settings(app: AppHandle) -> Result<(), String> {
     .map_err(|error| error.to_string())
 }
 
+/// The player collapsed the panel to the Collapsed Pill.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn collapse_panel(app: AppHandle, windows: State<'_, Windows>) {
+    windows.collapse(&app);
+}
+
+/// The player expanded the Collapsed Pill back into the panel.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn expand_panel(app: AppHandle, windows: State<'_, Windows>) {
+    windows.show(&app);
+}
+
+/// The player chose the edge of the browser the panel docks to.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_dock_side(
+    side: DockSide,
+    app: AppHandle,
+    live: State<'_, Live>,
+    windows: State<'_, Windows>,
+) -> Result<(), String> {
+    let saved = live.set_dock_side(side);
+    windows.rearrange(&app);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player turned Make Room on or off.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_make_room(
+    on: bool,
+    app: AppHandle,
+    live: State<'_, Live>,
+    windows: State<'_, Windows>,
+) -> Result<(), String> {
+    let saved = live.set_make_room(on);
+    windows.rearrange(&app);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player turned start at login on or off.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_start_at_login(on: bool, app: AppHandle) -> Result<(), String> {
+    let autostart = app.autolaunch();
+    let changed = if on {
+        autostart.enable()
+    } else {
+        autostart.disable()
+    };
+    push_settings(&app);
+    changed.map_err(|error| format!("Start at login couldn't be changed: {error}"))
+}
+
 /// The settings as they are now, for a Settings window that has just loaded.
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn settings_view(live: State<'_, Live>, models: State<'_, ModelsAndKeys>) -> SettingsView {
-    current_settings(&live, &models)
+fn settings_view(app: AppHandle) -> SettingsView {
+    current_settings(&app)
 }
 
 /// The player chose a slot's model and how it thinks.
@@ -131,7 +229,7 @@ fn set_model(
         ModelChoice::new(provider, &model, thinking.into()).map_err(|error| error.to_string())?;
     let saved = live.set_model(slot, choice);
     push_settings(&app);
-    saved.map_err(|error| format!("This choice lasts only until DCSS Copilot closes: {error}"))
+    saved.map_err(unsaved)
 }
 
 /// The player pasted a key for a provider.
@@ -177,6 +275,12 @@ async fn test_key(provider: String, app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// What the player is told when a choice of theirs couldn't be saved.
+#[allow(clippy::needless_pass_by_value)] // Called through `map_err`.
+fn unsaved(error: settings::SettingsError) -> String {
+    format!("This choice lasts only until DCSS Copilot closes: {error}")
+}
+
 fn provider_named(id: &str) -> Result<Provider, String> {
     Provider::from_id(id).ok_or_else(|| format!("there is no provider called {id}"))
 }
@@ -188,7 +292,12 @@ fn specta_builder() -> Builder<tauri::Wry> {
             answer_browser,
             set_appearance,
             open_settings,
+            collapse_panel,
+            expand_panel,
             settings_view,
+            set_dock_side,
+            set_make_room,
+            set_start_at_login,
             set_model,
             save_key,
             remove_key,
@@ -214,9 +323,39 @@ pub fn export_bindings() -> Result<(), specta_typescript::Error> {
 pub fn run() {
     let builder = specta_builder();
     tauri::Builder::default()
+        // Registered first, so a second launch hands over before anything else starts.
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            app.state::<Windows>().show(app);
+        }))
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec![STARTED_AT_LOGIN]),
+        ))
         .invoke_handler(builder.invoke_handler())
+        .on_window_event(|window, event| {
+            // Closing the panel hides it to the tray; Quit in the tray menu exits.
+            if let WindowEvent::CloseRequested { api, .. } = event
+                && window.label() == PANEL_WINDOW
+            {
+                api.prevent_close();
+                window
+                    .app_handle()
+                    .state::<Windows>()
+                    .hide(window.app_handle());
+            }
+        })
         .setup(move |app| {
             builder.mount_events(app);
+            let presence = if std::env::args().any(|arg| arg == STARTED_AT_LOGIN) {
+                Presence::Hidden
+            } else {
+                Presence::Docked
+            };
+            app.manage(Windows::new(
+                presence,
+                Docking::detect(|variable| std::env::var(variable).ok()),
+            ));
+            tray(app.handle())?;
             // Dev builds save what they receive, so a session can be replayed.
             let recordings = if cfg!(debug_assertions) {
                 Some(app.path().app_data_dir()?.join("recordings"))
@@ -241,15 +380,60 @@ pub fn run() {
             ));
             let approvals = app.path().app_config_dir()?.join("browsers.json");
             tauri::async_runtime::spawn(run_relay(app.handle().clone(), approvals));
+            app.state::<Windows>().rearrange(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while starting DCSS Copilot")
-        .run(|app, event| {
-            if let RunEvent::Exit = event {
-                app.state::<Live>().finish_recording();
+        .run(|app, event| match event {
+            RunEvent::Exit => app.state::<Live>().finish_recording(),
+            // Clicking the Dock icon of an app whose panel is in the tray.
+            #[cfg(target_os = "macos")]
+            RunEvent::Reopen { .. } => app.state::<Windows>().show(app),
+            _ => {}
+        });
+}
+
+/// The tray icon the app lives in: a click shows the panel, and its menu opens Settings or quits.
+fn tray(app: &AppHandle) -> tauri::Result<()> {
+    let menu = Menu::with_items(
+        app,
+        &[
+            &MenuItem::with_id(app, TRAY_SHOW, "Show DCSS Copilot", true, None::<&str>)?,
+            &MenuItem::with_id(app, TRAY_SETTINGS, "Settings…", true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, TRAY_QUIT, "Quit DCSS Copilot", true, None::<&str>)?,
+        ],
+    )?;
+    let mut tray = TrayIconBuilder::with_id("tray")
+        .tooltip("DCSS Copilot")
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            TRAY_SHOW => app.state::<Windows>().show(app),
+            TRAY_SETTINGS => {
+                if let Err(error) = open_settings(app.clone()) {
+                    crate::log::error(format_args!("could not open Settings: {error}"));
+                }
+            }
+            TRAY_QUIT => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                let app = tray.app_handle();
+                app.state::<Windows>().show(app);
             }
         });
+    if let Some(icon) = app.default_window_icon() {
+        tray = tray.icon(icon.clone());
+    }
+    tray.build(app).map(drop)
 }
 
 /// Listens for the browser extension and feeds what it relays to the live game.
@@ -278,20 +462,42 @@ async fn run_relay(app: AppHandle, approvals: std::path::PathBuf) {
         sender,
     ));
     while let Some(event) = events.recv().await {
+        if let RelayEvent::BrowserWindow(window) = event {
+            app.state::<Windows>().browser_moved(&app, window);
+            continue;
+        }
         live.handle(event);
         push_view_model(&app, &live);
     }
 }
 
-fn current_settings(live: &Live, models: &ModelsAndKeys) -> SettingsView {
+fn current_settings(app: &AppHandle) -> SettingsView {
+    let live = app.state::<Live>();
+    let (dock_side, make_room) = live.docking();
+    let start_at_login = app.autolaunch().is_enabled().unwrap_or_else(|error| {
+        crate::log::error(format_args!(
+            "could not tell if the app starts at login: {error}"
+        ));
+        false
+    });
     SettingsView {
         app_version: env!("CARGO_PKG_VERSION").to_owned(),
-        models: models.view(&live.model(ModelSlot::Quick), &live.model(ModelSlot::Deep)),
+        models: models_view(&live, &app.state::<ModelsAndKeys>()),
+        window: WindowView {
+            docking: app.state::<Windows>().docking().clone(),
+            dock_side,
+            make_room,
+            start_at_login,
+        },
     }
 }
 
+fn models_view(live: &Live, models: &ModelsAndKeys) -> ModelsAndKeysView {
+    models.view(&live.model(ModelSlot::Quick), &live.model(ModelSlot::Deep))
+}
+
 fn push_settings(app: &AppHandle) {
-    let view = current_settings(&app.state::<Live>(), &app.state::<ModelsAndKeys>());
+    let view = current_settings(app);
     if let Err(error) = SettingsChanged(view).emit(app) {
         crate::log::error(format_args!(
             "could not push the settings to the Settings window: {error}"
@@ -299,8 +505,11 @@ fn push_settings(app: &AppHandle) {
     }
 }
 
+/// Pushes the view model to the panel and the pill, and shows or hides them as it calls for.
 fn push_view_model(app: &AppHandle, live: &Live) {
-    if let Err(error) = ViewModelChanged(live.view_model()).emit(app) {
+    let view = live.view_model();
+    app.state::<Windows>().viewed(app, &view);
+    if let Err(error) = ViewModelChanged(view).emit(app) {
         crate::log::error(format_args!(
             "could not push the view model to the panel: {error}"
         ));
@@ -317,7 +526,7 @@ mod tests {
     use copilot_webtiles::Envelope;
     use serde_json::json;
 
-    use super::current_settings;
+    use super::models_view;
     use crate::live::Live;
     use copilot_llm::{LlmError, LlmProvider, LlmRequest, LlmStream};
     use futures_util::StreamExt;
@@ -458,7 +667,7 @@ mod tests {
         models
             .test_key(Provider::Anthropic, live.llm_sidecar())
             .await;
-        let settings_window = serde_json::to_string(&current_settings(&live, &models)).unwrap();
+        let settings_window = serde_json::to_string(&models_view(&live, &models)).unwrap();
         let panel = serde_json::to_string(&live.view_model()).unwrap();
         live.finish_recording();
 

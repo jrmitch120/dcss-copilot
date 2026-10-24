@@ -11,6 +11,7 @@ use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_webtiles::{Envelope, WebtilesSource};
 
+use crate::dock::DockSide;
 use crate::relay::{ApprovalRequest, RelayEvent};
 use crate::settings::{Settings, SettingsError};
 
@@ -181,6 +182,28 @@ impl Live {
     /// If the choice couldn't be saved, so it lasts only until the app exits.
     pub fn set_model(&self, slot: ModelSlot, choice: ModelChoice) -> Result<(), SettingsError> {
         self.lock().settings.set_model(slot, choice)
+    }
+
+    /// The edge of the browser the panel docks to, and whether Make Room is on.
+    pub fn docking(&self) -> (DockSide, bool) {
+        let state = self.lock();
+        (state.settings.dock_side(), state.settings.make_room())
+    }
+
+    /// The player chose the edge of the browser the panel docks to.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_dock_side(&self, side: DockSide) -> Result<(), SettingsError> {
+        self.lock().settings.set_dock_side(side)
+    }
+
+    /// The player turned Make Room on or off.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_make_room(&self, on: bool) -> Result<(), SettingsError> {
+        self.lock().settings.set_make_room(on)
     }
 
     /// Where LLM calls are recorded while a dev build records a Recording: its LLM sidecar.
@@ -374,6 +397,20 @@ mod tests {
 
         let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
         assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
+    }
+
+    #[test]
+    fn the_panel_docks_right_without_making_room_until_the_player_chooses_otherwise() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(live.docking(), (DockSide::Right, false));
+
+        live.set_dock_side(DockSide::Left).unwrap();
+        live.set_make_room(true).unwrap();
+
+        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        assert_eq!(restarted.docking(), (DockSide::Left, true));
     }
 
     #[test]
