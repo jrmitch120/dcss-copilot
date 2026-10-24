@@ -40,13 +40,12 @@ impl Panels {
         }
     }
 
-    /// `browser` connected: it is sent the view as it is, and each that differs after.
+    /// `browser` connected. The next push goes to every browser, changed or not, so it reaches
+    /// this one too.
     pub fn connected(&self, browser: BrowserLink) {
         let mut state = self.lock();
-        if let Some(view) = &state.sent {
-            browser.show(view);
-        }
         state.browsers.push(browser);
+        state.sent = None;
     }
 
     /// Sends `live`'s view model to the panel window and, if it changed, to each browser, and

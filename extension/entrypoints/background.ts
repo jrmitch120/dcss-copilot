@@ -2,12 +2,12 @@ import { createAppLink, type Socket } from "../lib/app-link";
 import { RELAY_PORT_NAME } from "../lib/bridge";
 import { APP_URL, type PageReport } from "../lib/protocol";
 import {
-  type Badge,
   createSidePanels,
   type FromSidePanel,
-  NO_BADGE,
+  NO_TOOLBAR_BADGE,
   SIDE_PANEL_PORT_NAME,
   type SidePanelPort,
+  type ToolbarBadge,
 } from "../lib/side-panels";
 
 /** How long to wait before trying the app again. */
@@ -36,9 +36,9 @@ export default defineBackground(() => {
 
   const sidePanels = createSidePanels({ link, badge: showBadge });
   // The browser keeps the last badge across service worker restarts, but not the view it showed.
-  showBadge(NO_BADGE);
+  showBadge(NO_TOOLBAR_BADGE);
 
-  function showBadge(badge: Badge): void {
+  function showBadge(badge: ToolbarBadge): void {
     void button.setBadgeText({ text: badge.text });
     void button.setBadgeBackgroundColor({ color: badge.colour });
     void button.setTitle({ title: badge.title });

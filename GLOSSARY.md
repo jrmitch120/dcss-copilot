@@ -255,7 +255,7 @@ The browser's own panel at the side of its window, where the extension shows the
 _Avoid_: Sidebar (except as Firefox's name for it), docked window
 
 **Toolbar Badge**:
-The panel's stand-in on the extension's toolbar button while no Side Panel is open: its tooltip shows the Now Pill's label and line, or its Alert, and its badge counts the Decision Points that wait. Only a LETHAL moment with no trusted Way Out turns the badge to a call to open the panel.
+The panel's stand-in on the extension's toolbar button while no Side Panel is open: its tooltip shows the Now Pill's label, any Alert and its line, and its badge counts the Decision Points that wait. Only a LETHAL moment with no trusted Way Out turns the badge to a call to open the panel.
 _Avoid_: Collapsed pill, notification
 
 **Focus Card**:

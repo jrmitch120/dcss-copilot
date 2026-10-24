@@ -35,7 +35,7 @@ pub enum RelayEvent {
     Envelope(Envelope),
     /// A tab's buffer overflowed before it could be replayed, so its game is missing its start.
     Overflow,
-    /// An allowed browser's side panel opened or closed, or the player pressed something in it.
+    /// An allowed browser opened a side panel, or the player pressed something in one.
     SidePanel(SidePanelEvent),
     /// An allowed browser disconnected.
     Disconnected,

@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { NowPill } from "$lib/bindings";
-import { threatTone } from "./tone";
+import { nowLabel, nowLine, threatTone } from "./tone";
 
 let { now }: { now: NowPill } = $props();
 
@@ -8,27 +8,18 @@ let tone = $derived(threatTone(now));
 </script>
 
 <div class="now {tone}">
-  {#if now.state === "unrated"}
-    <div class="lab">UNRATED</div>
-    <div class="line">
-      {#if now.alert}
-        <strong class="alert">{now.alert}</strong>
-      {/if}
-      The Advisor can't judge danger yet.
+  <div class="lab">{nowLabel(now)}</div>
+  <div class="line">
+    {#if now.alert}
+      <strong class="alert">{now.alert}</strong>
+    {/if}
+    {nowLine(now)}
+    {#if now.state === "unrated"}
       <small>No Threat Level is shown until it can be computed.</small>
-    </div>
-  {:else}
-    <div class="lab">{now.level.toUpperCase()}</div>
-    <div class="line">
-      {#if now.alert}
-        <strong class="alert">{now.alert}</strong>
-      {/if}
-      {now.line}
-      {#if now.detail}
-        <small>{now.detail}</small>
-      {/if}
-    </div>
-  {/if}
+    {:else if now.detail}
+      <small>{now.detail}</small>
+    {/if}
+  </div>
 </div>
 
 <style>

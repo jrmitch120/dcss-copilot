@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { GameView, ViewModel } from "$lib/bindings";
 import type { PanelCommand } from "../lib/protocol";
 import {
-  type Badge,
   createSidePanels,
-  NO_BADGE,
+  NO_TOOLBAR_BADGE,
   type SidePanelPort,
+  type ToolbarBadge,
   type ToSidePanel,
 } from "../lib/side-panels";
 
@@ -20,7 +20,7 @@ class FakePanel implements SidePanelPort {
 function harness() {
   const sidePanelOpen: boolean[] = [];
   const commands: [number, PanelCommand][] = [];
-  const badges: Badge[] = [];
+  const badges: ToolbarBadge[] = [];
   const sidePanels = createSidePanels({
     link: {
       sidePanel: (open) => sidePanelOpen.push(open),
@@ -113,12 +113,12 @@ describe("toolbar badge", () => {
     sidePanels.received({ type: "view", view: DANGEROUS });
     sidePanels.opened(new FakePanel());
 
-    const standingIn: Badge = {
+    const standingIn: ToolbarBadge = {
       text: "",
       colour: "#74b9ff",
       title: "DCSS Copilot: DANGEROUS. The ogre hits hard.",
     };
-    expect(badges.slice(-2)).toEqual([standingIn, NO_BADGE]);
+    expect(badges.slice(-2)).toEqual([standingIn, NO_TOOLBAR_BADGE]);
   });
 
   it("calls for the panel only at a LETHAL moment with no trusted Way Out, and counts Decision Points otherwise", () => {
@@ -139,8 +139,23 @@ describe("toolbar badge", () => {
     expect(badges.slice(-3)).toEqual([
       { text: "!", colour: "#ff3b5c", title: "DCSS Copilot: LETHAL. Three jackals flank you." },
       { text: "2", colour: "#74b9ff", title: "DCSS Copilot: LETHAL. Three jackals flank you." },
-      NO_BADGE,
+      NO_TOOLBAR_BADGE,
     ]);
+  });
+
+  it("shows the now pill's Alert in the tooltip, between its label and line", () => {
+    const { sidePanels, badges } = harness();
+    sidePanels.status("connected");
+    const alerted = gameView({
+      ...(DANGEROUS.game?.now as GameView["now"]),
+      alert: "Ljyb comes into view.",
+    });
+
+    sidePanels.received({ type: "view", view: alerted });
+
+    expect(badges.at(-1)?.title).toBe(
+      "DCSS Copilot: DANGEROUS. Ljyb comes into view. The ogre hits hard.",
+    );
   });
 
   it("goes when the game stops being live", () => {
@@ -151,6 +166,6 @@ describe("toolbar badge", () => {
 
     sidePanels.received({ type: "view", view: ended });
 
-    expect(badges.at(-1)).toEqual(NO_BADGE);
+    expect(badges.at(-1)).toEqual(NO_TOOLBAR_BADGE);
   });
 });

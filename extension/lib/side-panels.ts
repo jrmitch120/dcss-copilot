@@ -2,6 +2,7 @@
 // app sends, and the toolbar button standing in for them while none is open.
 
 import type { NowPill, ViewModel } from "$lib/bindings";
+import { nowLabel, nowLine } from "$lib/panel/tone";
 import type { AppLink, LinkStatus } from "./app-link";
 import type { PanelCommand, PanelFrame } from "./protocol";
 
@@ -26,8 +27,8 @@ export interface SidePanelPort {
   post(message: ToSidePanel): void;
 }
 
-/** The Toolbar Badge: the panel's stand-in on the toolbar button while no side panel is open. */
-export interface Badge {
+/** The Toolbar Badge: the panel's stand-in on the toolbar button while no Side Panel is open. */
+export interface ToolbarBadge {
   /** The badge's text: empty for none. */
   text: string;
   colour: string;
@@ -36,9 +37,14 @@ export interface Badge {
 }
 
 /** The button as it is with no game to stand in for. */
-export const NO_BADGE: Badge = { text: "", colour: "#000000", title: "DCSS Copilot" };
+export const NO_TOOLBAR_BADGE: ToolbarBadge = {
+  text: "",
+  colour: "#000000",
+  title: "DCSS Copilot",
+};
 
-/** theme.css's `--danger`, for a moment that calls for the panel. */
+/** theme.css's `--danger`, for a moment that calls for the panel. The background service worker
+    has no stylesheet to read it from. */
 const DANGER = "#ff3b5c";
 /** theme.css's `--info`, for Decision Points waiting. */
 const INFO = "#74b9ff";
@@ -60,7 +66,7 @@ export interface SidePanels {
  */
 export function createSidePanels(options: {
   link: Pick<AppLink, "sidePanel" | "panelCommand">;
-  badge(badge: Badge): void;
+  badge(badge: ToolbarBadge): void;
 }): SidePanels {
   const open = new Set<SidePanelPort>();
   let status: LinkStatus = "no-app";
@@ -71,7 +77,7 @@ export function createSidePanels(options: {
   let nextId = 1;
 
   function rebadge(): void {
-    options.badge(open.size === 0 && view ? toolbarBadge(view) : NO_BADGE);
+    options.badge(open.size === 0 && view ? toolbarBadgeFor(view) : NO_TOOLBAR_BADGE);
   }
 
   function broadcast(message: ToSidePanel): void {
@@ -133,19 +139,17 @@ export function createSidePanels(options: {
 
 /** The Toolbar Badge for `view`: the threat in the tooltip, and a call for the panel or the
     Decision Points waiting on the badge. */
-function toolbarBadge(view: ViewModel): Badge {
+function toolbarBadgeFor(view: ViewModel): ToolbarBadge {
   const game = view.game;
-  if (!game?.live) return NO_BADGE;
+  if (!game?.live) return NO_TOOLBAR_BADGE;
   const title = `DCSS Copilot: ${summary(game.now)}`;
   if (game.badge.callsForPanel) return { text: "!", colour: DANGER, title };
   const waiting = game.badge.decisionsWaiting;
   return { text: waiting > 0 ? String(waiting) : "", colour: INFO, title };
 }
 
-/** The now pill's label and line, as one sentence for a tooltip. */
+/** The now pill's label, any Alert and its line, as one tooltip. */
 function summary(now: NowPill): string {
-  if (now.state === "unrated") {
-    return `UNRATED. ${now.alert ?? "The Advisor can't judge danger yet."}`;
-  }
-  return `${now.level.toUpperCase()}. ${now.alert ?? now.line}`;
+  // The Alert and the line are each a sentence of their own.
+  return `${nowLabel(now)}. ${now.alert ? `${now.alert} ` : ""}${nowLine(now)}`;
 }
