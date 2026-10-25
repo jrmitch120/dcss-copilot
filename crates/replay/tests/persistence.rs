@@ -449,6 +449,41 @@ fn a_game_whose_saved_accumulated_state_cant_be_read_says_so_while_followed_and_
 }
 
 #[test]
+fn a_game_saved_afresh_over_what_couldnt_be_read_no_longer_says_so_once_read() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE games SET accumulated = '{\"resistances\":{\"state\":\"pondered\"}}'",
+            [],
+        )
+        .unwrap();
+    let mut following =
+        Following::remembering(&Library::shipped().unwrap(), Store::open(&path).unwrap());
+    let reloaded = &Recording::read(SESSION).unwrap().envelopes[..5];
+    for envelope in reloaded {
+        following.ingest(envelope);
+    }
+    let unreadable = |following: &Following| {
+        following
+            .game_view(AssistanceLevel::Hints)
+            .unwrap()
+            .accumulated_unreadable
+    };
+    assert!(unreadable(&following).is_some());
+
+    // The browser reconnects, and relays the page again.
+    following.restart();
+    for envelope in reloaded {
+        following.ingest(envelope);
+    }
+
+    assert_eq!(unreadable(&following), None);
+}
+
+#[test]
 fn clearing_the_history_forgets_every_game_but_the_one_followed() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("games.sqlite");

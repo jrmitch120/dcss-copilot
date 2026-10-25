@@ -29,7 +29,7 @@ pub struct Following {
     store: Option<Store>,
     /// What went wrong with the game history, the last time anything did.
     trouble: Option<Trouble>,
-    /// Why what was saved of each game was unreadable, for the games that were in this run of
+    /// Why what was saved of each game was unreadable, the last time it was read in this run of
     /// the app.
     unreadable: HashMap<GameKey, String>,
 }
@@ -86,7 +86,12 @@ impl Following {
     /// its first message, keeping only what the store remembers.
     pub fn restart(&mut self) {
         let known = match self.store.as_ref().map(Store::known_games) {
-            Some(Ok(games)) => KnownGames::new(games),
+            Some(Ok(games)) => {
+                if matches!(self.trouble, Some(Trouble::Reading(_))) {
+                    self.trouble = None;
+                }
+                KnownGames::new(games)
+            }
             Some(Err(error)) => {
                 self.trouble = Some(Trouble::Reading(error.to_string()));
                 KnownGames::default()
@@ -237,8 +242,12 @@ impl Following {
             return;
         }
         match store.saved(&key) {
-            Ok(Some(saved)) => self.advisor.recall(key, saved.turn, saved.accumulated),
-            Ok(None) => {}
+            Ok(saved) => {
+                self.unreadable.remove(&key);
+                if let Some(saved) = saved {
+                    self.advisor.recall(key, saved.turn, saved.accumulated);
+                }
+            }
             Err(error) => {
                 self.unreadable.insert(key, error.to_string());
             }
