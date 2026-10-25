@@ -26,7 +26,7 @@ use tokio::sync::mpsc;
 
 use crate::keys::{Keys, OsKeychain};
 use crate::lifecycle::Presence;
-use crate::live::Live;
+use crate::live::{HistoryView, Live};
 use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
 use crate::panels::{PANEL_WINDOW, Panels};
 use crate::relay::{BrowserApprovals, PanelCommand, RELAY_PORT, RelayEvent, SidePanelEvent};
@@ -65,6 +65,8 @@ pub struct SettingsView {
     models: ModelsAndKeysView,
     /// Settings → Connection and window.
     window: WindowView,
+    /// Settings → History.
+    history: HistoryView,
 }
 
 /// How the app's window behaves, in Settings → Connection and window.
@@ -174,6 +176,27 @@ fn set_start_at_login(on: bool, app: AppHandle) -> Result<(), String> {
     changed.map_err(|error| format!("Start at login couldn't be changed: {error}"))
 }
 
+/// The player turned forgetting games not played for a while on or off.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_forget_old_games(on: bool, app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    let saved = live.set_forget_old_games(on);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player cleared their game history.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn clear_history(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    let cleared = live.clear_history();
+    push_settings(&app);
+    push_view_model(&app, &live);
+    cleared.map_err(|error| error.to_string())
+}
+
 /// The settings as they are now, for a Settings window that has just loaded.
 #[tauri::command]
 #[specta::specta]
@@ -265,6 +288,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             open_settings,
             settings_view,
             set_start_at_login,
+            set_forget_old_games,
+            clear_history,
             set_model,
             save_key,
             remove_key,
@@ -477,6 +502,7 @@ fn current_settings(app: &AppHandle) -> SettingsView {
         app_version: env!("CARGO_PKG_VERSION").to_owned(),
         models: models_view(&live, &app.state::<ModelsAndKeys>()),
         window: WindowView { start_at_login },
+        history: live.history(),
     }
 }
 

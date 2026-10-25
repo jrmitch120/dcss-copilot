@@ -3,7 +3,7 @@
 
 use copilot_core::{Advisor, Detection, GameIdentity, KnownGames, Role, SourceEvent};
 use copilot_gk::Library;
-use copilot_store::Store;
+use copilot_store::{Store, StoreError};
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
@@ -128,6 +128,45 @@ impl Following {
             happened.extend(detections.into_iter().map(Happened::Detected));
         }
         happened
+    }
+
+    /// How many games the store remembers.
+    ///
+    /// # Errors
+    /// If the store can't be read.
+    pub fn games_remembered(&self) -> Result<usize, StoreError> {
+        match &self.store {
+            Some(store) => Ok(store.known_games()?.len()),
+            None => Ok(0),
+        }
+    }
+
+    /// Forgets every game last seen before `before_ms`, in Unix milliseconds, and says how many
+    /// it forgot. Call it before a browser connects: what the Game Source already knows of a game
+    /// is forgotten only at the next [`Following::restart`].
+    ///
+    /// # Errors
+    /// If the store can't forget them.
+    pub fn forget_games_seen_before(&mut self, before_ms: u64) -> Result<usize, StoreError> {
+        match &mut self.store {
+            Some(store) => store.forget_seen_before(before_ms),
+            None => Ok(0),
+        }
+    }
+
+    /// Forgets every game but the one followed, as the player clears their game history: what
+    /// is remembered of each, and its Change Log. A game forgotten that is played again is
+    /// picked up remembering nothing.
+    ///
+    /// # Errors
+    /// If the store can't forget them. The Advisor forgets them all the same.
+    pub fn forget_all_but_followed(&mut self) -> Result<(), StoreError> {
+        self.advisor.forget_all_but_followed();
+        let followed = self.advisor.identity().map(GameIdentity::key);
+        match &mut self.store {
+            Some(store) => store.forget_all_but(followed.as_ref()),
+            None => Ok(()),
+        }
     }
 
     /// The Advisor, as the envelopes taken in so far left it.

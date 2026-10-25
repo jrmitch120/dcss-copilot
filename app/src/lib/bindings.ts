@@ -21,6 +21,10 @@ export const commands = {
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
 	/**  The player turned start at login on or off. */
 	setStartAtLogin: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_at_login", { on })),
+	/**  The player turned forgetting games not played for a while on or off. */
+	setForgetOldGames: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_forget_old_games", { on })),
+	/**  The player cleared their game history. */
+	clearHistory: () => typedError<null, string>(__TAURI_INVOKE("clear_history")),
 	/**  The player chose a slot's model and how it thinks. */
 	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
@@ -215,6 +219,16 @@ export type Glyph = {
 	colour: Colour,
 };
 
+/**  The game history, in Settings → History. */
+export type HistoryView = {
+	/**  How many games the Advisor remembers. */
+	games: number,
+	/**  How many days a game is kept after it was last played, or `None` to keep every game. */
+	forgetAfterDays: number | null,
+	/**  How many days a game is kept once the player turns forgetting on. */
+	keepDays: number,
+};
+
 /**  Where a key is kept. */
 export type KeyPlace = 
 /**  In the OS keychain. */
@@ -363,6 +377,8 @@ export type SettingsView = {
 	models: ModelsAndKeysView,
 	/**  Settings → Connection and window. */
 	window: WindowView,
+	/**  Settings → History. */
+	history: HistoryView,
 };
 
 /**  One slot's model, and what it could be changed to. */

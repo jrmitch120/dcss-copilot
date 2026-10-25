@@ -155,6 +155,12 @@ impl Advisor {
         );
     }
 
+    /// Forgets every game but the one it follows, as the player clears their game history.
+    pub fn forget_all_but_followed(&mut self) {
+        let followed = self.followed_key();
+        self.games.retain(|key, _| Some(key) == followed.as_ref());
+    }
+
     /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise
     /// for the now pill.
     fn settle(&mut self) -> Vec<Detection> {

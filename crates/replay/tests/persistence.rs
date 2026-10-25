@@ -7,7 +7,8 @@
 use std::path::Path;
 
 use copilot_core::{AccumulatedState, GameKey, Remembered, SessionEvent, SourceEvent};
-use copilot_replay::{Happened, Recording, Replayer};
+use copilot_gk::Library;
+use copilot_replay::{Following, Happened, Recording, Replayer};
 use copilot_store::Store;
 
 /// Tiv, a kobold at turn 1234, opens every screen the Advisor reads.
@@ -263,4 +264,25 @@ fn a_new_game_is_already_new() {
 
     assert_eq!(key(&replayer), game);
     assert!(remembers_anything(&replayer));
+}
+
+#[test]
+fn clearing_the_history_forgets_every_game_but_the_one_followed() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut following =
+        Following::remembering(&Library::shipped().unwrap(), Store::open(&path).unwrap());
+    // Tiv picked up again, dead, and a new Tiv followed.
+    for envelope in &Recording::read(SESSION).unwrap().envelopes {
+        following.ingest(envelope);
+    }
+    assert_eq!(following.games_remembered().unwrap(), 2);
+
+    following.forget_all_but_followed().unwrap();
+
+    let followed = following.advisor().identity().unwrap().key();
+    let kept = Store::open(&path).unwrap().known_games().unwrap();
+    assert_eq!(kept.len(), 1);
+    assert_eq!(kept[0].key, followed);
 }
