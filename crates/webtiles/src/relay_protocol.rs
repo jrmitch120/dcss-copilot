@@ -65,8 +65,12 @@ pub enum PanelCommand {
         /// The player's choice.
         assistance: AssistanceLevel,
     },
-    /// The followed game is a new game, not the one the Advisor took it for. Since protocol 4.
-    NewGame,
+    /// The player answered whether the followed game is the one its game process picked up again
+    /// on a later turn. Since protocol 4.
+    AnswerSameGame {
+        /// It is the same game; otherwise it is a new one.
+        same: bool,
+    },
     /// Open the app's Settings window.
     OpenSettings,
 }

@@ -8,6 +8,7 @@ import Footer from "./Footer.svelte";
 import Header from "./Header.svelte";
 import NowPill from "./NowPill.svelte";
 import RunPlanRail from "./RunPlanRail.svelte";
+import SameGameQuestion from "./SameGameQuestion.svelte";
 import SuggestedAction from "./SuggestedAction.svelte";
 import WaysOut from "./WaysOut.svelte";
 
@@ -21,7 +22,6 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       character={view.game.character}
       now={view.game.now}
       assistance={view.assistance}
-      pickedUpAgain={view.game.pickedUpAgain}
       {actions}
     />
   {/if}
@@ -39,7 +39,13 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         starts: {view.historyUnsaved}
       </p>
     {/if}
-    {#if view.game}
+    {#if view.game?.pickedUp}
+      <SameGameQuestion
+        character={view.game.character.name}
+        pickedUp={view.game.pickedUp}
+        {actions}
+      />
+    {:else if view.game}
       <NowPill now={view.game.now} />
       {#if view.game.suggestedAction}
         <SuggestedAction suggested={view.game.suggestedAction} />
@@ -54,7 +60,7 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       {/if}
     {/if}
   </div>
-  {#if view.game}
+  {#if view.game && !view.game.pickedUp}
     <RunPlanRail runPlan={view.game.runPlan} />
     <AskBox ask={view.game.ask} />
   {/if}

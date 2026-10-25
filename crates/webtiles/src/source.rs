@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use copilot_core::{
-    CharacterKey, CrawlVersion, GameEnd, GameIdentity, GameKey, KnownGame, KnownGames, Role,
-    SessionEvent, SourceEvent, VisibleState,
+    CharacterKey, CrawlVersion, GameEnd, GameIdentity, GameKey, Identification, KnownGame,
+    KnownGames, Role, SessionEvent, SourceEvent, VisibleState,
 };
 use copilot_gk::{Bundle, Library};
 use serde_json::Value;
@@ -22,7 +22,8 @@ use crate::screens::Screens;
 ///
 /// A new game process for a game the source has already seen, such as after the player reloaded
 /// the page or played on from a save, is the same game resynced. It is a new game when the last
-/// one ended or its turn went backwards.
+/// one ended or its turn went backwards. One picked up on a later turn than the game was last
+/// seen may be another game, until the player says it is the same.
 ///
 /// Webtiles numbers monster and item types with each Crawl Version's own enums, so the source
 /// decodes a game through the Game Knowledge bundle for its version, when it has one.
@@ -52,6 +53,9 @@ struct TabGame {
     game: Option<GameKey>,
     /// When this process named its game, in Unix milliseconds.
     named_ms: Option<u64>,
+    /// What was last seen of the game this process picked up again on a later turn, until the
+    /// player says whether it is that game.
+    unconfirmed: Option<KnownGame>,
     reported: Option<(GameIdentity, VisibleState)>,
     /// The game process has stopped sending: the game ended, or the player left it.
     stopped: bool,
@@ -106,9 +110,28 @@ impl WebtilesSource {
         }
     }
 
-    /// The followed game is a new game, as the player says, rather than the one its game process
-    /// picked up again: one first seen as the process named it. Returns what changed, which is
-    /// nothing for a game the process joined, new already.
+    /// What was last seen of the game the followed game's process picked up again on a later
+    /// turn, until the player says whether it is that game: nobody watched the turns between.
+    #[must_use]
+    pub fn unconfirmed(&self) -> Option<&KnownGame> {
+        self.tabs.get(self.followed.as_ref()?)?.unconfirmed.as_ref()
+    }
+
+    /// The player says the followed game is the one its game process picked up again.
+    pub fn confirm_same_game(&mut self) {
+        if let Some(game) = self
+            .followed
+            .as_ref()
+            .and_then(|tab| self.tabs.get_mut(tab))
+        {
+            game.unconfirmed = None;
+        }
+    }
+
+    /// The player says the followed game is a new game rather than the one its game process
+    /// picked up again on a later turn: one first seen as the process named it. The game it was
+    /// taken for is as it was last seen before. Returns what changed, which is nothing unless
+    /// the player was to be asked.
     pub fn start_afresh(&mut self) -> Vec<SourceEvent> {
         let Some(game) = self
             .followed
@@ -117,15 +140,13 @@ impl WebtilesSource {
         else {
             return Vec::new();
         };
-        let (Some(picked_up), Some(named_ms), Some((identity, _))) =
-            (&game.game, game.named_ms, &mut game.reported)
-        else {
+        let (Some(named_ms), Some((identity, _))) = (game.named_ms, &mut game.reported) else {
             return Vec::new();
         };
-        if picked_up.first_seen_ms == named_ms {
+        let Some(picked_up) = game.unconfirmed.take() else {
             return Vec::new();
-        }
-        let key = self.known.start_afresh(picked_up, named_ms);
+        };
+        let key = self.known.start_afresh(&picked_up, named_ms);
         identity.first_seen_ms = key.first_seen_ms;
         game.game = Some(key);
         vec![
@@ -262,6 +283,7 @@ impl TabGame {
         self.shown = Shown::default();
         self.game = None;
         self.named_ms = None;
+        self.unconfirmed = None;
         self.reported = None;
         self.stopped = false;
         self.ended = false;
@@ -333,9 +355,14 @@ impl TabGame {
         let key = match &self.game {
             Some(key) if key.character == character => key.clone(),
             _ => {
-                let (key, event) = known.identify(&character, player.turn, envelope.ts);
+                let Identification {
+                    key,
+                    event,
+                    unconfirmed,
+                } = known.identify(&character, player.turn, envelope.ts);
                 self.game = Some(key.clone());
                 self.named_ms = Some(envelope.ts);
+                self.unconfirmed = unconfirmed;
                 // Before anything else this process has said about the game.
                 self.session.insert(0, event);
                 key

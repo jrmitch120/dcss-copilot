@@ -127,12 +127,12 @@ fn set_assistance(
     saved.map_err(|error| error.to_string())
 }
 
-/// The player says the followed game is a new game, not the one the Advisor took it for.
+/// The player answered "Is this the same game?", of a game picked up again on a later turn.
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
-fn new_game(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
-    live.new_game();
+fn answer_same_game(same: bool, app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    live.answer_same_game(same);
     push_view_model(&app, &live);
     Ok(())
 }
@@ -284,7 +284,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             answer_browser,
             set_appearance,
             set_assistance,
-            new_game,
+            answer_same_game,
             open_settings,
             settings_view,
             set_start_at_login,
@@ -482,7 +482,9 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
                 PanelCommand::SetAssistance { assistance } => {
                     set_assistance(assistance, app.clone(), app.state())
                 }
-                PanelCommand::NewGame => new_game(app.clone(), app.state()),
+                PanelCommand::AnswerSameGame { same } => {
+                    answer_same_game(same, app.clone(), app.state())
+                }
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };
             request.answer(done);

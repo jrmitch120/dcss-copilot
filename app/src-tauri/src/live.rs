@@ -174,7 +174,7 @@ impl Live {
                 .history_unsaved()
                 .map(str::to_owned)
                 .or_else(|| self.unopened_history.clone()),
-            game: state.game.advisor().game_view(state.settings.assistance()),
+            game: state.game.game_view(state.settings.assistance()),
         }
     }
 
@@ -273,9 +273,10 @@ impl Live {
         self.lock().game.forget_all_but_followed()
     }
 
-    /// The player says the followed game is a new game, not the one the Advisor took it for.
-    pub fn new_game(&self) {
-        self.lock().game.new_game();
+    /// The player answered whether the followed game is the one its game process picked up
+    /// again on a later turn.
+    pub fn answer_same_game(&self, same: bool) {
+        self.lock().game.answer_same_game(same);
     }
 
     /// The model a slot calls.

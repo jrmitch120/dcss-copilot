@@ -315,13 +315,20 @@ async fn a_browser_is_sent_the_panel_and_its_side_panels_commands_are_answered()
 
     send(
         &mut socket,
-        json!({ "type": "panel-command", "id": 9, "command": { "kind": "new-game" } }),
+        json!({
+            "type": "panel-command",
+            "id": 9,
+            "command": { "kind": "answer-same-game", "same": false }
+        }),
     )
     .await;
     let SidePanelEvent::Command(request) = side_panel_event(&mut app).await else {
         panic!("expected a command");
     };
-    assert_eq!(request.command, PanelCommand::NewGame);
+    assert_eq!(
+        request.command,
+        PanelCommand::AnswerSameGame { same: false }
+    );
     request.answer(Ok(()));
     assert_eq!(
         receive(&mut socket).await,

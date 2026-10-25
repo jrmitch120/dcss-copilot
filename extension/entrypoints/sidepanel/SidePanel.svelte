@@ -65,7 +65,7 @@ function ask(command: PanelCommand): Promise<string | null> {
 const ACTIONS: PanelActions = {
   setAppearance: (appearance) => ask({ kind: "set-appearance", appearance }),
   setAssistance: (assistance) => ask({ kind: "set-assistance", assistance }),
-  newGame: () => ask({ kind: "new-game" }),
+  answerSameGame: (same) => ask({ kind: "answer-same-game", same }),
   openSettings: () => ask({ kind: "open-settings" }),
   answerBrowser: null,
 };

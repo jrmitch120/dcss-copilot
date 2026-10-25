@@ -48,8 +48,6 @@ struct Followed {
     turn: Option<u32>,
     /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
     picked_up_from: Option<LastSeen>,
-    /// Its game process picked it up again, rather than joining it new.
-    picked_up_again: bool,
 }
 
 /// When the Advisor last saw a game it picks up again.
@@ -114,14 +112,9 @@ impl Advisor {
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
-                    match session {
-                        SessionEvent::Joined => game.picked_up_again = false,
-                        SessionEvent::Resynced => {
-                            game.picked_up_again = true;
-                            let turn = game.turn;
-                            game.picked_up_from.get_or_insert(LastSeen { turn });
-                        }
-                        SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. } => {}
+                    if session == SessionEvent::Resynced {
+                        let turn = game.turn;
+                        game.picked_up_from.get_or_insert(LastSeen { turn });
                     }
                 }
                 return Vec::new();
@@ -153,6 +146,11 @@ impl Advisor {
                 ..Followed::default()
             },
         );
+    }
+
+    /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
+    pub fn forget(&mut self, key: &GameKey) {
+        self.games.remove(key);
     }
 
     /// Forgets every game but the one it follows, as the player clears their game history.
@@ -278,9 +276,8 @@ impl Advisor {
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
-            picked_up_again: self
-                .followed_game()
-                .is_some_and(|game| game.picked_up_again),
+            // Only the Game Source can tell whether the player is to be asked.
+            picked_up: None,
             badge: ToolbarBadge {
                 decisions_waiting: 0,
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)

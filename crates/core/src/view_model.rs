@@ -136,11 +136,23 @@ pub struct GameView {
     /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
     /// resynced it.
     pub live: bool,
-    /// The Advisor took this game for one it had seen before, picked up again, rather than a
-    /// new one: the player can say it is a new game.
-    pub picked_up_again: bool,
+    /// The game seen before that this game's process picked up again on a later turn, until the
+    /// player says whether it is that game: the panel asks before it shows anything else.
+    pub picked_up: Option<PickedUp>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
+}
+
+/// A game seen before that a game process picked up again on a later turn, as last seen. Nobody
+/// watched the turns between, so the process may be playing another game of the same character.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PickedUp {
+    /// Its turn then, if it had reported one.
+    pub turn: Option<u32>,
+    /// When, in Unix milliseconds: exact as a TypeScript number for millennia yet.
+    #[specta(type = specta_typescript::Number)]
+    pub last_seen_ms: u64,
 }
 
 /// The panel's stand-in while it is closed: the extension's toolbar button, badged with the

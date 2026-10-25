@@ -12,6 +12,8 @@ publish.workspace = true
 copilot-gk.workspace = true
 serde.workspace = true
 specta.workspace = true
+# Only its `Number` override, to export a time in milliseconds as a TypeScript number.
+specta-typescript.workspace = true
 thiserror.workspace = true
 
 [lints]

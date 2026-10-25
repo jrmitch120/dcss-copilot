@@ -9,7 +9,7 @@ import { followViewModel } from "$lib/view-model";
 const ACTIONS: PanelActions = {
   setAppearance: async (appearance) => failure(await commands.setAppearance(appearance)),
   setAssistance: async (assistance) => failure(await commands.setAssistance(assistance)),
-  newGame: async () => failure(await commands.newGame()),
+  answerSameGame: async (same) => failure(await commands.answerSameGame(same)),
   openSettings: async () => failure(await commands.openSettings()),
   answerBrowser: async (allow) => failure(await commands.answerBrowser(allow)),
 };

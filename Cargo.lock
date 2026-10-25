@@ -713,6 +713,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
+ "specta-typescript",
  "thiserror 2.0.21",
 ]
 

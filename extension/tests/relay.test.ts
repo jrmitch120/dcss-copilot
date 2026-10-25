@@ -285,7 +285,7 @@ describe("side panels", () => {
 
     relay.link.panelCommand(3, { kind: "set-appearance", appearance: "glyphs" });
     relay.link.panelCommand(4, { kind: "set-assistance", assistance: "coach" });
-    relay.link.panelCommand(5, { kind: "new-game" });
+    relay.link.panelCommand(5, { kind: "answer-same-game", same: false });
     socket.receive({ type: "view", view: { appVersion: "1.2.3" } });
     socket.receive({ type: "panel-command-done", id: 3, error: null });
 
@@ -300,7 +300,11 @@ describe("side panels", () => {
         id: 4,
         command: { kind: "set-assistance", assistance: "coach" },
       },
-      { type: "panel-command", id: 5, command: { kind: "new-game" } },
+      {
+        type: "panel-command",
+        id: 5,
+        command: { kind: "answer-same-game", same: false },
+      },
     ]);
     expect(relay.toSidePanels).toEqual([
       { type: "view", view: { appVersion: "1.2.3" } },

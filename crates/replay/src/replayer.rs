@@ -284,15 +284,15 @@ impl Replayer {
             // A replay fails rather than run without the shipped Game Knowledge.
             unreadable_game_knowledge: None,
             history_unsaved: self.game.following.history_unsaved().map(str::to_owned),
-            game: self.game.following.advisor().game_view(assistance),
+            game: self.game.following.game_view(assistance),
         }
     }
 
-    /// The player says the followed game is a new game rather than the one its game process
-    /// picked up again, as just after the envelopes applied so far. A backward move forgets it,
-    /// as it rebuilds the game from the start, unless the store remembers it.
-    pub fn new_game(&mut self) {
-        let happened = self.game.following.new_game();
+    /// The player answered whether the followed game is the one its game process picked up
+    /// again on a later turn, as just after the envelopes applied so far. A backward move forgets
+    /// the answer, as it rebuilds the game from the start, unless the store remembers it.
+    pub fn answer_same_game(&mut self, same: bool) {
+        let happened = self.game.following.answer_same_game(same);
         let turn = self.game.following.advisor().visible().turn;
         let envelope = self.game.applied.saturating_sub(1);
         self.game

@@ -1,7 +1,10 @@
 //! A Game Source's games, followed by the Advisor and remembered in the store: the wiring the app
 //! runs live and the replayer replays, so a replay sees a game as the app does.
 
-use copilot_core::{Advisor, Detection, GameIdentity, KnownGames, Role, SourceEvent};
+use copilot_core::{
+    Advisor, AssistanceLevel, Detection, GameIdentity, GameView, KnownGames, PickedUp, Role,
+    SourceEvent,
+};
 use copilot_gk::Library;
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::{Envelope, WebtilesSource};
@@ -13,7 +16,8 @@ use serde::Serialize;
 /// A game is recalled from the store as the Game Source identifies it, and saved after each
 /// envelope that changes it. What a browser replays of a page the store has seen already is
 /// taken in again, so the Advisor follows the game through it, but isn't saved again. Only a
-/// game the Game Source saw start as played is saved: never one watched.
+/// game the Game Source saw start as played is saved: never one watched. Nor is one picked up
+/// again on a later turn, until the player says it is the same game.
 #[derive(Debug)]
 pub struct Following {
     knowledge: Library,
@@ -96,13 +100,28 @@ impl Following {
         happened
     }
 
-    /// The player says the followed game is a new game rather than the one its game process
-    /// picked up again. It is followed from now on as a new game, first seen as the process
-    /// named it, remembering nothing yet; the game it was taken for keeps what it remembered.
-    /// Returns what happened, which is nothing for a game the process joined, new already.
-    pub fn new_game(&mut self) -> Vec<Happened> {
-        let events = self.source.start_afresh();
-        let happened = self.take_in(events);
+    /// The player answered whether the followed game is the one its game process picked up again
+    /// on a later turn. The same game is saved from now on. A new game is followed from now on as
+    /// one first seen as the process named it, remembering nothing yet, and the game it was
+    /// taken for is left as it was last saved. Returns what happened, which is nothing unless the
+    /// player was asked.
+    pub fn answer_same_game(&mut self, same: bool) -> Vec<Happened> {
+        if self.source.unconfirmed().is_none() {
+            return Vec::new();
+        }
+        let happened = if same {
+            self.source.confirm_same_game();
+            Vec::new()
+        } else {
+            let taken_for = self.advisor.identity().map(GameIdentity::key);
+            let events = self.source.start_afresh();
+            let happened = self.take_in(events);
+            // What the Advisor learned of it since it was picked up is of the new game.
+            if let Some(key) = taken_for {
+                self.advisor.forget(&key);
+            }
+            happened
+        };
         let last_seen = self
             .advisor
             .identity()
@@ -169,6 +188,18 @@ impl Following {
         }
     }
 
+    /// The panel for the followed game, at the player's `assistance` level, asking the player
+    /// whether a game picked up again on a later turn is the same game.
+    #[must_use]
+    pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
+        let mut view = self.advisor.game_view(assistance)?;
+        view.picked_up = self.source.unconfirmed().map(|game| PickedUp {
+            turn: game.turn,
+            last_seen_ms: game.last_seen_ms,
+        });
+        Some(view)
+    }
+
     /// The Advisor, as the envelopes taken in so far left it.
     #[must_use]
     pub fn advisor(&self) -> &Advisor {
@@ -200,15 +231,17 @@ impl Following {
     }
 
     /// Saves the followed game as an envelope received at `received_ms` left it, unless it is
-    /// watched rather than played, or the envelope is from before the game was last seen: one
-    /// the store has taken in already, replayed.
+    /// watched rather than played, the player is yet to say whether it is the game it was picked
+    /// up as, or the envelope is from before the game was last seen: one the store has taken in
+    /// already, replayed.
     fn save(&mut self, received_ms: u64) {
         let Some(store) = &mut self.store else { return };
         let Some(identity) = self.advisor.identity() else {
             return;
         };
-        // A game not known to be played, such as one joined mid-page, may be one watched.
-        if identity.role != Some(Role::Playing) {
+        // A game not known to be played, such as one joined mid-page, may be one watched. One
+        // picked up on a later turn may be another game, until the player says.
+        if identity.role != Some(Role::Playing) || self.source.unconfirmed().is_some() {
             return;
         }
         let (Some(game), Some(accumulated)) = (

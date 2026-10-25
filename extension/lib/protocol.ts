@@ -32,7 +32,7 @@ export type PageReport =
 export type PanelCommand =
   | { kind: "set-appearance"; appearance: Appearance }
   | { kind: "set-assistance"; assistance: AssistanceLevel }
-  | { kind: "new-game" }
+  | { kind: "answer-same-game"; same: boolean }
   | { kind: "open-settings" };
 
 export type ExtensionFrame =

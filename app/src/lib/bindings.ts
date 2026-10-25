@@ -13,8 +13,8 @@ export const commands = {
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  The player chose how much the Advisor offers beyond Information. */
 	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
-	/**  The player says the followed game is a new game, not the one the Advisor took it for. */
-	newGame: () => typedError<null, string>(__TAURI_INVOKE("new_game")),
+	/**  The player answered "Is this the same game?", of a game picked up again on a later turn. */
+	answerSameGame: (same: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_same_game", { same })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -203,10 +203,10 @@ export type GameView = {
 	 */
 	live: boolean,
 	/**
-	 *  The Advisor took this game for one it had seen before, picked up again, rather than a
-	 *  new one: the player can say it is a new game.
+	 *  The game seen before that this game's process picked up again on a later turn, until the
+	 *  player says whether it is that game: the panel asks before it shows anything else.
 	 */
-	pickedUpAgain: boolean,
+	pickedUp: PickedUp | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
 };
@@ -352,6 +352,17 @@ line: string;
  *  when anything can attack.
  */
 detail: string | null };
+
+/**
+ *  A game seen before that a game process picked up again on a later turn, as last seen. Nobody
+ *  watched the turns between, so the process may be playing another game of the same character.
+ */
+export type PickedUp = {
+	/**  Its turn then, if it had reported one. */
+	turn: number | null,
+	/**  When, in Unix milliseconds: exact as a TypeScript number for millennia yet. */
+	lastSeenMs: number,
+};
 
 /**  A provider, as the Settings window names it. */
 export type ProviderView = {

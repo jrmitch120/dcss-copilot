@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use copilot_core::{AccumulatedState, GameKey, Remembered, SessionEvent, SourceEvent};
+use copilot_core::{AccumulatedState, GameKey, PickedUp, Remembered, SessionEvent, SourceEvent};
 use copilot_gk::Library;
 use copilot_replay::{Following, Happened, Recording, Replayer};
 use copilot_store::Store;
@@ -34,6 +34,28 @@ fn straight(recording: &[u8]) -> Replayer {
     let mut replayer = Replayer::new(Recording::read(recording).unwrap()).unwrap();
     replayer.seek(usize::MAX);
     replayer
+}
+
+/// Tiv's game later on, at turn 1300, after the app restarted: saved there, it plays on unwatched
+/// from 1234, then dies at 1410, and a new Tiv follows.
+fn later() -> Recording {
+    let mut later = Recording::read(SESSION).unwrap();
+    later.envelopes.drain(1..12);
+    later
+}
+
+/// The turn the store at `path` saved the game `key` names on, if it saved it.
+fn saved_turn(path: &Path, key: &GameKey) -> Option<Option<u32>> {
+    Store::open(path)
+        .unwrap()
+        .saved(key)
+        .unwrap()
+        .map(|saved| saved.turn)
+}
+
+/// What the panel asks of a game picked up again, if anything.
+fn asked(replayer: &Replayer) -> Option<PickedUp> {
+    replayer.view_model().game.unwrap().picked_up
 }
 
 fn key(replayer: &Replayer) -> GameKey {
@@ -75,6 +97,11 @@ fn a_game_played_on_after_the_app_restarts_is_picked_up_with_what_was_remembered
     assert_eq!(key(&after), game);
     assert_eq!(sessions(&after), [(3, SessionEvent::Resynced)]);
     assert_eq!(after.advisor().accumulated(), Some(&remembered));
+    assert_eq!(
+        asked(&after),
+        None,
+        "on the turn it was left, it can only be that game"
+    );
 }
 
 #[test]
@@ -82,12 +109,8 @@ fn what_was_remembered_goes_stale_when_the_game_is_picked_up_at_a_later_turn() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("games.sqlite");
     run(SCREENS, &path).seek(usize::MAX);
-    // Tiv played on, unwatched, from 1234 to 1300, saved, and plays on from there in the tab
-    // logged in as tiv.
-    let mut later = Recording::read(SESSION).unwrap();
-    later.envelopes.drain(1..12);
 
-    let mut after = run_of(later, &path);
+    let mut after = run_of(later(), &path);
     after.seek(3);
 
     let skills = &after.advisor().accumulated().unwrap().skills;
@@ -212,55 +235,116 @@ fn a_page_replayed_after_a_restart_picks_up_each_game_it_played_as_it_did_before
 }
 
 #[test]
-fn a_game_wrongly_picked_up_again_is_made_a_new_game_and_stays_one_after_a_restart() {
+fn a_game_picked_up_at_a_later_turn_is_saved_only_once_the_player_says_it_is_the_same_game() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut after = run_of(later(), &path);
+    after.seek(4);
+    let game = key(&after);
+
+    let question = asked(&after).unwrap();
+    assert_eq!(question.turn, Some(1234));
+    assert_eq!(
+        saved_turn(&path, &game),
+        Some(Some(1234)),
+        "nothing is saved while the player is asked"
+    );
+
+    after.answer_same_game(true);
+
+    assert_eq!(asked(&after), None);
+    assert_eq!(key(&after), game);
+    assert_eq!(saved_turn(&path, &game), Some(after.turn()));
+}
+
+#[test]
+fn a_game_left_unanswered_is_asked_about_again_after_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    run_of(later(), &path).seek(4);
+
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
+
+    assert_eq!(asked(&restarted).unwrap().turn, Some(1234));
+}
+
+#[test]
+fn a_game_the_player_says_is_the_same_is_not_asked_about_again_after_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut first = run_of(later(), &path);
+    first.seek(4);
+    first.answer_same_game(true);
+    let game = key(&first);
+    drop(first);
+
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
+
+    assert_eq!(key(&restarted), game);
+    assert_eq!(asked(&restarted), None);
+}
+
+#[test]
+fn a_game_the_player_says_is_new_is_followed_as_one_and_leaves_the_game_it_was_taken_for_as_it_was()
+{
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("games.sqlite");
     let mut before = run(SCREENS, &path);
     before.seek(usize::MAX);
     let remembered = before.advisor().accumulated().cloned().unwrap();
     drop(before);
-    let mut after = run(SESSION, &path);
+    let mut after = run_of(later(), &path);
     after.seek(4);
-    let picked_up = key(&after);
-    assert!(after.view_model().game.unwrap().picked_up_again);
+    let taken_for = key(&after);
+    let named = after
+        .timeline()
+        .iter()
+        .find(|moment| matches!(moment.event, Happened::Source(SourceEvent::Session(_))))
+        .map(|moment| later().envelopes[moment.envelope].ts)
+        .unwrap();
 
-    // The player says this Tiv is a new game.
-    after.new_game();
+    after.answer_same_game(false);
 
     let new = key(&after);
-    assert_ne!(new, picked_up);
-    let named = Recording::read(SESSION).unwrap().envelopes[3].ts;
+    assert_ne!(new, taken_for);
     assert_eq!(
         new.first_seen_ms, named,
         "as this game process first named it"
     );
     assert!(!remembers_anything(&after));
-    assert!(!after.view_model().game.unwrap().picked_up_again);
-    after.seek(5);
+    assert_eq!(asked(&after), None);
+    // It plays on to its death at 1410, and a new Tiv follows.
+    after.seek(usize::MAX);
     drop(after);
+    let saved = Store::open(&path)
+        .unwrap()
+        .saved(&taken_for)
+        .unwrap()
+        .unwrap();
     assert_eq!(
-        Store::open(&path)
-            .unwrap()
-            .saved(&picked_up)
-            .unwrap()
-            .map(|saved| saved.accumulated),
-        Some(remembered),
-        "the game it was taken for keeps what it remembered"
+        (saved.turn, saved.accumulated),
+        (Some(1234), remembered),
+        "the game it was taken for is left as it was"
     );
 
-    let mut restarted = run(SESSION, &path);
-    restarted.seek(5);
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
     assert_eq!(key(&restarted), new);
-    assert_eq!(sessions(&restarted), [(3, SessionEvent::Joined)]);
+    assert_eq!(asked(&restarted), None);
 }
 
 #[test]
-fn a_new_game_is_already_new() {
+fn a_new_game_is_never_asked_about() {
     let mut replayer = straight(SCREENS);
     let game = key(&replayer);
-    assert!(!replayer.view_model().game.unwrap().picked_up_again);
+    assert_eq!(asked(&replayer), None);
 
-    replayer.new_game();
+    replayer.answer_same_game(false);
 
     assert_eq!(key(&replayer), game);
     assert!(remembers_anything(&replayer));

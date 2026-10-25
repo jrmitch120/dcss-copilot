@@ -34,7 +34,7 @@ pub use fact_sheet::{
 };
 pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
-pub use known_games::{CharacterKey, GameKey, KnownGame, KnownGames};
+pub use known_games::{CharacterKey, GameKey, Identification, KnownGame, KnownGames};
 pub use screen::{
     KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutations, Skills,
     SpellPower, SpellReach,
@@ -42,8 +42,8 @@ pub use screen::{
 pub use suggested_action::SuggestionRule;
 pub use view_model::{
     Appearance, AskBox, AssistanceLevel, Character, Colour, Connection, Depiction, FactCard,
-    FocusCard, GameView, Glyph, Listing, NowPill, RunPlanRail, SuggestedActionCard, TileName,
-    ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
+    FocusCard, GameView, Glyph, Listing, NowPill, PickedUp, RunPlanRail, SuggestedActionCard,
+    TileName, ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,
