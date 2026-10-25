@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::view_model::Colour;
 
@@ -28,7 +28,7 @@ pub struct ScreenRead {
 }
 
 /// Which screen the player has open.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "name", rename_all = "camelCase")]
 pub enum Screen {
     /// The character overview (`%`): stats, resistances and equipment.
@@ -51,7 +51,7 @@ pub enum Screen {
 
 /// The character's resistances, as the character overview and the character dump show them. Each is `None` when the
 /// screen doesn't show it.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Resistances {
     /// `rFire`.
@@ -73,7 +73,7 @@ pub struct Resistances {
 }
 
 /// How resistant the character is to one thing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Resistance {
     /// Pips of resistance: positive resists, negative is vulnerable, 0 is neither.
@@ -87,7 +87,7 @@ pub enum Resistance {
 const RESIST_NAME_WIDTH: usize = 8;
 
 /// A spell the character knows, as the spell list shows it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KnownSpell {
     /// Its name, such as `Blink`.
@@ -100,7 +100,7 @@ pub struct KnownSpell {
 
 /// A spell's power and range as the spell list shows them once the player switches it to its
 /// other columns (`!`): `_spell_extra_description` in crawl's `spl-cast.cc`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpellReach {
     /// Its name, such as `Magic Dart`.
@@ -112,7 +112,7 @@ pub struct SpellReach {
 }
 
 /// The power a spell is cast with, as the spell list shows it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "shown", content = "value", rename_all = "camelCase")]
 pub enum SpellPower {
     /// As a percentage of the most power the spell takes, rounded down
@@ -126,7 +126,7 @@ pub enum SpellPower {
 /// The character's skills, as the skills screen (`m`) or the character dump shows them: each
 /// skill's level in tenths, by the skill's name, such as `Maces & Flails`. A skill they haven't
 /// trained isn't shown, and is at level 0.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Skills {
     /// Tenths of a level, by name: `you.skill(sk, 10)` as crawl shows it.
@@ -142,7 +142,7 @@ impl Skills {
 }
 
 /// An ability the character has, as the ability menu shows it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KnownAbility {
     /// Its name, such as `Berserk`.
@@ -394,7 +394,7 @@ fn magic_cost(cost: &str) -> u32 {
 
 /// What the mutations screen (`A`) shows: the mutations and banes the character has, as crawl
 /// describes them.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShownMutations {
     /// Crawl's description of each mutation it lists at the level the character has, such as

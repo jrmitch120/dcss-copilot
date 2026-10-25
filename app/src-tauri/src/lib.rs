@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 
 use copilot_core::{Appearance, AssistanceLevel, ViewModel};
 use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
+use copilot_store::Store;
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -25,7 +26,7 @@ use tokio::sync::mpsc;
 
 use crate::keys::{Keys, OsKeychain};
 use crate::lifecycle::Presence;
-use crate::live::Live;
+use crate::live::{HistoryView, Live};
 use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
 use crate::panels::{PANEL_WINDOW, Panels};
 use crate::relay::{BrowserApprovals, PanelCommand, RELAY_PORT, RelayEvent, SidePanelEvent};
@@ -64,6 +65,8 @@ pub struct SettingsView {
     models: ModelsAndKeysView,
     /// Settings → Connection and window.
     window: WindowView,
+    /// Settings → History.
+    history: HistoryView,
 }
 
 /// How the app's window behaves, in Settings → Connection and window.
@@ -124,6 +127,16 @@ fn set_assistance(
     saved.map_err(|error| error.to_string())
 }
 
+/// The player answered "Is this the same game?", of a game picked up again on a later turn.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn answer_same_game(same: bool, app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    live.answer_same_game(same);
+    push_view_model(&app, &live);
+    Ok(())
+}
+
 /// Opens the Settings window, or brings it to the front.
 #[tauri::command]
 #[specta::specta]
@@ -161,6 +174,27 @@ fn set_start_at_login(on: bool, app: AppHandle) -> Result<(), String> {
     };
     push_settings(&app);
     changed.map_err(|error| format!("Start at login couldn't be changed: {error}"))
+}
+
+/// The player turned forgetting games not played for a while on or off.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_forget_old_games(on: bool, app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    let saved = live.set_forget_old_games(on);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player cleared their game history.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn clear_history(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    let cleared = live.clear_history();
+    push_settings(&app);
+    push_view_model(&app, &live);
+    cleared.map_err(|error| error.to_string())
 }
 
 /// The settings as they are now, for a Settings window that has just loaded.
@@ -250,9 +284,12 @@ fn specta_builder() -> Builder<tauri::Wry> {
             answer_browser,
             set_appearance,
             set_assistance,
+            answer_same_game,
             open_settings,
             settings_view,
             set_start_at_login,
+            set_forget_old_games,
+            clear_history,
             set_model,
             save_key,
             remove_key,
@@ -320,7 +357,13 @@ pub fn run() {
                 crate::log::error(format_args!("{error}; using the default settings"));
                 Settings::defaults(&settings_path)
             });
-            app.manage(Live::new(env!("CARGO_PKG_VERSION"), recordings, settings));
+            let history = Store::open(&app.path().app_data_dir()?.join("games.sqlite"));
+            app.manage(Live::new(
+                env!("CARGO_PKG_VERSION"),
+                recordings,
+                settings,
+                history,
+            ));
             let keys = Keys::load(Box::new(OsKeychain), |variable| {
                 std::env::var(variable).ok()
             });
@@ -439,6 +482,9 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
                 PanelCommand::SetAssistance { assistance } => {
                     set_assistance(assistance, app.clone(), app.state())
                 }
+                PanelCommand::AnswerSameGame { same } => {
+                    answer_same_game(same, app.clone(), app.state())
+                }
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };
             request.answer(done);
@@ -458,6 +504,7 @@ fn current_settings(app: &AppHandle) -> SettingsView {
         app_version: env!("CARGO_PKG_VERSION").to_owned(),
         models: models_view(&live, &app.state::<ModelsAndKeys>()),
         window: WindowView { start_at_login },
+        history: live.history(),
     }
 }
 
@@ -486,6 +533,7 @@ mod tests {
     use copilot_core::Appearance;
     use copilot_llm::{Effort, ModelChoice, ModelSlot, Provider, Thinking};
     use copilot_replay::Recording;
+    use copilot_store::Store;
     use copilot_webtiles::Envelope;
     use serde_json::json;
 
@@ -605,6 +653,7 @@ mod tests {
             "1.2.3",
             Some(dir.path().join("recordings")),
             Settings::load(&dir.path().join("settings.json")).unwrap(),
+            Store::open(&dir.path().join("games.sqlite")),
         );
         let keychain = MemoryKeychain::default();
         let models = models(&keychain, replaying(WORKS));

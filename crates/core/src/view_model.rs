@@ -21,6 +21,9 @@ pub struct ViewModel {
     /// Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
     /// followed without it: monsters and items aren't decoded and no Threat Level is judged.
     pub unreadable_game_knowledge: Option<String>,
+    /// Why the game history couldn't be read or saved, the last time it couldn't. What the
+    /// Advisor remembers of a game it couldn't save lasts only until the app closes.
+    pub history_unsaved: Option<String>,
     /// The panel for the game being followed, once one is identified.
     pub game: Option<GameView>,
 }
@@ -35,6 +38,7 @@ impl ViewModel {
             appearance,
             assistance,
             unreadable_game_knowledge: None,
+            history_unsaved: None,
             game: None,
         }
     }
@@ -132,8 +136,26 @@ pub struct GameView {
     /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
     /// resynced it.
     pub live: bool,
+    /// The game seen before that this game's process picked up again on a later turn, until the
+    /// player says whether it is that game: the panel asks before it shows anything else.
+    pub picked_up: Option<PickedUp>,
+    /// Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
+    /// game over, remembering nothing from before. The Change Log still holds what was saved.
+    pub accumulated_unreadable: Option<String>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
+}
+
+/// A game seen before that a game process picked up again on a later turn, as last seen. Nobody
+/// watched the turns between, so the process may be playing another game of the same character.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PickedUp {
+    /// Its turn then, if it had reported one.
+    pub turn: Option<u32>,
+    /// When, in Unix milliseconds: exact as a TypeScript number for millennia yet.
+    #[specta(type = specta_typescript::Number)]
+    pub last_seen_ms: u64,
 }
 
 /// The panel's stand-in while it is closed: the extension's toolbar button, badged with the
@@ -446,6 +468,7 @@ mod tests {
                 "appearance": "tiles",
                 "assistance": "hints",
                 "unreadableGameKnowledge": null,
+                "historyUnsaved": null,
                 "game": null
             })
         );

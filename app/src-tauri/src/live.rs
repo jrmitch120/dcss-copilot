@@ -4,23 +4,26 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use copilot_core::{Advisor, Appearance, AssistanceLevel, Connection, ViewModel};
+use copilot_core::{Appearance, AssistanceLevel, Connection, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
-use copilot_replay::{RECORDING_EXTENSION, RecordingError, RecordingWriter};
-use copilot_webtiles::{Envelope, WebtilesSource};
+use copilot_replay::{Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
+use copilot_store::{Store, StoreError};
+use copilot_webtiles::Envelope;
+use serde::Serialize;
 
 use crate::relay::{ApprovalRequest, RelayEvent};
-use crate::settings::{Settings, SettingsError};
+use crate::settings::{FORGET_GAMES_AFTER_DAYS, Settings, SettingsError};
 
 /// Everything the app knows about the browser connection and the game it relays.
 pub struct Live {
     app_version: &'static str,
-    /// The Game Knowledge games are decoded through.
-    knowledge: Library,
     /// Why the shipped Game Knowledge couldn't be read, if it couldn't, for the player.
     unreadable_knowledge: Option<String>,
+    /// Why the game history couldn't be opened, if it couldn't, for the player.
+    unopened_history: Option<String>,
     state: Mutex<State>,
 }
 
@@ -33,6 +36,41 @@ struct State {
     relay_unavailable: Option<String>,
     recorder: Recorder,
     settings: Settings,
+    /// Why games not played for a while couldn't be forgotten, the last time they couldn't.
+    forgetting_failed: Option<String>,
+}
+
+/// A day, in milliseconds.
+const DAY_MS: u64 = 24 * 60 * 60 * 1000;
+
+/// The game history, in Settings → History.
+#[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct HistoryView {
+    /// How many games the Advisor remembers.
+    pub games: GamesRemembered,
+    /// How many days a game is kept after it was last played, or `None` to keep every game.
+    pub forget_after_days: Option<u32>,
+    /// How many days a game is kept once the player turns forgetting on.
+    pub keep_days: u32,
+    /// Why games not played for a while couldn't be forgotten, the last time they couldn't.
+    pub forgetting_failed: Option<String>,
+}
+
+/// How many games the Advisor remembers, in Settings → History.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(tag = "state", rename_all = "camelCase")]
+pub enum GamesRemembered {
+    /// They were counted.
+    Counted {
+        /// How many.
+        games: u32,
+    },
+    /// The game history couldn't be read to count them.
+    Uncounted {
+        /// Why not.
+        why: String,
+    },
 }
 
 /// How often, in game-page milliseconds, a Recording is flushed, so a crash loses at most this much.
@@ -55,10 +93,23 @@ enum Recorder {
 }
 
 impl Live {
-    /// Starts with no browser connected and the player's `settings`, writing a Recording into
-    /// `recordings` if given.
-    pub fn new(app_version: &'static str, recordings: Option<PathBuf>, settings: Settings) -> Self {
-        Self::with_knowledge(app_version, recordings, settings, Library::shipped())
+    /// Starts with no browser connected and the player's `settings`, remembering games in the
+    /// `history` store, and writing a Recording into `recordings` if given. A history that
+    /// couldn't be opened is kept in memory instead, until the app closes, and the panel says
+    /// why.
+    pub fn new(
+        app_version: &'static str,
+        recordings: Option<PathBuf>,
+        settings: Settings,
+        history: Result<Store, StoreError>,
+    ) -> Self {
+        Self::with_knowledge(
+            app_version,
+            recordings,
+            settings,
+            history,
+            Library::shipped(),
+        )
     }
 
     /// As [`Live::new`], with `knowledge` in place of the Game Knowledge the app ships. Without
@@ -67,6 +118,7 @@ impl Live {
         app_version: &'static str,
         recordings: Option<PathBuf>,
         settings: Settings,
+        history: Result<Store, StoreError>,
         knowledge: Result<Library, BundleError>,
     ) -> Self {
         let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
@@ -79,18 +131,37 @@ impl Live {
                 (Library::default(), Some(error.to_string()))
             }
         };
+        let (history, unopened_history) = match history {
+            Ok(store) => (Ok(store), None),
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "{error}: games are remembered only until DCSS Copilot closes"
+                ));
+                (Store::in_memory(), Some(error.to_string()))
+            }
+        };
+        let game = match history {
+            Ok(store) => Following::remembering(&knowledge, store),
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "{error}: games are forgotten when a browser reconnects"
+                ));
+                Following::new(&knowledge)
+            }
+        };
         Self {
             app_version,
             unreadable_knowledge,
-            knowledge: knowledge.clone(),
+            unopened_history,
             state: Mutex::new(State {
-                game: Following::new(&knowledge),
+                game,
                 browsers: 0,
                 approval: None,
                 buffer_overflowed: false,
                 relay_unavailable: None,
                 recorder,
                 settings,
+                forgetting_failed: None,
             }),
         }
     }
@@ -119,7 +190,12 @@ impl Live {
             appearance: state.settings.appearance(),
             assistance: state.settings.assistance(),
             unreadable_game_knowledge: self.unreadable_knowledge.clone(),
-            game: state.game.advisor.game_view(state.settings.assistance()),
+            history_unsaved: state
+                .game
+                .history_unsaved()
+                .map(str::to_owned)
+                .or_else(|| self.unopened_history.clone()),
+            game: state.game.game_view(state.settings.assistance()),
         }
     }
 
@@ -131,9 +207,10 @@ impl Live {
             RelayEvent::ApprovalNeeded(request) => state.approval = Some(request),
             RelayEvent::Connected(_) => {
                 // A connection replays every tab from its first message, so with no other browser
-                // connected nothing known so far is still current.
+                // connected nothing relayed so far is still current: only what is remembered.
                 if state.browsers == 0 {
-                    state.game = Following::new(&self.knowledge);
+                    state.forget_old_games();
+                    state.game.restart();
                 }
                 state.browsers += 1;
                 state.recorder.finish();
@@ -179,6 +256,53 @@ impl Live {
         self.lock().settings.set_assistance(assistance)
     }
 
+    /// The game history, for Settings → History.
+    pub fn history(&self) -> HistoryView {
+        let state = self.lock();
+        let games = match state.game.games_remembered() {
+            Ok(games) => GamesRemembered::Counted {
+                games: u32::try_from(games).unwrap_or(u32::MAX),
+            },
+            Err(error) => GamesRemembered::Uncounted {
+                why: error.to_string(),
+            },
+        };
+        HistoryView {
+            games,
+            forget_after_days: state.settings.forget_games_after_days(),
+            keep_days: FORGET_GAMES_AFTER_DAYS,
+            forgetting_failed: state.forgetting_failed.clone(),
+        }
+    }
+
+    /// The player turned forgetting games not played for a while on or off. Turned on, it
+    /// forgets them now, and again each time a browser connects.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_forget_old_games(&self, on: bool) -> Result<(), SettingsError> {
+        let mut state = self.lock();
+        let saved = state
+            .settings
+            .set_forget_games_after_days(on.then_some(FORGET_GAMES_AFTER_DAYS));
+        state.forget_old_games();
+        saved
+    }
+
+    /// The player cleared their game history: every game but the one followed is forgotten.
+    ///
+    /// # Errors
+    /// If the history couldn't be cleared.
+    pub fn clear_history(&self) -> Result<(), StoreError> {
+        self.lock().game.forget_all_but_followed()
+    }
+
+    /// The player answered whether the followed game is the one its game process picked up
+    /// again on a later turn.
+    pub fn answer_same_game(&self, same: bool) {
+        self.lock().game.answer_same_game(same);
+    }
+
     /// The model a slot calls.
     pub fn model(&self, slot: ModelSlot) -> ModelChoice {
         self.lock().settings.model(slot).clone()
@@ -217,34 +341,33 @@ impl Live {
 }
 
 impl State {
+    /// Forgets every game not played for as long as the player keeps games, if they forget any,
+    /// and keeps why it couldn't for Settings → History.
+    fn forget_old_games(&mut self) {
+        let Some(days) = self.settings.forget_games_after_days() else {
+            return;
+        };
+        let now_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_or(0, |since| {
+                u64::try_from(since.as_millis()).unwrap_or(u64::MAX)
+            });
+        let before_ms = now_ms.saturating_sub(u64::from(days) * DAY_MS);
+        self.forgetting_failed = match self.game.forget_games_seen_before(before_ms) {
+            Ok(_) => None,
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "could not forget games not played for {days} days: {error}"
+                ));
+                Some(error.to_string())
+            }
+        };
+    }
+
     fn ingest(&mut self, envelope: &Envelope) {
         self.recorder.record(envelope);
+        // What the detectors notice reaches the panel through the view model.
         self.game.ingest(envelope);
-    }
-}
-
-/// The game the relay delivers: the webtiles Game Source and the Advisor it feeds, always built
-/// together from the same Game Knowledge.
-struct Following {
-    source: WebtilesSource,
-    advisor: Advisor,
-}
-
-impl Following {
-    /// Nothing followed yet, decoding and judging games through `knowledge`.
-    fn new(knowledge: &Library) -> Self {
-        Self {
-            source: WebtilesSource::new(knowledge.clone()),
-            advisor: Advisor::new(knowledge.clone()),
-        }
-    }
-
-    /// Decodes one relayed envelope and tells the Advisor what the Game Source learned.
-    fn ingest(&mut self, envelope: &Envelope) {
-        for event in self.source.ingest(envelope) {
-            // What the detectors notice reaches the panel through the view model.
-            self.advisor.apply(event);
-        }
     }
 }
 
@@ -314,7 +437,9 @@ fn start_recording(
 mod tests {
     use serde_json::json;
 
-    use copilot_core::{Appearance, AssistanceLevel};
+    use copilot_core::{
+        AccumulatedState, Appearance, AssistanceLevel, CharacterKey, GameKey, KnownGame,
+    };
     use copilot_llm::{Effort, Provider, Thinking};
 
     use super::*;
@@ -323,7 +448,7 @@ mod tests {
 
     fn live() -> Live {
         let path = std::env::temp_dir().join("dcss-copilot-unused-settings.json");
-        Live::new("1.2.3", None, Settings::defaults(&path))
+        Live::new("1.2.3", None, Settings::defaults(&path), Store::in_memory())
     }
 
     fn envelope(msg: serde_json::Value) -> RelayEvent {
@@ -344,7 +469,13 @@ mod tests {
             reason: "expected value at line 1 column 1".to_owned(),
         };
 
-        let without = Live::with_knowledge("1.2.3", None, Settings::defaults(&path), Err(broken));
+        let without = Live::with_knowledge(
+            "1.2.3",
+            None,
+            Settings::defaults(&path),
+            Store::in_memory(),
+            Err(broken),
+        );
 
         assert_eq!(
             without.view_model().unreadable_game_knowledge.as_deref(),
@@ -373,16 +504,161 @@ mod tests {
     }
 
     #[test]
+    fn the_games_followed_are_saved_in_the_game_history() {
+        let dir = tempfile::tempdir().unwrap();
+        let history = dir.path().join("games.sqlite");
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Store::open(&history),
+        );
+
+        live.handle(envelope(json!({ "msg": "game_started" })));
+        live.handle(envelope(
+            json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": 500 }),
+        ));
+
+        let saved = Store::open(&history).unwrap().known_games().unwrap();
+        assert_eq!(saved.len(), 1);
+        assert_eq!(saved[0].key.character.character, "Mira");
+        assert_eq!(saved[0].turn, Some(500));
+    }
+
+    /// A store at `path` remembering one game, last played `days_ago`.
+    fn played_days_ago(path: &Path, days_ago: u64) {
+        let now_ms = u64::try_from(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
+        )
+        .unwrap();
+        let last_seen_ms = now_ms - days_ago * DAY_MS;
+        let game = KnownGame {
+            key: GameKey {
+                character: CharacterKey {
+                    server: "https://crawl.example.org".to_owned(),
+                    account: Some("mira".to_owned()),
+                    character: "Mira".to_owned(),
+                    species: "Minotaur".to_owned(),
+                },
+                first_seen_ms: last_seen_ms - DAY_MS,
+            },
+            last_seen_ms,
+            turn: Some(500),
+            ended: false,
+        };
+        Store::open(path)
+            .unwrap()
+            .save(&game, &AccumulatedState::default())
+            .unwrap();
+    }
+
+    #[test]
+    fn games_not_played_for_ninety_days_are_forgotten_as_a_browser_connects_unless_kept() {
+        let dir = tempfile::tempdir().unwrap();
+        let (settings, history) = (
+            dir.path().join("settings.json"),
+            dir.path().join("games.sqlite"),
+        );
+        played_days_ago(&history, 89);
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&settings).unwrap(),
+            Store::open(&history),
+        );
+        live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
+        assert_eq!(live.history().games, GamesRemembered::Counted { games: 1 });
+
+        played_days_ago(&history, 91);
+        live.set_forget_old_games(false).unwrap();
+        live.handle(RelayEvent::Disconnected);
+        live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
+        assert_eq!(
+            live.history().games,
+            GamesRemembered::Counted { games: 2 },
+            "kept while forgetting is off"
+        );
+
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&settings).unwrap(),
+            Store::open(&history),
+        );
+        assert_eq!(restarted.history().forget_after_days, None);
+        restarted.set_forget_old_games(true).unwrap();
+        assert_eq!(
+            restarted.history().games,
+            GamesRemembered::Counted { games: 1 },
+            "forgotten as it is turned on"
+        );
+        assert_eq!(restarted.history().forget_after_days, Some(90));
+    }
+
+    #[test]
+    fn a_game_history_that_cant_be_counted_or_pruned_says_so_in_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let history = dir.path().join("games.sqlite");
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Store::open(&history),
+        );
+        // As a failing disk might leave it.
+        rusqlite::Connection::open(&history)
+            .unwrap()
+            .execute_batch("DROP TABLE changes; DROP TABLE games;")
+            .unwrap();
+
+        live.set_forget_old_games(true).unwrap();
+
+        let view = live.history();
+        assert!(matches!(view.games, GamesRemembered::Uncounted { .. }));
+        assert!(view.forgetting_failed.is_some());
+    }
+
+    #[test]
+    fn a_game_history_that_cant_be_opened_is_shown_to_the_player() {
+        let dir = tempfile::tempdir().unwrap();
+        let unopened = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Err(StoreError::OtherLayout { found: 9 }),
+        );
+
+        assert_eq!(
+            unopened.view_model().history_unsaved.as_deref(),
+            Some("the game history was written by another version of DCSS Copilot (layout 9)")
+        );
+        assert_eq!(live().view_model().history_unsaved, None);
+    }
+
+    #[test]
     fn the_players_appearance_reaches_the_panel_and_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(live.view_model().appearance, Appearance::Tiles);
 
         live.set_appearance(Appearance::Glyphs).unwrap();
         assert_eq!(live.view_model().appearance, Appearance::Glyphs);
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
     }
 
@@ -390,13 +666,23 @@ mod tests {
     fn the_players_assistance_level_reaches_the_panel_and_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(live.view_model().assistance, AssistanceLevel::Hints);
 
         live.set_assistance(AssistanceLevel::Info).unwrap();
         assert_eq!(live.view_model().assistance, AssistanceLevel::Info);
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.view_model().assistance, AssistanceLevel::Info);
     }
 
@@ -404,7 +690,12 @@ mod tests {
     fn the_players_model_for_each_slot_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         let haiku_thinking = ModelChoice::new(
             Provider::Anthropic,
             "claude-haiku-5-5",
@@ -415,7 +706,12 @@ mod tests {
         live.set_model(ModelSlot::Quick, haiku_thinking.clone())
             .unwrap();
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.model(ModelSlot::Quick), haiku_thinking);
         assert_eq!(
             restarted.model(ModelSlot::Deep),
@@ -431,6 +727,7 @@ mod tests {
             "1.2.3",
             Some(dir.path().join("recordings")),
             Settings::load(&path).unwrap(),
+            Store::in_memory(),
         );
         assert_eq!(live.llm_sidecar(), None);
 

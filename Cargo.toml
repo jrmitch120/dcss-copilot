@@ -22,6 +22,8 @@ futures-util = "0.3"
 insta = { version = "1", features = ["json"] }
 # HTTPS to LLM providers: rustls with the OS's root certificates, so there is no OpenSSL to install.
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "stream"] }
+# SQLite, built in so there is no system library to install on any OS; Unix milliseconds are u64.
+rusqlite = { version = "0.41", features = ["bundled", "fallible_uint"] }
 serde = { version = "1", features = ["derive"] }
 # preserve_order: relayed messages keep their key order, so Recordings hold them unchanged.
 serde_json = { version = "1", features = ["preserve_order"] }

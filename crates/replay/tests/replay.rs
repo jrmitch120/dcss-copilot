@@ -110,7 +110,7 @@ fn the_panel_lists_the_monsters_in_view_by_name() {
 #[test]
 fn without_game_knowledge_for_the_crawl_version_no_monster_in_view_is_taken_for_firewood() {
     let mut replayer =
-        Replayer::with_knowledge(Recording::read(AMONG_FUNGI).unwrap(), Library::default());
+        Replayer::with_knowledge(Recording::read(AMONG_FUNGI).unwrap(), &Library::default());
     replayer.seek(usize::MAX);
 
     insta::assert_json_snapshot!(replayer.view_model().game.unwrap().focus);

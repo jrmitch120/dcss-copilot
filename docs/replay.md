@@ -17,6 +17,8 @@ Turns are the followed game's, so on a Recording with several games or tabs, `st
 
 Any backward move rebuilds the game from the start at full speed, because the core only moves forward. `replay()` runs a whole Recording and returns every distinct view model, the identity and Visible State at the end, and the timeline: each Screen Read and Session Event, and what the detectors noticed at each Settled Update (Encounters starting, All Clears, Fact Cards, Alerts and Suggested Actions), in order, with the envelope it came from and the turn just after it (`Replayer::timeline()` gives it so far). The timeline is the main regression signal: scenario snapshots hold it, and so does a snapshot of each corpus game's (`docs/corpus.md`).
 
+`Replayer::remembering(recording, store)` replays with a game history, as the app runs: each game is recalled from the store as it is identified and saved as it changes, so Replayers over one store file are successive runs of the app (`tests/persistence.rs`). A backward move then takes the Recording in again from its start with what the store remembers, as the app does when a browser reconnects. `Replayer` and the app share one wiring of Game Source, Advisor and store, `Following`, so a replay sees a game as the app does.
+
 Tests replay committed Recordings from `crates/replay/tests/recordings/` and Scenarios from `crates/replay/tests/scenarios/`, and assert with `insta` snapshots. `docs/corpus.md` covers Scenarios, recording them on local webtiles, and the corpus of full games.
 
 ## Over the websocket: designing the panel
@@ -42,7 +44,7 @@ cargo run -p copilot-replay --bin fake-extension -- path/to/game.dcssrec --speed
 | `h` | show the commands |
 | `q` | quit |
 
-Jumps forward relay at full speed. A backward move is a page reload: the fake extension reconnects, and the app, with no other browser connected, starts afresh and takes the replay from the start at full speed. Moves made while the app isn't connected only move the page along; connecting replays them.
+Jumps forward relay at full speed. A backward move is a page reload: the fake extension reconnects, and the app, with no other browser connected, starts afresh from what its game history remembers, which keeps what it read later in the Recording, and takes the replay from the start at full speed. Moves made while the app isn't connected only move the page along; connecting replays them.
 
 The fake extension connects from `chrome-extension://dcss-copilot-fake-extension`, so the app asks once whether to allow it, like any new browser. `--url` and `--origin` override where it connects and from where.
 

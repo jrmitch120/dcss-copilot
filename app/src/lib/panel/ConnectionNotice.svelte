@@ -58,42 +58,11 @@ p {
   margin: 0;
 }
 
-.prompt {
-  border-color: rgba(162, 155, 254, 0.45);
-  background: linear-gradient(180deg, rgba(162, 155, 254, 0.1), var(--surface-low));
-}
-
-.prompt p + p {
-  margin-top: 8px;
-}
-
 .origin {
   font-family: var(--mono);
   font-size: 0.8rem;
   color: var(--text-muted);
   word-break: break-all;
-}
-
-.acts {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.acts button {
-  padding: 3px 9px;
-  border: 0;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--text-soft);
-  font-size: 11.5px;
-  cursor: pointer;
-}
-
-.acts button.pri {
-  background: rgba(255, 255, 255, 0.9);
-  color: #111111;
-  font-weight: 600;
 }
 
 .status {

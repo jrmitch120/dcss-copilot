@@ -13,12 +13,18 @@ export const commands = {
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  The player chose how much the Advisor offers beyond Information. */
 	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
+	/**  The player answered "Is this the same game?", of a game picked up again on a later turn. */
+	answerSameGame: (same: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_same_game", { same })),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
 	settingsView: () => __TAURI_INVOKE<SettingsView>("settings_view"),
 	/**  The player turned start at login on or off. */
 	setStartAtLogin: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_at_login", { on })),
+	/**  The player turned forgetting games not played for a while on or off. */
+	setForgetOldGames: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_forget_old_games", { on })),
+	/**  The player cleared their game history. */
+	clearHistory: () => typedError<null, string>(__TAURI_INVOKE("clear_history")),
 	/**  The player chose a slot's model and how it thinks. */
 	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
 	/**  The player pasted a key for a provider. */
@@ -196,9 +202,30 @@ export type GameView = {
 	 *  resynced it.
 	 */
 	live: boolean,
+	/**
+	 *  The game seen before that this game's process picked up again on a later turn, until the
+	 *  player says whether it is that game: the panel asks before it shows anything else.
+	 */
+	pickedUp: PickedUp | null,
+	/**
+	 *  Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
+	 *  game over, remembering nothing from before. The Change Log still holds what was saved.
+	 */
+	accumulatedUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
 };
+
+/**  How many games the Advisor remembers, in Settings → History. */
+export type GamesRemembered = 
+/**  They were counted. */
+{ state: "counted"; 
+/**  How many. */
+games: number } | 
+/**  The game history couldn't be read to count them. */
+{ state: "uncounted"; 
+/**  Why not. */
+why: string };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
 export type Glyph = {
@@ -206,6 +233,18 @@ export type Glyph = {
 	text: string,
 	/**  Its colour. */
 	colour: Colour,
+};
+
+/**  The game history, in Settings → History. */
+export type HistoryView = {
+	/**  How many games the Advisor remembers. */
+	games: GamesRemembered,
+	/**  How many days a game is kept after it was last played, or `None` to keep every game. */
+	forgetAfterDays: number | null,
+	/**  How many days a game is kept once the player turns forgetting on. */
+	keepDays: number,
+	/**  Why games not played for a while couldn't be forgotten, the last time they couldn't. */
+	forgettingFailed: string | null,
 };
 
 /**  Where a key is kept. */
@@ -332,6 +371,17 @@ line: string;
  */
 detail: string | null };
 
+/**
+ *  A game seen before that a game process picked up again on a later turn, as last seen. Nobody
+ *  watched the turns between, so the process may be playing another game of the same character.
+ */
+export type PickedUp = {
+	/**  Its turn then, if it had reported one. */
+	turn: number | null,
+	/**  When, in Unix milliseconds: exact as a TypeScript number for millennia yet. */
+	lastSeenMs: number,
+};
+
 /**  A provider, as the Settings window names it. */
 export type ProviderView = {
 	/**  The id commands take, such as `anthropic`. */
@@ -356,6 +406,8 @@ export type SettingsView = {
 	models: ModelsAndKeysView,
 	/**  Settings → Connection and window. */
 	window: WindowView,
+	/**  Settings → History. */
+	history: HistoryView,
 };
 
 /**  One slot's model, and what it could be changed to. */
@@ -463,6 +515,11 @@ export type ViewModel = {
 	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.
 	 */
 	unreadableGameKnowledge: string | null,
+	/**
+	 *  Why the game history couldn't be read or saved, the last time it couldn't. What the
+	 *  Advisor remembers of a game it couldn't save lasts only until the app closes.
+	 */
+	historyUnsaved: string | null,
 	/**  The panel for the game being followed, once one is identified. */
 	game: GameView | null,
 };

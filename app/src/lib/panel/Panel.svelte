@@ -8,6 +8,7 @@ import Footer from "./Footer.svelte";
 import Header from "./Header.svelte";
 import NowPill from "./NowPill.svelte";
 import RunPlanRail from "./RunPlanRail.svelte";
+import SameGameQuestion from "./SameGameQuestion.svelte";
 import SuggestedAction from "./SuggestedAction.svelte";
 import WaysOut from "./WaysOut.svelte";
 
@@ -32,7 +33,25 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         {view.unreadableGameKnowledge}
       </p>
     {/if}
-    {#if view.game}
+    {#if view.historyUnsaved}
+      <p class="status error">
+        DCSS Copilot's game history isn't working, so a game may not be remembered the next time it
+        starts: {view.historyUnsaved}
+      </p>
+    {/if}
+    {#if view.game?.pickedUp}
+      <SameGameQuestion
+        character={view.game.character.name}
+        pickedUp={view.game.pickedUp}
+        {actions}
+      />
+    {:else if view.game}
+      {#if view.game.accumulatedUnreadable}
+        <p class="status error">
+          What DCSS Copilot remembered of this game couldn't be read, so it starts over on it:
+          {view.game.accumulatedUnreadable}
+        </p>
+      {/if}
       <NowPill now={view.game.now} />
       {#if view.game.suggestedAction}
         <SuggestedAction suggested={view.game.suggestedAction} />
@@ -47,7 +66,7 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       {/if}
     {/if}
   </div>
-  {#if view.game}
+  {#if view.game && !view.game.pickedUp}
     <RunPlanRail runPlan={view.game.runPlan} />
     <AskBox ask={view.game.ask} />
   {/if}

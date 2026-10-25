@@ -36,6 +36,10 @@ _Avoid_: Packet, event, frame (a frame is one websocket message of the relay pro
 The one integer the browser extension and the app agree on to understand each other. The app accepts its own version and the previous one, so the two can update separately.
 _Avoid_: API version, app version
 
+**Game Key**:
+What tells one game apart from every other: the server, the account, the character's name and species, and when a Game Source first saw the game. A game process for a character whose latest game hasn't ended, at a turn no earlier than that game was last seen at, picks that game up again under its key; one for a game that ended, or whose turn went backwards, is a new game with a key of its own. A game picked up again on a later turn than it was last seen at, with the turns between unwatched, may be another game of the same character, so the panel asks the player whether it is the same game before it shows or saves anything of it. A new game then has a key of its own, first seen as its game process named it, and the game it was taken for is left as it was last saved.
+_Avoid_: Game id, save, run id
+
 **Tournament Game**:
 A game that counts for the official DCSS tournament: played on the tournament's own Crawl Version, on an official server, within the tournament's dates. Games on other versions during those dates are not Tournament Games. The Advisor gives only Information in a Tournament Game.
 _Avoid_: Tourney game, competitive game
@@ -63,11 +67,19 @@ What the game reports once it has finished reacting to the player and waits for 
 _Avoid_: Tick, frame, turn (when meaning this)
 
 **Accumulated State**:
-What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
+What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is. It is saved as it changes, by the game's Game Key, so the Advisor picks a game up again with it after the app restarts; a game watched rather than played is never saved.
 _Avoid_: History, memory, cache
 
+**Change Log**:
+Every change to a game's Accumulated State, in the order it was made, each with the turn and time of the message that made it. It is only ever added to, so it tells what the Advisor knew of the game at any moment; it goes only with its game, when the player clears history or the game is pruned.
+_Avoid_: History (when meaning this), audit log, journal
+
+**Game History**:
+Every game the Advisor remembers between runs of the app, kept on the player's computer only: each one's Game Key, its Accumulated State and its Change Log. A game not played for 90 days is forgotten unless the player turns that off, and the player can clear the history of every game but the one they are playing.
+_Avoid_: Database, saves, history (alone, when meaning Accumulated State)
+
 **Known, Stale, Missing**:
-How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
+How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, or when the Advisor picks a game up again at a later turn than it last saw it on, as the turns between could have changed anything; every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
 _Avoid_: Fresh, expired, cached
 
 **Carried Gear**:

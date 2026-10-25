@@ -10,6 +10,7 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
+use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
@@ -43,28 +44,16 @@ struct Followed {
     alert: Option<(Alert, Option<u32>)>,
     /// Its stream stopped or it ended, and it hasn't been picked up since.
     stopped: bool,
+    /// Its turn when the Advisor last saw it.
+    turn: Option<u32>,
+    /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
+    picked_up_from: Option<LastSeen>,
 }
 
-/// What tells one game apart from every other, for as long as it is played: the spec's game key.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct GameKey {
-    server: String,
-    account: Option<String>,
-    character: String,
-    species: String,
-    first_seen_ms: u64,
-}
-
-impl GameKey {
-    fn of(identity: &GameIdentity) -> Self {
-        Self {
-            server: identity.server.clone(),
-            account: identity.account.clone(),
-            character: identity.character.clone(),
-            species: identity.species.clone(),
-            first_seen_ms: identity.first_seen_ms,
-        }
-    }
+/// When the Advisor last saw a game it picks up again.
+#[derive(Debug, Clone, Copy)]
+struct LastSeen {
+    turn: Option<u32>,
 }
 
 impl Advisor {
@@ -85,7 +74,7 @@ impl Advisor {
     pub fn apply(&mut self, event: SourceEvent) -> Vec<Detection> {
         match event {
             SourceEvent::Identified(identity) => {
-                self.games.entry(GameKey::of(&identity)).or_default();
+                self.games.entry(identity.key()).or_default();
                 self.identity = Some(identity);
             }
             SourceEvent::Visible(visible) => {
@@ -96,10 +85,14 @@ impl Advisor {
                 if let Some(game) = self
                     .identity
                     .as_ref()
-                    .map(GameKey::of)
+                    .map(GameIdentity::key)
                     .and_then(|key| self.games.get_mut(&key))
                 {
-                    game.accumulated.update(&self.visible, &visible, knowledge);
+                    match game.picked_up_from.take() {
+                        Some(last) => game.accumulated.pick_up(last.turn, &visible),
+                        None => game.accumulated.update(&self.visible, &visible, knowledge),
+                    }
+                    game.turn = visible.turn;
                 }
                 self.visible = *visible;
             }
@@ -112,13 +105,17 @@ impl Advisor {
                     game.accumulated.read(&read, &self.visible, knowledge);
                 }
             }
-            // Sessions change only whether a game is live; a new game has a key of its own.
+            // A new game has a key of its own; a game resynced is picked up again.
             SourceEvent::Session(session) => {
                 if let Some(game) = self.followed_game_mut() {
                     game.stopped = matches!(
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
+                    if session == SessionEvent::Resynced {
+                        let turn = game.turn;
+                        game.picked_up_from.get_or_insert(LastSeen { turn });
+                    }
                 }
                 return Vec::new();
             }
@@ -126,6 +123,40 @@ impl Advisor {
         }
         self.fact_sheet = OnceLock::new();
         Vec::new()
+    }
+
+    /// Whether the Advisor keeps anything of the game `key` names: it has followed it, or
+    /// recalled it.
+    #[must_use]
+    pub fn knows(&self, key: &GameKey) -> bool {
+        self.games.contains_key(key)
+    }
+
+    /// Takes back what was `remembered` of the game `key` names, last seen on `turn`, such as
+    /// before the app last closed, for the Game Source to pick it up again. What it remembers is
+    /// kept as it was while the game is no further on, and goes Stale once it is: the Advisor
+    /// didn't see the turns between.
+    pub fn recall(&mut self, key: GameKey, turn: Option<u32>, remembered: AccumulatedState) {
+        self.games.insert(
+            key,
+            Followed {
+                accumulated: remembered,
+                turn,
+                picked_up_from: Some(LastSeen { turn }),
+                ..Followed::default()
+            },
+        );
+    }
+
+    /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
+    pub fn forget(&mut self, key: &GameKey) {
+        self.games.remove(key);
+    }
+
+    /// Forgets every game but the one it follows, as the player clears their game history.
+    pub fn forget_all_but_followed(&mut self) {
+        let followed = self.followed_key();
+        self.games.retain(|key, _| Some(key) == followed.as_ref());
     }
 
     /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise
@@ -162,7 +193,7 @@ impl Advisor {
     }
 
     fn followed_key(&self) -> Option<GameKey> {
-        self.identity.as_ref().map(GameKey::of)
+        self.identity.as_ref().map(GameIdentity::key)
     }
 
     /// What is kept of the followed game, once a Game Source has identified it.
@@ -245,6 +276,10 @@ impl Advisor {
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
+            // Only the Game Source can tell whether the player is to be asked, and only the store
+            // whether what was saved of the game could be read.
+            picked_up: None,
+            accumulated_unreadable: None,
             badge: ToolbarBadge {
                 decisions_waiting: 0,
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)

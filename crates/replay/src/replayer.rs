@@ -4,14 +4,15 @@
 use std::ops::Range;
 
 use copilot_core::{
-    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, Detection, SourceEvent,
-    ViewModel,
+    Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, SourceEvent, ViewModel,
 };
 use copilot_gk::{BundleError, Library};
+use copilot_store::Store;
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
 use crate::Recording;
+use crate::following::{Following, Happened};
 
 /// Replays a Recording through the webtiles Game Source and the core, as if a browser had relayed
 /// it live.
@@ -26,7 +27,6 @@ pub struct Replayer {
     /// Every Crawl Version the followed games report, in the order first seen.
     crawl_versions: Vec<CrawlVersion>,
     position: usize,
-    knowledge: Library,
     game: Game,
 }
 
@@ -76,20 +76,9 @@ pub struct Moment {
     pub event: Happened,
 }
 
-/// What happened at a [`Moment`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(untagged)]
-pub enum Happened {
-    /// The Game Source reported a screen read or a session event.
-    Source(SourceEvent),
-    /// The Advisor's detectors noticed something at a Settled Update.
-    Detected(Detection),
-}
-
-/// The Game Source and the core, fed together.
+/// The Game Source and the core, fed together, and what has happened so far.
 struct Game {
-    source: WebtilesSource,
-    advisor: Advisor,
+    following: Following,
     /// What has happened so far, in order.
     timeline: Vec<Moment>,
     /// How many envelopes have been applied.
@@ -97,25 +86,25 @@ struct Game {
 }
 
 impl Game {
-    fn new(knowledge: &Library) -> Self {
+    fn new(following: Following) -> Self {
         Self {
-            source: WebtilesSource::new(knowledge.clone()),
-            advisor: Advisor::new(knowledge.clone()),
+            following,
             timeline: Vec::new(),
             applied: 0,
         }
     }
 
+    /// Takes the Recording in again from its start, as the app does when a browser connects:
+    /// keeping only what the store remembers, if it has one.
+    fn restart(&mut self) {
+        self.following.restart();
+        self.timeline.clear();
+        self.applied = 0;
+    }
+
     fn apply(&mut self, envelope: &Envelope) {
-        let mut happened = Vec::new();
-        for event in self.source.ingest(envelope) {
-            let detections = self.advisor.apply(event.clone());
-            if matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_)) {
-                happened.push(Happened::Source(event));
-            }
-            happened.extend(detections.into_iter().map(Happened::Detected));
-        }
-        let turn = self.advisor.visible().turn;
+        let happened = self.following.ingest(envelope);
+        let turn = self.following.advisor().visible().turn;
         self.timeline
             .extend(happened.into_iter().map(|event| Moment {
                 envelope: self.applied,
@@ -132,13 +121,31 @@ impl Replayer {
     /// # Errors
     /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
     pub fn new(recording: Recording) -> Result<Self, BundleError> {
-        Ok(Self::with_knowledge(recording, Library::shipped()?))
+        Ok(Self::with_knowledge(recording, &Library::shipped()?))
+    }
+
+    /// Starts before the Recording's first envelope, with the Game Knowledge the app ships,
+    /// remembering games in `store` as the app does, across Replayers as across runs of the app.
+    /// Moving backward then takes the Recording in again from its start with what the store
+    /// remembers, as the app does when a browser reconnects.
+    ///
+    /// # Errors
+    /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
+    pub fn remembering(recording: Recording, store: Store) -> Result<Self, BundleError> {
+        let knowledge = Library::shipped()?;
+        let following = Following::remembering(&knowledge, store);
+        Ok(Self::following(recording, &knowledge, following))
     }
 
     /// Starts before the Recording's first envelope, with only the Game Knowledge in
     /// `knowledge`, such as none at all.
     #[must_use]
-    pub fn with_knowledge(recording: Recording, knowledge: Library) -> Self {
+    pub fn with_knowledge(recording: Recording, knowledge: &Library) -> Self {
+        let following = Following::new(knowledge);
+        Self::following(recording, knowledge, following)
+    }
+
+    fn following(recording: Recording, knowledge: &Library, following: Following) -> Self {
         // The Game Source alone tells each envelope's turn: the Advisor would judge every
         // Settled Update on the way.
         let mut source = WebtilesSource::new(knowledge.clone());
@@ -169,8 +176,7 @@ impl Replayer {
             turns,
             crawl_versions,
             position: 0,
-            game: Game::new(&knowledge),
-            knowledge,
+            game: Game::new(following),
         }
     }
 
@@ -240,7 +246,7 @@ impl Replayer {
     /// The core, as the applied envelopes left it.
     #[must_use]
     pub fn advisor(&self) -> &Advisor {
-        &self.game.advisor
+        self.game.following.advisor()
     }
 
     /// The screen reads, session events and what the detectors noticed so far, in order.
@@ -277,8 +283,25 @@ impl Replayer {
             assistance,
             // A replay fails rather than run without the shipped Game Knowledge.
             unreadable_game_knowledge: None,
-            game: self.game.advisor.game_view(assistance),
+            history_unsaved: self.game.following.history_unsaved().map(str::to_owned),
+            game: self.game.following.game_view(assistance),
         }
+    }
+
+    /// The player answered whether the followed game is the one its game process picked up
+    /// again on a later turn, as just after the envelopes applied so far. A backward move forgets
+    /// the answer, as it rebuilds the game from the start, unless the store remembers it.
+    pub fn answer_same_game(&mut self, same: bool) {
+        let happened = self.game.following.answer_same_game(same);
+        let turn = self.game.following.advisor().visible().turn;
+        let envelope = self.game.applied.saturating_sub(1);
+        self.game
+            .timeline
+            .extend(happened.into_iter().map(|event| Moment {
+                envelope,
+                turn,
+                event,
+            }));
     }
 
     /// Applies the next envelope, if any.
@@ -312,7 +335,7 @@ impl Replayer {
         let target = position.min(self.recording.envelopes.len());
         let restarted = target < self.position;
         if restarted {
-            self.game = Game::new(&self.knowledge);
+            self.game.restart();
             self.position = 0;
         }
         let start = self.position;

@@ -9,7 +9,7 @@ use crate::Envelope;
 
 /// The only compatibility contract between the extension and the app. Bump it whenever a frame
 /// changes shape; the app also accepts the previous version.
-pub const RELAY_PROTOCOL_VERSION: u32 = 3;
+pub const RELAY_PROTOCOL_VERSION: u32 = 4;
 
 /// The port the app listens on for the extension, on 127.0.0.1 only.
 pub const RELAY_PORT: u16 = 47_821;
@@ -64,6 +64,12 @@ pub enum PanelCommand {
     SetAssistance {
         /// The player's choice.
         assistance: AssistanceLevel,
+    },
+    /// The player answered whether the followed game is the one its game process picked up again
+    /// on a later turn. Since protocol 4.
+    AnswerSameGame {
+        /// It is the same game; otherwise it is a new one.
+        same: bool,
     },
     /// Open the app's Settings window.
     OpenSettings,

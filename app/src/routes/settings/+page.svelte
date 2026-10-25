@@ -3,9 +3,10 @@ import "$lib/panel/theme.css";
 import { commands, events, type SettingsView } from "$lib/bindings";
 import About from "$lib/settings/About.svelte";
 import ConnectionAndWindow from "$lib/settings/ConnectionAndWindow.svelte";
+import History from "$lib/settings/History.svelte";
 import ModelsAndKeys from "$lib/settings/ModelsAndKeys.svelte";
 
-type SectionId = "models" | "window" | "about";
+type SectionId = "models" | "window" | "history" | "about";
 
 /** Each section, with the words a search finds it by. Layout follows round2.html
     (prototype/setup-settings). */
@@ -32,6 +33,14 @@ const SECTIONS: {
     colour: "#fd79a8",
     title: "Connection and window",
     words: "side panel sidebar toolbar start login tray",
+  },
+  {
+    id: "history",
+    group: "Trust",
+    icon: "⟲",
+    colour: "var(--calm)",
+    title: "History",
+    words: "game history remember forget prune days clear delete saved games",
   },
   {
     id: "about",
@@ -85,7 +94,7 @@ function choose(id: SectionId) {
     <input
       class="search"
       type="search"
-      placeholder="Search: key, model, login, version…"
+      placeholder="Search: key, model, login, history, version…"
       bind:value={query}
     >
     {#each groups as group (group)}
@@ -111,6 +120,8 @@ function choose(id: SectionId) {
             <ModelsAndKeys models={view.models} />
           {:else if section.id === "window"}
             <ConnectionAndWindow window={view.window} />
+          {:else if section.id === "history"}
+            <History history={view.history} />
           {:else}
             <About appVersion={view.appVersion} />
           {/if}

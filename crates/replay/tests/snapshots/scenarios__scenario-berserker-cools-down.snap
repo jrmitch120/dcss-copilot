@@ -155,6 +155,8 @@ expression: replay
           "state": "needsModel"
         },
         "live": true,
+        "pickedUp": null,
+        "accumulatedUnreadable": null,
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
@@ -419,6 +421,8 @@ expression: replay
         "state": "needsModel"
       },
       "live": true,
+      "pickedUp": null,
+      "accumulatedUnreadable": null,
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false

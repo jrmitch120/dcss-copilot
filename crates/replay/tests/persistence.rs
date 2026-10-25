@@ -1,0 +1,505 @@
+//! Seam 1: games remembered across app restarts. Each run of the app is a Replayer over the same
+//! store, fed what the browser relays to it.
+
+// Helpers outside #[test] functions panic on bad fixtures too.
+#![allow(clippy::unwrap_used)]
+
+use std::path::Path;
+
+use copilot_core::{
+    AccumulatedState, AssistanceLevel, GameKey, PickedUp, Remembered, SessionEvent, SourceEvent,
+};
+use copilot_gk::Library;
+use copilot_replay::{Following, Happened, Recording, Replayer};
+use copilot_store::Store;
+use copilot_webtiles::Envelope;
+use serde_json::{Value, json};
+
+/// Tiv, a kobold at turn 1234, opens every screen the Advisor reads.
+const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
+/// Later, Tiv's game at turn 1234 again: a page reload, a save, playing on, death at 1410, and
+/// a new Tiv.
+const SESSION: &[u8] = include_bytes!("recordings/session-tiv-reloads-saves-and-dies.dcssrec");
+/// Rook reads his resistances on turn 101 and puts on a kite shield on 102.
+const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
+
+/// One run of the app, remembering games in the store at `path`, as the browser relays it
+/// `recording`.
+fn run(recording: &[u8], path: &Path) -> Replayer {
+    run_of(Recording::read(recording).unwrap(), path)
+}
+
+fn run_of(recording: Recording, path: &Path) -> Replayer {
+    Replayer::remembering(recording, Store::open(path).unwrap()).unwrap()
+}
+
+/// The whole of `recording`, taken in by an app that remembers nothing between runs.
+fn straight(recording: &[u8]) -> Replayer {
+    let mut replayer = Replayer::new(Recording::read(recording).unwrap()).unwrap();
+    replayer.seek(usize::MAX);
+    replayer
+}
+
+/// Tiv's game later on, at turn 1300, after the app restarted: saved there, it plays on unwatched
+/// from 1234, then dies at 1410, and a new Tiv follows.
+fn later() -> Recording {
+    let mut later = Recording::read(SESSION).unwrap();
+    later.envelopes.drain(1..12);
+    later
+}
+
+/// The turn the store at `path` saved the game `key` names on, if it saved it.
+fn saved_turn(path: &Path, key: &GameKey) -> Option<Option<u32>> {
+    Store::open(path)
+        .unwrap()
+        .saved(key)
+        .unwrap()
+        .map(|saved| saved.turn)
+}
+
+/// What the panel asks of a game picked up again, if anything.
+fn asked(replayer: &Replayer) -> Option<PickedUp> {
+    replayer.view_model().game.unwrap().picked_up
+}
+
+/// Mira's game, as `tab` relays it at `ts`: `start`, the game process starting, then her player
+/// on `turn`.
+fn mira(following: &mut Following, tab: i64, ts: u64, start: Value, turn: u32) {
+    for (ts, msg) in [
+        (ts, start),
+        (
+            ts + 1,
+            json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": turn }),
+        ),
+    ] {
+        following.ingest(&Envelope {
+            origin: "https://crawl.example.org".to_owned(),
+            tab,
+            ts,
+            game_version: None,
+            msg,
+        });
+    }
+}
+
+/// What the panel asks of the game `following` follows, if anything.
+fn asks(following: &Following) -> Option<PickedUp> {
+    following.game_view(AssistanceLevel::default())?.picked_up
+}
+
+fn key(replayer: &Replayer) -> GameKey {
+    replayer.advisor().identity().unwrap().key()
+}
+
+/// The Session Events the replayer's Game Source reported, with the envelope each came from.
+fn sessions(replayer: &Replayer) -> Vec<(usize, SessionEvent)> {
+    replayer
+        .timeline()
+        .iter()
+        .filter_map(|moment| match moment.event {
+            Happened::Source(SourceEvent::Session(session)) => Some((moment.envelope, session)),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Whether anything the Advisor remembers of the followed game is Known or Stale.
+fn remembers_anything(replayer: &Replayer) -> bool {
+    replayer.advisor().accumulated().unwrap() != &AccumulatedState::default()
+}
+
+#[test]
+fn a_game_played_on_after_the_app_restarts_is_picked_up_with_what_was_remembered() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let mut before = run(SCREENS, &path);
+    before.seek(usize::MAX);
+    let remembered = before.advisor().accumulated().cloned().unwrap();
+    assert!(matches!(remembered.skills, Remembered::Known(_)));
+    let game = key(&before);
+    drop(before);
+
+    let mut after = run(SESSION, &path);
+    // Just after the game is named, at turn 1234, where it was left.
+    after.seek(4);
+
+    assert_eq!(key(&after), game);
+    assert_eq!(sessions(&after), [(3, SessionEvent::Resynced)]);
+    assert_eq!(after.advisor().accumulated(), Some(&remembered));
+    assert_eq!(
+        asked(&after),
+        None,
+        "on the turn it was left, it can only be that game"
+    );
+}
+
+#[test]
+fn what_was_remembered_goes_stale_when_the_game_is_picked_up_at_a_later_turn() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+
+    let mut after = run_of(later(), &path);
+    after.seek(3);
+
+    let skills = &after.advisor().accumulated().unwrap().skills;
+    assert!(matches!(skills, Remembered::Stale(read) if read.turn == Some(1234)));
+}
+
+#[test]
+fn a_game_that_ended_is_never_picked_up_again() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut died = run(SESSION, &path);
+    died.seek(17);
+    let dead = key(&died);
+    drop(died);
+    // The new Tiv, after the app restarted, in the tab logged in as tiv.
+    let mut new = Recording::read(SESSION).unwrap();
+    new.envelopes.drain(1..17);
+
+    let mut after = run_of(new, &path);
+    after.seek(usize::MAX);
+
+    assert_ne!(key(&after), dead);
+    assert_eq!(sessions(&after), [(2, SessionEvent::Joined)]);
+    assert!(!remembers_anything(&after));
+}
+
+#[test]
+fn a_game_whose_turn_went_backwards_is_a_new_game() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let mut first = run(SESSION, &path);
+    // Played to turn 1410, before Tiv dies.
+    first.seek(15);
+    let left = key(&first);
+    drop(first);
+    // A day later, Tiv at turn 1234 again, as from a backed-up save.
+    let mut backed_up = Recording::read(SCREENS).unwrap();
+    for envelope in &mut backed_up.envelopes {
+        envelope.ts += 86_400_000 + 100_000_000;
+    }
+
+    let mut after = run_of(backed_up, &path);
+    after.seek(usize::MAX);
+
+    assert_ne!(key(&after), left);
+    assert_eq!(sessions(&after), [(3, SessionEvent::Joined)]);
+}
+
+#[test]
+fn an_app_restarted_mid_game_takes_the_page_replayed_to_it_up_where_it_left_off() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, uninterrupted) = (
+        dir.path().join("games.sqlite"),
+        dir.path().join("uninterrupted.sqlite"),
+    );
+    // Quit just after the resistances are read on turn 101.
+    run(KITE_SHIELD, &path).seek(8);
+
+    // The browser replays the page from its first message to the restarted app.
+    let mut restarted = run(KITE_SHIELD, &path);
+    restarted.seek(usize::MAX);
+
+    let straight = straight(KITE_SHIELD);
+    assert_eq!(
+        restarted.advisor().identity(),
+        straight.advisor().identity()
+    );
+    assert_eq!(
+        restarted.advisor().accumulated(),
+        straight.advisor().accumulated()
+    );
+    assert_eq!(sessions(&restarted), [(3, SessionEvent::Joined)]);
+    run(KITE_SHIELD, &uninterrupted).seek(usize::MAX);
+    let game = key(&restarted);
+    assert_eq!(
+        Store::open(&path).unwrap().changes(&game).unwrap(),
+        Store::open(&uninterrupted).unwrap().changes(&game).unwrap(),
+        "each change is logged once"
+    );
+}
+
+#[test]
+fn a_game_watched_rather_than_played_is_never_saved() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+
+    run(
+        include_bytes!("recordings/spectating-trunk-wizard.dcssrec"),
+        &path,
+    )
+    .seek(usize::MAX);
+
+    assert_eq!(Store::open(&path).unwrap().known_games().unwrap(), []);
+}
+
+#[test]
+fn a_page_replayed_after_a_restart_picks_up_each_game_it_played_as_it_did_before() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let mut first = run(SESSION, &path);
+    // Played to turn 1410, before Tiv dies.
+    first.seek(15);
+    let game = key(&first);
+    drop(first);
+    // The page since Tiv reloaded it at 1240: saving at 1300, then playing on in it.
+    let mut page = Recording::read(SESSION).unwrap();
+    page.envelopes = page.envelopes[5..15].to_vec();
+
+    let mut restarted = run_of(page, &path);
+    restarted.seek(usize::MAX);
+
+    assert_eq!(key(&restarted), game);
+    assert_eq!(
+        sessions(&restarted),
+        [
+            (3, SessionEvent::Resynced),
+            (5, SessionEvent::ConnectionLost),
+            (8, SessionEvent::Resynced)
+        ]
+    );
+}
+
+#[test]
+fn a_game_picked_up_at_a_later_turn_is_saved_only_once_the_player_says_it_is_the_same_game() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut after = run_of(later(), &path);
+    after.seek(4);
+    let game = key(&after);
+
+    let question = asked(&after).unwrap();
+    assert_eq!(question.turn, Some(1234));
+    assert_eq!(
+        saved_turn(&path, &game),
+        Some(Some(1234)),
+        "nothing is saved while the player is asked"
+    );
+
+    after.answer_same_game(true);
+
+    assert_eq!(asked(&after), None);
+    assert_eq!(key(&after), game);
+    assert_eq!(saved_turn(&path, &game), Some(after.turn()));
+}
+
+#[test]
+fn a_game_left_unanswered_is_asked_about_again_after_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    run_of(later(), &path).seek(4);
+
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
+
+    assert_eq!(asked(&restarted).unwrap().turn, Some(1234));
+}
+
+#[test]
+fn a_game_the_player_says_is_the_same_is_not_asked_about_again_after_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut first = run_of(later(), &path);
+    first.seek(4);
+    first.answer_same_game(true);
+    let game = key(&first);
+    drop(first);
+
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
+
+    assert_eq!(key(&restarted), game);
+    assert_eq!(asked(&restarted), None);
+}
+
+#[test]
+fn a_game_the_player_says_is_new_is_followed_as_one_and_leaves_the_game_it_was_taken_for_as_it_was()
+{
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let mut before = run(SCREENS, &path);
+    before.seek(usize::MAX);
+    let remembered = before.advisor().accumulated().cloned().unwrap();
+    drop(before);
+    let mut after = run_of(later(), &path);
+    after.seek(4);
+    let taken_for = key(&after);
+    let named = after
+        .timeline()
+        .iter()
+        .find(|moment| matches!(moment.event, Happened::Source(SourceEvent::Session(_))))
+        .map(|moment| later().envelopes[moment.envelope].ts)
+        .unwrap();
+
+    after.answer_same_game(false);
+
+    let new = key(&after);
+    assert_ne!(new, taken_for);
+    assert_eq!(
+        new.first_seen_ms, named,
+        "as this game process first named it"
+    );
+    assert!(!remembers_anything(&after));
+    assert_eq!(asked(&after), None);
+    // It plays on to its death at 1410, and a new Tiv follows.
+    after.seek(usize::MAX);
+    drop(after);
+    let saved = Store::open(&path)
+        .unwrap()
+        .saved(&taken_for)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        (saved.turn, saved.accumulated),
+        (Some(1234), remembered),
+        "the game it was taken for is left as it was"
+    );
+
+    let mut restarted = run_of(later(), &path);
+    restarted.seek(4);
+    assert_eq!(key(&restarted), new);
+    assert_eq!(asked(&restarted), None);
+}
+
+#[test]
+fn a_game_reloaded_before_the_player_answers_is_still_asked_about_and_still_unsaved() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let knowledge = Library::shipped().unwrap();
+    let started = json!({ "msg": "game_started" });
+    mira(
+        &mut Following::remembering(&knowledge, Store::open(&path).unwrap()),
+        1,
+        1_000,
+        started.clone(),
+        500,
+    );
+    let mut following = Following::remembering(&knowledge, Store::open(&path).unwrap());
+    mira(&mut following, 1, 50_000, started.clone(), 600);
+    let game = following.advisor().identity().unwrap().key();
+    assert!(asks(&following).is_some());
+
+    // The page reloaded, on the same turn, and Mira's game opened in a second tab.
+    mira(&mut following, 1, 60_000, started.clone(), 600);
+    assert_eq!(asks(&following).map(|asked| asked.turn), Some(Some(500)));
+    mira(&mut following, 2, 70_000, started, 600);
+    assert_eq!(asks(&following).map(|asked| asked.turn), Some(Some(500)));
+
+    assert_eq!(saved_turn(&path, &game), Some(Some(500)));
+}
+
+#[test]
+fn a_game_watched_again_on_a_later_turn_is_never_asked_about() {
+    let mut following = Following::new(&Library::shipped().unwrap());
+    let watching = json!({ "msg": "watching_started", "username": "mira" });
+    mira(&mut following, 1, 1_000, watching.clone(), 500);
+    mira(&mut following, 1, 50_000, watching, 600);
+
+    assert!(following.advisor().identity().is_some());
+    assert_eq!(asks(&following), None);
+}
+
+#[test]
+fn a_new_game_is_never_asked_about() {
+    let mut replayer = straight(SCREENS);
+    let game = key(&replayer);
+    assert_eq!(asked(&replayer), None);
+
+    replayer.answer_same_game(false);
+
+    assert_eq!(key(&replayer), game);
+    assert!(remembers_anything(&replayer));
+}
+
+#[test]
+fn a_game_whose_saved_accumulated_state_cant_be_read_says_so_while_followed_and_is_saved_afresh() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    // As a later version of the app might have saved it.
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE games SET accumulated = '{\"resistances\":{\"state\":\"pondered\"}}'",
+            [],
+        )
+        .unwrap();
+
+    let mut after = run(SESSION, &path);
+    after.seek(5);
+
+    let view = after.view_model();
+    assert!(view.game.unwrap().accumulated_unreadable.is_some());
+    assert_eq!(view.history_unsaved, None, "the history itself works");
+    let game = key(&after);
+    assert_eq!(saved_turn(&path, &game), Some(after.turn()), "saved afresh");
+    // Tiv dies, and the new Tiv's game says nothing of the old one's.
+    after.seek(usize::MAX);
+    assert_ne!(key(&after), game);
+    assert_eq!(
+        after.view_model().game.unwrap().accumulated_unreadable,
+        None
+    );
+}
+
+#[test]
+fn a_game_saved_afresh_over_what_couldnt_be_read_no_longer_says_so_once_read() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE games SET accumulated = '{\"resistances\":{\"state\":\"pondered\"}}'",
+            [],
+        )
+        .unwrap();
+    let mut following =
+        Following::remembering(&Library::shipped().unwrap(), Store::open(&path).unwrap());
+    let reloaded = &Recording::read(SESSION).unwrap().envelopes[..5];
+    for envelope in reloaded {
+        following.ingest(envelope);
+    }
+    let unreadable = |following: &Following| {
+        following
+            .game_view(AssistanceLevel::Hints)
+            .unwrap()
+            .accumulated_unreadable
+    };
+    assert!(unreadable(&following).is_some());
+
+    // The browser reconnects, and relays the page again.
+    following.restart();
+    for envelope in reloaded {
+        following.ingest(envelope);
+    }
+
+    assert_eq!(unreadable(&following), None);
+}
+
+#[test]
+fn clearing_the_history_forgets_every_game_but_the_one_followed() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    let mut following =
+        Following::remembering(&Library::shipped().unwrap(), Store::open(&path).unwrap());
+    // Tiv picked up again, dead, and a new Tiv followed.
+    for envelope in &Recording::read(SESSION).unwrap().envelopes {
+        following.ingest(envelope);
+    }
+    assert_eq!(following.games_remembered().unwrap(), 2);
+
+    following.forget_all_but_followed().unwrap();
+
+    let followed = following.advisor().identity().unwrap().key();
+    let kept = Store::open(&path).unwrap().known_games().unwrap();
+    assert_eq!(kept.len(), 1);
+    assert_eq!(kept[0].key, followed);
+}

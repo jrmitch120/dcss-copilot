@@ -22,7 +22,13 @@ struct Saved {
     assistance: AssistanceLevel,
     quick_model: ModelChoice,
     deep_model: ModelChoice,
+    /// How many days a game is kept after it was last played, or `None` to keep every game.
+    forget_games_after_days: Option<u32>,
 }
+
+/// How many days a game is kept after it was last played, unless the player turns forgetting
+/// off: the spec's default (#24, user story 105).
+pub const FORGET_GAMES_AFTER_DAYS: u32 = 90;
 
 impl Default for Saved {
     fn default() -> Self {
@@ -31,6 +37,7 @@ impl Default for Saved {
             assistance: AssistanceLevel::default(),
             quick_model: ModelChoice::default_for(ModelSlot::Quick),
             deep_model: ModelChoice::default_for(ModelSlot::Deep),
+            forget_games_after_days: Some(FORGET_GAMES_AFTER_DAYS),
         }
     }
 }
@@ -140,6 +147,21 @@ impl Settings {
             ModelSlot::Quick => self.saved.quick_model = choice,
             ModelSlot::Deep => self.saved.deep_model = choice,
         }
+        self.save()
+    }
+
+    /// How many days a game is kept after it was last played, or `None` to keep every game.
+    #[must_use]
+    pub fn forget_games_after_days(&self) -> Option<u32> {
+        self.saved.forget_games_after_days
+    }
+
+    /// Changes how many days a game is kept after it was last played, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_forget_games_after_days(&mut self, days: Option<u32>) -> Result<(), SettingsError> {
+        self.saved.forget_games_after_days = days;
         self.save()
     }
 

@@ -6,12 +6,12 @@
 //! look cursor rests on one, and the full-view list (`Ctrl-X`). Line numbers are crawl 0.34.1's.
 
 use copilot_gk::{Bundle, EnumId, ItemKind, MissileKind};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::crawl_ids::object_classes;
 
 /// What one monster has been seen to wield, quiver or carry, as the game listed it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CarriedGear {
     /// What the listing named, in its order.
@@ -22,7 +22,7 @@ pub struct CarriedGear {
 
 /// What a listing of a monster's gear leaves out even when the monster carries it, so that a
 /// slot it shows empty may hold it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Unlisted {
     /// Nothing: the look text lists everything (`DESC_FULL`).
@@ -38,7 +38,7 @@ pub enum Unlisted {
 }
 
 /// One item a monster was seen with.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CarriedItem {
     /// How the monster has it.
@@ -61,7 +61,7 @@ pub struct CarriedItem {
 }
 
 /// How a monster has an item, by the word crawl's listing gives it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum GearSlot {
     /// `wielding`: in its hands.
@@ -75,7 +75,7 @@ pub enum GearSlot {
 }
 
 /// An item's brand, as its name shows it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "brand", content = "name", rename_all = "camelCase")]
 pub enum ItemBrand {
     /// Its name shows it has none.
