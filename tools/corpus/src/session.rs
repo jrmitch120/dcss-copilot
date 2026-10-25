@@ -33,7 +33,8 @@ type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
 pub struct Session {
     socket: Socket,
     capture: Capture,
-    recording: RecordingWriter<std::fs::File>,
+    /// Where the session is recorded, if it is.
+    recording: Option<RecordingWriter<std::fs::File>>,
     /// The game process has stopped and the server sent the player back to the lobby.
     game_over: bool,
 }
@@ -50,8 +51,8 @@ pub enum Stopped {
 }
 
 impl Session {
-    /// Connects to the webtiles websocket at `url`, recording into a new file at `out`.
-    pub async fn connect(url: &str, out: &Path) -> anyhow::Result<Self> {
+    /// Connects to the webtiles websocket at `url`, recording into a new file at `out`, if any.
+    pub async fn connect(url: &str, out: Option<&Path>) -> anyhow::Result<Self> {
         let origin = page_origin(url)?;
         let mut request = url.into_client_request()?;
         // Uncompressed frames, so they are text the capture reads like the page does.
@@ -65,12 +66,18 @@ impl Session {
         let (socket, _) = tokio_tungstenite::connect_async(request)
             .await
             .with_context(|| format!("couldn't reach webtiles at {url}"))?;
-        let file = std::fs::File::create(out)
-            .with_context(|| format!("couldn't create {}", out.display()))?;
+        let recording = match out {
+            Some(out) => {
+                let file = std::fs::File::create(out)
+                    .with_context(|| format!("couldn't create {}", out.display()))?;
+                Some(RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))?)
+            }
+            None => None,
+        };
         Ok(Self {
             socket,
             capture: Capture::new(&origin, TAB),
-            recording: RecordingWriter::new(file, env!("CARGO_PKG_VERSION"))?,
+            recording,
             game_over: false,
         })
     }
@@ -87,6 +94,19 @@ impl Session {
         self.wait_for(&["login_success"], &["register_fail", "login_fail"])
             .await
             .with_context(|| format!("couldn't register {username}"))
+    }
+
+    /// Logs in to an account registered before and waits until it is logged in.
+    pub async fn log_in(&mut self, username: &str, password: &str) -> anyhow::Result<()> {
+        self.send(&json!({
+            "msg": "login",
+            "username": username,
+            "password": password,
+        }))
+        .await?;
+        self.wait_for(&["login_success"], &["login_fail"])
+            .await
+            .with_context(|| format!("couldn't log in as {username}"))
     }
 
     /// Replaces the account's rc file for `game`.
@@ -128,13 +148,15 @@ impl Session {
         Ok(Stopped::GameOver)
     }
 
-    /// Closes the connection and finishes the Recording.
+    /// Closes the connection and finishes the Recording, if there is one.
     pub async fn finish(mut self) -> anyhow::Result<()> {
         // Closing mid-game makes the server save it, as closing the browser tab would.
         if self.socket.close(None).await.is_ok() {
             while let Some(Ok(_)) = self.socket.next().await {}
         }
-        self.recording.finish()?;
+        if let Some(recording) = self.recording {
+            recording.finish()?;
+        }
         Ok(())
     }
 
@@ -167,7 +189,9 @@ impl Session {
         let captured = self.capture.frame(&text, now_ms());
         let mut types = Vec::with_capacity(captured.envelopes.len());
         for envelope in &captured.envelopes {
-            self.recording.write(envelope)?;
+            if let Some(recording) = &mut self.recording {
+                recording.write(envelope)?;
+            }
             let msg = msg_type(&envelope.msg);
             if msg == Some("go_lobby") {
                 self.game_over = true;
