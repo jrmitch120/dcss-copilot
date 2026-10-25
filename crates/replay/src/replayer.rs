@@ -11,6 +11,8 @@ use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
 use crate::Recording;
+use copilot_store::Store;
+
 use crate::following::{Following, Happened};
 
 /// Replays a Recording through the webtiles Game Source and the core, as if a browser had relayed
@@ -26,7 +28,6 @@ pub struct Replayer {
     /// Every Crawl Version the followed games report, in the order first seen.
     crawl_versions: Vec<CrawlVersion>,
     position: usize,
-    knowledge: Library,
     game: Game,
 }
 
@@ -86,12 +87,20 @@ struct Game {
 }
 
 impl Game {
-    fn new(knowledge: &Library) -> Self {
+    fn new(following: Following) -> Self {
         Self {
-            following: Following::new(knowledge),
+            following,
             timeline: Vec::new(),
             applied: 0,
         }
+    }
+
+    /// Takes the Recording in again from its start, as the app does when a browser connects:
+    /// keeping only what the store remembers, if it has one.
+    fn restart(&mut self) {
+        self.following.restart();
+        self.timeline.clear();
+        self.applied = 0;
     }
 
     fn apply(&mut self, envelope: &Envelope) {
@@ -113,13 +122,31 @@ impl Replayer {
     /// # Errors
     /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
     pub fn new(recording: Recording) -> Result<Self, BundleError> {
-        Ok(Self::with_knowledge(recording, Library::shipped()?))
+        Ok(Self::with_knowledge(recording, &Library::shipped()?))
+    }
+
+    /// Starts before the Recording's first envelope, with the Game Knowledge the app ships,
+    /// remembering games in `store` as the app does, across Replayers as across runs of the app.
+    /// Moving backward then takes the Recording in again from its start with what the store
+    /// remembers, as the app does when a browser reconnects.
+    ///
+    /// # Errors
+    /// If a shipped Game Knowledge bundle doesn't read, rather than replay without it.
+    pub fn remembering(recording: Recording, store: Store) -> Result<Self, BundleError> {
+        let knowledge = Library::shipped()?;
+        let following = Following::remembering(&knowledge, store);
+        Ok(Self::following(recording, &knowledge, following))
     }
 
     /// Starts before the Recording's first envelope, with only the Game Knowledge in
     /// `knowledge`, such as none at all.
     #[must_use]
-    pub fn with_knowledge(recording: Recording, knowledge: Library) -> Self {
+    pub fn with_knowledge(recording: Recording, knowledge: &Library) -> Self {
+        let following = Following::new(knowledge);
+        Self::following(recording, knowledge, following)
+    }
+
+    fn following(recording: Recording, knowledge: &Library, following: Following) -> Self {
         // The Game Source alone tells each envelope's turn: the Advisor would judge every
         // Settled Update on the way.
         let mut source = WebtilesSource::new(knowledge.clone());
@@ -150,8 +177,7 @@ impl Replayer {
             turns,
             crawl_versions,
             position: 0,
-            game: Game::new(&knowledge),
-            knowledge,
+            game: Game::new(following),
         }
     }
 
@@ -258,6 +284,7 @@ impl Replayer {
             assistance,
             // A replay fails rather than run without the shipped Game Knowledge.
             unreadable_game_knowledge: None,
+            history_unsaved: self.game.following.history_unsaved().map(str::to_owned),
             game: self.game.following.advisor().game_view(assistance),
         }
     }
@@ -293,7 +320,7 @@ impl Replayer {
         let target = position.min(self.recording.envelopes.len());
         let restarted = target < self.position;
         if restarted {
-            self.game = Game::new(&self.knowledge);
+            self.game.restart();
             self.position = 0;
         }
         let start = self.position;

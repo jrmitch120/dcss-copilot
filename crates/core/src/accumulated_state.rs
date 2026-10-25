@@ -346,6 +346,50 @@ impl AccumulatedState {
         self.place_sightings(now, bundle);
     }
 
+    /// Takes up again a game picked up again, last seen on `last_turn`, as `now` shows it. Its
+    /// game process is new, and with it every Sighting, so no monster's Carried Gear but a
+    /// unique's carries over. The rest is kept as it was while the game is no further on, as when
+    /// a page reloads or is replayed; once it is, the turns the Advisor didn't see may have
+    /// changed any of it, so all of it goes Stale.
+    pub(crate) fn pick_up(&mut self, last_turn: Option<u32>, now: &VisibleState) {
+        self.carried_gear.clear();
+        let moved_on = match (last_turn, now.turn) {
+            (Some(last), Some(turn)) => turn > last,
+            _ => true,
+        };
+        if moved_on {
+            self.go_stale();
+        }
+    }
+
+    /// Every fact remembered goes Stale.
+    fn go_stale(&mut self) {
+        let Self {
+            resistances,
+            worn_shield,
+            equipped,
+            spells,
+            spell_reaches,
+            skills,
+            abilities,
+            mutations,
+            carried_gear,
+            uniques_gear,
+            unplaced: _,
+        } = self;
+        resistances.go_stale();
+        worn_shield.go_stale();
+        equipped.go_stale();
+        spells.go_stale();
+        spell_reaches.go_stale();
+        skills.go_stale();
+        abilities.go_stale();
+        mutations.go_stale();
+        for gear in carried_gear.values_mut().chain(uniques_gear.values_mut()) {
+            gear.go_stale();
+        }
+    }
+
     /// The Carried Gear the Advisor has read for `monster`, by its Sighting, or by name for a
     /// unique, judged by `bundle`.
     #[must_use]

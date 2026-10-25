@@ -66,6 +66,15 @@ struct Row {
     facts: Map<String, Value>,
 }
 
+/// What was saved of one game.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Saved {
+    /// Its turn when it was last saved, if it had reported one.
+    pub turn: Option<u32>,
+    /// What the Advisor remembered of it then.
+    pub accumulated: AccumulatedState,
+}
+
 /// One entry in a game's Change Log: one fact as a save left it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Change {
@@ -169,18 +178,21 @@ impl Store {
         Ok(games.collect::<Result<_, _>>()?)
     }
 
-    /// What the Advisor remembered of the game `key` names when it was last saved, if it was.
+    /// What was saved of the game `key` names, if it was.
     ///
     /// # Errors
     /// If SQLite fails, or what is saved isn't the Accumulated State this version of the app
     /// reads. Saving the game again still works, from what was saved.
-    pub fn accumulated(&mut self, key: &GameKey) -> Result<Option<AccumulatedState>, StoreError> {
+    pub fn saved(&mut self, key: &GameKey) -> Result<Option<Saved>, StoreError> {
         let Some(row) = self.row(key)? else {
             return Ok(None);
         };
-        serde_json::from_value(Value::Object(row.facts))
-            .map(Some)
-            .map_err(StoreError::Unreadable)
+        let accumulated =
+            serde_json::from_value(Value::Object(row.facts)).map_err(StoreError::Unreadable)?;
+        Ok(Some(Saved {
+            turn: row.turn,
+            accumulated,
+        }))
     }
 
     /// Saves what was last seen of a game and what the Advisor remembers of it, appending each
@@ -472,8 +484,14 @@ mod tests {
         let mut reopened = Store::open(&path).unwrap();
 
         assert_eq!(reopened.known_games().unwrap(), std::slice::from_ref(&game));
-        assert_eq!(reopened.accumulated(&game.key).unwrap(), Some(remembered));
-        assert_eq!(reopened.accumulated(&key(2_000)).unwrap(), None);
+        assert_eq!(
+            reopened.saved(&game.key).unwrap(),
+            Some(Saved {
+                turn: Some(120),
+                accumulated: remembered
+            })
+        );
+        assert_eq!(reopened.saved(&key(2_000)).unwrap(), None);
     }
 
     #[test]
@@ -538,7 +556,7 @@ mod tests {
         assert_eq!(store.forget_seen_before(6_000).unwrap(), 1);
 
         assert_eq!(store.known_games().unwrap(), [seen(&recent, 6_000, 10)]);
-        assert_eq!(store.accumulated(&old).unwrap(), None);
+        assert_eq!(store.saved(&old).unwrap(), None);
         let logged: i64 = store
             .connection
             .query_row("SELECT count(*) FROM changes", [], |row| row.get(0))
@@ -593,12 +611,15 @@ mod tests {
         store.rows.clear();
 
         assert!(matches!(
-            store.accumulated(&game.key),
+            store.saved(&game.key),
             Err(StoreError::Unreadable(_))
         ));
         store.save(&game, &resisting_fire(100)).unwrap();
         assert_eq!(
-            store.accumulated(&game.key).unwrap(),
+            store
+                .saved(&game.key)
+                .unwrap()
+                .map(|saved| saved.accumulated),
             Some(resisting_fire(100))
         );
     }

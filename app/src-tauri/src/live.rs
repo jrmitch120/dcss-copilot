@@ -9,6 +9,7 @@ use copilot_core::{Appearance, AssistanceLevel, Connection, ViewModel};
 use copilot_gk::{BundleError, Library};
 use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
+use copilot_store::{Store, StoreError};
 use copilot_webtiles::Envelope;
 
 use crate::relay::{ApprovalRequest, RelayEvent};
@@ -17,10 +18,10 @@ use crate::settings::{Settings, SettingsError};
 /// Everything the app knows about the browser connection and the game it relays.
 pub struct Live {
     app_version: &'static str,
-    /// The Game Knowledge games are decoded through.
-    knowledge: Library,
     /// Why the shipped Game Knowledge couldn't be read, if it couldn't, for the player.
     unreadable_knowledge: Option<String>,
+    /// Why the game history couldn't be opened, if it couldn't, for the player.
+    unopened_history: Option<String>,
     state: Mutex<State>,
 }
 
@@ -55,10 +56,23 @@ enum Recorder {
 }
 
 impl Live {
-    /// Starts with no browser connected and the player's `settings`, writing a Recording into
-    /// `recordings` if given.
-    pub fn new(app_version: &'static str, recordings: Option<PathBuf>, settings: Settings) -> Self {
-        Self::with_knowledge(app_version, recordings, settings, Library::shipped())
+    /// Starts with no browser connected and the player's `settings`, remembering games in the
+    /// `history` store, and writing a Recording into `recordings` if given. A history that
+    /// couldn't be opened is kept in memory instead, until the app closes, and the panel says
+    /// why.
+    pub fn new(
+        app_version: &'static str,
+        recordings: Option<PathBuf>,
+        settings: Settings,
+        history: Result<Store, StoreError>,
+    ) -> Self {
+        Self::with_knowledge(
+            app_version,
+            recordings,
+            settings,
+            history,
+            Library::shipped(),
+        )
     }
 
     /// As [`Live::new`], with `knowledge` in place of the Game Knowledge the app ships. Without
@@ -67,6 +81,7 @@ impl Live {
         app_version: &'static str,
         recordings: Option<PathBuf>,
         settings: Settings,
+        history: Result<Store, StoreError>,
         knowledge: Result<Library, BundleError>,
     ) -> Self {
         let recorder = recordings.map_or(Recorder::Off, Recorder::Idle);
@@ -79,12 +94,30 @@ impl Live {
                 (Library::default(), Some(error.to_string()))
             }
         };
+        let (history, unopened_history) = match history {
+            Ok(store) => (Ok(store), None),
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "{error}: games are remembered only until DCSS Copilot closes"
+                ));
+                (Store::in_memory(), Some(error.to_string()))
+            }
+        };
+        let game = match history {
+            Ok(store) => Following::remembering(&knowledge, store),
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "{error}: games are forgotten when a browser reconnects"
+                ));
+                Following::new(&knowledge)
+            }
+        };
         Self {
             app_version,
             unreadable_knowledge,
-            knowledge: knowledge.clone(),
+            unopened_history,
             state: Mutex::new(State {
-                game: Following::new(&knowledge),
+                game,
                 browsers: 0,
                 approval: None,
                 buffer_overflowed: false,
@@ -119,6 +152,11 @@ impl Live {
             appearance: state.settings.appearance(),
             assistance: state.settings.assistance(),
             unreadable_game_knowledge: self.unreadable_knowledge.clone(),
+            history_unsaved: state
+                .game
+                .history_unsaved()
+                .map(str::to_owned)
+                .or_else(|| self.unopened_history.clone()),
             game: state.game.advisor().game_view(state.settings.assistance()),
         }
     }
@@ -131,9 +169,9 @@ impl Live {
             RelayEvent::ApprovalNeeded(request) => state.approval = Some(request),
             RelayEvent::Connected(_) => {
                 // A connection replays every tab from its first message, so with no other browser
-                // connected nothing known so far is still current.
+                // connected nothing relayed so far is still current: only what is remembered.
                 if state.browsers == 0 {
-                    state.game = Following::new(&self.knowledge);
+                    state.game.restart();
                 }
                 state.browsers += 1;
                 state.recorder.finish();
@@ -299,7 +337,7 @@ mod tests {
 
     fn live() -> Live {
         let path = std::env::temp_dir().join("dcss-copilot-unused-settings.json");
-        Live::new("1.2.3", None, Settings::defaults(&path))
+        Live::new("1.2.3", None, Settings::defaults(&path), Store::in_memory())
     }
 
     fn envelope(msg: serde_json::Value) -> RelayEvent {
@@ -320,7 +358,13 @@ mod tests {
             reason: "expected value at line 1 column 1".to_owned(),
         };
 
-        let without = Live::with_knowledge("1.2.3", None, Settings::defaults(&path), Err(broken));
+        let without = Live::with_knowledge(
+            "1.2.3",
+            None,
+            Settings::defaults(&path),
+            Store::in_memory(),
+            Err(broken),
+        );
 
         assert_eq!(
             without.view_model().unreadable_game_knowledge.as_deref(),
@@ -349,16 +393,65 @@ mod tests {
     }
 
     #[test]
+    fn the_games_followed_are_saved_in_the_game_history() {
+        let dir = tempfile::tempdir().unwrap();
+        let history = dir.path().join("games.sqlite");
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Store::open(&history),
+        );
+
+        live.handle(envelope(json!({ "msg": "game_started" })));
+        live.handle(envelope(
+            json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": 500 }),
+        ));
+
+        let saved = Store::open(&history).unwrap().known_games().unwrap();
+        assert_eq!(saved.len(), 1);
+        assert_eq!(saved[0].key.character.character, "Mira");
+        assert_eq!(saved[0].turn, Some(500));
+    }
+
+    #[test]
+    fn a_game_history_that_cant_be_opened_is_shown_to_the_player() {
+        let dir = tempfile::tempdir().unwrap();
+        let unopened = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Err(StoreError::OtherLayout { found: 9 }),
+        );
+
+        assert_eq!(
+            unopened.view_model().history_unsaved.as_deref(),
+            Some("the game history was written by another version of DCSS Copilot (layout 9)")
+        );
+        assert_eq!(live().view_model().history_unsaved, None);
+    }
+
+    #[test]
     fn the_players_appearance_reaches_the_panel_and_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(live.view_model().appearance, Appearance::Tiles);
 
         live.set_appearance(Appearance::Glyphs).unwrap();
         assert_eq!(live.view_model().appearance, Appearance::Glyphs);
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.view_model().appearance, Appearance::Glyphs);
     }
 
@@ -366,13 +459,23 @@ mod tests {
     fn the_players_assistance_level_reaches_the_panel_and_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(live.view_model().assistance, AssistanceLevel::Hints);
 
         live.set_assistance(AssistanceLevel::Info).unwrap();
         assert_eq!(live.view_model().assistance, AssistanceLevel::Info);
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.view_model().assistance, AssistanceLevel::Info);
     }
 
@@ -380,7 +483,12 @@ mod tests {
     fn the_players_model_for_each_slot_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");
-        let live = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         let haiku_thinking = ModelChoice::new(
             Provider::Anthropic,
             "claude-haiku-5-5",
@@ -391,7 +499,12 @@ mod tests {
         live.set_model(ModelSlot::Quick, haiku_thinking.clone())
             .unwrap();
 
-        let restarted = Live::new("1.2.3", None, Settings::load(&path).unwrap());
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
         assert_eq!(restarted.model(ModelSlot::Quick), haiku_thinking);
         assert_eq!(
             restarted.model(ModelSlot::Deep),
@@ -407,6 +520,7 @@ mod tests {
             "1.2.3",
             Some(dir.path().join("recordings")),
             Settings::load(&path).unwrap(),
+            Store::in_memory(),
         );
         assert_eq!(live.llm_sidecar(), None);
 

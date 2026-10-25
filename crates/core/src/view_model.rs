@@ -21,6 +21,9 @@ pub struct ViewModel {
     /// Why the Game Knowledge the app ships couldn't be read, when it couldn't. Games are then
     /// followed without it: monsters and items aren't decoded and no Threat Level is judged.
     pub unreadable_game_knowledge: Option<String>,
+    /// Why the game history couldn't be read or saved, the last time it couldn't. What the
+    /// Advisor remembers of a game it couldn't save lasts only until the app closes.
+    pub history_unsaved: Option<String>,
     /// The panel for the game being followed, once one is identified.
     pub game: Option<GameView>,
 }
@@ -35,6 +38,7 @@ impl ViewModel {
             appearance,
             assistance,
             unreadable_game_knowledge: None,
+            history_unsaved: None,
             game: None,
         }
     }
@@ -446,6 +450,7 @@ mod tests {
                 "appearance": "tiles",
                 "assistance": "hints",
                 "unreadableGameKnowledge": null,
+                "historyUnsaved": null,
                 "game": null
             })
         );

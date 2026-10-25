@@ -463,6 +463,11 @@ export type ViewModel = {
 	 *  followed without it: monsters and items aren't decoded and no Threat Level is judged.
 	 */
 	unreadableGameKnowledge: string | null,
+	/**
+	 *  Why the game history couldn't be read or saved, the last time it couldn't. What the
+	 *  Advisor remembers of a game it couldn't save lasts only until the app closes.
+	 */
+	historyUnsaved: string | null,
 	/**  The panel for the game being followed, once one is identified. */
 	game: GameView | null,
 };

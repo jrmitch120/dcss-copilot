@@ -44,6 +44,16 @@ struct Followed {
     alert: Option<(Alert, Option<u32>)>,
     /// Its stream stopped or it ended, and it hasn't been picked up since.
     stopped: bool,
+    /// Its turn when the Advisor last saw it.
+    turn: Option<u32>,
+    /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
+    picked_up_from: Option<LastSeen>,
+}
+
+/// When the Advisor last saw a game it picks up again.
+#[derive(Debug, Clone, Copy)]
+struct LastSeen {
+    turn: Option<u32>,
 }
 
 impl Advisor {
@@ -78,7 +88,11 @@ impl Advisor {
                     .map(GameIdentity::key)
                     .and_then(|key| self.games.get_mut(&key))
                 {
-                    game.accumulated.update(&self.visible, &visible, knowledge);
+                    match game.picked_up_from.take() {
+                        Some(last) => game.accumulated.pick_up(last.turn, &visible),
+                        None => game.accumulated.update(&self.visible, &visible, knowledge),
+                    }
+                    game.turn = visible.turn;
                 }
                 self.visible = *visible;
             }
@@ -91,13 +105,17 @@ impl Advisor {
                     game.accumulated.read(&read, &self.visible, knowledge);
                 }
             }
-            // Sessions change only whether a game is live; a new game has a key of its own.
+            // A new game has a key of its own; a game resynced is picked up again.
             SourceEvent::Session(session) => {
                 if let Some(game) = self.followed_game_mut() {
                     game.stopped = matches!(
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
+                    if session == SessionEvent::Resynced {
+                        let turn = game.turn;
+                        game.picked_up_from.get_or_insert(LastSeen { turn });
+                    }
                 }
                 return Vec::new();
             }
@@ -105,6 +123,29 @@ impl Advisor {
         }
         self.fact_sheet = OnceLock::new();
         Vec::new()
+    }
+
+    /// Whether the Advisor keeps anything of the game `key` names: it has followed it, or
+    /// recalled it.
+    #[must_use]
+    pub fn knows(&self, key: &GameKey) -> bool {
+        self.games.contains_key(key)
+    }
+
+    /// Takes back what was `remembered` of the game `key` names, last seen on `turn`, such as
+    /// before the app last closed, for the Game Source to pick it up again. What it remembers is
+    /// kept as it was while the game is no further on, and goes Stale once it is: the Advisor
+    /// didn't see the turns between.
+    pub fn recall(&mut self, key: GameKey, turn: Option<u32>, remembered: AccumulatedState) {
+        self.games.insert(
+            key,
+            Followed {
+                accumulated: remembered,
+                turn,
+                picked_up_from: Some(LastSeen { turn }),
+                ..Followed::default()
+            },
+        );
     }
 
     /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise

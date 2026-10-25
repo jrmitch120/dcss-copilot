@@ -21,6 +21,7 @@ copilot-core.workspace = true
 copilot-gk.workspace = true
 copilot-llm.workspace = true
 copilot-replay.workspace = true
+copilot-store.workspace = true
 copilot-webtiles.workspace = true
 # The relay's localhost websocket server. Tauri already runs on tokio.
 futures-util.workspace = true

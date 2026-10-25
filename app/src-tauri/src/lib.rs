@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 
 use copilot_core::{Appearance, AssistanceLevel, ViewModel};
 use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
+use copilot_store::Store;
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -320,7 +321,13 @@ pub fn run() {
                 crate::log::error(format_args!("{error}; using the default settings"));
                 Settings::defaults(&settings_path)
             });
-            app.manage(Live::new(env!("CARGO_PKG_VERSION"), recordings, settings));
+            let history = Store::open(&app.path().app_data_dir()?.join("games.sqlite"));
+            app.manage(Live::new(
+                env!("CARGO_PKG_VERSION"),
+                recordings,
+                settings,
+                history,
+            ));
             let keys = Keys::load(Box::new(OsKeychain), |variable| {
                 std::env::var(variable).ok()
             });
@@ -486,6 +493,7 @@ mod tests {
     use copilot_core::Appearance;
     use copilot_llm::{Effort, ModelChoice, ModelSlot, Provider, Thinking};
     use copilot_replay::Recording;
+    use copilot_store::Store;
     use copilot_webtiles::Envelope;
     use serde_json::json;
 
@@ -605,6 +613,7 @@ mod tests {
             "1.2.3",
             Some(dir.path().join("recordings")),
             Settings::load(&dir.path().join("settings.json")).unwrap(),
+            Store::open(&dir.path().join("games.sqlite")),
         );
         let keychain = MemoryKeychain::default();
         let models = models(&keychain, replaying(WORKS));

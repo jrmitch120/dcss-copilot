@@ -12,6 +12,7 @@ publish.workspace = true
 anyhow.workspace = true
 copilot-core.workspace = true
 copilot-gk.workspace = true
+copilot-store.workspace = true
 copilot-webtiles.workspace = true
 # The fake extension's websocket client, the same stack as the app's relay.
 futures-util.workspace = true
@@ -32,4 +33,5 @@ workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+tempfile = "3"
 serde_json.workspace = true

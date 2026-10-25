@@ -67,7 +67,7 @@ What the game reports once it has finished reacting to the player and waits for 
 _Avoid_: Tick, frame, turn (when meaning this)
 
 **Accumulated State**:
-What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is.
+What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is. It is saved as it changes, by the game's Game Key, so the Advisor picks a game up again with it after the app restarts; a game watched rather than played is never saved.
 _Avoid_: History, memory, cache
 
 **Change Log**:
@@ -75,7 +75,7 @@ Every change to a game's Accumulated State, in the order it was made, each with 
 _Avoid_: History (when meaning this), audit log, journal
 
 **Known, Stale, Missing**:
-How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, and every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
+How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, or when the Advisor picks a game up again at a later turn than it last saw it on, as the turns between could have changed anything; every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
 _Avoid_: Fresh, expired, cached
 
 **Carried Gear**:

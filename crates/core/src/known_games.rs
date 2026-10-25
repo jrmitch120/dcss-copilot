@@ -67,9 +67,14 @@ impl KnownGames {
     }
 
     /// Which game a game process playing `character` is, as it first names the game at `at_ms`
-    /// on `turn`: the character's latest game picked up again, if it hasn't ended and its turn
-    /// hasn't gone backwards, or else a new game, first seen now. Says which with the Session
-    /// Event it is: [`SessionEvent::Resynced`] or [`SessionEvent::Joined`].
+    /// on `turn`, and the Session Event that is.
+    ///
+    /// The character's latest game first seen by then is picked up again
+    /// ([`SessionEvent::Resynced`]) if it hasn't ended and its turn hasn't gone backwards;
+    /// otherwise this is a new game, first seen now ([`SessionEvent::Joined`]). A process that
+    /// names a game no later than it was last seen is that game taken in again, as when a browser
+    /// replays a page to an app that restarted: it joined the game if it named it as the game was
+    /// first seen, and resynced it otherwise.
     pub fn identify(
         &mut self,
         character: &CharacterKey,
@@ -77,25 +82,44 @@ impl KnownGames {
         at_ms: u64,
     ) -> (GameKey, SessionEvent) {
         let games = self.by_character.entry(character.clone()).or_default();
-        if let Some(game) = games.last().filter(|game| game.continues_at(turn)) {
-            return (game.key.clone(), SessionEvent::Resynced);
+        let latest = games
+            .iter()
+            .rev()
+            .find(|game| game.key.first_seen_ms <= at_ms);
+        if let Some(game) = latest {
+            if at_ms <= game.last_seen_ms {
+                let event = if at_ms == game.key.first_seen_ms {
+                    SessionEvent::Joined
+                } else {
+                    SessionEvent::Resynced
+                };
+                return (game.key.clone(), event);
+            }
+            if game.continues_at(turn) {
+                return (game.key.clone(), SessionEvent::Resynced);
+            }
         }
         let key = GameKey {
             character: character.clone(),
             first_seen_ms: at_ms,
         };
-        games.push(KnownGame {
-            key: key.clone(),
-            last_seen_ms: at_ms,
-            turn,
-            ended: false,
-        });
+        let at = games.partition_point(|game| game.key.first_seen_ms <= at_ms);
+        games.insert(
+            at,
+            KnownGame {
+                key: key.clone(),
+                last_seen_ms: at_ms,
+                turn,
+                ended: false,
+            },
+        );
         (key, SessionEvent::Joined)
     }
 
-    /// The game was seen at `at_ms` on `turn`, and has `ended` or not.
+    /// The game was seen at `at_ms` on `turn`, and has `ended` or not. A message from before it
+    /// was last seen, taken in again, changes nothing.
     pub fn saw(&mut self, key: &GameKey, at_ms: u64, turn: Option<u32>, ended: bool) {
-        if let Some(game) = self.get_mut(key) {
+        if let Some(game) = self.get_mut(key).filter(|game| at_ms >= game.last_seen_ms) {
             game.last_seen_ms = at_ms;
             game.turn = turn;
             game.ended = ended;

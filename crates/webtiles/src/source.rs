@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use copilot_core::{
-    CharacterKey, CrawlVersion, GameEnd, GameIdentity, GameKey, KnownGames, Role, SessionEvent,
-    SourceEvent, VisibleState,
+    CharacterKey, CrawlVersion, GameEnd, GameIdentity, GameKey, KnownGame, KnownGames, Role,
+    SessionEvent, SourceEvent, VisibleState,
 };
 use copilot_gk::{Bundle, Library};
 use serde_json::Value;
@@ -89,12 +89,25 @@ impl WebtilesSource {
     /// A source that has seen nothing yet, decoding games through `knowledge`.
     #[must_use]
     pub fn new(knowledge: Library) -> Self {
+        Self::knowing(knowledge, KnownGames::default())
+    }
+
+    /// A source that knows the `known` games, such as those seen before the app last closed, to
+    /// tell a game picked up again from a new one, decoding games through `knowledge`.
+    #[must_use]
+    pub fn knowing(knowledge: Library, known: KnownGames) -> Self {
         Self {
             knowledge,
             tabs: HashMap::new(),
             followed: None,
-            known: KnownGames::default(),
+            known,
         }
+    }
+
+    /// What was last seen of the game `key` names, if the source has seen it or knew it.
+    #[must_use]
+    pub fn known_game(&self, key: &GameKey) -> Option<&KnownGame> {
+        self.known.get(key)
     }
 
     /// Takes in one relayed envelope and returns what changed about the followed game.

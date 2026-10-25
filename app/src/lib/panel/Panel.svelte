@@ -32,6 +32,12 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         {view.unreadableGameKnowledge}
       </p>
     {/if}
+    {#if view.historyUnsaved}
+      <p class="status error">
+        DCSS Copilot's game history isn't working, so a game may not be remembered the next time it
+        starts: {view.historyUnsaved}
+      </p>
+    {/if}
     {#if view.game}
       <NowPill now={view.game.now} />
       {#if view.game.suggestedAction}
