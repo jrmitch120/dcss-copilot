@@ -36,6 +36,8 @@ struct State {
     relay_unavailable: Option<String>,
     recorder: Recorder,
     settings: Settings,
+    /// Why games not played for a while couldn't be forgotten, the last time they couldn't.
+    forgetting_failed: Option<String>,
 }
 
 /// A day, in milliseconds.
@@ -46,11 +48,29 @@ const DAY_MS: u64 = 24 * 60 * 60 * 1000;
 #[serde(rename_all = "camelCase")]
 pub struct HistoryView {
     /// How many games the Advisor remembers.
-    pub games: u32,
+    pub games: GamesRemembered,
     /// How many days a game is kept after it was last played, or `None` to keep every game.
     pub forget_after_days: Option<u32>,
     /// How many days a game is kept once the player turns forgetting on.
     pub keep_days: u32,
+    /// Why games not played for a while couldn't be forgotten, the last time they couldn't.
+    pub forgetting_failed: Option<String>,
+}
+
+/// How many games the Advisor remembers, in Settings → History.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(tag = "state", rename_all = "camelCase")]
+pub enum GamesRemembered {
+    /// They were counted.
+    Counted {
+        /// How many.
+        games: u32,
+    },
+    /// The game history couldn't be read to count them.
+    Uncounted {
+        /// Why not.
+        why: String,
+    },
 }
 
 /// How often, in game-page milliseconds, a Recording is flushed, so a crash loses at most this much.
@@ -141,6 +161,7 @@ impl Live {
                 relay_unavailable: None,
                 recorder,
                 settings,
+                forgetting_failed: None,
             }),
         }
     }
@@ -238,16 +259,19 @@ impl Live {
     /// The game history, for Settings → History.
     pub fn history(&self) -> HistoryView {
         let state = self.lock();
-        let games = state.game.games_remembered().unwrap_or_else(|error| {
-            crate::log::error(format_args!(
-                "could not count the games remembered: {error}"
-            ));
-            0
-        });
+        let games = match state.game.games_remembered() {
+            Ok(games) => GamesRemembered::Counted {
+                games: u32::try_from(games).unwrap_or(u32::MAX),
+            },
+            Err(error) => GamesRemembered::Uncounted {
+                why: error.to_string(),
+            },
+        };
         HistoryView {
-            games: u32::try_from(games).unwrap_or(u32::MAX),
+            games,
             forget_after_days: state.settings.forget_games_after_days(),
             keep_days: FORGET_GAMES_AFTER_DAYS,
+            forgetting_failed: state.forgetting_failed.clone(),
         }
     }
 
@@ -317,7 +341,8 @@ impl Live {
 }
 
 impl State {
-    /// Forgets every game not played for as long as the player keeps games, if they forget any.
+    /// Forgets every game not played for as long as the player keeps games, if they forget any,
+    /// and keeps why it couldn't for Settings → History.
     fn forget_old_games(&mut self) {
         let Some(days) = self.settings.forget_games_after_days() else {
             return;
@@ -328,11 +353,15 @@ impl State {
                 u64::try_from(since.as_millis()).unwrap_or(u64::MAX)
             });
         let before_ms = now_ms.saturating_sub(u64::from(days) * DAY_MS);
-        if let Err(error) = self.game.forget_games_seen_before(before_ms) {
-            crate::log::error(format_args!(
-                "could not forget games not played for {days} days: {error}"
-            ));
-        }
+        self.forgetting_failed = match self.game.forget_games_seen_before(before_ms) {
+            Ok(_) => None,
+            Err(error) => {
+                crate::log::error(format_args!(
+                    "could not forget games not played for {days} days: {error}"
+                ));
+                Some(error.to_string())
+            }
+        };
     }
 
     fn ingest(&mut self, envelope: &Envelope) {
@@ -541,13 +570,17 @@ mod tests {
             Store::open(&history),
         );
         live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
-        assert_eq!(live.history().games, 1);
+        assert_eq!(live.history().games, GamesRemembered::Counted { games: 1 });
 
         played_days_ago(&history, 91);
         live.set_forget_old_games(false).unwrap();
         live.handle(RelayEvent::Disconnected);
         live.handle(RelayEvent::Connected(BrowserLink::unconnected()));
-        assert_eq!(live.history().games, 2, "kept while forgetting is off");
+        assert_eq!(
+            live.history().games,
+            GamesRemembered::Counted { games: 2 },
+            "kept while forgetting is off"
+        );
 
         let restarted = Live::new(
             "1.2.3",
@@ -557,8 +590,35 @@ mod tests {
         );
         assert_eq!(restarted.history().forget_after_days, None);
         restarted.set_forget_old_games(true).unwrap();
-        assert_eq!(restarted.history().games, 1, "forgotten as it is turned on");
+        assert_eq!(
+            restarted.history().games,
+            GamesRemembered::Counted { games: 1 },
+            "forgotten as it is turned on"
+        );
         assert_eq!(restarted.history().forget_after_days, Some(90));
+    }
+
+    #[test]
+    fn a_game_history_that_cant_be_counted_or_pruned_says_so_in_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let history = dir.path().join("games.sqlite");
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::defaults(&dir.path().join("settings.json")),
+            Store::open(&history),
+        );
+        // As a failing disk might leave it.
+        rusqlite::Connection::open(&history)
+            .unwrap()
+            .execute_batch("DROP TABLE changes; DROP TABLE games;")
+            .unwrap();
+
+        live.set_forget_old_games(true).unwrap();
+
+        let view = live.history();
+        assert!(matches!(view.games, GamesRemembered::Uncounted { .. }));
+        assert!(view.forgetting_failed.is_some());
     }
 
     #[test]

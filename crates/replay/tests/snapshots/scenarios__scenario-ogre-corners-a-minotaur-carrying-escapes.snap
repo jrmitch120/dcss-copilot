@@ -308,6 +308,7 @@ expression: replay
         },
         "live": true,
         "pickedUp": null,
+        "memoryUnreadable": null,
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
@@ -608,6 +609,7 @@ expression: replay
         },
         "live": true,
         "pickedUp": null,
+        "memoryUnreadable": null,
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
@@ -962,6 +964,7 @@ expression: replay
       },
       "live": true,
       "pickedUp": null,
+      "memoryUnreadable": null,
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false

@@ -207,9 +207,25 @@ export type GameView = {
 	 *  player says whether it is that game: the panel asks before it shows anything else.
 	 */
 	pickedUp: PickedUp | null,
+	/**
+	 *  Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
+	 *  game over, remembering nothing from before. The Change Log still holds what was saved.
+	 */
+	memoryUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
 };
+
+/**  How many games the Advisor remembers, in Settings → History. */
+export type GamesRemembered = 
+/**  They were counted. */
+{ state: "counted"; 
+/**  How many. */
+games: number } | 
+/**  The game history couldn't be read to count them. */
+{ state: "uncounted"; 
+/**  Why not. */
+why: string };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
 export type Glyph = {
@@ -222,11 +238,13 @@ export type Glyph = {
 /**  The game history, in Settings → History. */
 export type HistoryView = {
 	/**  How many games the Advisor remembers. */
-	games: number,
+	games: GamesRemembered,
 	/**  How many days a game is kept after it was last played, or `None` to keep every game. */
 	forgetAfterDays: number | null,
 	/**  How many days a game is kept once the player turns forgetting on. */
 	keepDays: number,
+	/**  Why games not played for a while couldn't be forgotten, the last time they couldn't. */
+	forgettingFailed: string | null,
 };
 
 /**  Where a key is kept. */

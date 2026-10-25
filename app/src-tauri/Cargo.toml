@@ -46,5 +46,7 @@ workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+# To break the game history in tests, as a failing disk would.
+rusqlite.workspace = true
 tempfile = "3"
 tokio = { workspace = true, features = ["rt-multi-thread"] }

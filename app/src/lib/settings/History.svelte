@@ -1,5 +1,5 @@
 <script lang="ts">
-import { commands, type HistoryView } from "$lib/bindings";
+import { commands, type GamesRemembered, type HistoryView } from "$lib/bindings";
 import { failure } from "$lib/command";
 
 let { history }: { history: HistoryView } = $props();
@@ -17,8 +17,11 @@ async function clear() {
   error = failed === null ? null : `The history couldn't be cleared: ${failed}`;
 }
 
-function remembered(games: number): string {
-  return games === 1 ? "1 game remembered" : `${games} games remembered`;
+function remembered(count: GamesRemembered): string {
+  if (count.state === "uncounted") {
+    return `The games remembered can't be counted: ${count.why}`;
+  }
+  return count.games === 1 ? "1 game remembered" : `${count.games} games remembered`;
 }
 </script>
 
@@ -31,6 +34,9 @@ function remembered(games: number): string {
     <span>
       <b>Forget games not played for {history.keepDays} days</b>
       <small>Checked each time your browser connects.</small>
+      {#if history.forgettingFailed}
+        <small class="error">They couldn't be forgotten: {history.forgettingFailed}</small>
+      {/if}
     </span>
     <input
       type="checkbox"
@@ -117,6 +123,11 @@ p {
 
 .error {
   margin: 8px 0 0;
+  color: var(--error);
+}
+
+.row small.error {
+  margin: 0;
   color: var(--error);
 }
 </style>

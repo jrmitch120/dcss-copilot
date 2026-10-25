@@ -351,6 +351,34 @@ fn a_new_game_is_never_asked_about() {
 }
 
 #[test]
+fn a_game_whose_saved_memory_cant_be_read_says_so_while_followed_and_is_saved_afresh() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    run(SCREENS, &path).seek(usize::MAX);
+    // As a later version of the app might have saved it.
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE games SET accumulated = '{\"resistances\":{\"state\":\"pondered\"}}'",
+            [],
+        )
+        .unwrap();
+
+    let mut after = run(SESSION, &path);
+    after.seek(5);
+
+    let view = after.view_model();
+    assert!(view.game.unwrap().memory_unreadable.is_some());
+    assert_eq!(view.history_unsaved, None, "the history itself works");
+    let game = key(&after);
+    assert_eq!(saved_turn(&path, &game), Some(after.turn()), "saved afresh");
+    // Tiv dies, and the new Tiv's game says nothing of the old one's.
+    after.seek(usize::MAX);
+    assert_ne!(key(&after), game);
+    assert_eq!(after.view_model().game.unwrap().memory_unreadable, None);
+}
+
+#[test]
 fn clearing_the_history_forgets_every_game_but_the_one_followed() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("games.sqlite");

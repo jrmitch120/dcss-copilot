@@ -1,9 +1,11 @@
 //! A Game Source's games, followed by the Advisor and remembered in the store: the wiring the app
 //! runs live and the replayer replays, so a replay sees a game as the app does.
 
+use std::collections::HashMap;
+
 use copilot_core::{
-    Advisor, AssistanceLevel, Detection, GameIdentity, GameView, KnownGames, PickedUp, Role,
-    SourceEvent,
+    Advisor, AssistanceLevel, Detection, GameIdentity, GameKey, GameView, KnownGames, PickedUp,
+    Role, SourceEvent,
 };
 use copilot_gk::Library;
 use copilot_store::{Store, StoreError};
@@ -27,12 +29,15 @@ pub struct Following {
     store: Option<Store>,
     /// What went wrong with the game history, the last time anything did.
     trouble: Option<Trouble>,
+    /// Why what was saved of each game was unreadable, for the games that were in this run of
+    /// the app.
+    unreadable: HashMap<GameKey, String>,
 }
 
 /// What went wrong with the game history.
 #[derive(Debug)]
 enum Trouble {
-    /// What was saved couldn't be read, so it is left out of this run of the app.
+    /// Which games were saved couldn't be read, so they are left out of this run of the app.
     Reading(String),
     /// A game couldn't be saved, so it is remembered only until the app closes, unless a later
     /// save works.
@@ -61,6 +66,7 @@ impl Following {
             advisor: Advisor::new(knowledge.clone()),
             store: None,
             trouble: None,
+            unreadable: HashMap::new(),
         }
     }
 
@@ -189,7 +195,8 @@ impl Following {
     }
 
     /// The panel for the followed game, at the player's `assistance` level, asking the player
-    /// whether a game picked up again on a later turn is the same game.
+    /// whether a game picked up again on a later turn is the same game, and saying when what was
+    /// saved of it couldn't be read.
     #[must_use]
     pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let mut view = self.advisor.game_view(assistance)?;
@@ -197,6 +204,11 @@ impl Following {
             turn: game.turn,
             last_seen_ms: game.last_seen_ms,
         });
+        view.memory_unreadable = self
+            .advisor
+            .identity()
+            .and_then(|identity| self.unreadable.get(&identity.key()))
+            .cloned();
         Some(view)
     }
 
@@ -216,7 +228,8 @@ impl Following {
     }
 
     /// Hands the Advisor what the store remembers of the game `identity` names, the first time it
-    /// is identified in this run of the app.
+    /// is identified in this run of the app. What can't be read, the Advisor starts over without,
+    /// and saves over: the Change Log keeps what was saved.
     fn recall(&mut self, identity: &GameIdentity) {
         let key = identity.key();
         let Some(store) = &mut self.store else { return };
@@ -226,7 +239,9 @@ impl Following {
         match store.saved(&key) {
             Ok(Some(saved)) => self.advisor.recall(key, saved.turn, saved.accumulated),
             Ok(None) => {}
-            Err(error) => self.trouble = Some(Trouble::Reading(error.to_string())),
+            Err(error) => {
+                self.unreadable.insert(key, error.to_string());
+            }
         }
     }
 

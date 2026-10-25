@@ -139,6 +139,9 @@ pub struct GameView {
     /// The game seen before that this game's process picked up again on a later turn, until the
     /// player says whether it is that game: the panel asks before it shows anything else.
     pub picked_up: Option<PickedUp>,
+    /// Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
+    /// game over, remembering nothing from before. The Change Log still holds what was saved.
+    pub memory_unreadable: Option<String>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
 }

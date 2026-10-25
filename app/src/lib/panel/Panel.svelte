@@ -46,6 +46,12 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         {actions}
       />
     {:else if view.game}
+      {#if view.game.memoryUnreadable}
+        <p class="status error">
+          What DCSS Copilot remembered of this game couldn't be read, so it starts over on it:
+          {view.game.memoryUnreadable}
+        </p>
+      {/if}
       <NowPill now={view.game.now} />
       {#if view.game.suggestedAction}
         <SuggestedAction suggested={view.game.suggestedAction} />
