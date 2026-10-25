@@ -300,6 +300,55 @@ pub enum FocusCard {
         /// each, such as a screen to open.
         gaps: Vec<String>,
     },
+    /// The Advisor joined the game part way through, and nothing hostile is in view: the join
+    /// card.
+    Join {
+        /// What the card shows.
+        join: JoinCard,
+    },
+}
+
+/// The join card: what the panel asks of a player whose game the Advisor joined part way
+/// through, and what it read once they opened the screen it asked for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(
+    tag = "step",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum JoinCard {
+    /// It asks the player to open the character dump, or the dungeon overview for the levels
+    /// alone.
+    Asking {
+        /// The game's turn when the Advisor joined it, if the game had reported one.
+        turn: Option<u32>,
+    },
+    /// The character dump is open, and this is what the Advisor read off it.
+    Reading {
+        /// One row for each part of the dump the Advisor reads.
+        checklist: Vec<ChecklistRow>,
+    },
+    /// The player closed the character dump, and this is what the Advisor read off it.
+    CaughtUpFromDump {
+        /// One row for each part of the dump the Advisor reads.
+        checklist: Vec<ChecklistRow>,
+    },
+    /// The player opened the dungeon overview instead of the dump: the Advisor knows the levels,
+    /// but not yet the character.
+    CaughtUpFromOverview {
+        /// What it read of the levels, such as `3 branches, 1 altar, 2 shops`.
+        levels: String,
+    },
+}
+
+/// One part of the character dump on the join card's checklist, such as the skills.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ChecklistRow {
+    /// The Advisor read it off the dump: drawn ✓, else ○.
+    pub read: bool,
+    /// What it read, such as `Skills (12, with decimals)`, or that the dump didn't show it.
+    pub line: String,
 }
 
 /// A unique or Out of Depth monster in view, singled out so the player recognises it.
@@ -323,6 +372,9 @@ pub struct FactCard {
 pub enum RunPlanRail {
     /// There is no Run Plan for this game yet.
     NotPlanned,
+    /// The Advisor joined the game part way through and hasn't read the character dump, so it
+    /// makes no Run Plan yet: the rail is greyed out.
+    AwaitingDump,
 }
 
 /// The ask box at the bottom of the panel.

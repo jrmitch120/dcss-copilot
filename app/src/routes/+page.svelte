@@ -10,6 +10,7 @@ const ACTIONS: PanelActions = {
   setAppearance: async (appearance) => failure(await commands.setAppearance(appearance)),
   setAssistance: async (assistance) => failure(await commands.setAssistance(assistance)),
   answerSameGame: async (same) => failure(await commands.answerSameGame(same)),
+  closeJoinCard: async () => failure(await commands.closeJoinCard()),
   openSettings: async () => failure(await commands.openSettings()),
   answerBrowser: async (allow) => failure(await commands.answerBrowser(allow)),
 };

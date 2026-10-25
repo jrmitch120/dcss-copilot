@@ -15,6 +15,11 @@ export const commands = {
 	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
 	/**  The player answered "Is this the same game?", of a game picked up again on a later turn. */
 	answerSameGame: (same: boolean) => typedError<null, string>(__TAURI_INVOKE("answer_same_game", { same })),
+	/**
+	 *  The player put the join card away: "Not now" while it asks for the character dump, "OK" once
+	 *  it says what it read.
+	 */
+	closeJoinCard: () => typedError<null, string>(__TAURI_INVOKE("close_join_card")),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -84,6 +89,14 @@ export type Character = {
 	hpMax: number | null,
 	/**  The game's turn count. */
 	turn: number | null,
+};
+
+/**  One part of the character dump on the join card's checklist, such as the skills. */
+export type ChecklistRow = {
+	/**  The Advisor read it off the dump: drawn ✓, else ○. */
+	read: boolean,
+	/**  What it read, such as `Skills (12, with decimals)`, or that the dump didn't show it. */
+	line: string,
 };
 
 /**
@@ -168,7 +181,14 @@ notModelled: string | null;
  *  What keeps the Advisor from judging the fight, or may hide a better plan, one sentence
  *  each, such as a screen to open.
  */
-gaps: string[] };
+gaps: string[] } | 
+/**
+ *  The Advisor joined the game part way through, and nothing hostile is in view: the join
+ *  card.
+ */
+{ card: "join"; 
+/**  What the card shows. */
+join: JoinCard };
 
 /**
  *  The panel for the followed game, top to bottom: header, now pill, focus card,
@@ -246,6 +266,34 @@ export type HistoryView = {
 	/**  Why games not played for a while couldn't be forgotten, the last time they couldn't. */
 	forgettingFailed: string | null,
 };
+
+/**
+ *  The join card: what the panel asks of a player whose game the Advisor joined part way
+ *  through, and what it read once they opened the screen it asked for.
+ */
+export type JoinCard = 
+/**
+ *  It asks the player to open the character dump, or the dungeon overview for the levels
+ *  alone.
+ */
+{ step: "asking"; 
+/**  The game's turn when the Advisor joined it, if the game had reported one. */
+turn: number | null } | 
+/**  The character dump is open, and this is what the Advisor read off it. */
+{ step: "reading"; 
+/**  One row for each part of the dump the Advisor reads. */
+checklist: ChecklistRow[] } | 
+/**  The player closed the character dump, and this is what the Advisor read off it. */
+{ step: "caughtUpFromDump"; 
+/**  One row for each part of the dump the Advisor reads. */
+checklist: ChecklistRow[] } | 
+/**
+ *  The player opened the dungeon overview instead of the dump: the Advisor knows the levels,
+ *  but not yet the character.
+ */
+{ step: "caughtUpFromOverview"; 
+/**  What it read of the levels, such as `3 branches, 1 altar, 2 shops`. */
+levels: string };
 
 /**  Where a key is kept. */
 export type KeyPlace = 
@@ -393,7 +441,12 @@ export type ProviderView = {
 /**  The Run Plan rail along the bottom of the panel. */
 export type RunPlanRail = 
 /**  There is no Run Plan for this game yet. */
-{ state: "notPlanned" };
+{ state: "notPlanned" } | 
+/**
+ *  The Advisor joined the game part way through and hasn't read the character dump, so it
+ *  makes no Run Plan yet: the rail is greyed out.
+ */
+{ state: "awaitingDump" };
 
 /**  The core pushes new settings to the Settings window. */
 export type SettingsChanged = SettingsView;

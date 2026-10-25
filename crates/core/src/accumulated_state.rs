@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, object_classes};
 use crate::screen::{
-    KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations, Skills, SpellReach,
+    DungeonOverview, KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations,
+    Skills, SpellReach,
 };
 use crate::view_model::Colour;
 use crate::visible_state::{
@@ -68,6 +69,16 @@ pub struct AccumulatedState {
     /// of a mutation or bane that changes the character's speed coming or going. Any other
     /// mutation coming or going goes unnoticed.
     pub mutations: Remembered<MutationsRead>,
+    /// The levels the character has found, as the dungeon overview (`Ctrl-O`) or the character
+    /// dump last showed them. It goes Stale when the character changes level, as the level they
+    /// come to may be explored deeper than any before, or hold an altar or a shop. One found on a
+    /// level they were already on goes unnoticed. The dungeon overview doesn't tell which altars
+    /// were found, so reading it leaves them unread even after the dump told them.
+    #[serde(default)]
+    pub dungeon: Remembered<DungeonOverview>,
+    /// Whether the Advisor has caught up on what it missed of a game it joined part way through.
+    #[serde(default)]
+    pub backfill: Backfill,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
     /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
     /// its name picking up, dropping or wielding something.
@@ -79,6 +90,25 @@ pub struct AccumulatedState {
     /// message before the map that shows them. Each is dropped once the game's turn moves on.
     #[serde(skip)]
     unplaced: Vec<Unplaced>,
+}
+
+/// Whether the Advisor has caught up on what it missed of a game: its Backfill.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "state",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum Backfill {
+    /// Nothing it missed remains to be read: it followed the game from its first turn, or has
+    /// read the character dump since it joined.
+    #[default]
+    Complete,
+    /// It joined the game part way through and hasn't read the character dump since.
+    Awaiting {
+        /// The game's turn when it joined, if the game had reported one.
+        joined_on: Option<u32>,
+    },
 }
 
 /// Where the game listed a monster's Carried Gear: in which message, or on the full-view list.
@@ -239,7 +269,14 @@ impl AccumulatedState {
             }
             self.equipped = Remembered::read(letters, read, visible);
         }
-        if let Some(spells) = read.spells() {
+        if let Some(mut spells) = read.spells() {
+            if read.screen == Screen::CharacterDump
+                && let Some(bundle) = knowledge
+            {
+                for spell in &mut spells {
+                    spell.name = whole_spell_name(&spell.name, bundle);
+                }
+            }
             self.spells = Remembered::read(spells, read, visible);
         }
         if let Some(reaches) = read.spell_reaches() {
@@ -264,6 +301,12 @@ impl AccumulatedState {
                 xl: visible.stats.xl,
             };
             self.mutations = Remembered::read(mutations, read, visible);
+        }
+        if let Some(overview) = read.dungeon_overview() {
+            self.dungeon = Remembered::read(overview, read, visible);
+        }
+        if read.screen == Screen::CharacterDump {
+            self.backfill = Backfill::Complete;
         }
         if let (Some(bundle), Some(monsters)) = (knowledge, read.full_view_monsters()) {
             for description in monsters {
@@ -324,6 +367,9 @@ impl AccumulatedState {
         if was.xl != is.xl {
             self.mutations.go_stale();
         }
+        if before.place != now.place {
+            self.dungeon.go_stale();
+        }
         let Some(bundle) = knowledge else { return };
         let signs = &bundle.ways_out;
         self.notice_comings_and_goings(before, now, bundle);
@@ -362,6 +408,16 @@ impl AccumulatedState {
         }
     }
 
+    /// The Advisor joined the game as `now` shows it, having seen none of it before: part way
+    /// through, unless on its first turn, so it has missed what only the character dump tells.
+    pub(crate) fn join(&mut self, now: &VisibleState) {
+        if now.turn != Some(0) {
+            self.backfill = Backfill::Awaiting {
+                joined_on: now.turn,
+            };
+        }
+    }
+
     /// Every fact remembered goes Stale.
     fn go_stale(&mut self) {
         let Self {
@@ -373,6 +429,8 @@ impl AccumulatedState {
             skills,
             abilities,
             mutations,
+            dungeon,
+            backfill: _,
             carried_gear,
             uniques_gear,
             unplaced: _,
@@ -385,6 +443,7 @@ impl AccumulatedState {
         skills.go_stale();
         abilities.go_stale();
         mutations.go_stale();
+        dungeon.go_stale();
         for gear in carried_gear.values_mut().chain(uniques_gear.values_mut()) {
             gear.go_stale();
         }
@@ -598,6 +657,21 @@ impl<T> Remembered<Vec<T>> {
             turn,
             source: screen,
         })
+    }
+}
+
+/// The whole name of the spell the character dump names `shown`, which it cuts short when it is
+/// long: the one spell in `bundle` named so, or else the one whose name starts so. `shown` when
+/// no spell or several fit.
+fn whole_spell_name(shown: &str, bundle: &Bundle) -> String {
+    let names = || bundle.spells.values().map(|spell| spell.name.as_str());
+    if names().any(|name| name == shown) {
+        return shown.to_owned();
+    }
+    let mut starting = names().filter(|name| name.starts_with(shown));
+    match (starting.next(), starting.next()) {
+        (Some(whole), None) => whole.to_owned(),
+        _ => shown.to_owned(),
     }
 }
 
@@ -895,5 +969,38 @@ mod tests {
             ..character()
         };
         assert!(goes_stale(&character(), &converted));
+    }
+
+    /// The dump cuts a spell's name to fit its column; no Scenario knows a spell named so long.
+    #[test]
+    fn a_spell_whose_name_the_character_dump_cuts_short_is_remembered_by_its_whole_name() {
+        let dump = ScreenRead {
+            screen: Screen::CharacterDump,
+            title: None,
+            lines: [
+                "You know the following spells:",
+                "",
+                " Your Spells              Type           Power      Damage    Failure   Level",
+                "a - Iskenderun's Mystic   Conj/Tloc      12 (100)   2d5 (+2d2)13%         4",
+                "b - Magic Dart            Conj           22 (25)    1d7       1%          1",
+                "",
+            ]
+            .map(str::to_owned)
+            .to_vec(),
+            colours: BTreeMap::new(),
+        };
+        let mut remembered = AccumulatedState::default();
+        remembered.read(&dump, &character(), Some(bundle()));
+        let names: Vec<_> = remembered
+            .spells
+            .known()
+            .unwrap()
+            .iter()
+            .map(|spell| (spell.name.as_str(), spell.failure_percent, spell.level))
+            .collect();
+        assert_eq!(
+            names,
+            [("Iskenderun's Mystic Blast", 13, 4), ("Magic Dart", 1, 1)]
+        );
     }
 }

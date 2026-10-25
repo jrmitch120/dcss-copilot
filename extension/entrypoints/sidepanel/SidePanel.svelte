@@ -66,6 +66,7 @@ const ACTIONS: PanelActions = {
   setAppearance: (appearance) => ask({ kind: "set-appearance", appearance }),
   setAssistance: (assistance) => ask({ kind: "set-assistance", assistance }),
   answerSameGame: (same) => ask({ kind: "answer-same-game", same }),
+  closeJoinCard: () => ask({ kind: "close-join-card" }),
   openSettings: () => ask({ kind: "open-settings" }),
   answerBrowser: null,
 };

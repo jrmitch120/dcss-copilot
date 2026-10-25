@@ -2,7 +2,7 @@
 
 How the extension hands a webtiles game to the app, and shows the app's panel in the browser's Side Panel (ADR 0001, ADR 0004). The integer **relay protocol version** is the only compatibility contract between the two: the app accepts the current version and the previous one. Bump it whenever a frame below changes shape.
 
-Current version: **4**. Version 2 added the `side-panel-opened`, `panel-command`, `view` and `panel-command-done` frames, so the panel shows in the browser's Side Panel; version 3 added the `set-assistance` command, so the player sets their Assistance Level there too; version 4 added the `answer-same-game` command, so the player can answer there whether a game picked up again on a later turn is the same game.
+Current version: **4**. Version 2 added the `side-panel-opened`, `panel-command`, `view` and `panel-command-done` frames, so the panel shows in the browser's Side Panel; version 3 added the `set-assistance` command, so the player sets their Assistance Level there too; version 4 added the `answer-same-game` command, so the player can answer there whether a game picked up again on a later turn is the same game, and the `close-join-card` command, so they can put the join card away there.
 
 ## Capture
 
@@ -38,7 +38,7 @@ Every frame is one JSON text message tagged by `type`. The Rust side of each fra
 | `{"type":"envelope","envelope":{…}}` | Each captured message, replayed buffer first. |
 | `{"type":"overflow","origin":"…","tab":12}` | A tab's buffer overflowed before it could be replayed. |
 | `{"type":"side-panel-opened"}` | A Side Panel opened while none was, or one is open as the app welcomes the browser. The app's own window gives way to it. |
-| `{"type":"panel-command","id":4,"command":{"kind":"set-appearance","appearance":"glyphs"}}` | The player pressed something in a Side Panel. `command` is `set-appearance`, `set-assistance` (with `"assistance":"info"`, `"hints"` or `"coach"`), `answer-same-game` (with `"same":true` or `false`) or `open-settings`; `id` is the extension's, for the answer. |
+| `{"type":"panel-command","id":4,"command":{"kind":"set-appearance","appearance":"glyphs"}}` | The player pressed something in a Side Panel. `command` is `set-appearance`, `set-assistance` (with `"assistance":"info"`, `"hints"` or `"coach"`), `answer-same-game` (with `"same":true` or `false`), `close-join-card` or `open-settings`; `id` is the extension's, for the answer. |
 | `{"type":"ping"}` | Every 20 s, to keep the extension's service worker alive. |
 
 ### App → extension

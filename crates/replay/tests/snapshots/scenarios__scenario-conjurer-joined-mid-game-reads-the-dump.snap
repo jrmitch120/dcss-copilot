@@ -1,0 +1,263 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz950213245",
+    "character": "wiz950213245",
+    "species": "Deep Elf",
+    "firstSeenMs": 1792950292957,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "detections": [],
+  "end": {
+    "turn": 5,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 3
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 54,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 0,
+        "bestPlanWin": null,
+        "acting": [],
+        "gear": [],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": []
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading up",
+              "direction": "up",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "steps": 0,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -4,
+                "y": 18
+              },
+              "steps": 18,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -7,
+                "y": 20
+              },
+              "steps": 21,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -15,
+                "y": -10
+              },
+              "steps": 23,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the ceiling",
+              "direction": "up",
+              "position": {
+                "x": -23,
+                "y": 12
+              },
+              "steps": 24,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading up",
+              "direction": "up",
+              "position": {
+                "x": 11,
+                "y": -16
+              },
+              "steps": 25,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": 7,
+                "y": 23
+              },
+              "steps": 25,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading up",
+              "direction": "up",
+              "position": {
+                "x": 26,
+                "y": -15
+              },
+              "steps": 40,
+              "overRememberedSquares": true
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "corridor",
+          "openSides": 2
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": {
+            "turn": 4,
+            "stale": false
+          }
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "noFight"
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
+    },
+    "game": {
+      "character": {
+        "name": "wiz950213245",
+        "species": "Deep Elf",
+        "hp": 54,
+        "hpMax": 54,
+        "turn": 5
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "alert": null,
+        "line": "No hostiles in view.",
+        "detail": null
+      },
+      "suggestedAction": null,
+      "focus": {
+        "card": "join",
+        "join": {
+          "step": "caughtUpFromDump",
+          "checklist": [
+            {
+              "read": true,
+              "line": "Skills (5, with decimals)"
+            },
+            {
+              "read": true,
+              "line": "Spells (2, with failure rates)"
+            },
+            {
+              "read": true,
+              "line": "Mutations (3)"
+            },
+            {
+              "read": true,
+              "line": "Dungeon overview: 1 branch, no altars, 1 shop"
+            }
+          ]
+        }
+      },
+      "factCards": [],
+      "waysOut": null,
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "pickedUp": null,
+      "accumulatedUnreadable": null,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      }
+    }
+  }
+}

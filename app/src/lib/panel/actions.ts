@@ -9,6 +9,8 @@ export interface PanelActions {
   setAssistance(assistance: AssistanceLevel): Promise<string | null>;
   /** Answers "Is this the same game?", of a game picked up again on a later turn. */
   answerSameGame(same: boolean): Promise<string | null>;
+  /** Puts the join card away: "Not now" while it asks for the dump, "OK" once it has read it. */
+  closeJoinCard(): Promise<string | null>;
   openSettings(): Promise<string | null>;
   /**
    * Answers "Allow this browser?", or `null` in a side panel: a browser could otherwise allow

@@ -146,6 +146,30 @@ input {
   font-weight: 600;
 }
 
+/* A button that reads as a link, for a lesser choice. */
+.acts button.link {
+  padding: 3px 2px;
+  background: none;
+  color: var(--info);
+}
+
+/* A key to press in the game. */
+kbd {
+  margin: 0 1px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #f1f1f1;
+  box-shadow: 0 2px 0 #888888;
+  color: #111111;
+  font: 600 11.5px var(--mono);
+}
+
+/* What waits on something else, greyed out. */
+.ghost {
+  opacity: 0.35;
+  filter: saturate(0.3);
+}
+
 .lbl {
   display: flex;
   justify-content: space-between;

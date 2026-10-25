@@ -5,16 +5,17 @@ use std::sync::OnceLock;
 
 use copilot_gk::{Bundle, Library, Monster};
 
-use crate::accumulated_state::AccumulatedState;
+use crate::accumulated_state::{AccumulatedState, Backfill};
 use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
-use crate::game_source::{GameIdentity, SessionEvent, SourceEvent};
+use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
+use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
-    AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, Listing, NowPill,
-    RunPlanRail, TileName, ToolbarBadge, capitalised,
+    AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
+    Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -48,6 +49,10 @@ struct Followed {
     turn: Option<u32>,
     /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
     picked_up_from: Option<LastSeen>,
+    /// The Game Source began following it new, and the Advisor hasn't seen what it shows since.
+    joined: bool,
+    /// How far the join card has got.
+    joining: Joining,
 }
 
 /// When the Advisor last saw a game it picks up again.
@@ -92,6 +97,9 @@ impl Advisor {
                         Some(last) => game.accumulated.pick_up(last.turn, &visible),
                         None => game.accumulated.update(&self.visible, &visible, knowledge),
                     }
+                    if std::mem::take(&mut game.joined) {
+                        game.accumulated.join(&visible);
+                    }
                     game.turn = visible.turn;
                 }
                 self.visible = *visible;
@@ -102,7 +110,9 @@ impl Advisor {
                     .as_ref()
                     .and_then(|identity| identity.knowledge(&self.knowledge));
                 if let Some(game) = self.followed_key().and_then(|key| self.games.get_mut(&key)) {
+                    let before = game.accumulated.backfill;
                     game.accumulated.read(&read, &self.visible, knowledge);
+                    game.joining.read(&read, before, &game.accumulated);
                 }
             }
             // A new game has a key of its own; a game resynced is picked up again.
@@ -115,6 +125,10 @@ impl Advisor {
                     if session == SessionEvent::Resynced {
                         let turn = game.turn;
                         game.picked_up_from.get_or_insert(LastSeen { turn });
+                    }
+                    // A game recalled is one the Advisor has seen before, taken in again.
+                    if session == SessionEvent::Joined && game.picked_up_from.is_none() {
+                        game.joined = true;
                     }
                 }
                 return Vec::new();
@@ -146,6 +160,14 @@ impl Advisor {
                 ..Followed::default()
             },
         );
+    }
+
+    /// The player put the join card away: "Not now" while it asks for the character dump, "OK"
+    /// once it says what it read.
+    pub fn close_join_card(&mut self) {
+        if let Some(game) = self.followed_game_mut() {
+            game.joining.close();
+        }
     }
 
     /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
@@ -273,7 +295,7 @@ impl Advisor {
             ways_out: self
                 .hostile_in_view()
                 .then(|| self.fact_sheet().ways_out.list()),
-            run_plan: RunPlanRail::NotPlanned,
+            run_plan: self.run_plan(),
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
             // Only the Game Source can tell whether the player is to be asked, and only the store
@@ -290,19 +312,38 @@ impl Advisor {
 }
 
 impl Advisor {
-    /// The focus card: a small fight while anything hostile is in view, and what is in view
-    /// otherwise.
+    /// The focus card: a small fight while anything hostile is in view, or else what is in view;
+    /// with nothing hostile in view, the join card while it shows.
     fn focus(&self) -> FocusCard {
         let monsters = self
             .visible
             .monsters
             .as_ref()
             .map(|monsters| in_view(monsters, self.game_knowledge()));
-        let fight = self
-            .hostile_in_view()
-            .then(|| self.fact_sheet().fight.card(monsters.clone()))
-            .flatten();
-        fight.unwrap_or(FocusCard::InView { monsters })
+        let card = if self.hostile_in_view() {
+            self.fact_sheet().fight.card(monsters.clone())
+        } else {
+            self.join_card().map(|join| FocusCard::Join { join })
+        };
+        card.unwrap_or(FocusCard::InView { monsters })
+    }
+
+    /// The join card, while it shows: never to a player watching the game, who can't open its
+    /// screens.
+    fn join_card(&self) -> Option<JoinCard> {
+        if self.identity.as_ref()?.role == Some(Role::Spectating) {
+            return None;
+        }
+        let game = self.followed_game()?;
+        game.joining.card(game.accumulated.backfill, &self.visible)
+    }
+
+    /// The Run Plan rail: greyed out while the game's Backfill awaits the character dump.
+    fn run_plan(&self) -> RunPlanRail {
+        match self.followed_game().map(|game| game.accumulated.backfill) {
+            Some(Backfill::Awaiting { .. }) => RunPlanRail::AwaitingDump,
+            Some(Backfill::Complete) | None => RunPlanRail::NotPlanned,
+        }
     }
 
     /// The Suggested Action at this moment: the one held through the Encounter as of now, unless

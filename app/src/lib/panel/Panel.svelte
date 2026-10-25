@@ -60,6 +60,7 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         focus={view.game.focus}
         factCards={view.game.factCards}
         appearance={view.appearance}
+        {actions}
       />
       {#if view.game.waysOut}
         <WaysOut waysOut={view.game.waysOut} />

@@ -1,0 +1,83 @@
+---
+source: crates/replay/tests/backfill.rs
+expression: "serde_json::json!({\n    \"skills\": remembered.skills, \"spells\": remembered.spells, \"mutations\":\n    remembered.mutations, \"dungeon\": remembered.dungeon,\n})"
+---
+{
+  "skills": {
+    "state": "known",
+    "value": {
+      "tenths": {
+        "Conjurations": 43,
+        "Dodging": 24,
+        "Fighting": 53,
+        "Spellcasting": 30,
+        "Stealth": 24
+      }
+    },
+    "turn": 4,
+    "source": {
+      "kind": "characterDump"
+    }
+  },
+  "spells": {
+    "state": "known",
+    "value": [
+      {
+        "name": "Magic Dart",
+        "failurePercent": 1,
+        "level": 1
+      },
+      {
+        "name": "Shock",
+        "failurePercent": 1,
+        "level": 1
+      }
+    ],
+    "turn": 4,
+    "source": {
+      "kind": "characterDump"
+    }
+  },
+  "mutations": {
+    "state": "known",
+    "value": {
+      "shown": {
+        "mutations": [
+          "You regenerate magic rapidly.",
+          "You possess an exceptional clarity of mind.",
+          "You are resistant to poisons. (rPois)"
+        ],
+        "banes": []
+      },
+      "xl": 9
+    },
+    "turn": 4,
+    "source": {
+      "kind": "characterDump"
+    }
+  },
+  "dungeon": {
+    "state": "known",
+    "value": {
+      "branches": [
+        {
+          "name": "Dungeon",
+          "explored": 3,
+          "levels": 15,
+          "entrances": []
+        }
+      ],
+      "altars": [],
+      "shops": [
+        {
+          "level": "D:2",
+          "count": 1
+        }
+      ]
+    },
+    "turn": 4,
+    "source": {
+      "kind": "characterDump"
+    }
+  }
+}

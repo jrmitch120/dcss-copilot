@@ -1,5 +1,7 @@
 <script lang="ts">
 import type { Appearance, FactCard, FocusCard, Listing } from "$lib/bindings";
+import type { PanelActions } from "./actions";
+import JoinCard from "./JoinCard.svelte";
 import ListingRow from "./ListingRow.svelte";
 import Tile from "./Tile.svelte";
 
@@ -7,7 +9,13 @@ let {
   focus,
   factCards,
   appearance,
-}: { focus: FocusCard; factCards: FactCard[]; appearance: Appearance } = $props();
+  actions,
+}: {
+  focus: FocusCard;
+  factCards: FactCard[];
+  appearance: Appearance;
+  actions: PanelActions;
+} = $props();
 </script>
 
 {#snippet facts()}
@@ -63,6 +71,8 @@ let {
       <p class="muted small">{gap}</p>
     {/each}
   </section>
+{:else if focus.card === "join"}
+  <JoinCard join={focus.join} {actions} />
 {/if}
 
 <style>

@@ -33,6 +33,7 @@ export type PanelCommand =
   | { kind: "set-appearance"; appearance: Appearance }
   | { kind: "set-assistance"; assistance: AssistanceLevel }
   | { kind: "answer-same-game"; same: boolean }
+  | { kind: "close-join-card" }
   | { kind: "open-settings" };
 
 export type ExtensionFrame =
