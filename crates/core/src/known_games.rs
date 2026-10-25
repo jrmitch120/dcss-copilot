@@ -124,16 +124,7 @@ impl KnownGames {
             character: character.clone(),
             first_seen_ms: at_ms,
         };
-        let at = games.partition_point(|game| game.key.first_seen_ms <= at_ms);
-        games.insert(
-            at,
-            KnownGame {
-                key: key.clone(),
-                last_seen_ms: at_ms,
-                turn,
-                ended: false,
-            },
-        );
+        first_seen(games, &key, turn);
         Identification {
             key,
             event: SessionEvent::Joined,
@@ -150,16 +141,7 @@ impl KnownGames {
         };
         let games = self.by_character.entry(key.character.clone()).or_default();
         if !games.iter().any(|game| game.key == key) {
-            let at = games.partition_point(|game| game.key.first_seen_ms <= named_ms);
-            games.insert(
-                at,
-                KnownGame {
-                    key: key.clone(),
-                    last_seen_ms: named_ms,
-                    turn: None,
-                    ended: false,
-                },
-            );
+            first_seen(games, &key, None);
         }
         key
     }
@@ -189,6 +171,21 @@ impl KnownGames {
             .iter_mut()
             .find(|game| game.key == *key)
     }
+}
+
+/// Adds the game `key` names to one character's `games`, kept in the order first seen: seen so
+/// far only as it was first seen, on `turn`.
+fn first_seen(games: &mut Vec<KnownGame>, key: &GameKey, turn: Option<u32>) {
+    let at = games.partition_point(|game| game.key.first_seen_ms <= key.first_seen_ms);
+    games.insert(
+        at,
+        KnownGame {
+            key: key.clone(),
+            last_seen_ms: key.first_seen_ms,
+            turn,
+            ended: false,
+        },
+    );
 }
 
 impl KnownGame {

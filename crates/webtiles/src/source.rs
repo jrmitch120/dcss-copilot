@@ -394,9 +394,7 @@ impl TabGame {
             role: self.role,
         })
     }
-}
 
-impl TabGame {
     /// Tells `known` this process's game was seen as it last showed it.
     fn seen(&self, known: &mut KnownGames) {
         if let (Some(key), Some(at_ms)) = (&self.game, self.seen_ms) {

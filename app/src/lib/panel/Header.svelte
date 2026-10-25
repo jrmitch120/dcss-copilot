@@ -9,12 +9,8 @@ let {
   now,
   assistance,
   actions,
-}: {
-  character: Character;
-  now: NowPill;
-  assistance: AssistanceLevel;
-  actions: PanelActions;
-} = $props();
+}: { character: Character; now: NowPill; assistance: AssistanceLevel; actions: PanelActions } =
+  $props();
 
 let tone = $derived(threatTone(now));
 let saveError = $state<string | null>(null);
