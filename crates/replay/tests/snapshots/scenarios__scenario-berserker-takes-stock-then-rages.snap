@@ -327,6 +327,7 @@ expression: replay
           "state": "needsModel"
         },
         "live": true,
+        "pickedUpAgain": false,
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
@@ -677,6 +678,7 @@ expression: replay
         "state": "needsModel"
       },
       "live": true,
+      "pickedUpAgain": false,
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false

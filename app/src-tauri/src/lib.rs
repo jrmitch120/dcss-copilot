@@ -125,6 +125,16 @@ fn set_assistance(
     saved.map_err(|error| error.to_string())
 }
 
+/// The player says the followed game is a new game, not the one the Advisor took it for.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn new_game(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    live.new_game();
+    push_view_model(&app, &live);
+    Ok(())
+}
+
 /// Opens the Settings window, or brings it to the front.
 #[tauri::command]
 #[specta::specta]
@@ -251,6 +261,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             answer_browser,
             set_appearance,
             set_assistance,
+            new_game,
             open_settings,
             settings_view,
             set_start_at_login,
@@ -446,6 +457,7 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
                 PanelCommand::SetAssistance { assistance } => {
                     set_assistance(assistance, app.clone(), app.state())
                 }
+                PanelCommand::NewGame => new_game(app.clone(), app.state()),
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };
             request.answer(done);

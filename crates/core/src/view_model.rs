@@ -136,6 +136,9 @@ pub struct GameView {
     /// The game's stream is flowing: it hasn't stopped or ended since the Advisor last joined or
     /// resynced it.
     pub live: bool,
+    /// The Advisor took this game for one it had seen before, picked up again, rather than a
+    /// new one: the player can say it is a new game.
+    pub picked_up_again: bool,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
 }

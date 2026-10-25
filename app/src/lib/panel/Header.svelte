@@ -8,9 +8,15 @@ let {
   character,
   now,
   assistance,
+  pickedUpAgain,
   actions,
-}: { character: Character; now: NowPill; assistance: AssistanceLevel; actions: PanelActions } =
-  $props();
+}: {
+  character: Character;
+  now: NowPill;
+  assistance: AssistanceLevel;
+  pickedUpAgain: boolean;
+  actions: PanelActions;
+} = $props();
 
 let tone = $derived(threatTone(now));
 let saveError = $state<string | null>(null);
@@ -24,6 +30,11 @@ const LEVELS: [AssistanceLevel, string][] = [
 async function choose(level: AssistanceLevel) {
   const error = await actions.setAssistance(level);
   saveError = unsaved(error);
+}
+
+async function newGame() {
+  const error = await actions.newGame();
+  saveError = error === null ? null : `It couldn't be made a new game: ${error}`;
 }
 
 function stat(value: number | null): string {
@@ -42,6 +53,18 @@ function stat(value: number | null): string {
     <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
   </span>
 </header>
+{#if pickedUpAgain}
+  <p class="picked-up small muted">
+    Picked up where you left off.
+    <button
+      type="button"
+      title="Follow this as a new game, remembering nothing of it yet. The game DCSS Copilot took it for keeps what it remembered."
+      onclick={newGame}
+    >
+      This is a new game
+    </button>
+  </p>
+{/if}
 {#if saveError}
   <p class="error small">{saveError}</p>
 {/if}
@@ -101,6 +124,21 @@ header {
 
 .levels {
   margin-left: auto;
+}
+
+.picked-up {
+  margin: 0;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.picked-up button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--info);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .error {

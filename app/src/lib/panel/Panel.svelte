@@ -21,6 +21,7 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       character={view.game.character}
       now={view.game.now}
       assistance={view.assistance}
+      pickedUpAgain={view.game.pickedUpAgain}
       {actions}
     />
   {/if}

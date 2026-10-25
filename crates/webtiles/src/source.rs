@@ -50,6 +50,8 @@ struct TabGame {
     shown: Shown,
     /// The game this process plays, once it has named it.
     game: Option<GameKey>,
+    /// When this process named its game, in Unix milliseconds.
+    named_ms: Option<u64>,
     reported: Option<(GameIdentity, VisibleState)>,
     /// The game process has stopped sending: the game ended, or the player left it.
     stopped: bool,
@@ -102,6 +104,34 @@ impl WebtilesSource {
             followed: None,
             known,
         }
+    }
+
+    /// The followed game is a new game, as the player says, rather than the one its game process
+    /// picked up again: one first seen as the process named it. Returns what changed, which is
+    /// nothing for a game the process joined, new already.
+    pub fn start_afresh(&mut self) -> Vec<SourceEvent> {
+        let Some(game) = self
+            .followed
+            .as_ref()
+            .and_then(|tab| self.tabs.get_mut(tab))
+        else {
+            return Vec::new();
+        };
+        let (Some(picked_up), Some(named_ms), Some((identity, _))) =
+            (&game.game, game.named_ms, &mut game.reported)
+        else {
+            return Vec::new();
+        };
+        if picked_up.first_seen_ms == named_ms {
+            return Vec::new();
+        }
+        let key = self.known.start_afresh(picked_up, named_ms);
+        identity.first_seen_ms = key.first_seen_ms;
+        game.game = Some(key);
+        vec![
+            SourceEvent::Identified(identity.clone()),
+            SourceEvent::Session(SessionEvent::Joined),
+        ]
     }
 
     /// What was last seen of the game `key` names, if the source has seen it or knew it.
@@ -231,6 +261,7 @@ impl TabGame {
         self.role = Some(role);
         self.shown = Shown::default();
         self.game = None;
+        self.named_ms = None;
         self.reported = None;
         self.stopped = false;
         self.ended = false;
@@ -304,6 +335,7 @@ impl TabGame {
             _ => {
                 let (key, event) = known.identify(&character, player.turn, envelope.ts);
                 self.game = Some(key.clone());
+                self.named_ms = Some(envelope.ts);
                 // Before anything else this process has said about the game.
                 self.session.insert(0, event);
                 key

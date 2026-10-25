@@ -217,6 +217,11 @@ impl Live {
         self.lock().settings.set_assistance(assistance)
     }
 
+    /// The player says the followed game is a new game, not the one the Advisor took it for.
+    pub fn new_game(&self) {
+        self.lock().game.new_game();
+    }
+
     /// The model a slot calls.
     pub fn model(&self, slot: ModelSlot) -> ModelChoice {
         self.lock().settings.model(slot).clone()

@@ -48,6 +48,8 @@ struct Followed {
     turn: Option<u32>,
     /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
     picked_up_from: Option<LastSeen>,
+    /// Its game process picked it up again, rather than joining it new.
+    picked_up_again: bool,
 }
 
 /// When the Advisor last saw a game it picks up again.
@@ -112,9 +114,14 @@ impl Advisor {
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
-                    if session == SessionEvent::Resynced {
-                        let turn = game.turn;
-                        game.picked_up_from.get_or_insert(LastSeen { turn });
+                    match session {
+                        SessionEvent::Joined => game.picked_up_again = false,
+                        SessionEvent::Resynced => {
+                            game.picked_up_again = true;
+                            let turn = game.turn;
+                            game.picked_up_from.get_or_insert(LastSeen { turn });
+                        }
+                        SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. } => {}
                     }
                 }
                 return Vec::new();
@@ -265,6 +272,9 @@ impl Advisor {
             run_plan: RunPlanRail::NotPlanned,
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
+            picked_up_again: self
+                .followed_game()
+                .is_some_and(|game| game.picked_up_again),
             badge: ToolbarBadge {
                 decisions_waiting: 0,
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)

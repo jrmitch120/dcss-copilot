@@ -3,7 +3,7 @@
 import type { Appearance, AssistanceLevel, ViewModel } from "$lib/bindings";
 
 /** The only compatibility contract with the app, which accepts this version and the previous one. */
-export const RELAY_PROTOCOL_VERSION = 3;
+export const RELAY_PROTOCOL_VERSION = 4;
 
 /** Where the app listens. */
 export const APP_URL = "ws://127.0.0.1:47821";
@@ -32,6 +32,7 @@ export type PageReport =
 export type PanelCommand =
   | { kind: "set-appearance"; appearance: Appearance }
   | { kind: "set-assistance"; assistance: AssistanceLevel }
+  | { kind: "new-game" }
   | { kind: "open-settings" };
 
 export type ExtensionFrame =

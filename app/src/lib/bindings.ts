@@ -13,6 +13,8 @@ export const commands = {
 	setAppearance: (appearance: Appearance) => typedError<null, string>(__TAURI_INVOKE("set_appearance", { appearance })),
 	/**  The player chose how much the Advisor offers beyond Information. */
 	setAssistance: (assistance: AssistanceLevel) => typedError<null, string>(__TAURI_INVOKE("set_assistance", { assistance })),
+	/**  The player says the followed game is a new game, not the one the Advisor took it for. */
+	newGame: () => typedError<null, string>(__TAURI_INVOKE("new_game")),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -196,6 +198,11 @@ export type GameView = {
 	 *  resynced it.
 	 */
 	live: boolean,
+	/**
+	 *  The Advisor took this game for one it had seen before, picked up again, rather than a
+	 *  new one: the player can say it is a new game.
+	 */
+	pickedUpAgain: boolean,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
 };

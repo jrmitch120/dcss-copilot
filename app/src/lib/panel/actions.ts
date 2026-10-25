@@ -7,6 +7,8 @@ import type { Appearance, AssistanceLevel } from "$lib/bindings";
 export interface PanelActions {
   setAppearance(appearance: Appearance): Promise<string | null>;
   setAssistance(assistance: AssistanceLevel): Promise<string | null>;
+  /** The followed game is a new game, not the one the Advisor took it for. */
+  newGame(): Promise<string | null>;
   openSettings(): Promise<string | null>;
   /**
    * Answers "Allow this browser?", or `null` in a side panel: a browser could otherwise allow

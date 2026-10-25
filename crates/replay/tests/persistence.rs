@@ -209,3 +209,58 @@ fn a_page_replayed_after_a_restart_picks_up_each_game_it_played_as_it_did_before
         ]
     );
 }
+
+#[test]
+fn a_game_wrongly_picked_up_again_is_made_a_new_game_and_stays_one_after_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let mut before = run(SCREENS, &path);
+    before.seek(usize::MAX);
+    let remembered = before.advisor().accumulated().cloned().unwrap();
+    drop(before);
+    let mut after = run(SESSION, &path);
+    after.seek(4);
+    let picked_up = key(&after);
+    assert!(after.view_model().game.unwrap().picked_up_again);
+
+    // The player says this Tiv is a new game.
+    after.new_game();
+
+    let new = key(&after);
+    assert_ne!(new, picked_up);
+    let named = Recording::read(SESSION).unwrap().envelopes[3].ts;
+    assert_eq!(
+        new.first_seen_ms, named,
+        "as this game process first named it"
+    );
+    assert!(!remembers_anything(&after));
+    assert!(!after.view_model().game.unwrap().picked_up_again);
+    after.seek(5);
+    drop(after);
+    assert_eq!(
+        Store::open(&path)
+            .unwrap()
+            .saved(&picked_up)
+            .unwrap()
+            .map(|saved| saved.accumulated),
+        Some(remembered),
+        "the game it was taken for keeps what it remembered"
+    );
+
+    let mut restarted = run(SESSION, &path);
+    restarted.seek(5);
+    assert_eq!(key(&restarted), new);
+    assert_eq!(sessions(&restarted), [(3, SessionEvent::Joined)]);
+}
+
+#[test]
+fn a_new_game_is_already_new() {
+    let mut replayer = straight(SCREENS);
+    let game = key(&replayer);
+    assert!(!replayer.view_model().game.unwrap().picked_up_again);
+
+    replayer.new_game();
+
+    assert_eq!(key(&replayer), game);
+    assert!(remembers_anything(&replayer));
+}

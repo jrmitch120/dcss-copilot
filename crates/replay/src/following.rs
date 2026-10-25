@@ -90,8 +90,34 @@ impl Following {
     /// Decodes one relayed envelope, tells the Advisor what the Game Source learned, saves what
     /// changed, and returns what happened, in order.
     pub fn ingest(&mut self, envelope: &Envelope) -> Vec<Happened> {
+        let events = self.source.ingest(envelope);
+        let happened = self.take_in(events);
+        self.save(envelope.ts);
+        happened
+    }
+
+    /// The player says the followed game is a new game rather than the one its game process
+    /// picked up again. It is followed from now on as a new game, first seen as the process
+    /// named it, remembering nothing yet; the game it was taken for keeps what it remembered.
+    /// Returns what happened, which is nothing for a game the process joined, new already.
+    pub fn new_game(&mut self) -> Vec<Happened> {
+        let events = self.source.start_afresh();
+        let happened = self.take_in(events);
+        let last_seen = self
+            .advisor
+            .identity()
+            .and_then(|identity| self.source.known_game(&identity.key()))
+            .map(|game| game.last_seen_ms);
+        if let Some(last_seen) = last_seen {
+            self.save(last_seen);
+        }
+        happened
+    }
+
+    /// Tells the Advisor what the Game Source learned, and returns what happened, in order.
+    fn take_in(&mut self, events: Vec<SourceEvent>) -> Vec<Happened> {
         let mut happened = Vec::new();
-        for event in self.source.ingest(envelope) {
+        for event in events {
             if let SourceEvent::Identified(identity) = &event {
                 self.recall(identity);
             }
@@ -101,7 +127,6 @@ impl Following {
             }
             happened.extend(detections.into_iter().map(Happened::Detected));
         }
-        self.save(envelope.ts);
         happened
     }
 

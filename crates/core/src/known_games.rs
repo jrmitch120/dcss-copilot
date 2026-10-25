@@ -116,6 +116,32 @@ impl KnownGames {
         (key, SessionEvent::Joined)
     }
 
+    /// The game process that picked the game `picked_up` up again, naming it at `named_ms`,
+    /// plays a new game instead, as the player says: one first seen then, and last seen as the
+    /// process last saw `picked_up`. Returns its key.
+    pub fn start_afresh(&mut self, picked_up: &GameKey, named_ms: u64) -> GameKey {
+        let key = GameKey {
+            character: picked_up.character.clone(),
+            first_seen_ms: named_ms,
+        };
+        let last = self.get(picked_up).cloned();
+        let games = self.by_character.entry(key.character.clone()).or_default();
+        if games.iter().any(|game| game.key == key) {
+            return key;
+        }
+        let at = games.partition_point(|game| game.key.first_seen_ms <= named_ms);
+        games.insert(
+            at,
+            KnownGame {
+                key: key.clone(),
+                last_seen_ms: last.as_ref().map_or(named_ms, |game| game.last_seen_ms),
+                turn: last.and_then(|game| game.turn),
+                ended: false,
+            },
+        );
+        key
+    }
+
     /// The game was seen at `at_ms` on `turn`, and has `ended` or not. A message from before it
     /// was last seen, taken in again, changes nothing.
     pub fn saw(&mut self, key: &GameKey, at_ms: u64, turn: Option<u32>, ended: bool) {

@@ -289,6 +289,22 @@ impl Replayer {
         }
     }
 
+    /// The player says the followed game is a new game rather than the one its game process
+    /// picked up again, as just after the envelopes applied so far. A backward move forgets it,
+    /// as it rebuilds the game from the start, unless the store remembers it.
+    pub fn new_game(&mut self) {
+        let happened = self.game.following.new_game();
+        let turn = self.game.following.advisor().visible().turn;
+        let envelope = self.game.applied.saturating_sub(1);
+        self.game
+            .timeline
+            .extend(happened.into_iter().map(|event| Moment {
+                envelope,
+                turn,
+                event,
+            }));
+    }
+
     /// Applies the next envelope, if any.
     pub fn step(&mut self) -> Applied {
         self.seek(self.position + 1)

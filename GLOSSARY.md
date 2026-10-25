@@ -37,7 +37,7 @@ The one integer the browser extension and the app agree on to understand each ot
 _Avoid_: API version, app version
 
 **Game Key**:
-What tells one game apart from every other: the server, the account, the character's name and species, and when a Game Source first saw the game. A game process for a character whose latest game hasn't ended, at a turn no earlier than that game was last seen at, picks that game up again under its key; one for a game that ended, or whose turn went backwards, is a new game with a key of its own.
+What tells one game apart from every other: the server, the account, the character's name and species, and when a Game Source first saw the game. A game process for a character whose latest game hasn't ended, at a turn no earlier than that game was last seen at, picks that game up again under its key; one for a game that ended, or whose turn went backwards, is a new game with a key of its own. The player can say a game picked up again is a new game: it then has a key of its own, first seen as its game process named it, and the game it was taken for keeps what the Advisor remembered of it.
 _Avoid_: Game id, save, run id
 
 **Tournament Game**:
