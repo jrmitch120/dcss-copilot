@@ -264,7 +264,8 @@ impl TabGame {
 
     /// The game's identity, on `crawl_version`, once the game has named the character and
     /// species. The first call that succeeds tells whether this process joined a new game or
-    /// resynced one already `known`, which fixes when the game was first seen.
+    /// resynced one already `known`, which fixes when the game was first seen; so does a call
+    /// after the character changed, as when the player finishes making a new one.
     fn identify(
         &mut self,
         envelope: &Envelope,
@@ -275,20 +276,25 @@ impl TabGame {
         let (Some(name), Some(species)) = (&player.name, &player.species) else {
             return None;
         };
-        let key = if let Some(key) = &self.game {
-            key.clone()
-        } else {
-            let character = CharacterKey {
-                server: envelope.origin.clone(),
-                account: self.account.clone(),
-                character: name.clone(),
-                species: species.clone(),
-            };
-            let (key, event) = known.identify(&character, player.turn, envelope.ts);
-            self.game = Some(key.clone());
-            // Before anything else this process has said about the game.
-            self.session.insert(0, event);
-            key
+        // While the player makes a new character, crawl reports it nameless, as some species.
+        if name.is_empty() {
+            return None;
+        }
+        let character = CharacterKey {
+            server: envelope.origin.clone(),
+            account: self.account.clone(),
+            character: name.clone(),
+            species: species.clone(),
+        };
+        let key = match &self.game {
+            Some(key) if key.character == character => key.clone(),
+            _ => {
+                let (key, event) = known.identify(&character, player.turn, envelope.ts);
+                self.game = Some(key.clone());
+                // Before anything else this process has said about the game.
+                self.session.insert(0, event);
+                key
+            }
         };
         known.saw(&key, envelope.ts, player.turn, self.ended);
         Some(GameIdentity {
