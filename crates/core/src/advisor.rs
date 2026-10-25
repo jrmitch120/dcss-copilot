@@ -279,7 +279,7 @@ impl Advisor {
             // Only the Game Source can tell whether the player is to be asked, and only the store
             // whether what was saved of the game could be read.
             picked_up: None,
-            memory_unreadable: None,
+            accumulated_unreadable: None,
             badge: ToolbarBadge {
                 decisions_waiting: 0,
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)

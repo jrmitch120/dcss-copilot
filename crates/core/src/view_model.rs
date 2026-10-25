@@ -141,7 +141,7 @@ pub struct GameView {
     pub picked_up: Option<PickedUp>,
     /// Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
     /// game over, remembering nothing from before. The Change Log still holds what was saved.
-    pub memory_unreadable: Option<String>,
+    pub accumulated_unreadable: Option<String>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
 }

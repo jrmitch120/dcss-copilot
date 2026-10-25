@@ -54,8 +54,10 @@ struct TabGame {
     /// When this process named its game, in Unix milliseconds.
     named_ms: Option<u64>,
     /// What was last seen of the game this process picked up again on a later turn, until the
-    /// player says whether it is that game.
+    /// player says whether it is that game. Until then, the game isn't seen any further on.
     unconfirmed: Option<KnownGame>,
+    /// When the source last took in a message of this process's game, in Unix milliseconds.
+    seen_ms: Option<u64>,
     reported: Option<(GameIdentity, VisibleState)>,
     /// The game process has stopped sending: the game ended, or the player left it.
     stopped: bool,
@@ -117,21 +119,25 @@ impl WebtilesSource {
         self.tabs.get(self.followed.as_ref()?)?.unconfirmed.as_ref()
     }
 
-    /// The player says the followed game is the one its game process picked up again.
+    /// The player says the followed game is the one its game process picked up again: it is seen
+    /// as the process last showed it.
     pub fn confirm_same_game(&mut self) {
-        if let Some(game) = self
+        let Some(game) = self
             .followed
             .as_ref()
             .and_then(|tab| self.tabs.get_mut(tab))
-        {
-            game.unconfirmed = None;
+        else {
+            return;
+        };
+        if game.unconfirmed.take().is_some() {
+            game.seen(&mut self.known);
         }
     }
 
     /// The player says the followed game is a new game rather than the one its game process
-    /// picked up again on a later turn: one first seen as the process named it. The game it was
-    /// taken for is as it was last seen before. Returns what changed, which is nothing unless
-    /// the player was to be asked.
+    /// picked up again on a later turn: one first seen as the process named it, and seen since as
+    /// the process showed it. The game it was taken for stays as it was last seen. Returns what
+    /// changed, which is nothing unless the player was to be asked.
     pub fn start_afresh(&mut self) -> Vec<SourceEvent> {
         let Some(game) = self
             .followed
@@ -146,11 +152,13 @@ impl WebtilesSource {
         let Some(picked_up) = game.unconfirmed.take() else {
             return Vec::new();
         };
-        let key = self.known.start_afresh(&picked_up, named_ms);
+        let key = self.known.start_afresh(&picked_up.key, named_ms);
         identity.first_seen_ms = key.first_seen_ms;
+        let identity = identity.clone();
         game.game = Some(key);
+        game.seen(&mut self.known);
         vec![
-            SourceEvent::Identified(identity.clone()),
+            SourceEvent::Identified(identity),
             SourceEvent::Session(SessionEvent::Joined),
         ]
     }
@@ -284,6 +292,7 @@ impl TabGame {
         self.game = None;
         self.named_ms = None;
         self.unconfirmed = None;
+        self.seen_ms = None;
         self.reported = None;
         self.stopped = false;
         self.ended = false;
@@ -362,13 +371,18 @@ impl TabGame {
                 } = known.identify(&character, player.turn, envelope.ts);
                 self.game = Some(key.clone());
                 self.named_ms = Some(envelope.ts);
-                self.unconfirmed = unconfirmed;
+                // A game watched is never saved, so there is nothing to mix up.
+                self.unconfirmed = unconfirmed.filter(|_| self.role == Some(Role::Playing));
                 // Before anything else this process has said about the game.
                 self.session.insert(0, event);
                 key
             }
         };
-        known.saw(&key, envelope.ts, player.turn, self.ended);
+        self.seen_ms = Some(envelope.ts);
+        if self.unconfirmed.is_none() {
+            self.seen(known);
+        }
+        let player = &self.shown.player;
         Some(GameIdentity {
             server: key.character.server,
             account: key.character.account,
@@ -379,6 +393,15 @@ impl TabGame {
             wizard: player.wizard,
             role: self.role,
         })
+    }
+}
+
+impl TabGame {
+    /// Tells `known` this process's game was seen as it last showed it.
+    fn seen(&self, known: &mut KnownGames) {
+        if let (Some(key), Some(at_ms)) = (&self.game, self.seen_ms) {
+            known.saw(key, at_ms, self.shown.player.turn, self.ended);
+        }
     }
 }
 

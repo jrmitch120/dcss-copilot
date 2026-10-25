@@ -211,7 +211,7 @@ export type GameView = {
 	 *  Why what was saved of this game couldn't be read, if it couldn't: the Advisor started the
 	 *  game over, remembering nothing from before. The Change Log still holds what was saved.
 	 */
-	memoryUnreadable: string | null,
+	accumulatedUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
 };

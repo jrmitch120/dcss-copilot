@@ -204,7 +204,7 @@ impl Following {
             turn: game.turn,
             last_seen_ms: game.last_seen_ms,
         });
-        view.memory_unreadable = self
+        view.accumulated_unreadable = self
             .advisor
             .identity()
             .and_then(|identity| self.unreadable.get(&identity.key()))

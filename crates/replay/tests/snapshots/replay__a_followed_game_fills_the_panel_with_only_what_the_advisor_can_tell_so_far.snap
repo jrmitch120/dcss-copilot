@@ -32,7 +32,7 @@ expression: replay.view_models.last().unwrap().game
   },
   "live": true,
   "pickedUp": null,
-  "memoryUnreadable": null,
+  "accumulatedUnreadable": null,
   "badge": {
     "decisionsWaiting": 0,
     "callsForPanel": false

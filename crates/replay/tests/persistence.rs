@@ -6,10 +6,14 @@
 
 use std::path::Path;
 
-use copilot_core::{AccumulatedState, GameKey, PickedUp, Remembered, SessionEvent, SourceEvent};
+use copilot_core::{
+    AccumulatedState, AssistanceLevel, GameKey, PickedUp, Remembered, SessionEvent, SourceEvent,
+};
 use copilot_gk::Library;
 use copilot_replay::{Following, Happened, Recording, Replayer};
 use copilot_store::Store;
+use copilot_webtiles::Envelope;
+use serde_json::{Value, json};
 
 /// Tiv, a kobold at turn 1234, opens every screen the Advisor reads.
 const SCREENS: &[u8] = include_bytes!("recordings/screens-tiv-opens.dcssrec");
@@ -56,6 +60,31 @@ fn saved_turn(path: &Path, key: &GameKey) -> Option<Option<u32>> {
 /// What the panel asks of a game picked up again, if anything.
 fn asked(replayer: &Replayer) -> Option<PickedUp> {
     replayer.view_model().game.unwrap().picked_up
+}
+
+/// Mira's game, as `tab` relays it at `ts`: `start`, the game process starting, then her player
+/// on `turn`.
+fn mira(following: &mut Following, tab: i64, ts: u64, start: Value, turn: u32) {
+    for (ts, msg) in [
+        (ts, start),
+        (
+            ts + 1,
+            json!({ "msg": "player", "name": "Mira", "species": "Minotaur", "turn": turn }),
+        ),
+    ] {
+        following.ingest(&Envelope {
+            origin: "https://crawl.example.org".to_owned(),
+            tab,
+            ts,
+            game_version: None,
+            msg,
+        });
+    }
+}
+
+/// What the panel asks of the game `following` follows, if anything.
+fn asks(following: &Following) -> Option<PickedUp> {
+    following.game_view(AssistanceLevel::default())?.picked_up
 }
 
 fn key(replayer: &Replayer) -> GameKey {
@@ -339,6 +368,44 @@ fn a_game_the_player_says_is_new_is_followed_as_one_and_leaves_the_game_it_was_t
 }
 
 #[test]
+fn a_game_reloaded_before_the_player_answers_is_still_asked_about_and_still_unsaved() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let knowledge = Library::shipped().unwrap();
+    let started = json!({ "msg": "game_started" });
+    mira(
+        &mut Following::remembering(&knowledge, Store::open(&path).unwrap()),
+        1,
+        1_000,
+        started.clone(),
+        500,
+    );
+    let mut following = Following::remembering(&knowledge, Store::open(&path).unwrap());
+    mira(&mut following, 1, 50_000, started.clone(), 600);
+    let game = following.advisor().identity().unwrap().key();
+    assert!(asks(&following).is_some());
+
+    // The page reloaded, on the same turn, and Mira's game opened in a second tab.
+    mira(&mut following, 1, 60_000, started.clone(), 600);
+    assert_eq!(asks(&following).map(|asked| asked.turn), Some(Some(500)));
+    mira(&mut following, 2, 70_000, started, 600);
+    assert_eq!(asks(&following).map(|asked| asked.turn), Some(Some(500)));
+
+    assert_eq!(saved_turn(&path, &game), Some(Some(500)));
+}
+
+#[test]
+fn a_game_watched_again_on_a_later_turn_is_never_asked_about() {
+    let mut following = Following::new(&Library::shipped().unwrap());
+    let watching = json!({ "msg": "watching_started", "username": "mira" });
+    mira(&mut following, 1, 1_000, watching.clone(), 500);
+    mira(&mut following, 1, 50_000, watching, 600);
+
+    assert!(following.advisor().identity().is_some());
+    assert_eq!(asks(&following), None);
+}
+
+#[test]
 fn a_new_game_is_never_asked_about() {
     let mut replayer = straight(SCREENS);
     let game = key(&replayer);
@@ -351,7 +418,7 @@ fn a_new_game_is_never_asked_about() {
 }
 
 #[test]
-fn a_game_whose_saved_memory_cant_be_read_says_so_while_followed_and_is_saved_afresh() {
+fn a_game_whose_saved_accumulated_state_cant_be_read_says_so_while_followed_and_is_saved_afresh() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("games.sqlite");
     run(SCREENS, &path).seek(usize::MAX);
@@ -368,14 +435,17 @@ fn a_game_whose_saved_memory_cant_be_read_says_so_while_followed_and_is_saved_af
     after.seek(5);
 
     let view = after.view_model();
-    assert!(view.game.unwrap().memory_unreadable.is_some());
+    assert!(view.game.unwrap().accumulated_unreadable.is_some());
     assert_eq!(view.history_unsaved, None, "the history itself works");
     let game = key(&after);
     assert_eq!(saved_turn(&path, &game), Some(after.turn()), "saved afresh");
     // Tiv dies, and the new Tiv's game says nothing of the old one's.
     after.seek(usize::MAX);
     assert_ne!(key(&after), game);
-    assert_eq!(after.view_model().game.unwrap().memory_unreadable, None);
+    assert_eq!(
+        after.view_model().game.unwrap().accumulated_unreadable,
+        None
+    );
 }
 
 #[test]

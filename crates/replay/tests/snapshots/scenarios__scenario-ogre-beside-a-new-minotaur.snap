@@ -273,7 +273,7 @@ expression: replay
         },
         "live": true,
         "pickedUp": null,
-        "memoryUnreadable": null,
+        "accumulatedUnreadable": null,
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": true
@@ -594,7 +594,7 @@ expression: replay
       },
       "live": true,
       "pickedUp": null,
-      "memoryUnreadable": null,
+      "accumulatedUnreadable": null,
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": true

@@ -141,32 +141,26 @@ impl KnownGames {
         }
     }
 
-    /// The game process that picked up again the game last seen as `picked_up`, naming it at
-    /// `named_ms`, plays a new game instead, as the player says: one first seen then, and seen
-    /// since as the process saw it. The game it was taken for is as it was last seen before.
-    /// Returns the new game's key.
-    pub fn start_afresh(&mut self, picked_up: &KnownGame, named_ms: u64) -> GameKey {
+    /// The game process that picked the game `picked_up` up again, naming it at `named_ms`,
+    /// plays a new game instead, as the player says: one first seen then. Returns its key.
+    pub fn start_afresh(&mut self, picked_up: &GameKey, named_ms: u64) -> GameKey {
         let key = GameKey {
-            character: picked_up.key.character.clone(),
+            character: picked_up.character.clone(),
             first_seen_ms: named_ms,
         };
-        let played = self
-            .get_mut(&picked_up.key)
-            .map(|game| std::mem::replace(game, picked_up.clone()));
         let games = self.by_character.entry(key.character.clone()).or_default();
-        if games.iter().any(|game| game.key == key) {
-            return key;
+        if !games.iter().any(|game| game.key == key) {
+            let at = games.partition_point(|game| game.key.first_seen_ms <= named_ms);
+            games.insert(
+                at,
+                KnownGame {
+                    key: key.clone(),
+                    last_seen_ms: named_ms,
+                    turn: None,
+                    ended: false,
+                },
+            );
         }
-        let at = games.partition_point(|game| game.key.first_seen_ms <= named_ms);
-        games.insert(
-            at,
-            KnownGame {
-                key: key.clone(),
-                last_seen_ms: played.as_ref().map_or(named_ms, |game| game.last_seen_ms),
-                turn: played.as_ref().and_then(|game| game.turn),
-                ended: played.is_some_and(|game| game.ended),
-            },
-        );
         key
     }
 
