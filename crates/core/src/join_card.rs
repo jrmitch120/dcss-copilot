@@ -13,16 +13,14 @@ pub(crate) enum Joining {
     /// It asks for the character dump, while the game's Backfill awaits it.
     #[default]
     Asking,
-    /// The player put the card away without opening anything.
-    NotNow,
     /// The Advisor read the character dump the player opened, while the game's Backfill awaited
     /// it, and this is what it read.
     ReadDump { checklist: Vec<ChecklistRow> },
     /// The Advisor read the dungeon overview the player opened while it asked, and this is what
     /// it read of the levels.
     ReadOverview { levels: String },
-    /// The player put the card away after it said what it read.
-    Done,
+    /// The player put the card away: with Not now, or with OK once it said what it read.
+    PutAway,
 }
 
 impl Joining {
@@ -56,10 +54,7 @@ impl Joining {
 
     /// The player put the card away: "Not now" while it asks, "OK" once it says what it read.
     pub(crate) fn close(&mut self) {
-        *self = match self {
-            Self::Asking | Self::NotNow => Self::NotNow,
-            Self::ReadDump { .. } | Self::ReadOverview { .. } | Self::Done => Self::Done,
-        };
+        *self = Self::PutAway;
     }
 
     /// What the card shows now, as `visible` shows the game and its Backfill is `backfill`, if it
@@ -85,7 +80,7 @@ impl Joining {
             Self::ReadOverview { levels } => Some(JoinCard::CaughtUpFromOverview {
                 levels: levels.clone(),
             }),
-            Self::NotNow | Self::Done => None,
+            Self::PutAway => None,
         }
     }
 }
@@ -142,16 +137,16 @@ fn off_dump<T>(fact: &Remembered<T>) -> Option<&T> {
 /// What `overview` shows of the levels, in a few words, such as `3 branches, 1 altar, 2 shops`:
 /// the altars only when it tells which were found.
 fn levels(overview: &DungeonOverview) -> String {
-    let shops: u32 = overview.shops.iter().map(|shops| shops.count).sum();
+    let shops = overview
+        .shops
+        .iter()
+        .map(|shops| usize::try_from(shops.count).unwrap_or(usize::MAX))
+        .fold(0, usize::saturating_add);
     let mut parts = vec![counted(overview.branches.len(), "branch", "branches")];
     if let Some(altars) = &overview.altars {
         parts.push(counted(altars.len(), "altar", "altars"));
     }
-    parts.push(counted(
-        usize::try_from(shops).unwrap_or(usize::MAX),
-        "shop",
-        "shops",
-    ));
+    parts.push(counted(shops, "shop", "shops"));
     parts.join(", ")
 }
 

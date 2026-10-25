@@ -49,8 +49,9 @@ struct Followed {
     turn: Option<u32>,
     /// It was picked up again, last seen on this turn, and the Advisor hasn't seen it since.
     picked_up_from: Option<LastSeen>,
-    /// The Game Source began following it new, and the Advisor hasn't seen what it shows since.
-    joined: bool,
+    /// The Game Source began following it new, and the Advisor hasn't yet seen what it shows, to
+    /// tell whether it joined part way through.
+    join_pending: bool,
     /// How far the join card has got.
     joining: Joining,
 }
@@ -97,7 +98,7 @@ impl Advisor {
                         Some(last) => game.accumulated.pick_up(last.turn, &visible),
                         None => game.accumulated.update(&self.visible, &visible, knowledge),
                     }
-                    if std::mem::take(&mut game.joined) {
+                    if std::mem::take(&mut game.join_pending) {
                         game.accumulated.join(&visible);
                     }
                     game.turn = visible.turn;
@@ -128,7 +129,7 @@ impl Advisor {
                     }
                     // A game recalled is one the Advisor has seen before, taken in again.
                     if session == SessionEvent::Joined && game.picked_up_from.is_none() {
-                        game.joined = true;
+                        game.join_pending = true;
                     }
                 }
                 return Vec::new();
