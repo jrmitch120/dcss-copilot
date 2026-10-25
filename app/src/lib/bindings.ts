@@ -283,10 +283,13 @@ turn: number | null } |
 { step: "reading"; 
 /**  One row for each part of the dump the Advisor reads. */
 checklist: ChecklistRow[] } | 
-/**  The player closed the character dump, and this is what the Advisor read off it. */
+/**  The player closed the character dump: the Advisor is caught up on what it showed. */
 { step: "caughtUpFromDump"; 
-/**  One row for each part of the dump the Advisor reads. */
-checklist: ChecklistRow[] } | 
+/**
+ *  The parts of the dump the Advisor reads that it didn't show, each with the keys that
+ *  open the screen showing it: none when it showed them all.
+ */
+notInDump: UnreadPart[] } | 
 /**
  *  The player opened the dungeon overview instead of the dump: the Advisor knows the levels,
  *  but not yet the character.
@@ -546,6 +549,20 @@ export type ToolbarBadge = {
 	 *  player to open the panel.
 	 */
 	callsForPanel: boolean,
+};
+
+/**
+ *  A part of the character dump the Advisor reads that the dump didn't show, such as the spells,
+ *  and how to show it.
+ */
+export type UnreadPart = {
+	/**  What it is, such as `spells` or `dungeon overview`. */
+	name: string,
+	/**
+	 *  The keys to press in the game that open the screen showing it, such as `I`, or `Ctrl`
+	 *  then `O`.
+	 */
+	keys: string[],
 };
 
 /**

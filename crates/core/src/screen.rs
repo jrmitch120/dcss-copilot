@@ -473,7 +473,8 @@ impl ScreenRead {
     ///
     /// The dump lists them one per line the same way, without hotkeys, under the screen's title
     /// (`_sdump_mutations` in `chardump.cc`). It leaves the section out for a character with
-    /// none, so `None` then, as for a dump that holds no mutations section.
+    /// none, whose overview says `A: no striking features` (`terse_mutation_list` in
+    /// `mutation.cc`): none then. `None` for a dump that holds neither.
     #[must_use]
     pub fn mutations(&self) -> Option<ShownMutations> {
         let entries: Vec<&str> = match self.screen {
@@ -482,7 +483,17 @@ impl ScreenRead {
                 .iter()
                 .map(|line| menu_entry(line).unwrap_or(line))
                 .collect(),
-            Screen::CharacterDump => dump_section(&self.lines, MUTATIONS_TITLE)?.collect(),
+            Screen::CharacterDump => match dump_section(&self.lines, MUTATIONS_TITLE) {
+                Some(section) => section.collect(),
+                None if self
+                    .lines
+                    .iter()
+                    .any(|line| line.trim() == DUMP_NO_MUTATIONS) =>
+                {
+                    Vec::new()
+                }
+                None => return None,
+            },
             _ => return None,
         };
         let mut shown = ShownMutations::default();
@@ -503,6 +514,9 @@ impl ScreenRead {
         Some(shown)
     }
 }
+
+/// What the character dump's overview says of a character without mutations.
+const DUMP_NO_MUTATIONS: &str = "A: no striking features";
 
 /// The title of the mutations screen, which the character dump also heads its mutations with.
 const MUTATIONS_TITLE: &str = "Innate Abilities, Weirdness & Mutations";
@@ -1147,5 +1161,23 @@ mod tests {
         );
         assert_eq!(dump.spells(), Some(Vec::new()));
         assert_eq!(read(Screen::CharacterDump, &["Skills:"]).spells(), None);
+    }
+
+    /// Crawl leaves the mutations out of the dump of a character with none, but says so in its
+    /// overview; the Scenarios' characters all have some.
+    #[test]
+    fn the_character_dump_of_a_character_without_mutations_says_so_in_its_overview() {
+        let dump = |lines: &[&str]| read(Screen::CharacterDump, lines).mutations();
+        let none = dump(&[
+            "%: no passive effects",
+            "@: no status effects",
+            "A: no striking features",
+            "a: no special abilities",
+            "",
+            "Message History",
+        ]);
+        assert_eq!(none, Some(ShownMutations::default()));
+        // Some, but their section left out of the dump by the player's options.
+        assert_eq!(dump(&["A: magic regeneration, clarity"]), None);
     }
 }

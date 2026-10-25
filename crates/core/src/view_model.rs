@@ -328,10 +328,11 @@ pub enum JoinCard {
         /// One row for each part of the dump the Advisor reads.
         checklist: Vec<ChecklistRow>,
     },
-    /// The player closed the character dump, and this is what the Advisor read off it.
+    /// The player closed the character dump: the Advisor is caught up on what it showed.
     CaughtUpFromDump {
-        /// One row for each part of the dump the Advisor reads.
-        checklist: Vec<ChecklistRow>,
+        /// The parts of the dump the Advisor reads that it didn't show, each with the keys that
+        /// open the screen showing it: none when it showed them all.
+        not_in_dump: Vec<UnreadPart>,
     },
     /// The player opened the dungeon overview instead of the dump: the Advisor knows the levels,
     /// but not yet the character.
@@ -339,6 +340,18 @@ pub enum JoinCard {
         /// What it read of the levels, such as `3 branches, 1 altar, 2 shops`.
         levels: String,
     },
+}
+
+/// A part of the character dump the Advisor reads that the dump didn't show, such as the spells,
+/// and how to show it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UnreadPart {
+    /// What it is, such as `spells` or `dungeon overview`.
+    pub name: String,
+    /// The keys to press in the game that open the screen showing it, such as `I`, or `Ctrl`
+    /// then `O`.
+    pub keys: Vec<String>,
 }
 
 /// One part of the character dump on the join card's checklist, such as the skills.

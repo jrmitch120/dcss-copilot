@@ -4,6 +4,9 @@ import type { PanelActions } from "./actions";
 
 let { join, actions }: { join: JoinCard; actions: PanelActions } = $props();
 
+/** Joins a list as a sentence does: `spells, mutations and dungeon overview`. */
+const AND = new Intl.ListFormat("en", { type: "conjunction" });
+
 /** The player chose the lighter dungeon overview over the dump: only what the card asks for. */
 let overviewOnly = $state(false);
 let closeError = $state<string | null>(null);
@@ -64,9 +67,25 @@ async function close() {
     <p class="small muted">You can close the dump now.</p>
   </section>
 {:else if join.step === "caughtUpFromDump"}
+  {@const unread = join.notInDump}
   <section class="card">
     <div class="lbl">Caught up <em>from your dump</em></div>
-    {@render checklist(join.checklist)}
+    {#if unread.length === 0}
+      <p class="small">Skills, spells, mutations and the dungeon overview are current.</p>
+    {:else}
+      <p class="small">
+        Not in your dump: {AND.format(unread.map((part) => part.name))}. Press
+        {#each unread as part, i (i)}
+          {#if i > 0}
+            {i === unread.length - 1 ? " and " : ", "}
+          {/if}
+          {#each part.keys as key (key)}
+            <kbd>{key}</kbd>
+          {/each}
+        {/each}
+        in the game to fill {unread.length === 1 ? "it" : "them"} in.
+      </p>
+    {/if}
     <div class="acts"><button type="button" onclick={close}>OK</button></div>
   </section>
 {:else if join.step === "caughtUpFromOverview"}

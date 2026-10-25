@@ -3,7 +3,7 @@
 
 use crate::accumulated_state::{AccumulatedState, Backfill, Remembered};
 use crate::screen::{DungeonOverview, Screen, ScreenRead};
-use crate::view_model::{ChecklistRow, JoinCard};
+use crate::view_model::{ChecklistRow, JoinCard, UnreadPart};
 use crate::visible_state::VisibleState;
 
 /// How far the join card has got for one game, kept only while the app runs: after a restart, it
@@ -14,8 +14,10 @@ pub(crate) enum Joining {
     #[default]
     Asking,
     /// The Advisor read the character dump the player opened, while the game's Backfill awaited
-    /// it, and this is what it read.
-    ReadDump { checklist: Vec<ChecklistRow> },
+    /// it, and this is what it read of each part, if it showed it.
+    ReadDump {
+        parts: Vec<(DumpPart, Option<String>)>,
+    },
     /// The Advisor read the dungeon overview the player opened while it asked, and this is what
     /// it read of the levels.
     ReadOverview { levels: String },
@@ -38,7 +40,7 @@ impl Joining {
         match read.screen {
             Screen::CharacterDump => {
                 *self = Self::ReadDump {
-                    checklist: checklist(accumulated),
+                    parts: read_off_dump(accumulated),
                 };
             }
             Screen::DungeonOverview if matches!(self, Self::Asking) => {
@@ -65,16 +67,26 @@ impl Joining {
                 Backfill::Awaiting { joined_on } => Some(JoinCard::Asking { turn: joined_on }),
                 Backfill::Complete => None,
             },
-            Self::ReadDump { checklist } => {
+            Self::ReadDump { parts } => {
                 let dump_open = visible
                     .screen
                     .as_ref()
                     .is_some_and(|read| read.screen == Screen::CharacterDump);
-                let checklist = checklist.clone();
                 Some(if dump_open {
-                    JoinCard::Reading { checklist }
+                    JoinCard::Reading {
+                        checklist: parts
+                            .iter()
+                            .map(|(part, read)| part.row(read.as_ref()))
+                            .collect(),
+                    }
                 } else {
-                    JoinCard::CaughtUpFromDump { checklist }
+                    JoinCard::CaughtUpFromDump {
+                        not_in_dump: parts
+                            .iter()
+                            .filter(|(_, read)| read.is_none())
+                            .map(|(part, _)| part.unread())
+                            .collect(),
+                    }
                 })
             }
             Self::ReadOverview { levels } => Some(JoinCard::CaughtUpFromOverview {
@@ -85,45 +97,97 @@ impl Joining {
     }
 }
 
-/// What `accumulated` holds that it read off the character dump, one row for each part the
-/// Advisor reads.
-fn checklist(accumulated: &AccumulatedState) -> Vec<ChecklistRow> {
-    let row = |line: Option<String>, missing: &str| match line {
-        Some(line) => ChecklistRow { read: true, line },
-        None => ChecklistRow {
-            read: false,
-            line: missing.to_owned(),
-        },
-    };
-    vec![
-        row(
-            off_dump(&accumulated.skills)
+/// A part of the character dump the Advisor reads, as the join card lists it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DumpPart {
+    Skills,
+    Spells,
+    Mutations,
+    DungeonOverview,
+}
+
+impl DumpPart {
+    /// Every part, in the order the card lists them.
+    const ALL: [Self; 4] = [
+        Self::Skills,
+        Self::Spells,
+        Self::Mutations,
+        Self::DungeonOverview,
+    ];
+
+    /// Its name, as a row of the card starts.
+    fn name(self) -> &'static str {
+        match self {
+            Self::Skills => "Skills",
+            Self::Spells => "Spells",
+            Self::Mutations => "Mutations",
+            Self::DungeonOverview => "Dungeon overview",
+        }
+    }
+
+    /// The keys that open the screen showing it on its own.
+    fn keys(self) -> &'static [&'static str] {
+        match self {
+            Self::Skills => &["m"],
+            Self::Spells => &["I"],
+            Self::Mutations => &["A"],
+            Self::DungeonOverview => &["Ctrl", "O"],
+        }
+    }
+
+    /// What `accumulated` holds of it read off the character dump, as the card's row says it,
+    /// such as `Skills (12, with decimals)`: `None` when the dump didn't show it.
+    fn off_dump(self, accumulated: &AccumulatedState) -> Option<String> {
+        match self {
+            Self::Skills => off_dump(&accumulated.skills)
                 .map(|skills| format!("Skills ({}, with decimals)", skills.tenths.len())),
-            "Skills: not in your dump",
-        ),
-        row(
-            off_dump(&accumulated.spells).map(|spells| match spells.len() {
+            Self::Spells => off_dump(&accumulated.spells).map(|spells| match spells.len() {
                 0 => "Spells: none memorised".to_owned(),
                 known => format!("Spells ({known}, with failure rates)"),
             }),
-            "Spells: not in your dump",
-        ),
-        row(
-            off_dump(&accumulated.mutations).map(|mutations| {
+            Self::Mutations => off_dump(&accumulated.mutations).map(|mutations| {
                 let shown = &mutations.shown;
-                match shown.banes.len() {
-                    0 => format!("Mutations ({})", shown.mutations.len()),
-                    banes => format!("Mutations ({}) and banes ({banes})", shown.mutations.len()),
+                match (shown.mutations.len(), shown.banes.len()) {
+                    (0, 0) => "Mutations: none".to_owned(),
+                    (mutations, 0) => format!("Mutations ({mutations})"),
+                    (mutations, banes) => format!("Mutations ({mutations}) and banes ({banes})"),
                 }
             }),
-            "Mutations: none listed in your dump",
-        ),
-        row(
-            off_dump(&accumulated.dungeon)
+            Self::DungeonOverview => off_dump(&accumulated.dungeon)
                 .map(|overview| format!("Dungeon overview: {}", levels(overview))),
-            "Dungeon overview: not in your dump",
-        ),
-    ]
+        }
+    }
+
+    /// Its row on the card, with what the dump showed of it, if it showed it.
+    fn row(self, read: Option<&String>) -> ChecklistRow {
+        match read {
+            Some(line) => ChecklistRow {
+                read: true,
+                line: line.clone(),
+            },
+            None => ChecklistRow {
+                read: false,
+                line: format!("{}: not in your dump", self.name()),
+            },
+        }
+    }
+
+    /// It, as the card names a part the dump didn't show.
+    fn unread(self) -> UnreadPart {
+        UnreadPart {
+            name: self.name().to_lowercase(),
+            keys: self.keys().iter().map(|&key| key.to_owned()).collect(),
+        }
+    }
+}
+
+/// What `accumulated` holds that it read off the character dump, for each part the Advisor
+/// reads.
+fn read_off_dump(accumulated: &AccumulatedState) -> Vec<(DumpPart, Option<String>)> {
+    DumpPart::ALL
+        .into_iter()
+        .map(|part| (part, part.off_dump(accumulated)))
+        .collect()
 }
 
 /// The fact, when it is Known as read off the character dump.
@@ -156,5 +220,77 @@ fn counted(count: usize, one: &str, many: &str) -> String {
         0 => format!("no {many}"),
         1 => format!("1 {one}"),
         count => format!("{count} {many}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use super::*;
+
+    /// The Scenario's dump shows every part; a player's options can leave some out.
+    #[test]
+    fn caught_up_from_a_dump_names_each_part_it_didnt_show_with_the_keys_that_show_it() {
+        let dump = ScreenRead {
+            screen: Screen::CharacterDump,
+            title: None,
+            lines: [
+                "A: no striking features",
+                "",
+                "   Skills:",
+                " + Level 5.3 Fighting",
+            ]
+            .map(str::to_owned)
+            .to_vec(),
+            colours: BTreeMap::new(),
+        };
+        let mut accumulated = AccumulatedState::default();
+        accumulated.read(&dump, &VisibleState::default(), None);
+        let mut joining = Joining::Asking;
+        joining.read(
+            &dump,
+            Backfill::Awaiting { joined_on: Some(9) },
+            &accumulated,
+        );
+
+        let reading = VisibleState {
+            screen: Some(dump),
+            ..VisibleState::default()
+        };
+        let Some(JoinCard::Reading { checklist }) = joining.card(Backfill::Complete, &reading)
+        else {
+            panic!("not reading");
+        };
+        let rows: Vec<_> = checklist
+            .iter()
+            .map(|row| (row.read, row.line.as_str()))
+            .collect();
+        assert_eq!(
+            rows,
+            [
+                (true, "Skills (1, with decimals)"),
+                (false, "Spells: not in your dump"),
+                (true, "Mutations: none"),
+                (false, "Dungeon overview: not in your dump"),
+            ]
+        );
+        let closed = VisibleState::default();
+        let Some(JoinCard::CaughtUpFromDump { not_in_dump }) =
+            joining.card(Backfill::Complete, &closed)
+        else {
+            panic!("not caught up");
+        };
+        let unread: Vec<_> = not_in_dump
+            .iter()
+            .map(|part| (part.name.as_str(), part.keys.join(" ")))
+            .collect();
+        assert_eq!(
+            unread,
+            [
+                ("spells", "I".to_owned()),
+                ("dungeon overview", "Ctrl O".to_owned())
+            ]
+        );
     }
 }

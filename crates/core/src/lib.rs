@@ -44,7 +44,7 @@ pub use suggested_action::SuggestionRule;
 pub use view_model::{
     Appearance, AskBox, AssistanceLevel, Character, ChecklistRow, Colour, Connection, Depiction,
     FactCard, FocusCard, GameView, Glyph, JoinCard, Listing, NowPill, PickedUp, RunPlanRail,
-    SuggestedActionCard, TileName, ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
+    SuggestedActionCard, TileName, ToolbarBadge, UnreadPart, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

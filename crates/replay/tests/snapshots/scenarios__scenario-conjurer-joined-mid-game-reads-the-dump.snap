@@ -223,24 +223,7 @@ expression: replay
         "card": "join",
         "join": {
           "step": "caughtUpFromDump",
-          "checklist": [
-            {
-              "read": true,
-              "line": "Skills (5, with decimals)"
-            },
-            {
-              "read": true,
-              "line": "Spells (2, with failure rates)"
-            },
-            {
-              "read": true,
-              "line": "Mutations (3)"
-            },
-            {
-              "read": true,
-              "line": "Dungeon overview: 1 branch, no altars, 1 shop"
-            }
-          ]
+          "notInDump": []
         }
       },
       "factCards": [],
