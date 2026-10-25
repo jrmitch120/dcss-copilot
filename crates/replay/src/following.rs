@@ -12,8 +12,8 @@ use serde::Serialize;
 ///
 /// A game is recalled from the store as the Game Source identifies it, and saved after each
 /// envelope that changes it. What a browser replays of a page the store has seen already is
-/// taken in again, so the Advisor follows the game through it, but isn't saved again. A game
-/// watched rather than played is never saved.
+/// taken in again, so the Advisor follows the game through it, but isn't saved again. Only a
+/// game the Game Source saw start as played is saved: never one watched.
 #[derive(Debug)]
 pub struct Following {
     knowledge: Library,
@@ -189,7 +189,7 @@ impl Following {
     fn recall(&mut self, identity: &GameIdentity) {
         let key = identity.key();
         let Some(store) = &mut self.store else { return };
-        if self.advisor.knows(&key) || identity.role == Some(Role::Spectating) {
+        if self.advisor.knows(&key) || identity.role != Some(Role::Playing) {
             return;
         }
         match store.saved(&key) {
@@ -207,7 +207,8 @@ impl Following {
         let Some(identity) = self.advisor.identity() else {
             return;
         };
-        if identity.role == Some(Role::Spectating) {
+        // A game not known to be played, such as one joined mid-page, may be one watched.
+        if identity.role != Some(Role::Playing) {
             return;
         }
         let (Some(game), Some(accumulated)) = (

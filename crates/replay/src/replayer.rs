@@ -7,12 +7,11 @@ use copilot_core::{
     Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, SourceEvent, ViewModel,
 };
 use copilot_gk::{BundleError, Library};
+use copilot_store::Store;
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
 
 use crate::Recording;
-use copilot_store::Store;
-
 use crate::following::{Following, Happened};
 
 /// Replays a Recording through the webtiles Game Source and the core, as if a browser had relayed

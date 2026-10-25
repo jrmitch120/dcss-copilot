@@ -74,6 +74,10 @@ _Avoid_: History, memory, cache
 Every change to a game's Accumulated State, in the order it was made, each with the turn and time of the message that made it. It is only ever added to, so it tells what the Advisor knew of the game at any moment; it goes only with its game, when the player clears history or the game is pruned.
 _Avoid_: History (when meaning this), audit log, journal
 
+**Game History**:
+Every game the Advisor remembers between runs of the app, kept on the player's computer only: each one's Game Key, its Accumulated State and its Change Log. A game not played for 90 days is forgotten unless the player turns that off, and the player can clear the history of every game but the one they are playing.
+_Avoid_: Database, saves, history (alone, when meaning Accumulated State)
+
 **Known, Stale, Missing**:
 How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, or when the Advisor picks a game up again at a later turn than it last saw it on, as the turns between could have changed anything; every remembered fact keeps the turn it was read on, so it is shown as of that turn rather than as current.
 _Avoid_: Fresh, expired, cached

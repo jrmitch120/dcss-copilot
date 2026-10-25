@@ -12,10 +12,9 @@ use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
 use copilot_replay::{Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::Envelope;
-
-use crate::relay::{ApprovalRequest, RelayEvent};
 use serde::Serialize;
 
+use crate::relay::{ApprovalRequest, RelayEvent};
 use crate::settings::{FORGET_GAMES_AFTER_DAYS, Settings, SettingsError};
 
 /// Everything the app knows about the browser connection and the game it relays.
