@@ -21,7 +21,7 @@ mod visible_state;
 mod ways_out;
 
 pub use accumulated_state::{
-    AccumulatedState, AsOf, Backfill, GearSource, MutationsRead, Remembered, Shield,
+    AccumulatedState, AsOf, Backfill, GearSource, MutationsRead, Remembered, Shield, Source,
 };
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};

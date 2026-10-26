@@ -7,7 +7,7 @@ use copilot_gk::{Bundle, LightingSigns, MonsterSpells};
 use serde::Serialize;
 use specta::Type;
 
-use crate::accumulated_state::{AccumulatedState, GearSource, Remembered};
+use crate::accumulated_state::{AccumulatedState, GearSource, Remembered, Source};
 use crate::carried_gear::{Unlisted, Unplayed};
 use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::dangerous_status::{self, DangerousStatus};
@@ -19,7 +19,7 @@ use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
-use crate::screen::{Resistances, Screen};
+use crate::screen::Resistances;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
@@ -148,7 +148,7 @@ pub struct ResistancesApplied {
     /// The turn they were read on.
     pub turn: Option<u32>,
     /// What they were read off.
-    pub source: Screen,
+    pub source: Source,
     /// Each resistance's pips, or immunity.
     pub resistances: Resistances,
 }
@@ -1098,7 +1098,7 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::AsOf;
-    use crate::screen::Resistance;
+    use crate::screen::{Resistance, Screen};
     use crate::view_model::{Colour, Glyph};
     use crate::visible_state::Stats;
 
@@ -1266,7 +1266,7 @@ mod tests {
                 willpower: none,
             },
             turn: Some(40),
-            source: Screen::CharacterOverview,
+            source: Screen::CharacterOverview.into(),
         };
         let mut remembered = AccumulatedState::default();
         remembered.resistances = if stale {

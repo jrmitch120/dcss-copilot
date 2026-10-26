@@ -1013,7 +1013,7 @@ mod tests {
         Remembered::Known(AsOf {
             value,
             turn: Some(1),
-            source: screen,
+            source: screen.into(),
         })
     }
 

@@ -541,7 +541,7 @@ mod tests {
                     xl: Some(1),
                 },
                 turn: Some(1),
-                source: Screen::Mutations,
+                source: Screen::Mutations.into(),
             });
         }
         remembered
@@ -702,7 +702,7 @@ mod tests {
         let mut remembered = remembered(true);
         if let Remembered::Known(read) = &mut remembered.mutations {
             read.value.shown.banes = None;
-            read.source = Screen::CharacterDump;
+            read.source = Screen::CharacterDump.into();
         }
         let visible = corridor(&[], 0);
         let ways_out = WaysOut::compute(&visible, Some(&remembered), Some("Human"), Some(bundle()));
@@ -920,7 +920,7 @@ mod tests {
                 level: 2,
             }],
             turn: Some(1),
-            source: Screen::Spells,
+            source: Screen::Spells.into(),
         });
         assert!(own_conditions(&with_a_spell, &visible));
     }

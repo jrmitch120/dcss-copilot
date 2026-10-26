@@ -143,7 +143,7 @@ struct Unplaced {
     rename_all = "camelCase",
     rename_all_fields = "camelCase"
 )]
-pub enum Remembered<T, S = Screen> {
+pub enum Remembered<T, S = Source> {
     /// The Advisor has never read it.
     #[default]
     Missing,
@@ -157,13 +157,33 @@ pub enum Remembered<T, S = Screen> {
 /// A remembered value, with where and when it was read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AsOf<T, S = Screen> {
+pub struct AsOf<T, S = Source> {
     /// What was read.
     pub value: T,
     /// The game's turn when it was read, if the game had reported one.
     pub turn: Option<u32>,
-    /// What it was read off: the screen the player opened, or, for Carried Gear, the message.
+    /// What it was read off: the screen the player opened or the message the game gave, or,
+    /// for Carried Gear, where the game listed it.
     pub source: S,
+}
+
+/// Where a fact about the character was last read: a screen the player opened, or a message the
+/// game gave as the fact changed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Source {
+    /// A message the game gave.
+    Message,
+    /// A screen the player opened, written as the screen alone, as every fact was before
+    /// messages changed them, so what was saved then reads the same.
+    #[serde(untagged)]
+    Screen(Screen),
+}
+
+impl From<Screen> for Source {
+    fn from(screen: Screen) -> Self {
+        Self::Screen(screen)
+    }
 }
 
 /// What the mutations screen showed, and the experience level the character had then, which
@@ -245,7 +265,7 @@ impl<T> Remembered<T> {
         Self::Known(AsOf {
             value,
             turn: visible.turn,
-            source: read.screen.clone(),
+            source: read.screen.clone().into(),
         })
     }
 }
@@ -656,7 +676,7 @@ impl<T> Remembered<Vec<T>> {
         Self::Known(AsOf {
             value: Vec::new(),
             turn,
-            source: screen,
+            source: screen.into(),
         })
     }
 }
