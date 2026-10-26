@@ -679,13 +679,18 @@ fn whole_spell_name(shown: &str, bundle: &Bundle) -> String {
 /// Whether `message` tells of a mutation or bane that changes the character's speed coming or
 /// going, as `bundle` gives their messages.
 fn changes_speed(message: &str, bundle: &Bundle) -> bool {
-    let speed = &bundle.speed;
-    speed
+    let (speed, character) = (&bundle.speed, &bundle.character);
+    let mutations = character
         .mutations
         .iter()
-        .flat_map(|mutation| &mutation.messages)
-        .chain(speed.banes.iter().flat_map(|bane| &bane.messages))
-        .any(|said| said == message)
+        .filter(|mutation| speed.mutations.iter().any(|fast| fast.id == mutation.id))
+        .flat_map(|mutation| mutation.gained.iter().chain(&mutation.lost).flatten());
+    let banes = character
+        .banes
+        .iter()
+        .filter(|bane| speed.banes.iter().any(|slow| slow.id == bane.id))
+        .flat_map(|bane| bane.gained.iter().chain([&bane.lifted]));
+    mutations.chain(banes).any(|said| said == message)
 }
 
 /// Whether the player carries the same in `before` and `now`, by letters, names, quantities and

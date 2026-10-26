@@ -6,6 +6,7 @@
 //! the enum values match what webtiles sends.
 
 mod branches;
+mod character;
 mod cpp;
 mod features;
 mod gear;
@@ -87,6 +88,7 @@ const SERIES: &[Series] = &[Series {
     features: &features::FEATURE_RULES_0_34,
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     speed: &speed::SPEED_RULES_0_34,
+    character: &character::CHARACTER_RULES_0_34,
     // `seen_item`, as it tells the player what an item they carry is.
     kind_learned: Shown::quoted("You learned that %s %s actually %s.", "item-prop.cc"),
     kinds_hidden: &[
@@ -343,6 +345,8 @@ struct Series {
     ways_out: &'static ways_out::WayOutRules,
     /// What it reads of the player's speed.
     speed: &'static speed::SpeedRules,
+    /// What it says as the character changes.
+    character: &'static character::CharacterRules,
     /// The message it gives when the player learns the kind of an item they carry by seeing
     /// another of its kind identified.
     kind_learned: Shown,
@@ -702,6 +706,8 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     let spells = crawl.spells()?;
     let ways_out = crawl.ways_out(series.ways_out, &item_classes, &spells)?;
     let species = yaml::species(&crawl.source, crawl.tag_major)?;
+    let mutations = crawl.mutations()?;
+    let banes = crawl.banes(series.character)?;
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -752,7 +758,10 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         speed: crawl.speed(
             series.speed,
             yaml::unformed(&crawl.source, crawl.tag_major)?,
+            &mutations,
+            &banes,
         )?,
+        character: crawl.character(series.character, &mutations, banes)?,
         formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })

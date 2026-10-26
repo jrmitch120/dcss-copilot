@@ -59,3 +59,7 @@ enum mouse_mode
     MOUSE_MODE_YESNO,
     MOUSE_MODE_MAX,
 };
+
+// (trimmed for the extractor test)
+
+const int MAX_SKILL_LEVEL = 27;

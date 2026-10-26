@@ -7,9 +7,10 @@
 use std::collections::BTreeSet;
 
 use copilot_gk::{
-    EnumId, FormBody, GodRank, SpeedBane, SpeedLight, SpeedMutation, SpeedSigns, SpeedStatus,
+    Bane, FormBody, GodRank, SpeedBane, SpeedLight, SpeedMutation, SpeedSigns, SpeedStatus,
 };
 
+use crate::character::MutationEntry;
 use crate::cpp::{Source, Token};
 use crate::{Crawl, ExtractError, Shown};
 
@@ -21,11 +22,6 @@ pub struct SpeedRules {
     pub mutations: &'static [&'static str],
     /// The banes it reads, by `bane_type` identifier.
     pub banes: &'static [&'static str],
-    /// The messages crawl gives as a bane is gained, grows stronger and is lifted, each with
-    /// `{}` where `bane_name` names the bane.
-    pub bane_messages: &'static [Shown],
-    /// How `bane_name` names a bane: `{}` where its `name` goes.
-    pub bane_name: Shown,
     /// The gods whose followers are slowed and never hastened by a rage.
     pub slowing_gods: &'static [Shown],
     /// The gods whose followers walk on water, with the piety rank they do from, each with what
@@ -88,30 +84,6 @@ pub const SPEED_RULES_0_34: SpeedRules = SpeedRules {
         "MUT_NIMBLE_SWIMMER",
     ],
     banes: &["BANE_LETHARGY"],
-    bane_messages: &[
-        // `add_bane`, for a new bane and one gained again.
-        Shown {
-            text: "You are stricken with the {}.",
-            file: "mutation.cc",
-            evidence: Some("\"You are stricken with the %s.\""),
-        },
-        Shown {
-            text: "Your {} grows stronger.",
-            file: "mutation.cc",
-            evidence: Some("\"Your %s grows stronger.\""),
-        },
-        // `remove_bane`.
-        Shown {
-            text: "The {} upon you is lifted.",
-            file: "mutation.cc",
-            evidence: Some("\"The %s upon you is lifted.\""),
-        },
-    ],
-    bane_name: Shown {
-        text: "Bane of {}",
-        file: "mutation.cc",
-        evidence: Some("\"Bane of %s\""),
-    },
     slowing_gods: &[Shown {
         text: "Cheibriados",
         file: "god-passive.cc",
@@ -148,12 +120,6 @@ const STATUS_FILE: &str = "status.cc";
 /// The file the lights of simple durations are in.
 const DURATION_FILE: &str = "duration-data.h";
 
-/// The file the mutations are defined in.
-const MUTATION_FILE: &str = "mutation-data.h";
-
-/// The file the banes are defined in.
-const BANE_FILE: &str = "bane-data.h";
-
 /// What `fill_status_info` sets a light to without a literal of its own, which the extractor
 /// reads elsewhere: a duration's light from `duration_data` (`ddef`, and `def` as `status.cc`'s
 /// own copy names it), a form's from `dat/forms` (`form`), and a channelled spell's charge from
@@ -172,6 +138,8 @@ impl Crawl {
         &self,
         rules: &SpeedRules,
         unformed: FormBody,
+        mutations: &[MutationEntry],
+        banes: &[Bane],
     ) -> Result<SpeedSigns, ExtractError> {
         let mut lights: Vec<SpeedLight> = rules
             .statuses
@@ -199,8 +167,8 @@ impl Crawl {
         Ok(SpeedSigns {
             lights,
             unformed,
-            mutations: self.speed_mutations(rules.mutations)?,
-            banes: self.speed_banes(rules)?,
+            mutations: speed_mutations(rules.mutations, mutations)?,
+            banes: speed_banes(rules.banes, banes)?,
             slowing_gods: shown(rules.slowing_gods)?,
             water_walking_gods: rules
                 .water_walking_gods
@@ -295,123 +263,49 @@ impl Crawl {
         lights.retain(|light| !light.is_empty());
         Ok(lights.into_iter().collect())
     }
+}
 
-    /// The mutations of `ids`, from `mut_data`, each with its descriptions on the mutations
-    /// screen and its messages for each of its levels.
-    fn speed_mutations(&self, ids: &[&str]) -> Result<Vec<SpeedMutation>, ExtractError> {
-        let source = self.parse(MUTATION_FILE)?;
-        let entries = source.entries("mut_data")?;
-        let unreadable = |what: String| ExtractError::Unreadable {
-            file: MUTATION_FILE.to_owned(),
-            what,
-        };
-        ids.iter()
-            .map(|&id| {
-                let fields = entries
+/// The mutations of `ids`, each with its descriptions on the mutations screen.
+fn speed_mutations(
+    ids: &[&str],
+    mutations: &[MutationEntry],
+) -> Result<Vec<SpeedMutation>, ExtractError> {
+    ids.iter()
+        .map(|&id| {
+            let entry = mutations
+                .iter()
+                .find(|entry| entry.mutation.id.0 == id)
+                .ok_or_else(|| ExtractError::Missing {
+                    file: "mutation-data.h".to_owned(),
+                    what: id.to_owned(),
+                })?;
+            Ok(SpeedMutation {
+                id: entry.mutation.id.clone(),
+                shown: entry.mutation.shown.clone(),
+                anatomy: entry.anatomy,
+            })
+        })
+        .collect()
+}
+
+/// The banes of `ids`, each with its description on the mutations screen.
+fn speed_banes(ids: &[&str], banes: &[Bane]) -> Result<Vec<SpeedBane>, ExtractError> {
+    ids.iter()
+        .map(|&id| {
+            let bane =
+                banes
                     .iter()
-                    .find(|fields| {
-                        fields.first().map(Vec::as_slice) == Some(&[Token::Ident(id.to_owned())])
-                    })
+                    .find(|bane| bane.id.0 == id)
                     .ok_or_else(|| ExtractError::Missing {
-                        file: MUTATION_FILE.to_owned(),
+                        file: "bane-data.h".to_owned(),
                         what: id.to_owned(),
                     })?;
-                let [_, _, levels, flags, _, have, gain, lose, ..] = fields.as_slice() else {
-                    return Err(unreadable(format!("the entry of {id}")));
-                };
-                let levels = match levels.as_slice() {
-                    [Token::Number(levels)] => levels
-                        .parse::<usize>()
-                        .map_err(|_| unreadable(format!("the levels of {id}")))?,
-                    _ => return Err(unreadable(format!("the levels of {id}"))),
-                };
-                let texts = |field: &[Token], what: &str| -> Result<Vec<String>, ExtractError> {
-                    let [Token::Punct('{'), inner @ .., Token::Punct('}')] = field else {
-                        return Err(unreadable(format!("the {what} of {id}")));
-                    };
-                    inner
-                        .iter()
-                        .filter(|token| **token != Token::Punct(','))
-                        .take(levels)
-                        .map(|token| match token {
-                            Token::Str(text) => Ok(text.clone()),
-                            _ => Err(unreadable(format!("the {what} of {id}"))),
-                        })
-                        .collect()
-                };
-                let shown = texts(have, "descriptions")?;
-                if shown.len() != levels || shown.iter().any(String::is_empty) {
-                    return Err(unreadable(format!("the descriptions of {id}")));
-                }
-                let mut messages: Vec<String> = Vec::new();
-                for message in texts(gain, "gain messages")?
-                    .into_iter()
-                    .chain(texts(lose, "lose messages")?)
-                {
-                    if !message.is_empty() && !messages.contains(&message) {
-                        messages.push(message);
-                    }
-                }
-                Ok(SpeedMutation {
-                    id: EnumId(id.to_owned()),
-                    shown,
-                    anatomy: flags.contains(&Token::Ident("anatomy".to_owned())),
-                    messages,
-                })
+            Ok(SpeedBane {
+                id: bane.id.clone(),
+                shown: bane.shown.clone(),
             })
-            .collect()
-    }
-
-    /// The banes of `rules`, from `bane_data`, each with its description on the mutations
-    /// screen and the messages crawl gives as it comes and goes.
-    fn speed_banes(&self, rules: &SpeedRules) -> Result<Vec<SpeedBane>, ExtractError> {
-        let source = self.parse(BANE_FILE)?;
-        let entries = source.entries("bane_data")?;
-        let name_of = self.shown(&rules.bane_name)?;
-        let templates: Vec<String> = rules
-            .bane_messages
-            .iter()
-            .map(|shown| self.shown(shown))
-            .collect::<Result<_, _>>()?;
-        rules
-            .banes
-            .iter()
-            .map(|&id| {
-                let fields = entries
-                    .iter()
-                    .find(|fields| {
-                        fields.first().map(Vec::as_slice) == Some(&[Token::Ident(id.to_owned())])
-                    })
-                    .ok_or_else(|| ExtractError::Missing {
-                        file: BANE_FILE.to_owned(),
-                        what: id.to_owned(),
-                    })?;
-                let [_, _, name, description] = fields.as_slice() else {
-                    return Err(ExtractError::Unreadable {
-                        file: BANE_FILE.to_owned(),
-                        what: format!("the entry of {id}"),
-                    });
-                };
-                let ([Token::Str(name)], [Token::Str(shown)]) =
-                    (name.as_slice(), description.as_slice())
-                else {
-                    return Err(ExtractError::Unreadable {
-                        file: BANE_FILE.to_owned(),
-                        what: format!("the entry of {id}"),
-                    });
-                };
-                let named = name_of.replace("{}", name);
-                Ok(SpeedBane {
-                    id: EnumId(id.to_owned()),
-                    shown: shown.clone(),
-                    messages: templates
-                        .iter()
-                        .map(|template| template.replace("{}", &named))
-                        .collect(),
-                })
-            })
-            .collect()
-    }
+        })
+        .collect()
 }
 
 /// The words of a light `format` builds before the first thing it fills in, without the spaces

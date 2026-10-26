@@ -3595,11 +3595,7 @@ expression: bundle
           "You move with supernatural speed. (Speed++)",
           "You move with supernatural speed. (Speed+++)"
         ],
-        "anatomy": false,
-        "messages": [
-          "You feel quick.",
-          "You feel sluggish."
-        ]
+        "anatomy": false
       },
       {
         "id": "MUT_SLOW",
@@ -3608,11 +3604,7 @@ expression: bundle
           "You cover ground very slowly.",
           "You cover ground extremely slowly."
         ],
-        "anatomy": false,
-        "messages": [
-          "You feel sluggish.",
-          "You feel quick."
-        ]
+        "anatomy": false
       },
       {
         "id": "MUT_FROG_LEGS",
@@ -3620,10 +3612,7 @@ expression: bundle
           "You can hop short distances, but move slowly.",
           "You can hop long distances, but move slowly."
         ],
-        "anatomy": true,
-        "messages": [
-          "Your legs feel stronger."
-        ]
+        "anatomy": true
       },
       {
         "id": "MUT_CONSTRICTING_TAIL",
@@ -3631,13 +3620,7 @@ expression: bundle
           "Your snake-like lower body moves slowly.",
           "Your snake-like lower body moves slowly, but can constrict enemies."
         ],
-        "anatomy": true,
-        "messages": [
-          "Your lower body turns into a snake tail.",
-          "Your tail grows strong enough to constrict your enemies.",
-          "Your lower body returns to normal.",
-          "Your snake tail weakens and can no longer constrict your enemies."
-        ]
+        "anatomy": true
       },
       {
         "id": "MUT_NIMBLE_SWIMMER",
@@ -3645,23 +3628,13 @@ expression: bundle
           "You are camouflaged when in or above water. (Stealth+)",
           "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
         ],
-        "anatomy": true,
-        "messages": [
-          "You feel comfortable near water.",
-          "You feel very comfortable near water.",
-          "You feel less comfortable near water."
-        ]
+        "anatomy": true
       }
     ],
     "banes": [
       {
         "id": "BANE_LETHARGY",
-        "shown": "You cover ground slowly.",
-        "messages": [
-          "You are stricken with the Bane of Lethargy.",
-          "Your Bane of Lethargy grows stronger.",
-          "The Bane of Lethargy upon you is lifted."
-        ]
+        "shown": "You cover ground slowly."
       }
     ],
     "slowingGods": [
@@ -3678,6 +3651,128 @@ expression: bundle
     ],
     "quickeningGear": [
       "lightning scales"
+    ]
+  },
+  "character": {
+    "skills": {
+      "changed": [
+        "Your {} skill increases to level {}!",
+        "Your {} skill decreases to level {}!",
+        "Your {} skill gained {} levels and is now at level {}!",
+        "Your {} skill lost {} levels and is now at level {}!"
+      ],
+      "mastered": "You have mastered {}!",
+      "most": 27,
+      "base": "base ",
+      "shiftingGods": [
+        "Ashenzari"
+      ]
+    },
+    "spells": {
+      "forgotten": "Your memory of {} unravels.",
+      "memorised": "You finish memorising.",
+      "learned": [
+        "The power to cast {} wells up from within.",
+        "(You can now cast {}.)"
+      ]
+    },
+    "powers": [
+      "You can now {}.",
+      "You can no longer {}."
+    ],
+    "mutations": [
+      {
+        "id": "MUT_FAST",
+        "shown": [
+          "You move with supernatural speed. (Speed+)",
+          "You move with supernatural speed. (Speed++)",
+          "You move with supernatural speed. (Speed+++)"
+        ],
+        "gained": [
+          "You feel quick.",
+          "You feel quick.",
+          "You feel quick."
+        ],
+        "lost": [
+          "You feel sluggish.",
+          "You feel sluggish.",
+          "You feel sluggish."
+        ]
+      },
+      {
+        "id": "MUT_SLOW",
+        "shown": [
+          "You cover ground slowly.",
+          "You cover ground very slowly.",
+          "You cover ground extremely slowly."
+        ],
+        "gained": [
+          "You feel sluggish.",
+          "You feel sluggish.",
+          "You feel sluggish."
+        ],
+        "lost": [
+          "You feel quick.",
+          "You feel quick.",
+          "You feel quick."
+        ]
+      },
+      {
+        "id": "MUT_CONSTRICTING_TAIL",
+        "shown": [
+          "Your snake-like lower body moves slowly.",
+          "Your snake-like lower body moves slowly, but can constrict enemies."
+        ],
+        "gained": [
+          "Your lower body turns into a snake tail.",
+          "Your tail grows strong enough to constrict your enemies."
+        ],
+        "lost": [
+          "Your lower body returns to normal.",
+          "Your snake tail weakens and can no longer constrict your enemies."
+        ]
+      },
+      {
+        "id": "MUT_FROG_LEGS",
+        "shown": [
+          "You can hop short distances, but move slowly.",
+          "You can hop long distances, but move slowly."
+        ],
+        "gained": [
+          null,
+          "Your legs feel stronger."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_NIMBLE_SWIMMER",
+        "shown": [
+          "You are camouflaged when in or above water. (Stealth+)",
+          "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
+        ],
+        "gained": [
+          "You feel comfortable near water.",
+          "You feel very comfortable near water."
+        ],
+        "lost": [
+          "You feel less comfortable near water.",
+          "You feel less comfortable near water."
+        ]
+      }
+    ],
+    "banes": [
+      {
+        "id": "BANE_LETHARGY",
+        "shown": "You cover ground slowly.",
+        "gained": [
+          "You are stricken with the Bane of Lethargy.",
+          "Your Bane of Lethargy grows stronger."
+        ],
+        "lifted": "The Bane of Lethargy upon you is lifted."
+      }
     ]
   },
   "formulas": {
