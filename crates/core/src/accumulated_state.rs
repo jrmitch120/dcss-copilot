@@ -742,6 +742,7 @@ fn worn_shield(equipped: &[char], visible: &VisibleState) -> Option<Option<Shiel
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::screen::DUMP_SPELL_NAME_LETTERS;
     use crate::view_model::Colour;
     use crate::visible_state::{Religion, Stats};
 
@@ -969,6 +970,28 @@ mod tests {
             ..character()
         };
         assert!(goes_stale(&character(), &converted));
+    }
+
+    /// A spell name the dump cuts short is completed only when one spell starts so, so no two in
+    /// a shipped bundle may share the letters it shows.
+    #[test]
+    fn no_two_spells_in_a_shipped_bundle_share_the_letters_the_dump_shows_of_a_name() {
+        let library = copilot_gk::Library::shipped().unwrap();
+        let mut bundles = 0;
+        for bundle in library.bundles() {
+            bundles += 1;
+            let mut by_shown: BTreeMap<String, &str> = BTreeMap::new();
+            for spell in bundle.spells.values() {
+                let shown: String = spell.name.chars().take(DUMP_SPELL_NAME_LETTERS).collect();
+                if let Some(other) = by_shown.insert(shown.clone(), &spell.name) {
+                    panic!(
+                        "{}: the dump shows {other:?} and {:?} alike, as {shown:?}",
+                        bundle.crawl.tag, spell.name
+                    );
+                }
+            }
+        }
+        assert!(bundles > 0, "no shipped bundles");
     }
 
     /// The dump cuts a spell's name to fit its column; no Scenario knows a spell named so long.

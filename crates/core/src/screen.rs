@@ -343,7 +343,11 @@ const DUMP_NO_SPELLS: &str = "You don't know any spells.";
 /// `_sdump_spells`: the hotkey and name, then the schools, power, damage, failure rate and level.
 const DUMP_SPELL_FAILURE_AT: usize = 62;
 const DUMP_SPELL_LEVEL_AT: usize = 74;
-const DUMP_SPELL_NAME_ENDS: usize = 24;
+const DUMP_SPELL_NAME_ENDS: usize = "a - ".len() + DUMP_SPELL_NAME_LETTERS;
+
+/// The most letters of a spell's name the character dump shows, after its hotkey (`a - `): a
+/// longer name is cut short.
+pub(crate) const DUMP_SPELL_NAME_LETTERS: usize = 20;
 
 /// The spells the character dump lists as known, `None` when it says nothing of them.
 fn dump_spells(lines: &[String]) -> Option<Vec<KnownSpell>> {
