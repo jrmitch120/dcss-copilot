@@ -3,8 +3,8 @@
 use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
-use crate::fact_sheet::Gap;
-use crate::view_model::{WayOutRow, WaysOutList, capitalised, memorised_unnamed, out_of_date};
+use crate::gaps::{Gap, memorised_unnamed, out_of_date};
+use crate::view_model::{WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
     /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer

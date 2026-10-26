@@ -13,9 +13,10 @@ use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
 use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
-use crate::fact_sheet::{Chance, Gap, NotModelled};
+use crate::fact_sheet::{Chance, NotModelled};
+use crate::gaps::{Gap, memorised_unnamed, out_of_date};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
-use crate::view_model::{FocusCard, Listing, capitalised, memorised_unnamed, out_of_date};
+use crate::view_model::{FocusCard, Listing, capitalised};
 use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or

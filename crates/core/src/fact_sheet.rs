@@ -19,6 +19,7 @@ use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
+use crate::gaps::Gap;
 use crate::screen::Resistances;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
@@ -484,76 +485,6 @@ const ALWAYS_NOT_MODELLED: [NotModelled; 4] = [
     NotModelled::Paths,
     NotModelled::Awareness,
 ];
-
-/// A fact the Advisor needs about this moment but doesn't have.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[serde(tag = "gap", rename_all = "camelCase", rename_all_fields = "camelCase")]
-pub enum Gap {
-    /// The player's hit points haven't been reported.
-    HitPoints,
-    /// The player's AC, EV or SH haven't been reported.
-    Defences,
-    /// The game hasn't sent its map, so the monsters in view aren't known.
-    MonstersInView,
-    /// The game hasn't sent its map, so the level's paths aren't known.
-    Map,
-    /// Where the player stands hasn't been reported.
-    Position,
-    /// There is no Game Knowledge for the game's Crawl Version, so monsters can't be judged.
-    GameKnowledge,
-    /// A monster in view isn't in the Game Knowledge for the game's Crawl Version.
-    MonsterKnowledge {
-        /// The monster, as the game names it.
-        monster: String,
-    },
-    /// The player hasn't opened the ability menu (`a`), so which of their abilities are Ways Out
-    /// isn't known.
-    AbilityMenu,
-    /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
-    /// how often they fail, isn't known.
-    SpellList,
-    /// The player hasn't opened the skills screen (`m`), so their attacks can't be played out.
-    Skills,
-    /// The player hasn't switched the spell list to its power and range (`I`, then `!`), so their
-    /// attack spells can't be played out.
-    SpellPower,
-    /// The game hasn't sent the inventory.
-    Inventory,
-    /// The game hasn't said what the player holds.
-    Wielded,
-    /// The player's Strength, Dexterity or magic points haven't been reported.
-    Attributes,
-    /// The skills were read on `turn`, and something seen since may have changed them: they
-    /// are played all the same.
-    StaleSkills {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The spell list was read on `turn`, and something seen since may have changed which
-    /// spells the player knows or how often they fail: it is played all the same.
-    StaleSpellList {
-        /// The game's turn when it was read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The spells' power and range were read on `turn`, and something seen since may have
-    /// changed them: they are played all the same.
-    StaleSpellPower {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The player memorised a spell the game's message didn't name, a Blind Spot until the
-    /// spell list (`I`) is read.
-    SpellMemorised {
-        /// The game's turn when they did, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The player follows a god who shifts their skills from their base levels with piety,
-    /// without a message, a Blind Spot: they may differ from what the skills screen showed.
-    SkillsShifting {
-        /// The god, as the game names them, such as `Ashenzari`.
-        god: String,
-    },
-}
 
 impl FactSheet {
     /// What the engine makes of `visible`, what the Advisor remembers of the game and the

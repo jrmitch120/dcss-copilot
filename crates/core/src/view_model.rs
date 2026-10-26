@@ -193,24 +193,6 @@ pub(crate) fn capitalised(text: &str) -> String {
     })
 }
 
-/// What was read of `what` on `turn` and may have changed since, such as `~Skills as of turn
-/// 12`: `~` before it, as for any value out of date.
-pub(crate) fn out_of_date(what: &str, turn: Option<u32>) -> String {
-    match turn {
-        Some(turn) => format!("~{what} as of turn {turn}"),
-        None => format!("~{what} as last read"),
-    }
-}
-
-/// When the player memorised a spell the game didn't name, as a sentence starts, such as `You
-/// memorised a spell on turn 14 that the game didn't name`.
-pub(crate) fn memorised_unnamed(turn: Option<u32>) -> String {
-    match turn {
-        Some(turn) => format!("You memorised a spell on turn {turn} that the game didn't name"),
-        None => "You memorised a spell that the game didn't name".to_owned(),
-    }
-}
-
 /// One Way Out in the panel's list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]

@@ -10,7 +10,8 @@ use super::pace::Pace;
 use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
-use crate::fact_sheet::{Gap, attacks_player};
+use crate::fact_sheet::attacks_player;
+use crate::gaps::Gap;
 use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, VisibleState};
 
 /// A square is corridor when monsters can stand on at most this many of the squares around it,

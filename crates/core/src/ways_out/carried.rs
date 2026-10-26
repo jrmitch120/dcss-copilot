@@ -8,7 +8,7 @@ use copilot_gk::{Bundle, EscapeAbility, Relief, Use};
 use super::{Blocker, Escape, Usable, WayOut, current};
 use crate::accumulated_state::AccumulatedState;
 use crate::crawl_ids::object_classes;
-use crate::fact_sheet::Gap;
+use crate::gaps::Gap;
 use crate::visible_state::VisibleState;
 
 /// What the player carries, has and knows, with the Game Knowledge that says which are Ways

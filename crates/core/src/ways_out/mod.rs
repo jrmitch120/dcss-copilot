@@ -13,7 +13,8 @@ use serde::Serialize;
 
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::engine::melee::BASELINE_DELAY;
-use crate::fact_sheet::{Gap, NotModelled};
+use crate::fact_sheet::NotModelled;
+use crate::gaps::Gap;
 use crate::screen::KnownAbility;
 use crate::visible_state::{Position, VisibleState};
 
