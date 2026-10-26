@@ -155,10 +155,10 @@ const SKILL_CHANGED_0_34: &str = "\"Your %s%s skill %s to level %d!\", specify_b
 const SKILLS_CHANGED_0_34: &str = "\"Your %s%s skill %s %d levels and is now \" \"at level %d!\", specify_base ? \"base \" : \"\", skill_name(exsk), (n > 0) ? \"gained\" : \"lost\"";
 
 /// The file the mutations are defined in.
-const MUTATION_FILE: &str = "mutation-data.h";
+pub(crate) const MUTATION_FILE: &str = "mutation-data.h";
 
 /// The file the banes are defined in.
-const BANE_FILE: &str = "bane-data.h";
+pub(crate) const BANE_FILE: &str = "bane-data.h";
 
 /// A mutation as `mut_data` defines it, with whether it is of the player's anatomy
 /// (`mutflag::anatomy`), which stops working in a form that changes it.
@@ -263,10 +263,15 @@ impl Crawl {
                         .map(|text| (!text.is_empty()).then_some(text))
                         .collect())
                 };
+                // An empty description would describe every row of the mutations screen.
+                let shown = texts(have, "descriptions")?;
+                if shown.iter().any(String::is_empty) {
+                    return Err(unreadable(format!("the descriptions of {id}")));
+                }
                 Ok(MutationEntry {
                     mutation: Mutation {
                         id: EnumId(id.clone()),
-                        shown: texts(have, "descriptions")?,
+                        shown,
                         gained: messages(gain, "gain messages")?,
                         lost: messages(lose, "lose messages")?,
                     },

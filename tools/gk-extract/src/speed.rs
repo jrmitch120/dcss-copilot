@@ -10,7 +10,7 @@ use copilot_gk::{
     Bane, FormBody, GodRank, SpeedBane, SpeedLight, SpeedMutation, SpeedSigns, SpeedStatus,
 };
 
-use crate::character::MutationEntry;
+use crate::character::{BANE_FILE, MUTATION_FILE, MutationEntry};
 use crate::cpp::{Source, Token};
 use crate::{Crawl, ExtractError, Shown};
 
@@ -276,7 +276,7 @@ fn speed_mutations(
                 .iter()
                 .find(|entry| entry.mutation.id.0 == id)
                 .ok_or_else(|| ExtractError::Missing {
-                    file: "mutation-data.h".to_owned(),
+                    file: MUTATION_FILE.to_owned(),
                     what: id.to_owned(),
                 })?;
             Ok(SpeedMutation {
@@ -297,7 +297,7 @@ fn speed_banes(ids: &[&str], banes: &[Bane]) -> Result<Vec<SpeedBane>, ExtractEr
                     .iter()
                     .find(|bane| bane.id.0 == id)
                     .ok_or_else(|| ExtractError::Missing {
-                        file: "bane-data.h".to_owned(),
+                        file: BANE_FILE.to_owned(),
                         what: id.to_owned(),
                     })?;
             Ok(SpeedBane {

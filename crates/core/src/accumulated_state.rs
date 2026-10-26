@@ -1141,6 +1141,70 @@ mod tests {
         mutations_after(&character(), &said)
     }
 
+    /// A character remembered with each fact Known as of turn 40, once the game says
+    /// `message`: none of the Scenarios hears it.
+    fn told_unrecorded(message: &str) -> AccumulatedState {
+        let known = |value| AsOf {
+            value,
+            turn: Some(40),
+            source: Source::Screen(Screen::Spells),
+        };
+        let mut remembered = AccumulatedState {
+            skills: Remembered::Known(AsOf {
+                value: Skills::default(),
+                turn: Some(40),
+                source: Source::Screen(Screen::Skills),
+            }),
+            spells: Remembered::Known(known(Vec::new())),
+            abilities: Remembered::Known(AsOf {
+                value: Vec::new(),
+                turn: Some(40),
+                source: Source::Screen(Screen::Abilities),
+            }),
+            ..AccumulatedState::default()
+        };
+        remembered.read(&mutations_screen(), &character(), None);
+        let mut said = character();
+        said.messages.push(GameMessage {
+            text: message.to_owned(),
+            turn: Some(40),
+        });
+        remembered.update(&character(), &said, Some(bundle()));
+        remembered
+    }
+
+    #[test]
+    fn messages_no_scenario_hears_put_what_they_change_out_of_date() {
+        let learned = told_unrecorded("The power to cast Foxfire wells up from within.");
+        assert!(matches!(learned.spells, Remembered::Stale(_)));
+        let gifted = told_unrecorded("(You can now cast Foxfire.)");
+        assert!(matches!(gifted.spells, Remembered::Stale(_)));
+        let lost =
+            told_unrecorded("You can no longer call upon Trog for regeneration and willpower.");
+        assert!(matches!(lost.abilities, Remembered::Stale(_)));
+        let base = told_unrecorded("Your base Fighting skill increases to level 6!");
+        assert!(matches!(base.skills, Remembered::Stale(_)));
+        let dilettante = told_unrecorded("You are stricken with the Bane of the Dilettante.");
+        assert!(matches!(dilettante.skills, Remembered::Stale(_)));
+        let Remembered::Known(mutations) = &dilettante.mutations else {
+            panic!("{:?}", dilettante.mutations);
+        };
+        assert!(
+            mutations
+                .value
+                .shown
+                .banes
+                .iter()
+                .flatten()
+                .any(|bane| bane == "You are less proficient with several skills.")
+        );
+        let told = told_unrecorded("Your Fighting skill increases to level 6!");
+        assert_eq!(
+            told.skills.known().map(|skills| skills.tenths("Fighting")),
+            Some(60)
+        );
+    }
+
     /// Crawl gives `You feel sluggish.` as slowness is gained and as speed is lost: no speed
     /// is shown, so it was slowness.
     #[test]
