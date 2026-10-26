@@ -58,6 +58,9 @@ pub struct FactSheet {
     /// The statuses on the player that put them in danger, in the order [`DangerousStatus`]
     /// lists them.
     pub dangerous_statuses: Vec<DangerousStatus>,
+    /// The Gaps that affected this moment: what kept the Threat Level, the Fight Outcome or the
+    /// Ways Out from being judged, or was played around, as its own part names it.
+    pub gaps: Vec<Gap>,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -111,6 +114,9 @@ pub struct ThreatAssessment {
     pub resistances: Option<ResistancesApplied>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
+    /// The Gaps it was judged around: the player's resistances unread, and played as resisting
+    /// nothing, or out of date, for damage they would change.
+    pub gaps: Vec<Gap>,
 }
 
 impl Threat {
@@ -120,6 +126,14 @@ impl Threat {
         match self {
             Self::Rated(assessment) => Some(assessment.level),
             Self::Unrated { .. } => None,
+        }
+    }
+
+    /// The Gaps that kept it from being judged, or that it was judged around.
+    fn gaps(&self) -> &[Gap] {
+        match self {
+            Self::Rated(assessment) => &assessment.gaps,
+            Self::Unrated { gaps } => gaps,
         }
     }
 }
@@ -501,12 +515,21 @@ impl FactSheet {
         let exceptional = exceptional::in_view(visible, knowledge, threat.level(), |alone| {
             judge(alone, remembered, species, knowledge).0.level()
         });
+        let ways_out = WaysOut::compute(visible, remembered, species, knowledge);
+        let gaps: BTreeSet<Gap> = threat
+            .gaps()
+            .iter()
+            .chain(fight.gaps())
+            .chain(&ways_out.gaps)
+            .cloned()
+            .collect();
         Self {
             threat,
-            ways_out: WaysOut::compute(visible, remembered, species, knowledge),
+            ways_out,
             fight,
             exceptional,
             dangerous_statuses: dangerous_status::on_the_player(visible, knowledge),
+            gaps: gaps.into_iter().collect(),
         }
     }
 }
@@ -639,6 +662,7 @@ fn threat<'a>(
                 .map(|(lighting, _)| lighting),
             resistances: None,
             not_modelled: Vec::new(),
+            gaps: Vec::new(),
         }));
         return Assessed {
             threat,
@@ -790,6 +814,11 @@ fn threat<'a>(
     if resists.unsettled(needs) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
+    let gaps = if needs.any() {
+        resistances_gap(remembered)
+    } else {
+        None
+    };
     if attackers.iter().any(|attacker| {
         let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
             reach.casts > reach.strikes || spell.zap.explodes
@@ -830,11 +859,22 @@ fn threat<'a>(
         lighting: Some(lighting),
         resistances: resists.applied,
         not_modelled,
+        gaps: gaps.into_iter().collect(),
     }));
     Assessed {
         threat,
         defender: Ok(Some(defender)),
         hostiles,
+    }
+}
+
+/// The Gap in the player's resistances `remembered`, for damage they would change: unread, or
+/// out of date.
+fn resistances_gap(remembered: Option<&AccumulatedState>) -> Option<Gap> {
+    match remembered.map(|state| &state.resistances) {
+        Some(Remembered::Known(_)) => None,
+        Some(Remembered::Stale(read)) => Some(Gap::StaleResistances { turn: read.turn }),
+        Some(Remembered::Missing) | None => Some(Gap::Resistances),
     }
 }
 
@@ -1274,6 +1314,20 @@ mod tests {
             (applied.state, applied.turn),
             (KnownOrStale::Known, Some(40))
         );
+    }
+
+    #[test]
+    fn resistances_unread_or_out_of_date_are_a_gap_only_for_damage_they_would_change() {
+        let gaps = |name: &str, remembered: Option<&AccumulatedState>| {
+            rated(&facing(name, 2), remembered, Some("Human")).gaps
+        };
+        assert_eq!(gaps("fire giant", None), [Gap::Resistances]);
+        assert_eq!(
+            gaps("fire giant", Some(&read_with_fire(0, true))),
+            [Gap::StaleResistances { turn: Some(40) }]
+        );
+        assert_eq!(gaps("fire giant", Some(&read_with_fire(0, false))), []);
+        assert_eq!(gaps("ogre", None), []);
     }
 
     #[test]

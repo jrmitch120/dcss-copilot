@@ -38,7 +38,8 @@ expression: replay
         "gear": [],
         "lighting": "plain",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -105,7 +106,12 @@ expression: replay
             "stale": false
           }
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "staleAbilityMenu",
+            "turn": 0
+          }
+        ],
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
@@ -118,7 +124,13 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "staleAbilityMenu",
+          "turn": 0
+        }
+      ]
     },
     "game": {
       "character": {

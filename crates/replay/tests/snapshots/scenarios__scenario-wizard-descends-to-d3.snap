@@ -60,7 +60,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -148,7 +149,15 @@ expression: replay
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "skills"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -247,7 +256,8 @@ expression: replay
           "gear": [],
           "lighting": "plain",
           "resistances": null,
-          "notModelled": []
+          "notModelled": [],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -296,7 +306,12 @@ expression: replay
           "state": "noFight"
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -365,7 +380,8 @@ expression: replay
         "gear": [],
         "lighting": "plain",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -414,7 +430,12 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        }
+      ]
     },
     "game": {
       "character": {

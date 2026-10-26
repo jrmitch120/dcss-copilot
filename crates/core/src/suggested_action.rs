@@ -566,6 +566,7 @@ mod tests {
                 lighting: None,
                 resistances: None,
                 not_modelled: Vec::new(),
+                gaps: Vec::new(),
             })),
             ways_out: WaysOut {
                 options: ways_out,
@@ -578,6 +579,7 @@ mod tests {
             fight,
             exceptional: Vec::new(),
             dangerous_statuses: Vec::new(),
+            gaps: Vec::new(),
         }
     }
 

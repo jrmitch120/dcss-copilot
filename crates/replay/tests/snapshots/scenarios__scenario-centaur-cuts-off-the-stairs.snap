@@ -74,7 +74,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -301,7 +302,18 @@ expression: replay
             "alone": "calm"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          },
+          {
+            "gap": "skills"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -471,7 +483,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -698,7 +711,18 @@ expression: replay
           "alone": "calm"
         }
       ],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        }
+      ]
     },
     "game": {
       "character": {

@@ -925,4 +925,33 @@ mod tests {
         });
         assert!(own_conditions(&with_a_spell, &visible));
     }
+
+    #[test]
+    fn an_ability_menu_or_a_spell_list_out_of_date_is_a_gap() {
+        let visible = corridor(&[], 0);
+        let mut remembered = read_on(&ability_menu(&[("Berserk", false)]), &visible);
+        remembered.spells = Remembered::Known(AsOf {
+            value: vec![KnownSpell {
+                name: "Blink".to_owned(),
+                failure_percent: 10,
+                level: 2,
+            }],
+            turn: Some(1),
+            source: Screen::Spells.into(),
+        });
+        let gaps = |remembered: &AccumulatedState, visible: &VisibleState| {
+            remembering_menu(visible, remembered).gaps
+        };
+        assert_eq!(gaps(&remembered, &visible), []);
+        let mut levelled = visible.clone();
+        levelled.stats.xl = Some(2);
+        remembered.update(&visible, &levelled, Some(bundle()));
+        assert_eq!(
+            gaps(&remembered, &levelled),
+            [
+                Gap::StaleSpellList { turn: Some(1) },
+                Gap::StaleAbilityMenu { turn: visible.turn },
+            ]
+        );
+    }
 }

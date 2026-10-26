@@ -3,7 +3,7 @@
 use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
-use crate::gaps::{Gap, memorised_unnamed, out_of_date};
+use crate::gaps::Gap;
 use crate::view_model::{WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
@@ -230,52 +230,16 @@ fn ground(ground: &Ground) -> String {
     }
 }
 
-/// What a Gap keeps the Advisor from judging, and how to fill it where the player can.
+/// What a Gap keeps the Advisor from judging of the Ways Out, and how to fill it where the
+/// player can.
 fn gap(gap: &Gap) -> String {
     match gap {
-        Gap::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
-        Gap::SpellList => "Open the spell list (I) to judge your spells.".to_owned(),
         Gap::Map | Gap::MonstersInView => {
             "The stairs can't be judged until the game sends its map.".to_owned()
         }
         Gap::Position => {
             "The stairs can't be judged until the game says where you stand.".to_owned()
         }
-        Gap::GameKnowledge => {
-            "Nothing can be judged without Game Knowledge for this version.".to_owned()
-        }
-        Gap::MonsterKnowledge { monster } => format!(
-            "{} isn't in the Game Knowledge, so it isn't counted.",
-            capitalised(monster)
-        ),
-        Gap::HitPoints | Gap::Defences | Gap::Attributes => {
-            "The game hasn't sent your stats yet.".to_owned()
-        }
-        Gap::Skills => "Open the skills screen (m) to judge your attacks.".to_owned(),
-        Gap::SpellPower => {
-            "Open the spell list (I) and press ! to judge your spells' power.".to_owned()
-        }
-        Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
-        Gap::StaleSkills { turn } => format!(
-            "{}: open the skills screen (m) to bring them up to date.",
-            out_of_date("Skills", *turn)
-        ),
-        Gap::StaleSpellList { turn } => format!(
-            "{}: open it (I) to bring it up to date.",
-            out_of_date("Spell list", *turn)
-        ),
-        Gap::StaleSpellPower { turn } => format!(
-            "{}: open the spell list (I) and press ! to bring it up to date.",
-            out_of_date("Spell power", *turn)
-        ),
-        Gap::SpellMemorised { turn } => format!(
-            "{}: open the spell list (I) to judge it.",
-            memorised_unnamed(*turn)
-        ),
-        Gap::SkillsShifting { god } => {
-            format!(
-                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
-            )
-        }
+        _ => gap.sentence(),
     }
 }

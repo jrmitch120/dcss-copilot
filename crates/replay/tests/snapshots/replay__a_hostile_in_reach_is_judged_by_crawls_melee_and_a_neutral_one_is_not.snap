@@ -52,7 +52,8 @@ expression: replayer.advisor().fact_sheet()
       "paths",
       "awareness",
       "defenceFractions"
-    ]
+    ],
+    "gaps": []
   },
   "waysOut": {
     "options": [
@@ -127,5 +128,16 @@ expression: replayer.advisor().fact_sheet()
     ]
   },
   "exceptional": [],
-  "dangerousStatuses": []
+  "dangerousStatuses": [],
+  "gaps": [
+    {
+      "gap": "abilityMenu"
+    },
+    {
+      "gap": "spellList"
+    },
+    {
+      "gap": "skills"
+    }
+  ]
 }

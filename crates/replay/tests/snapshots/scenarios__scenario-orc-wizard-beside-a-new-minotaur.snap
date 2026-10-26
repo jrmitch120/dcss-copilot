@@ -80,6 +80,11 @@ expression: replay
             "defenceFractions",
             "otherSpells",
             "playerResistances"
+          ],
+          "gaps": [
+            {
+              "gap": "resistances"
+            }
           ]
         },
         "waysOut": {
@@ -199,7 +204,18 @@ expression: replay
             "alone": "dangerous"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "resistances"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -354,6 +370,11 @@ expression: replay
             "defenceFractions",
             "otherSpells",
             "playerResistances"
+          ],
+          "gaps": [
+            {
+              "gap": "resistances"
+            }
           ]
         },
         "waysOut": {
@@ -473,7 +494,18 @@ expression: replay
             "alone": "dangerous"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "resistances"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -675,6 +707,11 @@ expression: replay
           "defenceFractions",
           "otherSpells",
           "playerResistances"
+        ],
+        "gaps": [
+          {
+            "gap": "resistances"
+          }
         ]
       },
       "waysOut": {
@@ -794,7 +831,18 @@ expression: replay
           "alone": "dangerous"
         }
       ],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "resistances"
+        }
+      ]
     },
     "game": {
       "character": {

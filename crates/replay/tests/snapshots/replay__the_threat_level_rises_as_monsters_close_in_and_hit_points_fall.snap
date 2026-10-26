@@ -46,7 +46,24 @@ expression: fact_sheets_by_turn(JACKALS)
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "hitPoints"
+        },
+        {
+          "gap": "monstersInView"
+        },
+        {
+          "gap": "map"
+        },
+        {
+          "gap": "position"
+        },
+        {
+          "gap": "gameKnowledge"
+        }
+      ]
     }
   },
   {
@@ -113,7 +130,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -148,7 +166,21 @@ expression: fact_sheets_by_turn(JACKALS)
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   },
   {
@@ -252,7 +284,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -287,7 +320,21 @@ expression: fact_sheets_by_turn(JACKALS)
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   },
   {
@@ -391,7 +438,8 @@ expression: fact_sheets_by_turn(JACKALS)
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -426,7 +474,21 @@ expression: fact_sheets_by_turn(JACKALS)
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   }
 ]

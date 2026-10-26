@@ -75,6 +75,11 @@ expression: replay
             "awareness",
             "defenceFractions",
             "playerResistances"
+          ],
+          "gaps": [
+            {
+              "gap": "resistances"
+            }
           ]
         },
         "waysOut": {
@@ -197,7 +202,21 @@ expression: replay
             "alone": "dangerous"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          },
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "resistances"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -348,6 +367,11 @@ expression: replay
             "awareness",
             "defenceFractions",
             "playerResistances"
+          ],
+          "gaps": [
+            {
+              "gap": "resistances"
+            }
           ]
         },
         "waysOut": {
@@ -470,7 +494,21 @@ expression: replay
             "alone": "dangerous"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          },
+          {
+            "gap": "spellList"
+          },
+          {
+            "gap": "skills"
+          },
+          {
+            "gap": "resistances"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -660,6 +698,11 @@ expression: replay
           "awareness",
           "defenceFractions",
           "playerResistances"
+        ],
+        "gaps": [
+          {
+            "gap": "resistances"
+          }
         ]
       },
       "waysOut": {
@@ -782,7 +825,21 @@ expression: replay
           "alone": "dangerous"
         }
       ],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "resistances"
+        }
+      ]
     },
     "game": {
       "character": {

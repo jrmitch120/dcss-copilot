@@ -83,7 +83,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -228,7 +229,20 @@ expression: replay
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "staleSpellPower",
+          "turn": 0
+        },
+        {
+          "gap": "skillsShifting",
+          "god": "Ashenzari"
+        }
+      ]
     },
     "game": {
       "character": {

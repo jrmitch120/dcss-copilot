@@ -47,7 +47,24 @@ expression: by_turn
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "hitPoints"
+        },
+        {
+          "gap": "monstersInView"
+        },
+        {
+          "gap": "map"
+        },
+        {
+          "gap": "position"
+        },
+        {
+          "gap": "gameKnowledge"
+        }
+      ]
     }
   },
   {
@@ -155,7 +172,8 @@ expression: by_turn
           "awareness",
           "wornShield",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -190,7 +208,21 @@ expression: by_turn
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   },
   {
@@ -334,7 +366,8 @@ expression: by_turn
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -369,7 +402,21 @@ expression: by_turn
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   },
   {
@@ -514,7 +561,8 @@ expression: by_turn
           "awareness",
           "wornShield",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -549,7 +597,21 @@ expression: by_turn
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "abilityMenu"
+        },
+        {
+          "gap": "spellList"
+        },
+        {
+          "gap": "skills"
+        },
+        {
+          "gap": "wielded"
+        }
+      ]
     }
   }
 ]

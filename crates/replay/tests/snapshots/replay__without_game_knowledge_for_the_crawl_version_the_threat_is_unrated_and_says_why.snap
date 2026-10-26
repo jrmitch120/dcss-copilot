@@ -34,5 +34,13 @@ expression: replayer.advisor().fact_sheet()
     ]
   },
   "exceptional": [],
-  "dangerousStatuses": []
+  "dangerousStatuses": [],
+  "gaps": [
+    {
+      "gap": "position"
+    },
+    {
+      "gap": "gameKnowledge"
+    }
+  ]
 }

@@ -88,7 +88,7 @@ impl Carried<'_> {
     /// the player's statuses or their magic, or greyed out in the menu for a reason the Advisor
     /// couldn't see. Never having read the menu is a Gap in `gaps`:
     /// abilities come from gods, species, mutations and gear alike, and crawl answers the menu
-    /// key even when there are none.
+    /// key even when there are none. So is a menu out of date, which may hide one gained since.
     pub(super) fn abilities(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         let Some((abilities, read)) = self
             .remembered
@@ -97,6 +97,9 @@ impl Carried<'_> {
             gaps.insert(Gap::AbilityMenu);
             return Vec::new();
         };
+        if read.stale {
+            gaps.insert(Gap::StaleAbilityMenu { turn: read.turn });
+        }
         abilities
             .iter()
             .filter_map(|ability| {
@@ -147,7 +150,8 @@ impl Carried<'_> {
     /// The spells that are Ways Out, as the spell list last showed them, each stopped by the
     /// player's statuses or their magic. Never having read the list is a Gap in `gaps` for a
     /// player with magic to cast with, and so is a spell memorised since that the game didn't
-    /// name, which may be a Way Out.
+    /// name, which may be a Way Out, and a list of spells out of date, whose failure rates may
+    /// have changed.
     pub(super) fn spells(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         if let Some(memorised) = self
             .remembered
@@ -166,6 +170,10 @@ impl Carried<'_> {
             }
             return Vec::new();
         };
+        // A list of no spells out of date hides a Way Out only as a spell memorised does.
+        if read.stale && !spells.is_empty() {
+            gaps.insert(Gap::StaleSpellList { turn: read.turn });
+        }
         let signs = &self.bundle.ways_out;
         spells
             .iter()

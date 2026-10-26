@@ -14,7 +14,7 @@ use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
-use crate::gaps::{Gap, memorised_unnamed, out_of_date};
+use crate::gaps::{Gap, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, capitalised};
 use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
@@ -48,6 +48,15 @@ pub enum Fight {
 }
 
 impl Fight {
+    /// The Gaps that kept it from being judged, or that may hide a better plan.
+    pub(crate) fn gaps(&self) -> &[Gap] {
+        match self {
+            Self::Judged(outcome) => &outcome.gaps,
+            Self::Unjudged { gaps } => gaps,
+            Self::NoFight | Self::TooMany { .. } => &[],
+        }
+    }
+
     /// The best plan's outcome, when the fight was judged.
     #[must_use]
     pub fn best(&self) -> Option<&PlanOutcome> {
@@ -846,42 +855,18 @@ fn gap(gap: &Gap) -> String {
         Gap::SpellPower => {
             "Open the spell list (I) and press ! to count your attack spells.".to_owned()
         }
-        Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
-        Gap::HitPoints | Gap::Defences | Gap::Attributes => {
-            "The game hasn't sent your stats yet.".to_owned()
-        }
         Gap::Map | Gap::MonstersInView | Gap::Position => {
             "The game hasn't sent its map yet.".to_owned()
-        }
-        Gap::GameKnowledge => {
-            "Nothing can be judged without Game Knowledge for this version.".to_owned()
         }
         Gap::MonsterKnowledge { monster } => format!(
             "{} isn't in the Game Knowledge, so the fight can't be judged.",
             capitalised(monster)
         ),
-        Gap::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
-        Gap::StaleSkills { turn } => format!(
-            "{}: open the skills screen (m) to bring them up to date.",
-            out_of_date("Skills", *turn)
-        ),
-        Gap::StaleSpellList { turn } => format!(
-            "{}: open it (I) to bring it up to date.",
-            out_of_date("Spell list", *turn)
-        ),
-        Gap::StaleSpellPower { turn } => format!(
-            "{}: open the spell list (I) and press ! to bring it up to date.",
-            out_of_date("Spell power", *turn)
-        ),
         Gap::SpellMemorised { turn } => format!(
             "{}: open the spell list (I) to count it.",
             memorised_unnamed(*turn)
         ),
-        Gap::SkillsShifting { god } => {
-            format!(
-                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
-            )
-        }
+        _ => gap.sentence(),
     }
 }
 

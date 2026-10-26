@@ -38,7 +38,8 @@ expression: replay
         "gear": [],
         "lighting": "backlit",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -100,7 +101,8 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": []
     },
     "game": {
       "character": {
