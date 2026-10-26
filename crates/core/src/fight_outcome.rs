@@ -546,8 +546,7 @@ impl<'v> Player<'v> {
 
     /// An opening for each spell the player knows that the engine ports as an attack, as the
     /// spell list last showed it with its power and range, and the names of the spells it
-    /// doesn't play. Never having read the spell list, or its power and range, is a Gap in
-    /// `gaps` that may hide a better plan.
+    /// doesn't play. What [`spell_gaps`] finds is a Gap in `gaps` that may hide a better plan.
     fn spells<'b>(
         &self,
         remembered: Option<&AccumulatedState>,
@@ -556,47 +555,20 @@ impl<'v> Player<'v> {
         not_played: &mut Vec<String>,
         not_modelled: &mut BTreeSet<NotModelled>,
     ) -> Vec<(PlanOpening, Opening<'b>)> {
-        let variant = bundle.formulas.player_beam;
-        let known = remembered.and_then(|state| state.spells.read_value());
-        let Some(known) = known else {
-            // Only a player with magic to cast with may know an attack spell.
-            if self.mp_max > 0 {
-                gaps.insert(Gap::SpellList);
-            }
+        gaps.extend(spell_gaps(remembered, self.mp_max, bundle));
+        let Some(known) = remembered.and_then(|state| state.spells.read_value()) else {
             return Vec::new();
         };
-        if let Some(state) = remembered {
-            if let Some(memorised) = state.spell_memorised {
-                gaps.insert(Gap::SpellMemorised {
-                    turn: memorised.turn,
-                });
-            }
-            // A list of no spells out of date hides an attack only as a spell memorised does.
-            if !known.is_empty() {
-                if let Remembered::Stale(read) = &state.spells {
-                    gaps.insert(Gap::StaleSpellList { turn: read.turn });
-                }
-                if let Remembered::Stale(read) = &state.spell_reaches {
-                    gaps.insert(Gap::StaleSpellPower { turn: read.turn });
-                }
-            }
-        }
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
         for spell in known {
-            let zap = bundle
-                .spells
-                .values()
-                .find(|known| known.name == spell.name)
-                .and_then(|known| PlayerZap::of(variant, known));
-            let Some(zap) = zap else {
+            let Some(zap) = attack_zap(spell, bundle) else {
                 not_played.push(spell.name.clone());
                 continue;
             };
             let Some(reach) =
                 reaches.and_then(|reaches| reaches.iter().find(|reach| reach.name == spell.name))
             else {
-                gaps.insert(Gap::SpellPower);
                 continue;
             };
             match spell_opening(spell, reach, zap, not_modelled) {
@@ -723,6 +695,62 @@ fn spell_opening<'b>(
         failure_percent,
         range: reach.range?,
     })
+}
+
+/// What keeps the Fight Outcome from playing the player's attack spells, or may hide one,
+/// whatever is in view: the spell list never read, for a player with magic to cast with
+/// (`mp_max`); a spell memorised the game didn't name; the list or its power and range out of
+/// date; and an attack spell the engine ports whose power and range haven't been read.
+pub(crate) fn spell_gaps(
+    remembered: Option<&AccumulatedState>,
+    mp_max: i32,
+    bundle: &Bundle,
+) -> BTreeSet<Gap> {
+    let mut gaps = BTreeSet::new();
+    let (Some(state), Some(known)) = (
+        remembered,
+        remembered.and_then(|state| state.spells.read_value()),
+    ) else {
+        // Only a player with magic to cast with may know an attack spell.
+        if mp_max > 0 {
+            gaps.insert(Gap::SpellList);
+        }
+        return gaps;
+    };
+    if let Some(memorised) = state.spell_memorised {
+        gaps.insert(Gap::SpellMemorised {
+            turn: memorised.turn,
+        });
+    }
+    // A list of no spells out of date hides an attack only as a spell memorised does.
+    if !known.is_empty() {
+        if let Remembered::Stale(read) = &state.spells {
+            gaps.insert(Gap::StaleSpellList { turn: read.turn });
+        }
+        if let Remembered::Stale(read) = &state.spell_reaches {
+            gaps.insert(Gap::StaleSpellPower { turn: read.turn });
+        }
+    }
+    let reaches = state.spell_reaches.read_value();
+    let unreached = |spell: &KnownSpell| {
+        !reaches.is_some_and(|reaches| reaches.iter().any(|reach| reach.name == spell.name))
+    };
+    if known
+        .iter()
+        .any(|spell| attack_zap(spell, bundle).is_some() && unreached(spell))
+    {
+        gaps.insert(Gap::SpellPower);
+    }
+    gaps
+}
+
+/// The zap the engine plays `spell`, which the player knows, as, when it ports it as an attack.
+fn attack_zap<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<PlayerZap<'b>> {
+    bundle
+        .spells
+        .values()
+        .find(|known| known.name == spell.name)
+        .and_then(|known| PlayerZap::of(bundle.formulas.player_beam, known))
 }
 
 /// A known wand's charges, as its name shows them after it, such as `a wand of flame (12)`
