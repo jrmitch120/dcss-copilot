@@ -309,6 +309,32 @@ fn crawl_saying_there_is_nothing_to_list_is_remembered_as_no_spells_and_no_abili
     assert_eq!(remembered.abilities.known(), Some(&Vec::new()));
 }
 
+/// Crawl tags the spell library's menu as it does the spell list; a library whose schools fill
+/// their column would read as spells the player knows.
+#[test]
+fn the_spell_library_the_player_memorises_from_isnt_read_as_the_spell_list() {
+    let mut replayer = replayer(include_bytes!(
+        "scenarios/conjurer-memorises-forgets-and-joins-ashenzari.dcssrec"
+    ));
+    let library = |replayer: &Replayer| {
+        let screen = replayer.advisor().visible().screen.clone();
+        screen.filter(|read| {
+            read.title
+                .as_deref()
+                .is_some_and(|title| title.contains("(Memorise)"))
+        })
+    };
+    while library(&replayer).is_none() {
+        assert!(!replayer.at_end(), "the spell library never opened");
+        replayer.step();
+    }
+
+    assert_eq!(
+        library(&replayer).unwrap().screen,
+        Screen::Other("spell".to_owned())
+    );
+}
+
 #[test]
 fn a_spectator_sees_the_screens_already_open_and_a_redrawn_menu_closes_once() {
     let replay = replay(WATCHED_SCREENS).unwrap();

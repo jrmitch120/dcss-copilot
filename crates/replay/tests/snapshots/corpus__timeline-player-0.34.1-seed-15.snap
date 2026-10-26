@@ -803,7 +803,7 @@ expression: detections
     "turn": 5670,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~71% win, ~72% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 5592"
+    "line": "Fight carefully — Wand of flame, then melee: ~71% win, ~72% HP lost. If it turns LETHAL: Teleportation ×4 · escapes after a delay"
   },
   {
     "envelope": 8960,
@@ -1369,7 +1369,7 @@ expression: detections
     "turn": 8307,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~88% win, ~59% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 5592"
+    "line": "Fight carefully — Melee: ~88% win, ~59% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 12934,
@@ -1450,7 +1450,7 @@ expression: detections
     "turn": 8800,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~26% win, ~92% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 8539"
+    "line": "Fight carefully — Wand of flame, then melee: ~26% win, ~92% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13549,
@@ -1492,7 +1492,7 @@ expression: detections
     "turn": 8976,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~7% win, ~99% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 8539"
+    "line": "Fight carefully — Wand of flame, then melee: ~7% win, ~99% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13767,

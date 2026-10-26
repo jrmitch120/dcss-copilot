@@ -200,16 +200,16 @@ expression: detections
   {
     "envelope": 1859,
     "turn": 1722,
-    "event": "suggestedAction",
-    "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~70% win, ~67% HP lost. If it turns LETHAL: Passwall · spell · ~88% fail as of turn 1217"
-  },
-  {
-    "envelope": 1877,
-    "turn": 1724,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1859,
+    "turn": 1722,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~70% win, ~67% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 1882,

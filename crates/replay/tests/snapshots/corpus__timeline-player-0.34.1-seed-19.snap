@@ -895,7 +895,7 @@ expression: detections
     "turn": 6817,
     "event": "suggestedAction",
     "rule": "best-escape",
-    "line": "Escape — Blink · spell · ~24% fail as of turn 6040"
+    "line": "Escape — Teleportation · escapes after a delay"
   },
   {
     "envelope": 9410,
