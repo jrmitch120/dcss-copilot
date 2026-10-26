@@ -36,6 +36,17 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 670,
+    "turn": 76,
+    "event": "gapPrompt",
+    "asks": [
+      "skills",
+      "spellList",
+      "abilityMenu",
+      "resistances"
+    ]
+  },
+  {
     "envelope": 692,
     "turn": 108,
     "event": "encounterStarted"

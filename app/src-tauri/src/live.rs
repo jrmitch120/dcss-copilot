@@ -308,6 +308,11 @@ impl Live {
         self.lock().game.close_join_card();
     }
 
+    /// The player put the Gap prompt card away, for good.
+    pub fn dismiss_gap_prompt(&self) {
+        self.lock().game.dismiss_gap_prompt();
+    }
+
     /// The model a slot calls.
     pub fn model(&self, slot: ModelSlot) -> ModelChoice {
         self.lock().settings.model(slot).clone()

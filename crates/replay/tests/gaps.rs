@@ -4,8 +4,11 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{FocusCard, GameView, Gap, GapRow, NowPill, Value};
-use copilot_replay::{Recording, Replayer};
+use copilot_core::{
+    Detection, Fillable, FocusCard, GameView, Gap, GapRow, GapsChip, NowPill, Value,
+};
+use copilot_replay::{Happened, Recording, Replayer};
+use copilot_store::Store;
 
 /// A Minotaur Berserker, who has read none of their screens, shot at with a longbow of flaming.
 const CENTAUR: &[u8] = include_bytes!("scenarios/centaur-shoots-a-flaming-longbow.dcssrec");
@@ -241,4 +244,142 @@ fn a_spectator_is_told_of_the_gaps_but_not_asked_to_press_keys_in_a_game_not_the
     assert!(!chip.gaps.is_empty());
     assert!(chip.gaps.iter().all(|row| row.keys.is_empty()), "{chip:?}");
     assert!(chip.dump_fills.is_empty(), "{chip:?}");
+}
+
+/// Rook, joined on turn 300, is poisoned, All Clear on 304, then confused beside lava on 306.
+const STATUSES: &[u8] =
+    include_bytes!("recordings/rook-poisoned-then-confused-beside-lava.dcssrec");
+
+/// Steps until `reached` holds of the replay.
+fn step_until(replayer: &mut Replayer, reached: impl Fn(&Replayer) -> bool) {
+    while !replayer.at_end() {
+        replayer.step();
+        if reached(replayer) {
+            return;
+        }
+    }
+    panic!("the replay never got there");
+}
+
+/// Whether the detectors have noticed anything matching `detection` so far.
+fn noticed(replayer: &Replayer, detection: impl Fn(&Detection) -> bool) -> bool {
+    replayer.detections().any(|moment| match &moment.event {
+        Happened::Detected(detected) => detection(detected),
+        Happened::Source(_) => false,
+    })
+}
+
+/// The Gap prompt card, while the panel shows it.
+fn prompt(replayer: &Replayer) -> Option<GapsChip> {
+    match replayer.view_model().game?.focus {
+        FocusCard::GapPrompt { gaps } => Some(gaps),
+        _ => None,
+    }
+}
+
+/// Rook's game, with the join card put away as it first asks for the dump.
+fn rook_without_join_card(mut replayer: Replayer) -> Replayer {
+    step_until(&mut replayer, |replayer| {
+        replayer
+            .view_model()
+            .game
+            .is_some_and(|game| matches!(game.focus, FocusCard::Join { .. }))
+    });
+    replayer.close_join_card();
+    replayer
+}
+
+fn all_clear(replayer: &Replayer) -> bool {
+    noticed(replayer, |detected| matches!(detected, Detection::AllClear))
+}
+
+#[test]
+fn a_prompt_card_asks_for_the_gaps_at_the_first_all_clear_and_goes_as_an_encounter_starts() {
+    let mut replayer = rook_without_join_card(replayer(STATUSES));
+    step_until(&mut replayer, all_clear);
+
+    let card = prompt(&replayer).unwrap();
+    assert_eq!(card, replayer.view_model().game.unwrap().gaps);
+    assert!(card.gaps.iter().all(|row| !row.keys.is_empty()), "{card:?}");
+    let asked = replayer
+        .detections()
+        .find_map(|moment| match &moment.event {
+            Happened::Detected(Detection::GapPrompt { asks }) => Some((moment.turn, asks.clone())),
+            _ => None,
+        });
+    assert_eq!(
+        asked,
+        Some((
+            Some(304),
+            vec![
+                Fillable::Skills,
+                Fillable::SpellList,
+                Fillable::AbilityMenu,
+                Fillable::Resistances
+            ]
+        ))
+    );
+
+    step_until(&mut replayer, |replayer| {
+        replayer
+            .detections()
+            .filter(|moment| moment.event == Happened::Detected(Detection::EncounterStarted))
+            .count()
+            == 2
+    });
+    assert_eq!(prompt(&replayer), None);
+    replayer.seek(usize::MAX);
+    assert_eq!(prompt(&replayer), None);
+}
+
+#[test]
+fn no_prompt_card_asks_while_the_join_card_does() {
+    let mut replayer = replayer(STATUSES);
+    step_until(&mut replayer, all_clear);
+
+    assert!(matches!(
+        replayer.view_model().game.unwrap().focus,
+        FocusCard::Join { .. }
+    ));
+    assert!(!noticed(&replayer, |detected| matches!(
+        detected,
+        Detection::GapPrompt { .. }
+    )));
+}
+
+#[test]
+fn the_player_can_put_the_prompt_card_away() {
+    let mut replayer = rook_without_join_card(replayer(STATUSES));
+    step_until(&mut replayer, all_clear);
+    assert!(prompt(&replayer).is_some());
+
+    replayer.dismiss_gap_prompt();
+
+    assert_eq!(prompt(&replayer), None);
+    replayer.step();
+    assert_eq!(prompt(&replayer), None);
+}
+
+#[test]
+fn a_gap_a_prompt_card_asked_for_is_never_asked_for_again_in_that_game() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("games.sqlite");
+    let run = || {
+        let recording = Recording::read(STATUSES).unwrap();
+        Replayer::remembering(recording, Store::open(&path).unwrap()).unwrap()
+    };
+    let mut before = rook_without_join_card(run());
+    step_until(&mut before, all_clear);
+    assert!(prompt(&before).is_some());
+    drop(before);
+
+    // The app restarts, and the browser relays the game again.
+    let mut after = rook_without_join_card(run());
+    step_until(&mut after, all_clear);
+
+    assert_eq!(prompt(&after), None);
+    assert!(!noticed(&after, |detected| matches!(
+        detected,
+        Detection::GapPrompt { .. }
+    )));
 }

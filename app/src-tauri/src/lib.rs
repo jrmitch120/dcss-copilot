@@ -148,6 +148,16 @@ fn close_join_card(app: AppHandle, live: State<'_, Live>) -> Result<(), String> 
     Ok(())
 }
 
+/// The player put the Gap prompt card away, for good.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn dismiss_gap_prompt(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    live.dismiss_gap_prompt();
+    push_view_model(&app, &live);
+    Ok(())
+}
+
 /// Opens the Settings window, or brings it to the front.
 #[tauri::command]
 #[specta::specta]
@@ -297,6 +307,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             set_assistance,
             answer_same_game,
             close_join_card,
+            dismiss_gap_prompt,
             open_settings,
             settings_view,
             set_start_at_login,
@@ -498,6 +509,7 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
                     answer_same_game(same, app.clone(), app.state())
                 }
                 PanelCommand::CloseJoinCard => close_join_card(app.clone(), app.state()),
+                PanelCommand::DismissGapPrompt => dismiss_gap_prompt(app.clone(), app.state()),
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };
             request.answer(done);

@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { Appearance, FactCard, FocusCard, Listing } from "$lib/bindings";
 import type { PanelActions } from "./actions";
+import GapPrompt from "./GapPrompt.svelte";
 import JoinCard from "./JoinCard.svelte";
 import ListingRow from "./ListingRow.svelte";
 import Marked from "./Marked.svelte";
@@ -74,6 +75,8 @@ let {
   </section>
 {:else if focus.card === "join"}
   <JoinCard join={focus.join} {actions} />
+{:else if focus.card === "gapPrompt"}
+  <GapPrompt gaps={focus.gaps} {actions} />
 {/if}
 
 <style>

@@ -11,6 +11,8 @@ export interface PanelActions {
   answerSameGame(same: boolean): Promise<string | null>;
   /** Puts the join card away: "Not now" while it asks for the dump, "OK" once it has read it. */
   closeJoinCard(): Promise<string | null>;
+  /** Puts the Gap prompt card away, for good: what it asked for it never asks for again. */
+  dismissGapPrompt(): Promise<string | null>;
   openSettings(): Promise<string | null>;
   /**
    * Answers "Allow this browser?", or `null` in a side panel: a browser could otherwise allow

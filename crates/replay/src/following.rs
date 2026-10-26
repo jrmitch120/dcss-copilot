@@ -150,6 +150,12 @@ impl Following {
         self.advisor.close_join_card();
     }
 
+    /// The player put the Gap prompt card away. What it asked for was saved as asked for as it
+    /// was raised, so nothing is saved now.
+    pub fn dismiss_gap_prompt(&mut self) {
+        self.advisor.dismiss_gap_prompt();
+    }
+
     /// Tells the Advisor what the Game Source learned, and returns what happened, in order.
     fn take_in(&mut self, events: Vec<SourceEvent>) -> Vec<Happened> {
         let mut happened = Vec::new();

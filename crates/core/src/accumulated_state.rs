@@ -1,13 +1,14 @@
 //! Accumulated State: what the Advisor remembers of one game that the game no longer shows, each
 //! fact with where it came from and how recent it is.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use copilot_gk::{Bundle, EnumId, ItemKind, Mutation};
 use serde::{Deserialize, Serialize};
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, bane_types, object_classes};
+use crate::gaps::Fillable;
 use crate::screen::{
     DungeonOverview, KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations,
     Skills, SpellReach,
@@ -93,6 +94,10 @@ pub struct AccumulatedState {
     /// the dump last listed their spells: a Blind Spot until one of them is read again.
     #[serde(default)]
     pub spell_memorised: Option<Memorised>,
+    /// The facts a Gap prompt card has asked the player to fill in this game: it asks for each
+    /// once, whether the player filled it, put the card away or an Encounter did.
+    #[serde(default)]
+    pub gaps_prompted: BTreeSet<Fillable>,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
     /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
     /// its name picking up, dropping or wielding something.
@@ -575,6 +580,7 @@ impl AccumulatedState {
             dungeon,
             backfill: _,
             spell_memorised: _,
+            gaps_prompted: _,
             carried_gear,
             uniques_gear,
             unplaced: _,

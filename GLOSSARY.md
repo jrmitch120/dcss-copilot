@@ -283,7 +283,7 @@ The panel's stand-in on the extension's toolbar button while no Side Panel is op
 _Avoid_: Collapsed pill, notification
 
 **Focus Card**:
-The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
+The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, the Gap prompt, or what is in view.
 _Avoid_: Main card, hero card
 
 **Join Card**:
@@ -293,6 +293,10 @@ _Avoid_: Onboarding card, welcome card
 **Gaps Chip**:
 The chip in the panel's header counting every Gap in what the Advisor knows of the game, whatever is in view: opened, it lists each with why it matters and the keys that fill it, and what of them the character dump (`?` then `#`) fills at once. A player watching someone else's game is shown the Gaps but no keys, as they can't open its screens.
 _Avoid_: Missing-data badge, warnings
+
+**Gap Prompt**:
+The Focus Card that, at an All Clear, asks the player to fill the Gaps no Gap Prompt has asked about before in the game, as the Gaps Chip lists them. It asks about each Gap once a game, even after the app restarts: an Encounter starting puts it away, and so does the player, for good. It waits while the join card asks for the character dump, and is never shown to a player watching someone else's game.
+_Avoid_: Nag, reminder
 
 **Fact Card**:
 A card in the Focus Card singling out an Exceptional Monster while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.

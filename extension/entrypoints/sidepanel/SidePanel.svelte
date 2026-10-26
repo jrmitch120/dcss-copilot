@@ -67,6 +67,7 @@ const ACTIONS: PanelActions = {
   setAssistance: (assistance) => ask({ kind: "set-assistance", assistance }),
   answerSameGame: (same) => ask({ kind: "answer-same-game", same }),
   closeJoinCard: () => ask({ kind: "close-join-card" }),
+  dismissGapPrompt: () => ask({ kind: "dismiss-gap-prompt" }),
   openSettings: () => ask({ kind: "open-settings" }),
   answerBrowser: null,
 };

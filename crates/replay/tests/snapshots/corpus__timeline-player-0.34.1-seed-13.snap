@@ -58,6 +58,15 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 560,
+    "turn": 98,
+    "event": "gapPrompt",
+    "asks": [
+      "abilityMenu",
+      "resistances"
+    ]
+  },
+  {
     "envelope": 564,
     "turn": 99,
     "event": "encounterStarted"
@@ -140,6 +149,14 @@ expression: detections
     "envelope": 1060,
     "turn": 239,
     "event": "allClear"
+  },
+  {
+    "envelope": 1060,
+    "turn": 239,
+    "event": "gapPrompt",
+    "asks": [
+      "skills"
+    ]
   },
   {
     "envelope": 1070,
@@ -317,6 +334,14 @@ expression: detections
     "envelope": 2679,
     "turn": 1270,
     "event": "allClear"
+  },
+  {
+    "envelope": 2679,
+    "turn": 1270,
+    "event": "gapPrompt",
+    "asks": [
+      "spellList"
+    ]
   },
   {
     "envelope": 2689,

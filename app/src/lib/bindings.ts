@@ -20,6 +20,8 @@ export const commands = {
 	 *  it says what it read.
 	 */
 	closeJoinCard: () => typedError<null, string>(__TAURI_INVOKE("close_join_card")),
+	/**  The player put the Gap prompt card away, for good. */
+	dismissGapPrompt: () => typedError<null, string>(__TAURI_INVOKE("dismiss_gap_prompt")),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -189,7 +191,14 @@ gaps: string[] } |
  */
 { card: "join"; 
 /**  What the card shows. */
-join: JoinCard };
+join: JoinCard } | 
+/**
+ *  The Gap prompt card: at an All Clear, it asks once for the Gaps in a game that no card
+ *  asked for before, until the player puts it away or an Encounter starts.
+ */
+{ card: "gapPrompt"; 
+/**  The Gaps it asks for that are still open, as the Gaps chip lists them. */
+gaps: GapsChip };
 
 /**
  *  The panel for the followed game, top to bottom: header, now pill, focus card,

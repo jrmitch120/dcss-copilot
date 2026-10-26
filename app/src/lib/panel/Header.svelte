@@ -63,7 +63,10 @@ function stat(value: number | null): string {
   </span>
 </header>
 {#if gapsOpen && gaps.gaps.length > 0}
-  <GapsList {gaps} />
+  <section class="card gaps">
+    <div class="lbl">Gaps <em>what the Advisor can't see</em></div>
+    <GapsList {gaps} />
+  </section>
 {/if}
 {#if saveError}
   <p class="error small">{saveError}</p>
@@ -127,6 +130,10 @@ header {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+
+.gaps {
+  margin: 8px 14px 0;
 }
 
 .chip {

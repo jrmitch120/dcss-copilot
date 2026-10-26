@@ -368,6 +368,12 @@ pub enum FocusCard {
         /// What the card shows.
         join: JoinCard,
     },
+    /// The Gap prompt card: at an All Clear, it asks once for the Gaps in a game that no card
+    /// asked for before, until the player puts it away or an Encounter starts.
+    GapPrompt {
+        /// The Gaps it asks for that are still open, as the Gaps chip lists them.
+        gaps: GapsChip,
+    },
 }
 
 /// The join card: what the panel asks of a player whose game the Advisor joined part way

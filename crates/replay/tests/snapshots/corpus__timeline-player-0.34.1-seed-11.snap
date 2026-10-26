@@ -28,6 +28,16 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 396,
+    "turn": 196,
+    "event": "gapPrompt",
+    "asks": [
+      "spellList",
+      "abilityMenu",
+      "resistances"
+    ]
+  },
+  {
     "envelope": 436,
     "turn": 207,
     "event": "encounterStarted"
@@ -85,6 +95,15 @@ expression: detections
     "envelope": 1643,
     "turn": 1359,
     "event": "allClear"
+  },
+  {
+    "envelope": 1643,
+    "turn": 1359,
+    "event": "gapPrompt",
+    "asks": [
+      "skills",
+      "spellPower"
+    ]
   },
   {
     "envelope": 1647,

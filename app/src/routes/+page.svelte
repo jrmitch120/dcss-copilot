@@ -11,6 +11,7 @@ const ACTIONS: PanelActions = {
   setAssistance: async (assistance) => failure(await commands.setAssistance(assistance)),
   answerSameGame: async (same) => failure(await commands.answerSameGame(same)),
   closeJoinCard: async () => failure(await commands.closeJoinCard()),
+  dismissGapPrompt: async () => failure(await commands.dismissGapPrompt()),
   openSettings: async () => failure(await commands.openSettings()),
   answerBrowser: async (allow) => failure(await commands.answerBrowser(allow)),
 };

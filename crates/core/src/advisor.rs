@@ -10,7 +10,7 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
-use crate::gaps::{self, Gap};
+use crate::gaps::{self, Fillable, Gap};
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
@@ -55,6 +55,48 @@ struct Followed {
     join_pending: bool,
     /// How far the join card has got.
     joining: Joining,
+    /// The facts the Gap prompt card asks for that are still open, while it shows: until the
+    /// player puts it away or an Encounter starts.
+    gap_prompt: Option<BTreeSet<Fillable>>,
+}
+
+impl Followed {
+    /// The Gap prompt card at a Settled Update where the detectors noticed `detections`, with
+    /// the facts in `open` unread or out of date, and what it asks for if it is raised: at an All
+    /// Clear, when it `may_prompt`, the open facts no card asked for before. What is filled drops
+    /// off it, and an Encounter starting puts it away.
+    fn prompt_for_gaps(
+        &mut self,
+        detections: &[Detection],
+        open: &BTreeSet<Fillable>,
+        may_prompt: bool,
+    ) -> Option<Detection> {
+        if detections.contains(&Detection::EncounterStarted) {
+            self.gap_prompt = None;
+        }
+        if let Some(asks) = &mut self.gap_prompt {
+            asks.retain(|fillable| open.contains(fillable));
+            if asks.is_empty() {
+                self.gap_prompt = None;
+            }
+        }
+        if !(may_prompt && self.gap_prompt.is_none() && detections.contains(&Detection::AllClear)) {
+            return None;
+        }
+        let asks: BTreeSet<Fillable> = open
+            .difference(&self.accumulated.gaps_prompted)
+            .copied()
+            .collect();
+        if asks.is_empty() {
+            return None;
+        }
+        self.accumulated.gaps_prompted.extend(asks.iter().copied());
+        let detection = Detection::GapPrompt {
+            asks: asks.iter().copied().collect(),
+        };
+        self.gap_prompt = Some(asks);
+        Some(detection)
+    }
 }
 
 /// When the Advisor last saw a game it picks up again.
@@ -172,6 +214,14 @@ impl Advisor {
         }
     }
 
+    /// The player put the Gap prompt card away, for good: what it asked for it never asks for
+    /// again in the game.
+    pub fn dismiss_gap_prompt(&mut self) {
+        if let Some(game) = self.followed_game_mut() {
+            game.gap_prompt = None;
+        }
+    }
+
     /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
     pub fn forget(&mut self, key: &GameKey) {
         self.games.remove(key);
@@ -183,24 +233,29 @@ impl Advisor {
         self.games.retain(|key, _| Some(key) == followed.as_ref());
     }
 
-    /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise
-    /// for the now pill.
+    /// Runs the detectors on the followed game's Settled Update, keeps the Alert they raise for
+    /// the now pill, and, at an All Clear, raises the Gap prompt card.
     fn settle(&mut self) -> Vec<Detection> {
         let Some(key) = self.followed_key() else {
             return Vec::new();
         };
         let hostile = self.hostile_in_view();
+        let open: BTreeSet<Fillable> = self.gaps().iter().filter_map(Gap::fillable).collect();
+        // The join card asks for the dump already; a player watching can't open the screens.
+        let may_prompt = self.join_card().is_none()
+            && self.identity.as_ref().and_then(|identity| identity.role) != Some(Role::Spectating);
         let fact_sheet = self.fact_sheet.get_or_init(|| self.compute_fact_sheet());
         let Some(game) = self.games.get_mut(&key) else {
             return Vec::new();
         };
-        let detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
+        let mut detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
         if let Some(alert) = detections.iter().find_map(|detection| match detection {
             Detection::Alert(alert) => Some(alert),
             _ => None,
         }) {
             game.alert = Some((alert.clone(), self.visible.turn));
         }
+        detections.extend(game.prompt_for_gaps(&detections, &open, may_prompt));
         detections
     }
 
@@ -316,7 +371,7 @@ impl Advisor {
 
 impl Advisor {
     /// The focus card: a small fight while anything hostile is in view, or else what is in view;
-    /// with nothing hostile in view, the join card while it shows.
+    /// with nothing hostile in view, the join card while it shows, or else the Gap prompt card.
     fn focus(&self) -> FocusCard {
         let monsters = self
             .visible
@@ -326,7 +381,9 @@ impl Advisor {
         let card = if self.hostile_in_view() {
             self.fact_sheet().fight.card(monsters.clone())
         } else {
-            self.join_card().map(|join| FocusCard::Join { join })
+            self.join_card()
+                .map(|join| FocusCard::Join { join })
+                .or_else(|| self.gap_prompt())
         };
         card.unwrap_or(FocusCard::InView { monsters })
     }
@@ -353,6 +410,22 @@ impl Advisor {
         }
         let game = self.followed_game()?;
         game.joining.card(game.accumulated.backfill, &self.visible)
+    }
+
+    /// The Gap prompt card, while it shows and any Gap it asks for is open.
+    fn gap_prompt(&self) -> Option<FocusCard> {
+        let asks = self.followed_game()?.gap_prompt.as_ref()?;
+        let open: BTreeSet<Gap> = self
+            .gaps()
+            .into_iter()
+            .filter(|gap| {
+                gap.fillable()
+                    .is_some_and(|fillable| asks.contains(&fillable))
+            })
+            .collect();
+        (!open.is_empty()).then(|| FocusCard::GapPrompt {
+            gaps: gaps::chip(&open, false),
+        })
     }
 
     /// The Run Plan rail: greyed out while the game's Backfill awaits the character dump.
