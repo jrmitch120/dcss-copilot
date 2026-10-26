@@ -193,8 +193,8 @@ gaps: string[] } |
 /**  What the card shows. */
 join: JoinCard } | 
 /**
- *  The Gap prompt card: at an All Clear, it asks once for the Gaps in a game that no card
- *  asked for before, until the player puts it away or an Encounter starts.
+ *  The Gap prompt card: once a game, at its first All Clear the card can show at, it asks for
+ *  the Gaps open then, until the player puts it away or an Encounter starts.
  */
 { card: "gapPrompt"; 
 /**  The Gaps it asks for that are still open, as the Gaps chip lists them. */

@@ -62,9 +62,9 @@ struct Followed {
 
 impl Followed {
     /// The Gap prompt card at a Settled Update where the detectors noticed `detections`, with
-    /// the facts in `open` unread or out of date, and what it asks for if it is raised: at an All
-    /// Clear, when it `may_prompt`, the open facts no card asked for before. What is filled drops
-    /// off it, and an Encounter starting puts it away.
+    /// the facts in `open` unread or out of date, and what it asks for if it is raised: one card
+    /// a game, at the first All Clear where it `may_prompt` and any fact is open, asking for each
+    /// open fact. What is filled drops off it, and an Encounter starting puts it away.
     fn prompt_for_gaps(
         &mut self,
         detections: &[Detection],
@@ -80,16 +80,15 @@ impl Followed {
                 self.gap_prompt = None;
             }
         }
-        if !(may_prompt && self.gap_prompt.is_none() && detections.contains(&Detection::AllClear)) {
+        let asked_before = !self.accumulated.gaps_prompted.is_empty();
+        if asked_before
+            || !may_prompt
+            || open.is_empty()
+            || !detections.contains(&Detection::AllClear)
+        {
             return None;
         }
-        let asks: BTreeSet<Fillable> = open
-            .difference(&self.accumulated.gaps_prompted)
-            .copied()
-            .collect();
-        if asks.is_empty() {
-            return None;
-        }
+        let asks = open.clone();
         self.accumulated.gaps_prompted.extend(asks.iter().copied());
         let detection = Detection::GapPrompt {
             asks: asks.iter().copied().collect(),

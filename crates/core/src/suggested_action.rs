@@ -315,11 +315,10 @@ impl SuggestedAction {
         self.rule
     }
 
-    /// It in one line, as the timeline records it, such as `Leave by stairs — Stone staircase
-    /// leading down · 4 steps`.
-    pub(crate) fn line(&self) -> String {
-        // The words alone: a Gap marks them, but changes none.
-        let card = self.card(&Fight::NoFight);
+    /// It in one line, as the timeline records it, as of the moment `fight` judges, such as
+    /// `Leave by stairs — Stone staircase leading down · 4 steps`.
+    pub(crate) fn line(&self, fight: &Fight) -> String {
+        let card = self.card(fight);
         match card.if_lethal {
             Some(if_lethal) => format!(
                 "{} — {}. If it turns LETHAL: {}",

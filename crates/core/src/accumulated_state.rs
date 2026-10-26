@@ -94,8 +94,8 @@ pub struct AccumulatedState {
     /// the dump last listed their spells: a Blind Spot until one of them is read again.
     #[serde(default)]
     pub spell_memorised: Option<Memorised>,
-    /// The facts a Gap prompt card has asked the player to fill in this game: it asks for each
-    /// once, whether the player filled it, put the card away or an Encounter did.
+    /// The facts the game's Gap prompt card asked the player to fill: none until it has shown.
+    /// It shows once a game, whether the player filled them, put it away or an Encounter did.
     #[serde(default)]
     pub gaps_prompted: BTreeSet<Fillable>,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by

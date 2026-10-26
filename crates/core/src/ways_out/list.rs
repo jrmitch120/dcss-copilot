@@ -124,7 +124,7 @@ impl Escape {
 /// A Way Out's row.
 fn row(way_out: &WayOut) -> WayOutRow {
     let (name, detail) = way_out.option.named();
-    let stale = way_out.option.gap();
+    let menu_gap = way_out.option.gap();
     let (usable, why_not) = match &way_out.usable {
         Usable::Yes => (true, None),
         Usable::No { because } => {
@@ -133,14 +133,14 @@ fn row(way_out: &WayOut) -> WayOutRow {
             let greyed_out = because
                 .iter()
                 .any(|blocker| matches!(blocker, Blocker::GreyedOut { .. }));
-            let gap = stale.as_ref().filter(|_| greyed_out).map(Gap::sentence);
+            let gap = menu_gap.as_ref().filter(|_| greyed_out).map(Gap::sentence);
             (false, Some(Value::marked(why_not, gap)))
         }
     };
     WayOutRow {
         usable,
         name,
-        detail: detail.map(|detail| Value::marked(detail, stale.as_ref().map(Gap::sentence))),
+        detail: detail.map(|detail| Value::marked(detail, menu_gap.as_ref().map(Gap::sentence))),
         why_not,
     }
 }
@@ -269,6 +269,24 @@ fn gap(gap: &Gap) -> String {
         Gap::Position => {
             "The stairs can't be judged until the game says where you stand.".to_owned()
         }
-        _ => gap.sentence(),
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::GameKnowledge
+        | Gap::MonsterKnowledge { .. }
+        | Gap::AbilityMenu
+        | Gap::SpellList
+        | Gap::Skills
+        | Gap::SpellPower
+        | Gap::Resistances
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::StaleSkills { .. }
+        | Gap::StaleSpellList { .. }
+        | Gap::StaleSpellPower { .. }
+        | Gap::StaleAbilityMenu { .. }
+        | Gap::StaleResistances { .. }
+        | Gap::SpellMemorised { .. }
+        | Gap::SkillsShifting { .. } => gap.sentence(),
     }
 }

@@ -96,14 +96,6 @@ expression: detections
     "event": "allClear"
   },
   {
-    "envelope": 1213,
-    "turn": 608,
-    "event": "gapPrompt",
-    "asks": [
-      "skills"
-    ]
-  },
-  {
     "envelope": 1233,
     "turn": 644,
     "event": "encounterStarted"
@@ -253,15 +245,6 @@ expression: detections
     "envelope": 3187,
     "turn": 2027,
     "event": "allClear"
-  },
-  {
-    "envelope": 3187,
-    "turn": 2027,
-    "event": "gapPrompt",
-    "asks": [
-      "spellList",
-      "spellPower"
-    ]
   },
   {
     "envelope": 3254,

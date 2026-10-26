@@ -37,9 +37,9 @@ pub enum Detection {
     FactCard(ExceptionalMonster),
     /// A Tactical Alert.
     Alert(Alert),
-    /// At an All Clear, the panel's Gap prompt card asked the player to fill the Gaps in these
-    /// facts, which no prompt card had asked for before in the game. The Advisor raises it
-    /// rather than the detectors, as it asks of what the Advisor remembers.
+    /// At the game's first All Clear it could show at, the panel's Gap prompt card asked the
+    /// player to fill the Gaps in these facts: once a game. The Advisor raises it rather than the
+    /// detectors, as it asks of what the Advisor remembers.
     GapPrompt {
         /// What it asked for.
         asks: Vec<Fillable>,
@@ -378,7 +378,7 @@ impl Detectors {
             {
                 detections.push(Detection::SuggestedAction {
                     rule: suggested.rule(),
-                    line: suggested.line(),
+                    line: suggested.line(&fact_sheet.fight),
                 });
             }
             encounter.suggested = Some(suggested);

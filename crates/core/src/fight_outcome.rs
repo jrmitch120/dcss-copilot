@@ -900,7 +900,20 @@ fn gap(gap: &Gap) -> String {
             "{}: open the spell list (I) to count it.",
             memorised_unnamed(*turn)
         ),
-        _ => gap.sentence(),
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::GameKnowledge
+        | Gap::AbilityMenu
+        | Gap::Resistances
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::StaleSkills { .. }
+        | Gap::StaleSpellList { .. }
+        | Gap::StaleSpellPower { .. }
+        | Gap::StaleAbilityMenu { .. }
+        | Gap::StaleResistances { .. }
+        | Gap::SkillsShifting { .. } => gap.sentence(),
     }
 }
 

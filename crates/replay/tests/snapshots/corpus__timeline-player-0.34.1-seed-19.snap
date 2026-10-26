@@ -88,14 +88,6 @@ expression: detections
     "event": "allClear"
   },
   {
-    "envelope": 937,
-    "turn": 720,
-    "event": "gapPrompt",
-    "asks": [
-      "skills"
-    ]
-  },
-  {
     "envelope": 942,
     "turn": 728,
     "event": "encounterStarted"
