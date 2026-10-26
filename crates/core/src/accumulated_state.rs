@@ -3,15 +3,16 @@
 
 use std::collections::BTreeMap;
 
-use copilot_gk::{Bundle, EnumId, ItemKind};
+use copilot_gk::{Bundle, EnumId, ItemKind, Mutation};
 use serde::{Deserialize, Serialize};
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
-use crate::crawl_ids::{armour_types, object_classes};
+use crate::crawl_ids::{armour_types, bane_types, object_classes};
 use crate::screen::{
     DungeonOverview, KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations,
     Skills, SpellReach,
 };
+use crate::told::{MutationChange, Told, told};
 use crate::view_model::Colour;
 use crate::visible_state::{
     GameMessage, InventoryItem, Sighting, Status, VisibleMonster, VisibleState,
@@ -25,8 +26,8 @@ pub struct AccumulatedState {
     /// The character's resistances, as the character overview or dump last showed them, with
     /// those temporary effects give. They go Stale when anything that could change them does:
     /// what is carried or equipped (as [`AccumulatedState::equipped`] tells it), the experience
-    /// level, the god or piety, or a status starting or ending. A change with no such sign, such
-    /// as a mutation from a potion the inventory still shows another of, goes unnoticed.
+    /// level, the god or piety, a status starting or ending, or the game telling of a mutation
+    /// coming or going.
     pub resistances: Remembered<Resistances>,
     /// The shield the character wears, if any, as the character overview or dump last showed it
     /// with the inventory decoded. It goes Stale when the SH the game reports changes.
@@ -38,23 +39,30 @@ pub struct AccumulatedState {
     /// another inside someone else's halo, goes unnoticed.
     pub equipped: Remembered<Vec<char>>,
     /// The spells the character knows, with their failure rates, as the spell list (`I`) last
-    /// showed them. It goes Stale when the experience level, Intelligence, inventory, AC, EV or
-    /// SH changes, as failure rates change with them. Skills trained between levels, which
-    /// lower failure rates bit by bit, go unnoticed, and so does a spell learned or forgotten
-    /// without any of those changing.
+    /// showed them, less those the game has said they forgot since. It goes Stale when the
+    /// experience level, Intelligence, inventory, AC, EV or SH changes, or the game tells of a
+    /// skill's level or a mutation changing, as failure rates change with them, and when it
+    /// tells of a spell memorised or learned, as it doesn't say how often that fails. Skills
+    /// trained within a level, which lower failure rates bit by bit, go unnoticed.
     pub spells: Remembered<Vec<KnownSpell>>,
     /// The power and range of the spells the character knows, as the spell list (`I`) last
     /// showed them switched to its other columns (`!`). It goes Stale as
     /// [`AccumulatedState::spells`] does, as power changes with the same.
     pub spell_reaches: Remembered<Vec<SpellReach>>,
     /// The character's skills, as the skills screen (`m`) or the character dump last showed
-    /// them. They go Stale when the experience level or the statuses change, as a level brings
-    /// skill points and a status such as heroism raises them for a while. Skills trained between
-    /// levels, a little with each kill, go unnoticed.
+    /// them, each at the level the game has said it reached since, taken at the whole level, as
+    /// the message tells no fraction. They go Stale when the statuses change, as a status such
+    /// as heroism raises them for a while, when the game says a base level changed, which
+    /// differs from the level in effect, and when the Bane of the Dilettante, which lowers some,
+    /// comes or goes. Skills trained within a level, a little with each kill, and those
+    /// crosstraining raises as a related skill trains, go unnoticed; so do those of a follower of
+    /// a god who shifts them with piety, a Blind Spot.
     pub skills: Remembered<Skills>,
     /// The abilities the character has, with their costs and failure rates, as the ability
     /// menu (`a`) last showed them. It goes Stale when the experience level, god, piety,
-    /// maximum magic points or inventory changes, as abilities come and go with them.
+    /// maximum magic points or inventory changes, as abilities come and go with them, and when
+    /// the game tells of a god's power coming or going, or of a skill's level or a mutation
+    /// changing.
     ///
     /// For each of these, the inventory changes when what is carried does: crawl greying an
     /// item out or not, which follows the character's statuses, isn't a change.
@@ -65,10 +73,11 @@ pub struct AccumulatedState {
     pub abilities: Remembered<Vec<KnownAbility>>,
     /// The mutations and banes the character has, as the mutations screen (`A`) or the
     /// character dump last showed them, with the experience level they had then: the dump
-    /// leaves the banes unread. It goes Stale when the experience level
-    /// changes, as banes lift and a species grows mutations with it, or the game gives a message
-    /// of a mutation or bane that changes the character's speed coming or going. Any other
-    /// mutation coming or going goes unnoticed.
+    /// leaves the banes unread. Each mutation or bane the game has said came or went since is
+    /// changed to match, as Game Knowledge words their messages. It goes Stale when the
+    /// experience level changes, as banes lift and a species grows mutations with it, and when
+    /// a message doesn't fit what was read, or fits more than one mutation it could tell of. A
+    /// mutation whose message crawl writes by hand, such as one of strength, goes unnoticed.
     pub mutations: Remembered<MutationsRead>,
     /// The levels the character has found, as the dungeon overview (`Ctrl-O`) or the character
     /// dump last showed them. It goes Stale when the character changes level, as the level they
@@ -80,6 +89,10 @@ pub struct AccumulatedState {
     /// Whether the Advisor has caught up on what it missed of a game it joined part way through.
     #[serde(default)]
     pub backfill: Backfill,
+    /// The character memorised a spell the game's message didn't name since the spell list or
+    /// the dump last listed their spells: a Blind Spot until one of them is read again.
+    #[serde(default)]
+    pub spell_memorised: Option<Memorised>,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
     /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
     /// its name picking up, dropping or wielding something.
@@ -91,6 +104,14 @@ pub struct AccumulatedState {
     /// message before the map that shows them. Each is dropped once the game's turn moves on.
     #[serde(skip)]
     unplaced: Vec<Unplaced>,
+}
+
+/// A spell memorised that the game's message didn't name.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Memorised {
+    /// The game's turn when the message said so, if the game had reported one.
+    pub turn: Option<u32>,
 }
 
 /// Whether the Advisor has caught up on what it missed of a game: its Backfill.
@@ -260,6 +281,33 @@ impl<T, S> Remembered<T, S> {
 }
 
 impl<T> Remembered<T> {
+    /// Changes the value as a message on `turn` tells, by `change`, which says whether the
+    /// message fits the value, and leaves it untouched when it doesn't. A Known fact that fits
+    /// is Known as of the message, and one that doesn't goes Stale; a Stale fact stays Stale as
+    /// of when it was read, as the rest of it is no more current, and a Missing one Missing.
+    fn amend(&mut self, turn: Option<u32>, change: impl FnOnce(&mut T) -> bool) {
+        *self = match std::mem::take(self) {
+            Self::Known(mut fact) => {
+                if change(&mut fact.value) {
+                    Self::Known(AsOf {
+                        value: fact.value,
+                        turn,
+                        source: Source::Message,
+                    })
+                } else {
+                    Self::Stale(fact)
+                }
+            }
+            Self::Stale(mut fact) => {
+                change(&mut fact.value);
+                Self::Stale(fact)
+            }
+            Self::Missing => Self::Missing,
+        };
+    }
+}
+
+impl<T> Remembered<T> {
     /// `value`, Known as of now: read off `read` on `visible`'s turn.
     fn read(value: T, read: &ScreenRead, visible: &VisibleState) -> Self {
         Self::Known(AsOf {
@@ -299,6 +347,7 @@ impl AccumulatedState {
                 }
             }
             self.spells = Remembered::read(spells, read, visible);
+            self.spell_memorised = None;
         }
         if let Some(reaches) = read.spell_reaches() {
             self.spell_reaches = Remembered::read(reaches, read, visible);
@@ -376,7 +425,7 @@ impl AccumulatedState {
             self.spells.go_stale();
             self.spell_reaches.go_stale();
         }
-        if was.xl != is.xl || !lists_the_same_statuses(before, now) {
+        if !lists_the_same_statuses(before, now) {
             self.skills.go_stale();
         }
         if carried_changed
@@ -396,8 +445,8 @@ impl AccumulatedState {
         self.notice_comings_and_goings(before, now, bundle);
         for message in new_messages(before, now) {
             let turn = message.turn.or(now.turn);
-            if changes_speed(&message.text, bundle) {
-                self.mutations.go_stale();
+            for news in told(&message.text, bundle) {
+                self.hear(news, turn);
             }
             if message.text == signs.no_spells {
                 self.spells = Remembered::nothing_on(Screen::Spells, turn);
@@ -411,6 +460,79 @@ impl AccumulatedState {
             }
         }
         self.place_sightings(now, bundle);
+    }
+
+    /// Takes in what a message on `turn` told of the character.
+    fn hear(&mut self, news: Told<'_>, turn: Option<u32>) {
+        match news {
+            Told::Skill { name, level, base } => {
+                // Failure rates and power follow skills.
+                self.spells.go_stale();
+                self.spell_reaches.go_stale();
+                self.abilities.go_stale();
+                if base {
+                    self.skills.go_stale();
+                } else {
+                    self.skills.amend(turn, |skills| {
+                        skills.tenths.insert(name, level * 10);
+                        true
+                    });
+                }
+            }
+            Told::SpellForgotten(name) => {
+                self.spells
+                    .amend(turn, |spells| removed(spells, |spell| spell.name == name));
+                self.spell_reaches
+                    .amend(turn, |reaches| removed(reaches, |reach| reach.name == name));
+            }
+            Told::SpellMemorised => {
+                self.spells.go_stale();
+                self.spell_reaches.go_stale();
+                self.spell_memorised = Some(Memorised { turn });
+            }
+            Told::SpellLearned => {
+                self.spells.go_stale();
+                self.spell_reaches.go_stale();
+            }
+            Told::Power => self.abilities.go_stale(),
+            Told::Mutation(changes) => {
+                // A mutation may change resistances, abilities and failure rates.
+                self.resistances.go_stale();
+                self.abilities.go_stale();
+                self.spells.go_stale();
+                self.spell_reaches.go_stale();
+                self.mutations
+                    .amend(turn, |read| changed(&mut read.shown.mutations, &changes));
+            }
+            Told::Bane { bane, lifted } => {
+                if bane.id.0 == bane_types::DILETTANTE {
+                    self.skills.go_stale();
+                }
+                // Banes unread stay unread.
+                if self
+                    .mutations
+                    .read_value()
+                    .is_some_and(|read| read.shown.banes.is_some())
+                {
+                    self.mutations.amend(turn, |read| {
+                        let banes = read.shown.banes.get_or_insert_with(Vec::new);
+                        let had = banes.iter().position(|shown| *shown == bane.shown);
+                        match (had, lifted) {
+                            (Some(at), true) => {
+                                banes.remove(at);
+                                true
+                            }
+                            (None, false) => {
+                                banes.push(bane.shown.clone());
+                                true
+                            }
+                            (Some(_), false) => true,
+                            (None, true) => false,
+                        }
+                    });
+                }
+            }
+        }
     }
 
     /// Takes up again a game picked up again, last seen on `last_turn`, as `now` shows it. Its
@@ -452,6 +574,7 @@ impl AccumulatedState {
             mutations,
             dungeon,
             backfill: _,
+            spell_memorised: _,
             carried_gear,
             uniques_gear,
             unplaced: _,
@@ -696,21 +819,62 @@ fn whole_spell_name(shown: &str, bundle: &Bundle) -> String {
     }
 }
 
-/// Whether `message` tells of a mutation or bane that changes the character's speed coming or
-/// going, as `bundle` gives their messages.
-fn changes_speed(message: &str, bundle: &Bundle) -> bool {
-    let (speed, character) = (&bundle.speed, &bundle.character);
-    let mutations = character
-        .mutations
-        .iter()
-        .filter(|mutation| speed.mutations.iter().any(|fast| fast.id == mutation.id))
-        .flat_map(|mutation| mutation.gained.iter().chain(&mutation.lost).flatten());
-    let banes = character
-        .banes
-        .iter()
-        .filter(|bane| speed.banes.iter().any(|slow| slow.id == bane.id))
-        .flat_map(|bane| bane.gained.iter().chain([&bane.lifted]));
-    mutations.chain(banes).any(|said| said == message)
+/// Removes the first of `items` that `is`, if any: whether there was one.
+fn removed<T>(items: &mut Vec<T>, is: impl Fn(&T) -> bool) -> bool {
+    match items.iter().position(is) {
+        Some(at) => {
+            items.remove(at);
+            true
+        }
+        None => false,
+    }
+}
+
+/// Changes `shown`, the descriptions of the mutations read, by the one of `changes` whose
+/// mutation is at the level it starts from: whether exactly one was. Crawl gives some messages
+/// for more than one change, such as a mutation gained or its opposite lost, and for each level
+/// of some mutations alike, so which it was is told by the level `shown` describes.
+fn changed(shown: &mut Vec<String>, changes: &[MutationChange<'_>]) -> bool {
+    let mut fitting = changes.iter().filter_map(|change| {
+        let (at, level) = level_shown(shown, change.mutation)?;
+        (level == change.from).then_some((change, at))
+    });
+    let (Some((change, at)), None) = (fitting.next(), fitting.next()) else {
+        return false;
+    };
+    let description = change
+        .to
+        .checked_sub(1)
+        .and_then(|level| change.mutation.shown.get(level))
+        .cloned();
+    match (at, description) {
+        (Some(at), Some(description)) => {
+            if let Some(entry) = shown.get_mut(at) {
+                *entry = description;
+            }
+        }
+        (Some(at), None) => {
+            shown.remove(at);
+        }
+        (None, Some(description)) => shown.push(description),
+        (None, None) => return false,
+    }
+    true
+}
+
+/// Where among `shown` the mutation's description is, and the level of it that describes, 0
+/// where none does; `None` when more than one does.
+fn level_shown(shown: &[String], mutation: &Mutation) -> Option<(Option<usize>, usize)> {
+    let mut found = shown.iter().enumerate().filter_map(|(at, entry)| {
+        (0..mutation.shown.len())
+            .find(|&level| mutation.describes(entry, level))
+            .map(|level| (at, level + 1))
+    });
+    match (found.next(), found.next()) {
+        (None, _) => Some((None, 0)),
+        (Some((at, level)), None) => Some((Some(at), level)),
+        (Some(_), Some(_)) => None,
+    }
 }
 
 /// Whether the player carries the same in `before` and `now`, by letters, names, quantities and
@@ -741,15 +905,24 @@ fn lists_the_same_statuses(before: &VisibleState, now: &VisibleState) -> bool {
     }
 }
 
-/// The messages `now` shows that `before` didn't: those after the last one `before` showed, or
-/// all of them when it is gone.
+/// The messages `now` shows that `before` didn't. The game keeps only its latest messages, and
+/// takes back the last lines it rewrites, such as a prompt it echoes with the answer, so `now`
+/// starts with the longest run of `before`'s messages it still shows and what follows is new:
+/// all of it when it shows none of them. A line rewritten is new again, as crawl rewrites a
+/// message it repeats, as `You feel quick. x2`.
 fn new_messages<'a>(before: &VisibleState, now: &'a VisibleState) -> &'a [GameMessage] {
-    let after = before
-        .messages
-        .last()
-        .and_then(|last| now.messages.iter().rposition(|message| message == last))
-        .map_or(0, |at| at + 1);
-    now.messages.get(after..).unwrap_or_default()
+    let (was, is) = (&before.messages, &now.messages);
+    let kept = (0..was.len())
+        .map(|from| {
+            was.iter()
+                .skip(from)
+                .zip(is)
+                .take_while(|(was, is)| was == is)
+                .count()
+        })
+        .max()
+        .unwrap_or(0);
+    is.get(kept..).unwrap_or_default()
 }
 
 /// The shield among the items at the `equipped` inventory letters, or `None` for none, when the
@@ -908,6 +1081,14 @@ mod tests {
             .unwrap()
     }
 
+    /// The mutations screen as [`mutations_screen`] shows it, read at experience level 5.
+    fn mutations_screen_read() -> MutationsRead {
+        MutationsRead {
+            shown: mutations_screen().mutations().unwrap(),
+            xl: Some(5),
+        }
+    }
+
     /// The mutations read off the mutations screen in `before`, once the game reports `now`.
     fn mutations_after(before: &VisibleState, now: &VisibleState) -> Remembered<MutationsRead> {
         let mut remembered = AccumulatedState::default();
@@ -950,33 +1131,61 @@ mod tests {
         ));
     }
 
-    #[test]
-    fn the_mutations_go_stale_when_the_game_says_a_mutation_or_bane_that_changes_speed_came_or_went()
-     {
-        for message in [
-            "You feel sluggish.",
-            "Your lower body returns to normal.",
-            "The Bane of Lethargy upon you is lifted.",
-        ] {
-            let mut said = character();
-            said.messages.push(GameMessage {
-                text: message.to_owned(),
-                turn: Some(40),
-            });
-            assert!(
-                matches!(mutations_after(&character(), &said), Remembered::Stale(_)),
-                "{message}"
-            );
-        }
-        let mut other = character();
-        other.messages.push(GameMessage {
-            text: "You feel a little pissed off.".to_owned(),
+    /// What the mutations screen in `character` shows once the game says `message`.
+    fn mutations_told(message: &str) -> Remembered<MutationsRead> {
+        let mut said = character();
+        said.messages.push(GameMessage {
+            text: message.to_owned(),
             turn: Some(40),
         });
+        mutations_after(&character(), &said)
+    }
+
+    /// Crawl gives `You feel sluggish.` as slowness is gained and as speed is lost: no speed
+    /// is shown, so it was slowness.
+    #[test]
+    fn a_message_two_mutations_share_changes_the_one_at_the_level_it_starts_from() {
+        let Remembered::Known(read) = mutations_told("You feel sluggish.") else {
+            panic!("not Known");
+        };
+        assert_eq!(read.source, Source::Message);
+        assert_eq!(
+            read.value.shown.mutations,
+            [
+                "Your snake-like lower body moves slowly.",
+                "You cover ground slowly."
+            ]
+        );
+        let Remembered::Known(lifted) = mutations_told("The Bane of Lethargy upon you is lifted.")
+        else {
+            panic!("not Known");
+        };
+        assert_eq!(lifted.value.shown.banes, Some(Vec::new()));
+    }
+
+    #[test]
+    fn a_mutation_message_that_doesnt_fit_the_mutations_read_puts_them_out_of_date() {
+        let Remembered::Stale(read) = mutations_told("You feel less cold resistant.") else {
+            panic!("not Stale");
+        };
+        assert_eq!(read.value, mutations_screen_read());
         assert!(matches!(
-            mutations_after(&character(), &other),
-            Remembered::Known(_)
+            mutations_told("You feel a little pissed off."),
+            Remembered::Known(read) if read.value == mutations_screen_read()
         ));
+    }
+
+    /// A fact's source is saved with the game: a screen as it always was, so games saved before
+    /// messages changed facts read the same, or a message.
+    #[test]
+    fn a_facts_source_is_saved_and_read_back_whether_a_screen_or_a_message() {
+        for (source, saved) in [
+            (Source::Screen(Screen::Skills), r#"{"kind":"skills"}"#),
+            (Source::Message, r#""message""#),
+        ] {
+            assert_eq!(serde_json::to_string(&source).unwrap(), saved);
+            assert_eq!(serde_json::from_str::<Source>(saved).unwrap(), source);
+        }
     }
 
     #[test]

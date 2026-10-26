@@ -1,0 +1,303 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz976375084",
+    "character": "wiz976375084",
+    "species": "Deep Elf",
+    "firstSeenMs": 1792976376325,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "detections": [
+    {
+      "envelope": 122,
+      "turn": 5,
+      "event": "encounterStarted"
+    }
+  ],
+  "end": {
+    "turn": 8,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 16,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 3,
+        "hostilesInView": 1,
+        "bestPlanWin": {
+          "times": 1998,
+          "trials": 2000
+        },
+        "acting": [
+          {
+            "name": "rat",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": []
+          }
+        ],
+        "gear": [
+          {
+            "name": "rat",
+            "position": {
+              "x": 0,
+              "y": 1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "carried",
+              "state": "known",
+              "turn": 5,
+              "source": "sighting",
+              "unlisted": "plainLargeRocks"
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions"
+        ]
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "rat",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 0,
+                      "arrivesAfter": 0,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "no",
+              "because": [
+                {
+                  "blocker": "cutOff",
+                  "by": [
+                    {
+                      "name": "rat",
+                      "position": {
+                        "x": 0,
+                        "y": 1
+                      },
+                      "moves": 2,
+                      "arrivesAfter": 2,
+                      "faster": false
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": null
+        },
+        "gaps": [
+          {
+            "gap": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "playerSpeed",
+          "hitsOnTheWay",
+          "monstersOutOfView"
+        ]
+      },
+      "fight": {
+        "state": "judged",
+        "hp": 16,
+        "plans": [
+          {
+            "plan": {
+              "opening": null,
+              "base": {
+                "with": "melee"
+              }
+            },
+            "win": {
+              "times": 1998,
+              "trials": 2000
+            },
+            "death": {
+              "times": 2,
+              "trials": 2000
+            },
+            "hpLost": 2
+          }
+        ],
+        "notPlayed": [
+          "Searing Ray"
+        ],
+        "gaps": [
+          {
+            "gap": "staleSpellPower",
+            "turn": 0
+          },
+          {
+            "gap": "skillsShifting",
+            "god": "Ashenzari"
+          }
+        ],
+        "notModelled": [
+          "playerSpeed",
+          "summons",
+          "allies",
+          "hexes",
+          "selfBuffs",
+          "mixingWands",
+          "movingBetweenAttacks",
+          "monsterWounds",
+          "ownAttackExtras",
+          "ownFractions"
+        ]
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
+    },
+    "game": {
+      "character": {
+        "name": "wiz976375084",
+        "species": "Deep Elf",
+        "hp": 16,
+        "hpMax": 19,
+        "turn": 8
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "alert": null,
+        "line": "Rat can attack before your next action.",
+        "detail": "Death under 0.1% · worst hit 3 of 16 HP"
+      },
+      "suggestedAction": null,
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "r",
+                "colour": "brown"
+              },
+              "tile": "mon/animals/rat"
+            },
+            "name": "rat",
+            "detail": null,
+            "count": 1
+          }
+        ],
+        "line": "Best plan (melee): ~100% win, ~13% HP lost",
+        "others": [],
+        "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions. Not played: Searing Ray",
+        "gaps": [
+          "~Spell power as of turn 0: open the spell list (I) and press ! to bring it up to date.",
+          "Your skills may differ from the skills screen's: Ashenzari shifts them with your piety."
+        ]
+      },
+      "factCards": [],
+      "waysOut": {
+        "rows": [
+          {
+            "usable": false,
+            "name": "Stone staircase leading down",
+            "detail": "1 step",
+            "whyNot": "Rat is beside it"
+          }
+        ],
+        "ground": "On open ground: 5 sides open",
+        "gaps": [
+          "Open the ability menu (a) to judge your abilities."
+        ]
+      },
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "pickedUp": null,
+      "accumulatedUnreadable": null,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      }
+    }
+  }
+}

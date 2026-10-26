@@ -180,6 +180,14 @@ crawl_identifiers! {
 }
 
 crawl_identifiers! {
+    /// `bane_type` identifiers.
+    bane_types {
+        /// Lowers several skills' levels in effect from their base levels (`player::skill`).
+        DILETTANTE = "BANE_DILETTANTE";
+    }
+}
+
+crawl_identifiers! {
     /// `mon_holy_type` identifiers.
     holinesses {
         NATURAL = "MH_NATURAL";
@@ -221,7 +229,7 @@ mod tests {
     ];
 
     /// The identifiers of each kind a bundle carries.
-    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 13] {
+    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 14] {
         let monsters = || bundle.monsters.values();
         let attacks = || monsters().flat_map(|monster| &monster.attacks);
         let class_sub_types = |class: &str| {
@@ -318,6 +326,16 @@ mod tests {
                 "skills",
                 skill_types::ALL,
                 bundle.skills.keys().map(|id| id.0.as_str()).collect(),
+            ),
+            (
+                "banes",
+                bane_types::ALL,
+                bundle
+                    .character
+                    .banes
+                    .iter()
+                    .map(|bane| bane.id.0.as_str())
+                    .collect(),
             ),
             (
                 "holinesses",

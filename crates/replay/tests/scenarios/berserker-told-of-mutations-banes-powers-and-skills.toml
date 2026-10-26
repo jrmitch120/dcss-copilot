@@ -1,0 +1,33 @@
+description = "A Minotaur Berserker of Trog opens the skills screen, the mutations screen, the ability menu and the spell list on turn 0 of a seeded game, then in wizard mode gains cold resistance twice and loses a level of it, grows robust, is stricken with the Bane of Lethargy and has it lifted, two turns on drinks a potion of experience, gaining a level and skill levels with it, and has Trog's piety raised so his powers come; then opens the mutations screen and the skills screen again"
+recording = "berserker-told-of-mutations-banes-powers-and-skills.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # The skills screen, the mutations screen and the ability menu, closing each, and the spell
+  # list, which crawl answers with a message.
+  "m", "\u001b", "A", "\u001b", "a", "\u001b", "I", "\u001b",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Cold
+  # resistance, a level at a time, twice.
+  "&", "wiz\r", "]", "cold resistance\r", "1\r", "\u001b",
+  "&", "]", "cold resistance\r", "1\r", "\u001b",
+  # A level of it lost.
+  "&", "]", "cold resistance\r", "-1\r", "\u001b",
+  # Robust, whose message is also frailty's as it is lost.
+  "&", "]", "robust\r", "1\r", "\u001b",
+  # The Bane of Lethargy, toggled on, then off.
+  "&", "}", "lethargy\r", "\u001b",
+  "&", "}", "lethargy\r", "\u001b",
+  # Two turns, as crawl tells of no skill levels on turn 0; then a potion of experience, made
+  # where they stand, picked up and drunk: an experience level, and skill levels with it.
+  ".", ".", "&", "%", "potion of experience\r", "\u001b", ",", "q", "d", "\u001b", "\u001b",
+  # Trog's piety to 160, five stars: his powers come.
+  "&", "^", "160\r", "\u001b",
+  # The mutations screen and the skills screen again.
+  "A", "\u001b", "m", "\u001b",
+]

@@ -457,7 +457,7 @@ expression: detections
     "turn": 3885,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~93% win, ~43% HP lost"
+    "line": "Fight on — Melee: ~93% win, ~40% HP lost"
   },
   {
     "envelope": 4839,
@@ -567,7 +567,7 @@ expression: detections
     "turn": 4130,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~87% win, ~55% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~88% win, ~55% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 5399,
@@ -635,7 +635,7 @@ expression: detections
     "turn": 4258,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~1% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
   },
   {
     "envelope": 5709,
@@ -667,7 +667,7 @@ expression: detections
     "turn": 4281,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~3% win, ~100% HP lost"
   },
   {
     "envelope": 5782,
@@ -692,7 +692,7 @@ expression: detections
     "turn": 4288,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~17% win, ~95% HP lost"
+    "line": "Last resort: fight — Melee: ~19% win, ~95% HP lost"
   },
   {
     "envelope": 5801,

@@ -326,7 +326,7 @@ expression: detections
     "turn": 2202,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~67% win, ~68% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~68% win, ~64% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 2990,
@@ -552,7 +552,7 @@ expression: detections
     "turn": 3743,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of light, then melee: ~100% win, ~10% HP lost"
+    "line": "Fight on — Wand of light, then melee: ~100% win, ~7% HP lost"
   },
   {
     "envelope": 5717,
@@ -577,7 +577,7 @@ expression: detections
     "turn": 3807,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of light, then melee: ~100% win, ~11% HP lost"
+    "line": "Fight on — Wand of light, then melee: ~100% win, ~9% HP lost"
   },
   {
     "envelope": 5979,
@@ -602,7 +602,7 @@ expression: detections
     "turn": 3884,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of light, then melee: ~100% win, ~14% HP lost"
+    "line": "Fight on — Wand of light, then melee: ~100% win, ~10% HP lost"
   },
   {
     "envelope": 6136,

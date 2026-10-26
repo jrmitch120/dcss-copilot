@@ -168,18 +168,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1257,
-    "turn": 1661,
+    "envelope": 1267,
+    "turn": 1663,
     "event": "alert",
-    "cause": "last-way-out-lost",
-    "line": "No Way Out is left that you can use."
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 1257,
-    "turn": 1661,
+    "envelope": 1267,
+    "turn": 1663,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 3 steps away"
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 1471,

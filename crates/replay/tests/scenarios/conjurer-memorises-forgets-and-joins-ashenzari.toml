@@ -1,0 +1,29 @@
+description = "A Deep Elf Conjurer set to experience level 3 in wizard mode opens the skills screen and the spell list with its power and range on turn 0 of a seeded game, then two turns on memorises a spell from their library, which crawl's message doesn't name; creates a rat beside them, reads a scroll of amnesia, whose menu lists their spells, to forget Magic Dart, joins Ashenzari and waits a turn; then opens the spell list again"
+recording = "conjurer-memorises-forgets-and-joins-ashenzari.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = DECj
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Experience
+  # level 3, to learn a second level spell.
+  "&", "wiz\r", "l", "3\r", "\u001b",
+  # The skills screen, and the spell list switched to its power and range, closing each.
+  "m", "\u001b", "I", "!", "\u001b",
+  # Two turns, then memorise the library's first spell, confirming: it takes a few turns.
+  ".", ".", "M", "a", "y", "\u001b",
+  # Create a monster by name beside them, for the panel to judge a fight: a rat.
+  "&", "m", "rat\r", "\u001b",
+  # Make an identified scroll of amnesia where they stand and pick it up.
+  "&", "%", "pre_id scroll of amnesia\r", "\u001b", ",",
+  # Read it, and forget the first spell they know, Magic Dart, confirming.
+  "r", "x", "a", "y", "\u001b",
+  # Join Ashenzari.
+  "&", "_", "Ashenzari\r", "\u001b", ".",
+  # The spell list again.
+  "I", "\u001b",
+]

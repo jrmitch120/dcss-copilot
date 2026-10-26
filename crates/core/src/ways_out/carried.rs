@@ -146,8 +146,17 @@ impl Carried<'_> {
 
     /// The spells that are Ways Out, as the spell list last showed them, each stopped by the
     /// player's statuses or their magic. Never having read the list is a Gap in `gaps` for a
-    /// player with magic to cast with.
+    /// player with magic to cast with, and so is a spell memorised since that the game didn't
+    /// name, which may be a Way Out.
     pub(super) fn spells(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
+        if let Some(memorised) = self
+            .remembered
+            .and_then(|remembered| remembered.spell_memorised)
+        {
+            gaps.insert(Gap::SpellMemorised {
+                turn: memorised.turn,
+            });
+        }
         let Some((spells, read)) = self
             .remembered
             .and_then(|remembered| current(&remembered.spells))

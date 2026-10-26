@@ -1,0 +1,160 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz976082021",
+    "character": "wiz976082021",
+    "species": "Minotaur",
+    "firstSeenMs": 1792976083283,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "detections": [],
+  "end": {
+    "turn": 4,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "calm",
+        "hp": 32,
+        "death": {
+          "times": 0,
+          "trials": 0
+        },
+        "worstHit": 0,
+        "hostilesInView": 0,
+        "bestPlanWin": null,
+        "acting": [],
+        "gear": [],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": []
+      },
+      "waysOut": {
+        "options": [
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "stone staircase leading down",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": 0
+              },
+              "steps": 1,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "stairs",
+              "name": "escape hatch in the floor",
+              "direction": "down",
+              "position": {
+                "x": -1,
+                "y": -2
+              },
+              "steps": 2,
+              "overRememberedSquares": false
+            },
+            "usable": {
+              "state": "yes"
+            }
+          },
+          {
+            "option": {
+              "kind": "ability",
+              "name": "Berserk",
+              "effect": "strengthens",
+              "failurePercent": 10,
+              "read": {
+                "turn": 0,
+                "stale": true
+              }
+            },
+            "usable": {
+              "state": "yes"
+            }
+          }
+        ],
+        "ground": {
+          "ground": "openGround",
+          "openSides": 5,
+          "nearestCorridor": null
+        },
+        "pace": {
+          "moveTime": 10,
+          "waterMoveTime": 16,
+          "actionTime": 10,
+          "because": [],
+          "mutationsRead": {
+            "turn": 4,
+            "stale": false
+          }
+        },
+        "gaps": [],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares",
+          "hitsOnTheWay",
+          "monstersOutOfView",
+          "ownConditions"
+        ]
+      },
+      "fight": {
+        "state": "noFight"
+      },
+      "exceptional": [],
+      "dangerousStatuses": []
+    },
+    "game": {
+      "character": {
+        "name": "wiz976082021",
+        "species": "Minotaur",
+        "hp": 32,
+        "hpMax": 33,
+        "turn": 4
+      },
+      "now": {
+        "state": "rated",
+        "level": "calm",
+        "alert": null,
+        "line": "No hostiles in view.",
+        "detail": null
+      },
+      "suggestedAction": null,
+      "focus": {
+        "card": "inView",
+        "monsters": []
+      },
+      "factCards": [],
+      "waysOut": null,
+      "runPlan": {
+        "state": "notPlanned"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "pickedUp": null,
+      "accumulatedUnreadable": null,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      }
+    }
+  }
+}

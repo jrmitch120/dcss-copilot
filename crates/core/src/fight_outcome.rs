@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use copilot_gk::{Bundle, EnumId, ItemUse, MissileKind};
 use serde::Serialize;
 
-use crate::accumulated_state::AccumulatedState;
+use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::carried_gear::{self, ItemBrand};
 use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
@@ -15,8 +15,8 @@ use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, Gap, NotModelled};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
-use crate::view_model::{FocusCard, Listing, capitalised};
-use crate::visible_state::{InventoryItem, SquareLight, VisibleState, Wielding};
+use crate::view_model::{FocusCard, Listing, capitalised, memorised_unnamed, out_of_date};
+use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
 /// fewer (spec #24, "Engine (ADR 0003)"). A bigger fight isn't judged.
@@ -235,7 +235,7 @@ pub(crate) fn judge<'a>(
         Err(gaps) => return Fight::Unjudged { gaps },
     };
     let mut not_modelled: BTreeSet<NotModelled> = ALWAYS_NOT_MODELLED.into_iter().collect();
-    let mut gaps = BTreeSet::new();
+    let mut gaps = skills_out_of_date(visible, remembered, bundle);
     let (base, base_plan) = player.base(bundle, &mut not_modelled);
     let fighter = Fighter {
         hp: defender.hp,
@@ -359,6 +359,25 @@ fn opening_blasts_or_pierces(opening: &Opening<'_>) -> bool {
         }
         Opening::Thrown { id, .. } => id.0 == missile_types::JAVELIN,
     }
+}
+
+/// What may keep the skills played from being the player's own: a skills screen read before
+/// something that may have changed them, or a god who shifts them unsaid.
+fn skills_out_of_date(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    bundle: &Bundle,
+) -> BTreeSet<Gap> {
+    let mut gaps = BTreeSet::new();
+    if let Some(Remembered::Stale(read)) = remembered.map(|state| &state.skills) {
+        gaps.insert(Gap::StaleSkills { turn: read.turn });
+    }
+    if let Some(Religion::God { name, .. }) = &visible.religion
+        && bundle.character.skills.shifting_gods.contains(name)
+    {
+        gaps.insert(Gap::SkillsShifting { god: name.clone() });
+    }
+    gaps
 }
 
 /// The player as the Fight Outcome reads them.
@@ -530,6 +549,22 @@ impl<'v> Player<'v> {
             }
             return Vec::new();
         };
+        if let Some(state) = remembered {
+            if let Some(memorised) = state.spell_memorised {
+                gaps.insert(Gap::SpellMemorised {
+                    turn: memorised.turn,
+                });
+            }
+            // A list of no spells out of date hides an attack only as a spell memorised does.
+            if !known.is_empty() {
+                if let Remembered::Stale(read) = &state.spells {
+                    gaps.insert(Gap::StaleSpellList { turn: read.turn });
+                }
+                if let Remembered::Stale(read) = &state.spell_reaches {
+                    gaps.insert(Gap::StaleSpellPower { turn: read.turn });
+                }
+            }
+        }
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
         for spell in known {
@@ -825,6 +860,27 @@ fn gap(gap: &Gap) -> String {
             capitalised(monster)
         ),
         Gap::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
+        Gap::StaleSkills { turn } => format!(
+            "{}: open the skills screen (m) to bring them up to date.",
+            out_of_date("Skills", *turn)
+        ),
+        Gap::StaleSpellList { turn } => format!(
+            "{}: open it (I) to bring it up to date.",
+            out_of_date("Spell list", *turn)
+        ),
+        Gap::StaleSpellPower { turn } => format!(
+            "{}: open the spell list (I) and press ! to bring it up to date.",
+            out_of_date("Spell power", *turn)
+        ),
+        Gap::SpellMemorised { turn } => format!(
+            "{}: open the spell list (I) to count it.",
+            memorised_unnamed(*turn)
+        ),
+        Gap::SkillsShifting { god } => {
+            format!(
+                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
+            )
+        }
     }
 }
 

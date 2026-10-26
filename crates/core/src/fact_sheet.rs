@@ -523,6 +523,36 @@ pub enum Gap {
     Wielded,
     /// The player's Strength, Dexterity or magic points haven't been reported.
     Attributes,
+    /// The skills were read on `turn`, and something seen since may have changed them: they
+    /// are played all the same.
+    StaleSkills {
+        /// The game's turn when they were read, if it had reported one.
+        turn: Option<u32>,
+    },
+    /// The spell list was read on `turn`, and something seen since may have changed which
+    /// spells the player knows or how often they fail: it is played all the same.
+    StaleSpellList {
+        /// The game's turn when it was read, if it had reported one.
+        turn: Option<u32>,
+    },
+    /// The spells' power and range were read on `turn`, and something seen since may have
+    /// changed them: they are played all the same.
+    StaleSpellPower {
+        /// The game's turn when they were read, if it had reported one.
+        turn: Option<u32>,
+    },
+    /// The player memorised a spell the game's message didn't name, a Blind Spot until the
+    /// spell list (`I`) is read.
+    SpellMemorised {
+        /// The game's turn when they did, if it had reported one.
+        turn: Option<u32>,
+    },
+    /// The player follows a god who shifts their skills from their base levels with piety,
+    /// without a message, a Blind Spot: they may differ from what the skills screen showed.
+    SkillsShifting {
+        /// The god, as the game names them, such as `Ashenzari`.
+        god: String,
+    },
 }
 
 impl FactSheet {

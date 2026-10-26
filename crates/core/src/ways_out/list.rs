@@ -4,7 +4,7 @@ use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
 use crate::fact_sheet::Gap;
-use crate::view_model::{WayOutRow, WaysOutList, capitalised};
+use crate::view_model::{WayOutRow, WaysOutList, capitalised, memorised_unnamed, out_of_date};
 
 impl WaysOut {
     /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
@@ -256,5 +256,26 @@ fn gap(gap: &Gap) -> String {
             "Open the spell list (I) and press ! to judge your spells' power.".to_owned()
         }
         Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
+        Gap::StaleSkills { turn } => format!(
+            "{}: open the skills screen (m) to bring them up to date.",
+            out_of_date("Skills", *turn)
+        ),
+        Gap::StaleSpellList { turn } => format!(
+            "{}: open it (I) to bring it up to date.",
+            out_of_date("Spell list", *turn)
+        ),
+        Gap::StaleSpellPower { turn } => format!(
+            "{}: open the spell list (I) and press ! to bring it up to date.",
+            out_of_date("Spell power", *turn)
+        ),
+        Gap::SpellMemorised { turn } => format!(
+            "{}: open the spell list (I) to judge it.",
+            memorised_unnamed(*turn)
+        ),
+        Gap::SkillsShifting { god } => {
+            format!(
+                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
+            )
+        }
     }
 }

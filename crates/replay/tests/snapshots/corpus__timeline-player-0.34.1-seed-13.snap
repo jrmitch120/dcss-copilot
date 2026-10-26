@@ -381,7 +381,7 @@ expression: detections
     "turn": 1951,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~91% win, ~44% HP lost"
+    "line": "Fight on — Melee: ~93% win, ~38% HP lost"
   },
   {
     "envelope": 3120,
@@ -391,11 +391,11 @@ expression: detections
     "line": "Fall back to stairs — Stone staircase leading down · ~13 steps · partly out of view"
   },
   {
-    "envelope": 3353,
-    "turn": 1998,
+    "envelope": 3133,
+    "turn": 1954,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~97% win, ~23% HP lost"
+    "line": "Fight on — Melee: ~91% win, ~40% HP lost"
   },
   {
     "envelope": 3398,
@@ -434,7 +434,7 @@ expression: detections
     "turn": 2063,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~91% win, ~33% HP lost"
+    "line": "Fight on — Melee: ~92% win, ~33% HP lost"
   },
   {
     "envelope": 3687,
@@ -459,7 +459,7 @@ expression: detections
     "turn": 2192,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~44% win, ~86% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~47% win, ~81% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 3722,
@@ -686,7 +686,7 @@ expression: detections
     "turn": 3207,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~94% win, ~38% HP lost"
+    "line": "Fight on — Melee: ~95% win, ~33% HP lost"
   },
   {
     "envelope": 5294,
@@ -866,21 +866,6 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 7338,
-    "turn": 4244,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
-  },
-  {
-    "envelope": 7338,
-    "turn": 4244,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 4 steps away"
-  },
-  {
     "envelope": 7483,
     "turn": 4271,
     "event": "allClear"
@@ -913,7 +898,7 @@ expression: detections
     "turn": 4317,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~12% win, ~96% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~18% win, ~93% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 7574,
@@ -959,7 +944,7 @@ expression: detections
     "turn": 4409,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~24% win, ~94% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~40% win, ~88% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 7931,
@@ -1059,7 +1044,7 @@ expression: detections
     "turn": 5202,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~59% win, ~71% HP lost. If it turns LETHAL: Curing ×3 · heals"
+    "line": "Fight carefully — Melee: ~71% win, ~67% HP lost. If it turns LETHAL: Curing ×3 · heals"
   },
   {
     "envelope": 8633,
