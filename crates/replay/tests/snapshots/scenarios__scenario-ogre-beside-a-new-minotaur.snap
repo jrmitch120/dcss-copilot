@@ -215,12 +215,18 @@ expression: replay
           "level": "lethal",
           "alert": "Threat rose to LETHAL.",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 22.1% · worst hit 34 of 19 HP"
+          "detail": {
+            "text": "Death 22.1% · worst hit 34 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "lethal",
           "rule": "Last resort: fight",
-          "action": "The Advisor can't judge this fight",
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "ifLethal": null
         },
         "focus": {
@@ -239,7 +245,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -265,8 +274,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Ogre is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Ogre is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -545,12 +560,18 @@ expression: replay
         "level": "lethal",
         "alert": "Ogre, out of depth by 3 levels, alone makes this LETHAL.",
         "line": "Ogre can attack before your next action.",
-        "detail": "Death 22.1% · worst hit 34 of 19 HP"
+        "detail": {
+          "text": "Death 22.1% · worst hit 34 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": {
         "level": "lethal",
         "rule": "Last resort: fight",
-        "action": "The Advisor can't judge this fight",
+        "action": {
+          "text": "The Advisor can't judge this fight",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "ifLethal": null
       },
       "focus": {
@@ -569,7 +590,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -595,8 +619,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Ogre is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Ogre is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

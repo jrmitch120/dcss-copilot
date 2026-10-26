@@ -235,7 +235,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Orc warrior can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 30 of 102 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -254,7 +257,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -280,8 +286,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Orc warrior is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Orc warrior is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 6 sides open · a corridor 6 steps away",
@@ -526,7 +538,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Orc warrior can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 30 of 102 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -545,7 +560,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -571,8 +589,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Orc warrior is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Orc warrior is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 6 sides open · a corridor 6 steps away",
@@ -842,7 +866,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Orc warrior can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 30 of 102 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 30 of 102 HP",
+          "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -861,7 +888,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -887,8 +917,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Orc warrior is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Orc warrior is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 6 sides open · a corridor 6 steps away",

@@ -191,7 +191,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -204,14 +207,23 @@ expression: replay
             {
               "usable": true,
               "name": "Stone staircase leading up",
-              "detail": "underfoot",
+              "detail": {
+                "text": "underfoot",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "3 steps",
-              "whyNot": "Ball python is faster"
+              "detail": {
+                "text": "3 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Ball python is faster",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 6 sides open",

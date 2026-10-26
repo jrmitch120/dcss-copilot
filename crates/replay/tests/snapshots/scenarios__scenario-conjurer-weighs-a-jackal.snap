@@ -248,7 +248,10 @@ expression: replay
           "level": "calm",
           "alert": "No Way Out is left that you can use.",
           "line": "Jackal can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 3 of 13 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -267,7 +270,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "line": {
+            "text": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+            "gap": null
+          },
           "others": [
             "Melee: ~74% win, ~62% HP lost"
           ],
@@ -280,8 +286,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Jackal is in the way"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Jackal is in the way",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -561,7 +573,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 13 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -580,7 +595,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+        "line": {
+          "text": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "gap": null
+        },
         "others": [
           "Melee: ~74% win, ~62% HP lost"
         ],
@@ -593,8 +611,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is in the way"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is in the way",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

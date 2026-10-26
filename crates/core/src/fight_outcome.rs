@@ -16,7 +16,7 @@ use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
 use crate::gaps::{Gap, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
-use crate::view_model::{FocusCard, Listing, capitalised};
+use crate::view_model::{FocusCard, Listing, Value, capitalised};
 use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
@@ -55,6 +55,12 @@ impl Fight {
             Self::Unjudged { gaps } => gaps,
             Self::NoFight | Self::TooMany { .. } => &[],
         }
+    }
+
+    /// `text`, said of this fight, marked with the Gaps that keep it from being judged or may
+    /// hide a better plan, as its card words them.
+    pub(crate) fn marked(&self, text: String) -> Value {
+        Value::marked(text, self.gaps().iter().map(gap))
     }
 
     /// The best plan's outcome, when the fight was judged.
@@ -733,7 +739,7 @@ impl Fight {
     pub(crate) fn card(&self, monsters: Option<Vec<Listing>>) -> Option<FocusCard> {
         let card = |line: String, others, not_modelled, gaps: &[Gap]| FocusCard::Fight {
             monsters,
-            line,
+            line: self.marked(line),
             others,
             not_modelled,
             gaps: gaps.iter().map(gap).collect(),
@@ -1242,7 +1248,10 @@ mod tests {
         let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None) else {
             panic!("no fight card");
         };
-        assert_eq!(line, "Too many hostiles to judge a fight: 4 in view.");
+        assert_eq!(
+            line,
+            Value::known("Too many hostiles to judge a fight: 4 in view.".to_owned())
+        );
     }
 
     #[test]
@@ -1254,6 +1263,7 @@ mod tests {
         else {
             panic!("no fight card");
         };
+        let line = line.text;
         assert!(
             line.starts_with("Best plan (Magic Dart, then melee): ~"),
             "{line}"

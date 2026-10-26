@@ -185,6 +185,36 @@ pub struct WaysOutList {
     pub gaps: Vec<String>,
 }
 
+/// A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
+/// with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Value {
+    /// The value, such as `spell · ~4% fail as of turn 12`.
+    pub text: String,
+    /// What leaves it unknown or out of date, and how to fill it where the player can, one
+    /// sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
+    /// `None` while no Gap touches it.
+    pub gap: Option<String>,
+}
+
+impl Value {
+    /// `text`, which no Gap touches.
+    pub(crate) fn known(text: String) -> Self {
+        Self { text, gap: None }
+    }
+
+    /// `text`, marked with the `gaps` that leave it unknown or out of date, one sentence each:
+    /// unmarked when there are none.
+    pub(crate) fn marked(text: String, gaps: impl IntoIterator<Item = String>) -> Self {
+        let gaps: Vec<String> = gaps.into_iter().collect();
+        Self {
+            text,
+            gap: (!gaps.is_empty()).then(|| gaps.join(" ")),
+        }
+    }
+}
+
 /// `text` with its first letter capitalised, as a name starts a line in the panel.
 pub(crate) fn capitalised(text: &str) -> String {
     let mut chars = text.chars();
@@ -201,10 +231,12 @@ pub struct WayOutRow {
     pub usable: bool,
     /// What it is, such as `Stone staircase leading down` or `Teleportation`.
     pub name: String,
-    /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`.
-    pub detail: Option<String>,
-    /// Why it can't be used, when it can't, such as `Centaur is faster`.
-    pub why_not: Option<String>,
+    /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the
+    /// menu or list it was read off is out of date.
+    pub detail: Option<Value>,
+    /// Why it can't be used, when it can't, such as `Centaur is faster`, marked when it rests on
+    /// a menu out of date.
+    pub why_not: Option<Value>,
 }
 
 /// The character in the game being followed. A stat is `None` until the game reports it.
@@ -246,8 +278,9 @@ pub enum NowPill {
         /// One sentence about this moment, such as which monsters can attack.
         line: String,
         /// The numbers behind the level, such as the chance of death and the worst-case hit,
-        /// when anything can attack.
-        detail: Option<String>,
+        /// when anything can attack, marked when they were judged around a Gap, such as
+        /// resistances unread.
+        detail: Option<Value>,
     },
 }
 
@@ -262,11 +295,11 @@ pub struct SuggestedActionCard {
     /// The rule that picked it, such as `Leave by stairs`.
     pub rule: String,
     /// What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
-    /// ~95% win, ~20% HP lost`.
-    pub action: String,
+    /// ~95% win, ~20% HP lost`, marked when a Gap leaves its facts unknown or out of date.
+    pub action: Value,
     /// At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
-    /// spell · 4% fail`, or that none is left.
-    pub if_lethal: Option<String>,
+    /// spell · 4% fail`, or that none is left, marked as `action` is.
+    pub if_lethal: Option<Value>,
 }
 
 /// The card under the now pill: what deserves the player's attention now.
@@ -289,8 +322,9 @@ pub enum FocusCard {
         /// The monsters in view, as [`FocusCard::InView`] lists them.
         monsters: Option<Vec<Listing>>,
         /// The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
-        /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
-        line: String,
+        /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
+        /// the Gaps that keep it from being judged or may hide a better plan.
+        line: Value,
         /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
         others: Vec<String>,
         /// What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.

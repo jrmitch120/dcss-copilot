@@ -454,7 +454,7 @@ mod tests {
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
     use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
-    use crate::view_model::{Colour, Glyph, WayOutRow};
+    use crate::view_model::{Colour, Glyph, Value, WayOutRow};
     use crate::visible_state::{
         Attitude, LevelMap, MapCell, Religion, SquareLight, Stats, Status, VisibleMonster,
     };
@@ -748,7 +748,13 @@ mod tests {
     fn a_staircase_over_squares_in_view_is_not_marked() {
         let in_view = ways_out(&corridor(&[], 0), "Human", true);
         assert!(!over_remembered_squares(&in_view));
-        assert_eq!(in_view.list().rows[0].detail.as_deref(), Some("6 steps"));
+        assert_eq!(
+            in_view.list().rows[0]
+                .detail
+                .as_ref()
+                .map(|detail| detail.text.as_str()),
+            Some("6 steps")
+        );
     }
 
     #[test]
@@ -764,7 +770,10 @@ mod tests {
                 "{species}"
             );
             assert_eq!(
-                remembered.list().rows[0].detail.as_deref(),
+                remembered.list().rows[0]
+                    .detail
+                    .as_ref()
+                    .map(|detail| detail.text.as_str()),
                 Some("~6 steps · partly out of view")
             );
         }
@@ -847,17 +856,27 @@ mod tests {
         let known = ability_row(&visible, &remembered, "Berserk");
         assert!(!known.usable);
         assert_eq!(
-            known.why_not.as_deref(),
-            Some("greyed out in the ability menu as of turn 5")
+            known.why_not,
+            Some(Value::known(
+                "greyed out in the ability menu as of turn 5".to_owned()
+            ))
         );
         let mut levelled = visible.clone();
         levelled.stats.xl = Some(2);
         remembered.update(&visible, &levelled, Some(bundle()));
         let stale = ability_row(&levelled, &remembered, "Berserk");
         assert!(!stale.usable);
+        let menu_out_of_date = "~Ability menu as of turn 5: open it (a) to bring it up to date.";
         assert_eq!(
-            stale.why_not.as_deref(),
-            Some("~greyed out in the ability menu as of turn 5")
+            stale.why_not,
+            Some(Value::marked(
+                "~greyed out in the ability menu as of turn 5".to_owned(),
+                [menu_out_of_date.to_owned()]
+            ))
+        );
+        assert_eq!(
+            stale.detail.and_then(|detail| detail.gap).as_deref(),
+            Some(menu_out_of_date)
         );
     }
 
@@ -868,6 +887,7 @@ mod tests {
         assert_eq!(
             ability_row(&cooling_down, &remembered, "Berserk")
                 .why_not
+                .map(|why_not| why_not.text)
                 .as_deref(),
             Some("you're -Berserk")
         );

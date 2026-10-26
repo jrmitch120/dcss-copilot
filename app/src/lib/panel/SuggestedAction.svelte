@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { SuggestedActionCard } from "$lib/bindings";
+import Marked from "./Marked.svelte";
 
 /** The Suggested Action, named by the rule that picked it. */
 let { suggested }: { suggested: SuggestedActionCard } = $props();
@@ -8,9 +9,9 @@ let { suggested }: { suggested: SuggestedActionCard } = $props();
 <section class="card {suggested.level}">
   <div class="lbl">Suggested <em>{suggested.level.toUpperCase()} rule · no LLM</em></div>
   <p class="rule">{suggested.rule}</p>
-  <p class="action">{suggested.action}</p>
+  <p class="action"><Marked value={suggested.action} /></p>
   {#if suggested.ifLethal}
-    <p class="muted small">If it turns LETHAL: {suggested.ifLethal}</p>
+    <p class="muted small">If it turns LETHAL: <Marked value={suggested.ifLethal} /></p>
   {/if}
 </section>
 

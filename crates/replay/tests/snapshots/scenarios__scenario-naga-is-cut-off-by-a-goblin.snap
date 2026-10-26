@@ -328,7 +328,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -341,8 +344,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "3 steps",
-              "whyNot": "Goblin is faster"
+              "detail": {
+                "text": "3 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Goblin is faster",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 4 sides open · a corridor 3 steps away",
@@ -689,7 +698,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -702,8 +714,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "3 steps",
-            "whyNot": "Goblin is faster"
+            "detail": {
+              "text": "3 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Goblin is faster",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 4 sides open · a corridor 3 steps away",

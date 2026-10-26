@@ -328,7 +328,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 27 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 27 of 102 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -347,7 +350,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -373,8 +379,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "2 steps",
-              "whyNot": "Centaur is faster"
+              "detail": {
+                "text": "2 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Centaur is faster",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 7 sides open · a corridor 4 steps away",
@@ -737,7 +749,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 27 of 102 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 27 of 102 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -756,7 +771,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -782,8 +800,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "2 steps",
-            "whyNot": "Centaur is faster"
+            "detail": {
+              "text": "2 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Centaur is faster",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 7 sides open · a corridor 4 steps away",

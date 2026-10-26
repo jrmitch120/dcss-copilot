@@ -223,7 +223,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 22 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 22 of 102 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -242,7 +245,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -268,8 +274,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 3 sides open",
@@ -502,7 +514,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 22 of 93 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 22 of 93 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -521,7 +536,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -547,8 +565,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 3 sides open",
@@ -806,7 +830,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 22 of 84 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 22 of 84 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -825,7 +852,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -851,8 +881,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "4 steps",
-            "whyNot": "Centaur is beside it"
+            "detail": {
+              "text": "4 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Centaur is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 3 sides open",

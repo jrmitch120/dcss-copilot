@@ -215,12 +215,18 @@ expression: replay
           "level": "lethal",
           "alert": "Threat rose to LETHAL.",
           "line": "Seraph can attack before your next action.",
-          "detail": "Death 95.6% · worst hit 187 of 19 HP"
+          "detail": {
+            "text": "Death 95.6% · worst hit 187 of 19 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "lethal",
           "rule": "Last resort: fight",
-          "action": "The Advisor can't judge this fight",
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "ifLethal": null
         },
         "focus": {
@@ -239,7 +245,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -252,8 +261,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Seraph is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Seraph is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -508,12 +523,18 @@ expression: replay
         "level": "lethal",
         "alert": "No Way Out is left that you can use.",
         "line": "Seraph can attack before your next action.",
-        "detail": "Death 95.6% · worst hit 187 of 19 HP"
+        "detail": {
+          "text": "Death 95.6% · worst hit 187 of 19 HP",
+          "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+        }
       },
       "suggestedAction": {
         "level": "lethal",
         "rule": "Last resort: fight",
-        "action": "The Advisor can't judge this fight",
+        "action": {
+          "text": "The Advisor can't judge this fight",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "ifLethal": null
       },
       "focus": {
@@ -532,7 +553,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -545,8 +569,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Seraph is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Seraph is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

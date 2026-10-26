@@ -201,7 +201,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Jackal can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 3 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -220,7 +223,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -233,8 +239,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Jackal is faster"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Jackal is faster",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -466,7 +478,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -485,7 +500,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -498,13 +516,22 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is beside it",
+              "gap": null
+            }
           },
           {
             "usable": true,
             "name": "Teleportation",
-            "detail": "escapes after a delay",
+            "detail": {
+              "text": "escapes after a delay",
+              "gap": null
+            },
             "whyNot": null
           }
         ],

@@ -4,7 +4,7 @@ use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
 use crate::gaps::Gap;
-use crate::view_model::{WayOutRow, WaysOutList, capitalised};
+use crate::view_model::{Value, WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
     /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
@@ -47,6 +47,29 @@ impl Escape {
         match self.named() {
             (name, Some(detail)) => format!("{name} · {detail}"),
             (name, None) => name,
+        }
+    }
+
+    /// The Way Out as one line, as [`Escape::summary`] says it, marked when the menu or list it
+    /// was read off is out of date.
+    pub(crate) fn value(&self) -> Value {
+        Value::marked(self.summary(), self.gap().as_ref().map(Gap::sentence))
+    }
+
+    /// The Gap it was judged around: the ability menu or spell list it was read off out of
+    /// date.
+    fn gap(&self) -> Option<Gap> {
+        match self {
+            Escape::Ability { read, .. } if read.stale => {
+                Some(Gap::StaleAbilityMenu { turn: read.turn })
+            }
+            Escape::Spell { read, .. } if read.stale => {
+                Some(Gap::StaleSpellList { turn: read.turn })
+            }
+            Escape::Stairs { .. }
+            | Escape::Item { .. }
+            | Escape::Ability { .. }
+            | Escape::Spell { .. } => None,
         }
     }
 
@@ -101,17 +124,23 @@ impl Escape {
 /// A Way Out's row.
 fn row(way_out: &WayOut) -> WayOutRow {
     let (name, detail) = way_out.option.named();
+    let stale = way_out.option.gap();
     let (usable, why_not) = match &way_out.usable {
         Usable::Yes => (true, None),
-        Usable::No { because } => (
-            false,
-            Some(because.iter().map(blocker).collect::<Vec<_>>().join("; ")),
-        ),
+        Usable::No { because } => {
+            let why_not = because.iter().map(blocker).collect::<Vec<_>>().join("; ");
+            // Only the menu's greying out rests on what was read off it.
+            let greyed_out = because
+                .iter()
+                .any(|blocker| matches!(blocker, Blocker::GreyedOut { .. }));
+            let gap = stale.as_ref().filter(|_| greyed_out).map(Gap::sentence);
+            (false, Some(Value::marked(why_not, gap)))
+        }
     };
     WayOutRow {
         usable,
         name,
-        detail,
+        detail: detail.map(|detail| Value::marked(detail, stale.as_ref().map(Gap::sentence))),
         why_not,
     }
 }

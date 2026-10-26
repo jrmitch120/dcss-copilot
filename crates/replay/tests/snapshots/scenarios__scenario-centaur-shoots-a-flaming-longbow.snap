@@ -231,13 +231,22 @@ expression: replay
           "level": "dangerous",
           "alert": "No Way Out is left that you can use.",
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 46 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 46 of 102 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fight carefully",
-          "action": "The Advisor can't judge this fight",
-          "ifLethal": "no Way Out left"
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
+          "ifLethal": {
+            "text": "no Way Out left",
+            "gap": null
+          }
         },
         "focus": {
           "card": "fight",
@@ -255,7 +264,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -281,8 +293,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 3 sides open",
@@ -523,13 +541,22 @@ expression: replay
           "level": "dangerous",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 46 of 91 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 46 of 91 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fight carefully",
-          "action": "The Advisor can't judge this fight",
-          "ifLethal": "no Way Out left"
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
+          "ifLethal": {
+            "text": "no Way Out left",
+            "gap": null
+          }
         },
         "focus": {
           "card": "fight",
@@ -547,7 +574,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -573,8 +603,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 3 sides open",
@@ -854,13 +890,22 @@ expression: replay
         "level": "dangerous",
         "alert": null,
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 46 of 92 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 46 of 92 HP",
+          "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+        }
       },
       "suggestedAction": {
         "level": "dangerous",
         "rule": "Fight carefully",
-        "action": "The Advisor can't judge this fight",
-        "ifLethal": "no Way Out left"
+        "action": {
+          "text": "The Advisor can't judge this fight",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
+        "ifLethal": {
+          "text": "no Way Out left",
+          "gap": null
+        }
       },
       "focus": {
         "card": "fight",
@@ -878,7 +923,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -904,8 +952,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "4 steps",
-            "whyNot": "Centaur is beside it"
+            "detail": {
+              "text": "4 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Centaur is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 3 sides open",

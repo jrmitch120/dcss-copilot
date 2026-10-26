@@ -10,12 +10,13 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
+use crate::gaps::Gap;
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
-    Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
+    Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, Value, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -290,7 +291,7 @@ impl Advisor {
                 .suggests()
                 .then(|| self.suggested_action())
                 .flatten()
-                .map(|suggested| suggested.card()),
+                .map(|suggested| suggested.card(&self.fact_sheet().fight)),
             focus: self.focus(),
             fact_cards: self.fact_cards(),
             ways_out: self
@@ -424,7 +425,8 @@ fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
             level: assessment.level,
             alert,
             line: threat_line(assessment),
-            detail: threat_detail(assessment),
+            detail: threat_detail(assessment)
+                .map(|detail| Value::marked(detail, assessment.gaps.iter().map(Gap::sentence))),
         },
     }
 }

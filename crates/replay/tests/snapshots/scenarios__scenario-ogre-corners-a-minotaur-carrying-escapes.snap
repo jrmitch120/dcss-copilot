@@ -238,12 +238,18 @@ expression: replay
           "level": "lethal",
           "alert": "Threat rose to LETHAL.",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 42.0% · worst hit 36 of 1 HP"
+          "detail": {
+            "text": "Death 42.0% · worst hit 36 of 1 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "lethal",
           "rule": "Heal out of it",
-          "action": "Heal wounds · heals",
+          "action": {
+            "text": "Heal wounds · heals",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -262,7 +268,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -288,19 +297,31 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Ogre is in the way"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Ogre is in the way",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Teleportation",
-              "detail": "escapes after a delay",
+              "detail": {
+                "text": "escapes after a delay",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": true,
               "name": "Heal wounds",
-              "detail": "heals",
+              "detail": {
+                "text": "heals",
+                "gap": null
+              },
               "whyNot": null
             }
           ],
@@ -548,12 +569,18 @@ expression: replay
           "level": "lethal",
           "alert": "HP 1 of 19: below a quarter.",
           "line": "Ogre can attack before your next action.",
-          "detail": "Death 42.0% · worst hit 36 of 1 HP"
+          "detail": {
+            "text": "Death 42.0% · worst hit 36 of 1 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "lethal",
           "rule": "Heal out of it",
-          "action": "Heal wounds · heals",
+          "action": {
+            "text": "Heal wounds · heals",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -572,7 +599,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -598,19 +628,31 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Ogre is in the way"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Ogre is in the way",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Teleportation",
-              "detail": "escapes after a delay",
+              "detail": {
+                "text": "escapes after a delay",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": true,
               "name": "Heal wounds",
-              "detail": "heals",
+              "detail": {
+                "text": "heals",
+                "gap": null
+              },
               "whyNot": null
             }
           ],
@@ -912,12 +954,18 @@ expression: replay
         "level": "lethal",
         "alert": null,
         "line": "Ogre can attack before your next action.",
-        "detail": "Death 42.0% · worst hit 36 of 1 HP"
+        "detail": {
+          "text": "Death 42.0% · worst hit 36 of 1 HP",
+          "gap": null
+        }
       },
       "suggestedAction": {
         "level": "lethal",
         "rule": "Heal out of it",
-        "action": "Heal wounds · heals",
+        "action": {
+          "text": "Heal wounds · heals",
+          "gap": null
+        },
         "ifLethal": null
       },
       "focus": {
@@ -936,7 +984,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -962,19 +1013,31 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Ogre is in the way"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Ogre is in the way",
+              "gap": null
+            }
           },
           {
             "usable": true,
             "name": "Teleportation",
-            "detail": "escapes after a delay",
+            "detail": {
+              "text": "escapes after a delay",
+              "gap": null
+            },
             "whyNot": null
           },
           {
             "usable": true,
             "name": "Heal wounds",
-            "detail": "heals",
+            "detail": {
+              "text": "heals",
+              "gap": null
+            },
             "whyNot": null
           }
         ],

@@ -377,7 +377,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -396,7 +399,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -409,14 +415,26 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is faster"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is faster",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Berserk",
-            "detail": "ability · 10% fail",
-            "whyNot": "you're on berserk cooldown"
+            "detail": {
+              "text": "ability · 10% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're on berserk cooldown",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

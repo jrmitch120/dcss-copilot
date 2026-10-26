@@ -197,7 +197,7 @@ fn the_panel_shows_a_suggested_action_at_dangerous_and_lethal_moments_only() {
         let Some(game) = view.game else { continue };
         let card = game
             .suggested_action
-            .map(|card| format!("{:?} · {}: {}", card.level, card.rule, card.action));
+            .map(|card| format!("{:?} · {}: {}", card.level, card.rule, card.action.text));
         let turn = game.character.turn;
         match shown.last_mut() {
             Some((last, was)) if *last == turn => *was = card,

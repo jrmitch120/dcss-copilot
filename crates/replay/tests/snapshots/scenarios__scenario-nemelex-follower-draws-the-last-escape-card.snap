@@ -193,7 +193,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 4 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -212,7 +215,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -225,14 +231,26 @@ expression: replay
           {
             "usable": false,
             "name": "Escape hatch in the floor",
-            "detail": "2 steps",
-            "whyNot": "Jackal is faster"
+            "detail": {
+              "text": "2 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is faster",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Draw Escape",
-            "detail": "ability · 0% fail",
-            "whyNot": "greyed out in the ability menu as of turn 1"
+            "detail": {
+              "text": "ability · 0% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "greyed out in the ability menu as of turn 1",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 3 sides open",

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fact_sheet::{Chance, FactSheet, Threat, ThreatLevel};
 use crate::fight_outcome::{Fight, PlanOutcome};
-use crate::view_model::{SuggestedActionCard, capitalised};
+use crate::view_model::{SuggestedActionCard, Value, capitalised};
 use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
 
 /// Fight on at DANGEROUS only when the best Attack Plan wins at least this often, in percent. From
@@ -318,47 +318,54 @@ impl SuggestedAction {
     /// It in one line, as the timeline records it, such as `Leave by stairs — Stone staircase
     /// leading down · 4 steps`.
     pub(crate) fn line(&self) -> String {
-        let card = self.card();
+        // The words alone: a Gap marks them, but changes none.
+        let card = self.card(&Fight::NoFight);
         match card.if_lethal {
             Some(if_lethal) => format!(
-                "{} — {}. If it turns LETHAL: {if_lethal}",
-                card.rule, card.action
+                "{} — {}. If it turns LETHAL: {}",
+                card.rule, card.action.text, if_lethal.text
             ),
-            None => format!("{} — {}", card.rule, card.action),
+            None => format!("{} — {}", card.rule, card.action.text),
         }
     }
 
-    /// Its card in the panel.
-    pub(crate) fn card(&self) -> SuggestedActionCard {
+    /// Its card in the panel, as of the moment `fight` judges: a pick that fights is marked
+    /// with the Gaps that keep the fight from being judged or may hide a better plan.
+    pub(crate) fn card(&self, fight: &Fight) -> SuggestedActionCard {
         SuggestedActionCard {
             level: self.rule.level(),
             rule: self.rule.name().to_owned(),
             action: match &self.action {
-                CandidateAction::WayOut(escape) => escape.summary(),
+                CandidateAction::WayOut(escape) => escape.value(),
                 CandidateAction::Corridor(CorridorToHold::StandingIn) => {
-                    "The corridor you stand in".to_owned()
+                    Value::known("The corridor you stand in".to_owned())
                 }
-                CandidateAction::Corridor(CorridorToHold::Near(square)) => match square.steps {
-                    1 => "The corridor 1 step away".to_owned(),
-                    steps => format!("The corridor {steps} steps away"),
-                },
+                CandidateAction::Corridor(CorridorToHold::Near(square)) => {
+                    Value::known(match square.steps {
+                        1 => "The corridor 1 step away".to_owned(),
+                        steps => format!("The corridor {steps} steps away"),
+                    })
+                }
                 CandidateAction::Fight {
                     odds: Odds::Now(plan),
                     hp,
-                } => plan.summary(*hp),
+                } => fight.marked(plan.summary(*hp)),
                 CandidateAction::Fight {
                     odds: Odds::LastJudged(plan),
                     ..
-                } => format!("{}: can't be judged now", capitalised(&plan.plan.name())),
+                } => fight.marked(format!(
+                    "{}: can't be judged now",
+                    capitalised(&plan.plan.name())
+                )),
                 CandidateAction::Fight {
                     odds: Odds::Unjudged,
                     ..
-                } => "The Advisor can't judge this fight".to_owned(),
+                } => fight.marked("The Advisor can't judge this fight".to_owned()),
             },
             if_lethal: (self.rule == SuggestionRule::FightCarefully).then(|| {
                 self.if_lethal
                     .as_ref()
-                    .map_or_else(|| "no Way Out left".to_owned(), Escape::summary)
+                    .map_or_else(|| Value::known("no Way Out left".to_owned()), Escape::value)
             }),
         }
     }
@@ -712,7 +719,10 @@ mod tests {
         let picked =
             SuggestedAction::pick(&lethal(vec![teleport.clone(), blink]), Some(HP_MAX)).unwrap();
         assert_eq!(picked.rule, SuggestionRule::BestEscape);
-        assert_eq!(picked.card().action, "Blink · spell · 20% fail");
+        assert_eq!(
+            picked.card(&Fight::NoFight).action.text,
+            "Blink · spell · 20% fail"
+        );
         assert_eq!(
             rule_at(&lethal(vec![teleport])),
             Some(SuggestionRule::BestEscape)
@@ -722,7 +732,10 @@ mod tests {
             SuggestedAction::pick(&lethal(vec![unusable(stairs(1, 6, false))]), Some(HP_MAX))
                 .unwrap();
         assert_eq!(cornered.rule, SuggestionRule::Fight);
-        assert_eq!(cornered.card().action, "Melee: ~30% win, ~80% HP lost");
+        assert_eq!(
+            cornered.card(&Fight::NoFight).action.text,
+            "Melee: ~30% win, ~80% HP lost"
+        );
     }
 
     #[test]
@@ -741,7 +754,7 @@ mod tests {
         let picked = SuggestedAction::pick(&lethal, Some(HP_MAX)).unwrap();
 
         assert_eq!(
-            picked.card().action,
+            picked.card(&Fight::NoFight).action.text,
             "Stone staircase leading down · 5 steps"
         );
     }
@@ -761,7 +774,7 @@ mod tests {
         let picked = SuggestedAction::pick(&lethal, Some(HP_MAX)).unwrap();
 
         assert_eq!(
-            picked.card().action,
+            picked.card(&Fight::NoFight).action.text,
             "Passage of Golubria · spell · 10% fail"
         );
     }
@@ -805,7 +818,10 @@ mod tests {
 
         let picked = SuggestedAction::pick(&dangerous(2), Some(HP_MAX)).unwrap();
         assert_eq!(picked.rule, SuggestionRule::FallBackToACorridor);
-        assert_eq!(picked.card().action, "The corridor 3 steps away");
+        assert_eq!(
+            picked.card(&Fight::NoFight).action.text,
+            "The corridor 3 steps away"
+        );
         assert_eq!(
             rule_at(&dangerous(1)),
             Some(SuggestionRule::FallBackToStairs)
@@ -814,7 +830,10 @@ mod tests {
         in_one.ways_out.ground = Some(Ground::Corridor { open_sides: 2 });
         let held = SuggestedAction::pick(&in_one, Some(HP_MAX)).unwrap();
         assert_eq!(held.rule, SuggestionRule::FallBackToACorridor);
-        assert_eq!(held.card().action, "The corridor you stand in");
+        assert_eq!(
+            held.card(&Fight::NoFight).action.text,
+            "The corridor you stand in"
+        );
         assert!(held.same_pick(&picked));
     }
 
@@ -838,17 +857,21 @@ mod tests {
             Some(HP_MAX),
         )
         .unwrap()
-        .card();
+        .card(&Fight::NoFight);
         assert_eq!(card.rule, "Fight carefully");
-        assert_eq!(card.action, "Melee: ~60% win, ~60% HP lost");
+        assert_eq!(card.action.text, "Melee: ~60% win, ~60% HP lost");
         assert_eq!(
-            card.if_lethal.as_deref(),
+            card.if_lethal.map(|value| value.text).as_deref(),
             Some("Teleportation · escapes after a delay")
         );
 
         let cornered = SuggestedAction::pick(&dangerous(Vec::new()), Some(HP_MAX)).unwrap();
         assert_eq!(
-            cornered.card().if_lethal.as_deref(),
+            cornered
+                .card(&Fight::NoFight)
+                .if_lethal
+                .map(|value| value.text)
+                .as_deref(),
             Some("no Way Out left")
         );
     }
@@ -891,7 +914,10 @@ mod tests {
 
         // A nearer staircase comes into reach.
         let held = after(&lethal(vec![far.clone()]), &lethal(vec![near, far.clone()]));
-        assert_eq!(held.card().action, "Stone staircase leading down · 6 steps");
+        assert_eq!(
+            held.card(&Fight::NoFight).action.text,
+            "Stone staircase leading down · 6 steps"
+        );
 
         // The moment eases to DANGEROUS, where the fight would be fought on.
         let eased = moment(
@@ -975,14 +1001,14 @@ mod tests {
 
         let held = after(&judged_fight(600), &too_many);
         assert_eq!(
-            held.card().action,
+            held.card(&Fight::NoFight).action.text,
             "Fireball, then melee: can't be judged now"
         );
         let judged_again =
             SuggestedAction::steady(Some(&held), &judged_fight(500), Some(HP_MAX)).unwrap();
         assert!(judged_again.same_pick(&held));
         assert_eq!(
-            judged_again.card().action,
+            judged_again.card(&Fight::NoFight).action.text,
             "Fireball, then melee: ~50% win, ~60% HP lost"
         );
     }
@@ -1003,7 +1029,7 @@ mod tests {
         );
 
         let held = SuggestedAction::pick(&lethal, Some(HP_MAX)).unwrap();
-        assert_eq!(held.card().rule, "Last resort: fight");
+        assert_eq!(held.card(&Fight::NoFight).rule, "Last resort: fight");
         assert_eq!(
             after(&lethal, &eased).rule,
             SuggestionRule::FallBackToStairs
@@ -1052,10 +1078,13 @@ mod tests {
         };
 
         let nine_more = after(&fight(700, 600), &fight(650, 740));
-        assert_eq!(nine_more.card().action, "Melee: ~65% win, ~60% HP lost");
+        assert_eq!(
+            nine_more.card(&Fight::NoFight).action.text,
+            "Melee: ~65% win, ~60% HP lost"
+        );
         let ten_more = after(&fight(700, 600), &fight(650, 750));
         assert_eq!(
-            ten_more.card().action,
+            ten_more.card(&Fight::NoFight).action.text,
             "Fireball, then melee: ~75% win, ~60% HP lost"
         );
     }

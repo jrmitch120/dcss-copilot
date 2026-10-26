@@ -329,12 +329,18 @@ expression: replay
           "level": "dangerous",
           "alert": "No Way Out is left that you can use.",
           "line": "3 monsters can attack before your next action. Your best plan wins only ~75% of fights.",
-          "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 5 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fall back to a corridor",
-          "action": "The corridor you stand in",
+          "action": {
+            "text": "The corridor you stand in",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -353,7 +359,10 @@ expression: replay
               "count": 3
             }
           ],
-          "line": "Best plan (melee): ~75% win, ~63% HP lost",
+          "line": {
+            "text": "Best plan (melee): ~75% win, ~63% HP lost",
+            "gap": null
+          },
           "others": [],
           "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
           "gaps": []
@@ -364,8 +373,14 @@ expression: replay
             {
               "usable": false,
               "name": "Escape hatch in the floor",
-              "detail": "4 steps",
-              "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Jackal is in the way; Jackal is faster, and 1 more",
+                "gap": null
+              }
             }
           ],
           "ground": "In a corridor: 2 sides open",
@@ -726,12 +741,18 @@ expression: replay
         "level": "dangerous",
         "alert": null,
         "line": "3 monsters can attack before your next action. Your best plan wins only ~64% of fights.",
-        "detail": "Death under 0.1% · worst hit 6 of 16 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 6 of 16 HP",
+          "gap": null
+        }
       },
       "suggestedAction": {
         "level": "dangerous",
         "rule": "Fall back to a corridor",
-        "action": "The corridor you stand in",
+        "action": {
+          "text": "The corridor you stand in",
+          "gap": null
+        },
         "ifLethal": null
       },
       "focus": {
@@ -750,7 +771,10 @@ expression: replay
             "count": 3
           }
         ],
-        "line": "Best plan (melee): ~64% win, ~69% HP lost",
+        "line": {
+          "text": "Best plan (melee): ~64% win, ~69% HP lost",
+          "gap": null
+        },
         "others": [],
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
         "gaps": []
@@ -761,8 +785,14 @@ expression: replay
           {
             "usable": false,
             "name": "Escape hatch in the floor",
-            "detail": "4 steps",
-            "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+            "detail": {
+              "text": "4 steps",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is in the way; Jackal is faster, and 1 more",
+              "gap": null
+            }
           }
         ],
         "ground": "In a corridor: 2 sides open",

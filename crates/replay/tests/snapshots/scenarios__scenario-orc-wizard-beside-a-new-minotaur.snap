@@ -230,13 +230,22 @@ expression: replay
           "level": "dangerous",
           "alert": "No Way Out is left that you can use.",
           "line": "Orc wizard can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 10 of 19 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fight carefully",
-          "action": "The Advisor can't judge this fight",
-          "ifLethal": "no Way Out left"
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
+          "ifLethal": {
+            "text": "no Way Out left",
+            "gap": null
+          }
         },
         "focus": {
           "card": "fight",
@@ -254,7 +263,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -280,8 +292,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Orc wizard is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Orc wizard is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -520,13 +538,22 @@ expression: replay
           "level": "dangerous",
           "alert": "Orc wizard, out of depth by 3 levels, alone makes this DANGEROUS.",
           "line": "Orc wizard can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 10 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 10 of 19 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fight carefully",
-          "action": "The Advisor can't judge this fight",
-          "ifLethal": "no Way Out left"
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
+          "ifLethal": {
+            "text": "no Way Out left",
+            "gap": null
+          }
         },
         "focus": {
           "card": "fight",
@@ -544,7 +571,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -570,8 +600,14 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Orc wizard is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Orc wizard is beside it",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -857,13 +893,22 @@ expression: replay
         "level": "dangerous",
         "alert": null,
         "line": "Orc wizard can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 10 of 16 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 10 of 16 HP",
+          "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+        }
       },
       "suggestedAction": {
         "level": "dangerous",
         "rule": "Fight carefully",
-        "action": "The Advisor can't judge this fight",
-        "ifLethal": "no Way Out left"
+        "action": {
+          "text": "The Advisor can't judge this fight",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
+        "ifLethal": {
+          "text": "no Way Out left",
+          "gap": null
+        }
       },
       "focus": {
         "card": "fight",
@@ -881,7 +926,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -907,8 +955,14 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Orc wizard is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Orc wizard is beside it",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

@@ -263,7 +263,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Jackal can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 3 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -282,7 +285,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -295,32 +301,56 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Jackal is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Jackal is beside it",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Teleportation",
-              "detail": "escapes after a delay",
+              "detail": {
+                "text": "escapes after a delay",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": false,
               "name": "Heal wounds",
-              "detail": "heals",
-              "whyNot": "you're at full health"
+              "detail": {
+                "text": "heals",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "you're at full health",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Berserk",
-              "detail": "ability · 10% fail",
+              "detail": {
+                "text": "ability · 10% fail",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": false,
               "name": "Blink",
-              "detail": "spell · 65% fail",
-              "whyNot": "needs 2 MP, you have 0"
+              "detail": {
+                "text": "spell · 65% fail",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "needs 2 MP, you have 0",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
@@ -621,7 +651,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 28 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 28 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -640,7 +673,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -653,32 +689,62 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "Jackal is beside it",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Teleportation",
-            "detail": "escapes after a delay",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "escapes after a delay",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Heal wounds",
-            "detail": "heals",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "heals",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Berserk",
-            "detail": "ability · 10% fail",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "ability · 10% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Blink",
-            "detail": "spell · 65% fail",
-            "whyNot": "you're berserking; needs 2 MP, you have 0"
+            "detail": {
+              "text": "spell · 65% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking; needs 2 MP, you have 0",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",

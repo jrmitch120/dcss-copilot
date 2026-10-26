@@ -167,9 +167,10 @@ monsters: Listing[] | null } |
 monsters: Listing[] | null; 
 /**
  *  The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
- *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
+ *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
+ *  the Gaps that keep it from being judged or may hide a better plan.
  */
-line: string; 
+line: Value; 
 /**  The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`. */
 others: string[]; 
 /**
@@ -423,9 +424,10 @@ alert: string | null;
 line: string; 
 /**
  *  The numbers behind the level, such as the chance of death and the worst-case hit,
- *  when anything can attack.
+ *  when anything can attack, marked when they were judged around a Gap, such as
+ *  resistances unread.
  */
-detail: string | null };
+detail: Value | null };
 
 /**
  *  A game seen before that a game process picked up again on a later turn, as last seen. Nobody
@@ -499,14 +501,14 @@ export type SuggestedActionCard = {
 	rule: string,
 	/**
 	 *  What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
-	 *  ~95% win, ~20% HP lost`.
+	 *  ~95% win, ~20% HP lost`, marked when a Gap leaves its facts unknown or out of date.
 	 */
-	action: string,
+	action: Value,
 	/**
 	 *  At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
-	 *  spell · 4% fail`, or that none is left.
+	 *  spell · 4% fail`, or that none is left, marked as `action` is.
 	 */
-	ifLethal: string | null,
+	ifLethal: Value | null,
 };
 
 /**
@@ -571,6 +573,21 @@ export type UnreadPart = {
 };
 
 /**
+ *  A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
+ *  with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
+ */
+export type Value = {
+	/**  The value, such as `spell · ~4% fail as of turn 12`. */
+	text: string,
+	/**
+	 *  What leaves it unknown or out of date, and how to fill it where the player can, one
+	 *  sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
+	 *  `None` while no Gap touches it.
+	 */
+	gap: string | null,
+};
+
+/**
  *  Everything the panel renders, pushed by the core to the webview.
  * 
  *  The webview holds no game logic: it only draws this. TypeScript types are
@@ -608,10 +625,16 @@ export type WayOutRow = {
 	usable: boolean,
 	/**  What it is, such as `Stone staircase leading down` or `Teleportation`. */
 	name: string,
-	/**  A short fact beside the name, such as `7 steps` or `spell · 4% fail`. */
-	detail: string | null,
-	/**  Why it can't be used, when it can't, such as `Centaur is faster`. */
-	whyNot: string | null,
+	/**
+	 *  A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the
+	 *  menu or list it was read off is out of date.
+	 */
+	detail: Value | null,
+	/**
+	 *  Why it can't be used, when it can't, such as `Centaur is faster`, marked when it rests on
+	 *  a menu out of date.
+	 */
+	whyNot: Value | null,
 };
 
 /**  The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not. */

@@ -267,7 +267,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -280,7 +283,10 @@ expression: replay
           {
             "usable": true,
             "name": "Stone staircase leading down",
-            "detail": "5 steps",
+            "detail": {
+              "text": "5 steps",
+              "gap": null
+            },
             "whyNot": null
           }
         ],

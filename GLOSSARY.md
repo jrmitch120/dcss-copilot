@@ -217,7 +217,7 @@ A square monsters can attack the player from at most two sides of, so they come 
 _Avoid_: Chokepoint, hallway
 
 **Gap**:
-A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it.
+A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it: each value the panel shows that a Gap leaves unknown or out of date is marked where it stands, with a dotted underline and a tooltip naming that screen, and the Fact Sheet lists the Gaps that affected its moment.
 _Avoid_: Unknown, missing data
 
 **Candidate Action**:

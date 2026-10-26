@@ -189,7 +189,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Oklob plant can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 34 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 34 of 102 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -208,7 +211,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -221,7 +227,10 @@ expression: replay
             {
               "usable": true,
               "name": "Escape hatch in the floor",
-              "detail": "1 step",
+              "detail": {
+                "text": "1 step",
+                "gap": null
+              },
               "whyNot": null
             }
           ],
@@ -421,12 +430,18 @@ expression: replay
           "level": "dangerous",
           "alert": null,
           "line": "Oklob plant can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 34 of 71 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 34 of 71 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fall back to stairs",
-          "action": "Escape hatch in the floor · underfoot",
+          "action": {
+            "text": "Escape hatch in the floor · underfoot",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -445,7 +460,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -458,7 +476,10 @@ expression: replay
             {
               "usable": true,
               "name": "Escape hatch in the floor",
-              "detail": "underfoot",
+              "detail": {
+                "text": "underfoot",
+                "gap": null
+              },
               "whyNot": null
             }
           ],
@@ -658,12 +679,18 @@ expression: replay
           "level": "dangerous",
           "alert": "Threat rose to DANGEROUS.",
           "line": "Oklob plant can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 35 of 52 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 35 of 52 HP",
+            "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fall back to stairs",
-          "action": "Escape hatch in the floor · underfoot",
+          "action": {
+            "text": "Escape hatch in the floor · underfoot",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -682,7 +709,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -695,7 +725,10 @@ expression: replay
             {
               "usable": true,
               "name": "Escape hatch in the floor",
-              "detail": "underfoot",
+              "detail": {
+                "text": "underfoot",
+                "gap": null
+              },
               "whyNot": null
             }
           ],
@@ -934,12 +967,18 @@ expression: replay
         "level": "lethal",
         "alert": "Threat rose to LETHAL.",
         "line": "Oklob plant can attack before your next action.",
-        "detail": "Death 7.5% · worst hit 35 of 28 HP"
+        "detail": {
+          "text": "Death 7.5% · worst hit 35 of 28 HP",
+          "gap": "Open the character overview (%) to read your resistances: until then you're taken to resist nothing."
+        }
       },
       "suggestedAction": {
         "level": "lethal",
         "rule": "Leave by stairs",
-        "action": "Escape hatch in the floor · underfoot",
+        "action": {
+          "text": "Escape hatch in the floor · underfoot",
+          "gap": null
+        },
         "ifLethal": null
       },
       "focus": {
@@ -958,7 +997,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -971,7 +1013,10 @@ expression: replay
           {
             "usable": true,
             "name": "Escape hatch in the floor",
-            "detail": "underfoot",
+            "detail": {
+              "text": "underfoot",
+              "gap": null
+            },
             "whyNot": null
           }
         ],
