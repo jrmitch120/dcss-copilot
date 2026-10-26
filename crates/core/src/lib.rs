@@ -16,12 +16,14 @@ mod join_card;
 mod known_games;
 mod screen;
 mod suggested_action;
+mod told;
 mod view_model;
 mod visible_state;
 mod ways_out;
 
 pub use accumulated_state::{
-    AccumulatedState, AsOf, Backfill, GearSource, MutationsRead, Remembered, Shield,
+    AccumulatedState, AsOf, Backfill, GearSource, Memorised, MutationsRead, Remembered, Shield,
+    Source,
 };
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};

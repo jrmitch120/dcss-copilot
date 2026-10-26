@@ -1,0 +1,9 @@
+---
+source: crates/replay/tests/messages.rs
+expression: fight_gaps(&mut replayer)
+---
+[
+  "~Spell list as of turn 6: open it (I) to bring it up to date.",
+  "~Spell power as of turn 0: open the spell list (I) and press ! to bring it up to date.",
+  "Your skills may differ from the skills screen's: Ashenzari shifts them with your piety."
+]

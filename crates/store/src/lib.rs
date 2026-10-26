@@ -447,7 +447,7 @@ mod tests {
                 ..Resistances::default()
             },
             turn: Some(turn),
-            source: Screen::CharacterOverview,
+            source: Screen::CharacterOverview.into(),
         });
         remembered
     }

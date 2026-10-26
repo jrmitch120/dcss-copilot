@@ -15,6 +15,10 @@ const CRT_TEXT_AREA: &str = "menu_txt";
 /// What `menu.cc` names a menu with no tag, when the screen has no better name.
 const UNTAGGED_MENU: &str = "menu";
 
+/// What crawl's title for the spell list starts with, in any case (`list_spells`; `Your Spells`
+/// in older versions): the spell library, which the player memorises from, shares its tag.
+const SPELL_LIST_TITLE: &str = "your spells";
+
 /// The title crawl gives the mutations screen, which has no tag.
 const MUTATIONS_TITLE: &str = "Innate Abilities, Weirdness & Mutations";
 
@@ -115,7 +119,7 @@ impl Screens {
         Some(match self.stack.last()? {
             Frame::Menu { tag, title, items } => ScreenRead {
                 screen: match tag.as_str() {
-                    "spell" => Screen::Spells,
+                    "spell" if spell_list(title) => Screen::Spells,
                     "ability" => Screen::Abilities,
                     "" if title == MUTATIONS_TITLE => Screen::Mutations,
                     "" => Screen::Other(UNTAGGED_MENU.to_owned()),
@@ -259,6 +263,14 @@ fn layout(msg: &Value) -> Frame {
             .unwrap_or_default(),
         text: text.unwrap_or_default(),
     }
+}
+
+/// Whether a spell menu's `title` is the spell list's, rather than the spell library's.
+fn spell_list(title: &str) -> bool {
+    title
+        .trim_start()
+        .get(..SPELL_LIST_TITLE.len())
+        .is_some_and(|start| start.eq_ignore_ascii_case(SPELL_LIST_TITLE))
 }
 
 /// A menu message's title, which crawl sends as `{"title": {"text": ...}}`.

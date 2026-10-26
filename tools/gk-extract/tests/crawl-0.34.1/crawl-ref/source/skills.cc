@@ -1,5 +1,5 @@
-// Trimmed from crawl 0.34.1's skills.cc: the table of skill titles, whose first column names
-// each skill.
+// Trimmed from crawl 0.34.1's skills.cc: the messages a skill's level changes with, and the
+// table of skill titles, whose first column names each skill.
 
 #include "tag-version.h"
 
@@ -58,3 +58,39 @@ static const char *skill_titles[NUM_SKILLS][7] =
     {"Evocations",     "Charlatan",     "Prestidigitator", "Fetichist",       "Evocator",       "Ex Machina",  "Evo"},
     {"Shapeshifting",  "Changeling",    "Mimic",           "Metamorph",       "Skinwalker",     "Shapeless @Genus@", "Shft"},
 };
+
+// (trimmed for the extractor test)
+
+static void _change_skill_level(skill_type exsk, int n)
+{
+    ASSERT(n != 0);
+    bool need_reset = false;
+
+    you.skills[exsk] = max(0, you.skills[exsk] + n);
+
+    take_note(Note(n > 0 ? NOTE_GAIN_SKILL : NOTE_LOSE_SKILL,
+                   exsk, you.skills[exsk]));
+
+    // are you drained/crosstrained/ash'd in the relevant skill?
+    const bool specify_base = you.skill(exsk, 1) != you.skill(exsk, 1, true);
+    if (you.skills[exsk] == MAX_SKILL_LEVEL)
+        mprf(MSGCH_INTRINSIC_GAIN, "You have mastered %s!", skill_name(exsk));
+    else if (abs(n) == 1 && you.num_turns)
+    {
+        mprf(MSGCH_INTRINSIC_GAIN, "Your %s%s skill %s to level %d!",
+             specify_base ? "base " : "",
+             skill_name(exsk), (n > 0) ? "increases" : "decreases",
+             you.skills[exsk]);
+    }
+    else if (you.num_turns)
+    {
+        mprf(MSGCH_INTRINSIC_GAIN, "Your %s%s skill %s %d levels and is now "
+             "at level %d!",
+             specify_base ? "base " : "",
+             skill_name(exsk),
+             (n > 0) ? "gained" : "lost",
+             abs(n), you.skills[exsk]);
+    }
+
+    // (trimmed for the extractor test)
+}

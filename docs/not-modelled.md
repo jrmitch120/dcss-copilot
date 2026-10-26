@@ -360,10 +360,18 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 ### Fractions the player's numbers drop
 
 - **What crawl does:** crawl rolls with each skill to finer fractions of a level than the tenths the skills screen shows (`player::skill`), and outside wizard mode the spell list shows a spell's power only as a percentage of its cap (`spell_power_percent`).
-- **What the engine assumes:** each fight draws where a skill lies within its tenth, and the power among those that show as the same percentage, any as likely as another.
+- **What the engine assumes:** each fight draws where a skill lies within its tenth, and the power among those that show as the same percentage, any as likely as another. A skill whose level the game's message last told, as it rose or fell, is taken at the whole level the message names, which tells no fraction.
 - **Surfaced as:** `ownFractions`, on every judged fight.
 - **Harness:** the player harness hands the engine each skill exactly, as `you.skill(sk, 179200)`, and a beam's power.
-- **Impact and cost:** small: a tenth of a skill level is a few points of to-hit or damage at most, and a percent of a cap a power point or two.
+- **Impact and cost:** small: a tenth of a skill level is a few points of to-hit or damage at most, and a percent of a cap a power point or two. A skill told by a message errs low by up to a level after a burst of training, such as a potion of experience, until the skills screen (`m`) is read.
+
+### Skills that change without a message
+
+- **What crawl does:** crawl tells of a skill's base level as it changes (`_change_skill_level`), but the skills screen shows the level in effect (`player::skill`), which crosstraining raises as a related skill trains, and Ashenzari shifts with piety and penance.
+- **What the engine assumes:** the skills as the skills screen or dump last showed them, each at the level the game has said it reached since; a base level said to have changed, which differs from the one in effect, makes them Stale.
+- **Surfaced as:** accepted simplification: for a follower of Ashenzari it is a Blind Spot, the `skillsShifting` Gap on the fight card, rather than something the engine leaves out; a skill crosstraining raises a whole level goes unnoticed until the skills screen is read again.
+- **Harness:** none.
+- **Impact and cost:** errs low by up to a level of a crosstrained skill, and by Ashenzari's boost for a follower. Reading the skills screen (`m`) closes it.
 
 ### Miscasts
 

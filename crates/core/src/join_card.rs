@@ -1,7 +1,7 @@
 //! The join card: what the panel asks of a player whose game the Advisor joined part way through,
 //! and what it tells them once it has read the screen they opened.
 
-use crate::accumulated_state::{AccumulatedState, Backfill, Remembered};
+use crate::accumulated_state::{AccumulatedState, Backfill, Remembered, Source};
 use crate::screen::{DungeonOverview, Screen, ScreenRead};
 use crate::view_model::{ChecklistRow, JoinCard, UnreadPart};
 use crate::visible_state::VisibleState;
@@ -231,7 +231,9 @@ fn read_off_dump(accumulated: &AccumulatedState) -> Vec<PartRead> {
 /// The fact, when it is Known as read off the character dump.
 fn off_dump<T>(fact: &Remembered<T>) -> Option<&T> {
     match fact {
-        Remembered::Known(read) if read.source == Screen::CharacterDump => Some(&read.value),
+        Remembered::Known(read) if read.source == Source::Screen(Screen::CharacterDump) => {
+            Some(&read.value)
+        }
         _ => None,
     }
 }

@@ -299,7 +299,7 @@ expression: detections
     "turn": 2510,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of iceblast, then melee: ~99% win, ~27% HP lost"
+    "line": "Fight on — Wand of iceblast, then melee: ~99% win, ~24% HP lost"
   },
   {
     "envelope": 3777,
@@ -331,7 +331,7 @@ expression: detections
     "turn": 2640,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of iceblast, then melee: ~99% win, ~18% HP lost"
+    "line": "Fight on — Wand of iceblast, then melee: ~100% win, ~18% HP lost"
   },
   {
     "envelope": 4196,
@@ -412,26 +412,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 5371,
-    "turn": 3217,
+    "envelope": 5386,
+    "turn": 3219,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 5371,
-    "turn": 3217,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-stairs",
-    "line": "Fall back to stairs — Stone staircase leading up · ~26 steps · partly out of view"
-  },
-  {
     "envelope": 5386,
     "turn": 3219,
     "event": "suggestedAction",
-    "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~90% win, ~44% HP lost. If it turns LETHAL: Blinking · escapes"
+    "rule": "fight-on",
+    "line": "Fight on — Melee: ~91% win, ~44% HP lost"
   },
   {
     "envelope": 5459,
@@ -567,13 +560,6 @@ expression: detections
     "event": "suggestedAction",
     "rule": "fall-back-to-stairs",
     "line": "Fall back to stairs — Stone staircase leading down · 3 steps"
-  },
-  {
-    "envelope": 6629,
-    "turn": 4249,
-    "event": "suggestedAction",
-    "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~90% win, ~45% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 6771,
@@ -803,7 +789,7 @@ expression: detections
     "turn": 5670,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~71% win, ~72% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 5592"
+    "line": "Fight carefully — Wand of flame, then melee: ~71% win, ~72% HP lost. If it turns LETHAL: Teleportation ×4 · escapes after a delay"
   },
   {
     "envelope": 8960,
@@ -1055,6 +1041,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 10516,
+    "turn": 6823,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 10516,
+    "turn": 6823,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading down · ~43 steps · partly out of view"
+  },
+  {
     "envelope": 10579,
     "turn": 6828,
     "event": "allClear"
@@ -1260,7 +1261,7 @@ expression: detections
     "turn": 7820,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~84% win, ~51% HP lost. If it turns LETHAL: Curing · heals"
+    "line": "Fight carefully — Melee: ~90% win, ~46% HP lost. If it turns LETHAL: Curing · heals"
   },
   {
     "envelope": 12379,
@@ -1317,7 +1318,7 @@ expression: detections
     "turn": 8013,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~91% win, ~44% HP lost"
+    "line": "Fight on — Melee: ~92% win, ~40% HP lost"
   },
   {
     "envelope": 12693,
@@ -1350,26 +1351,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 12868,
-    "turn": 8306,
+    "envelope": 12904,
+    "turn": 8308,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 12868,
-    "turn": 8306,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-stairs",
-    "line": "Fall back to stairs — Escape hatch in the ceiling · ~26 steps · partly out of view"
-  },
-  {
-    "envelope": 12886,
-    "turn": 8307,
+    "envelope": 12904,
+    "turn": 8308,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~88% win, ~59% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 5592"
+    "line": "Fight carefully — Melee: ~82% win, ~62% HP lost. If it turns LETHAL: Curing · heals"
   },
   {
     "envelope": 12934,
@@ -1450,14 +1444,14 @@ expression: detections
     "turn": 8800,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~26% win, ~92% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 8539"
+    "line": "Fight carefully — Wand of flame, then melee: ~26% win, ~92% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13549,
     "turn": 8805,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~32% win, ~89% HP lost. If it turns LETHAL: Curing ×2 · heals"
+    "line": "Fight carefully — Melee: ~33% win, ~89% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 13603,
@@ -1492,7 +1486,7 @@ expression: detections
     "turn": 8976,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~7% win, ~99% HP lost. If it turns LETHAL: Blink · spell · ~56% fail as of turn 8539"
+    "line": "Fight carefully — Wand of flame, then melee: ~7% win, ~99% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13767,

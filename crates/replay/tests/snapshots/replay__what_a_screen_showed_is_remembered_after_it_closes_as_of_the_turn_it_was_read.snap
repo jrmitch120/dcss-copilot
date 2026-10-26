@@ -69,6 +69,7 @@ expression: replayer.advisor().accumulated()
     "state": "awaiting",
     "joinedOn": 1234
   },
+  "spellMemorised": null,
   "carriedGear": {},
   "uniquesGear": {}
 }

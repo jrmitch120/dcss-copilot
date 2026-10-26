@@ -133,6 +133,9 @@ pub struct Bundle {
     pub ways_out: WayOutSigns,
     /// What the game shows that tells how fast the player moves.
     pub speed: SpeedSigns,
+    /// What the game says as the character's skills, spells, god's powers, mutations and banes
+    /// change.
+    pub character: CharacterSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
 }
@@ -448,6 +451,143 @@ pub struct SpeedSigns {
     pub quickening_gear: Vec<String>,
 }
 
+/// What the game says as the character changes, as this Crawl Version says it. God and piety
+/// aren't here: the game reports them as they are, without a message to read.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CharacterSigns {
+    /// What it says as a skill's level changes, and what shows that the skills screen's levels
+    /// may differ from those it says.
+    pub skills: SkillSigns,
+    /// What it says as the player learns or forgets a spell.
+    pub spells: SpellSigns,
+    /// The messages a god gives as the player gains or loses one of their powers, `{}` the
+    /// power, such as `You can now {}.` (`god_power::display`). A power whose message crawl
+    /// writes whole, such as `Zin will now cleanse your potions of mutation.`, isn't among them.
+    pub powers: Vec<Template>,
+    /// Every mutation crawl defines (`mut_data` in `mutation-data.h`), in its order.
+    pub mutations: Vec<Mutation>,
+    /// Every bane crawl defines (`bane_data` in `bane-data.h`), in its order.
+    pub banes: Vec<Bane>,
+}
+
+/// What the game says as a skill's level changes (`_change_skill_level` in `skills.cc`), and
+/// what shows that the levels the skills screen shows may differ from those it says.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillSigns {
+    /// As a skill's level rises or falls, the skill's name, then its new level: `Your {} skill
+    /// increases to level {}!` and the like, for one level or several.
+    pub changed: Vec<Template>,
+    /// As a skill reaches the most it can, the skill's name: `You have mastered {}!`.
+    pub mastered: Template,
+    /// The most a skill's level can be (`MAX_SKILL_LEVEL`).
+    pub most: u32,
+    /// What comes before the skill's name in [`SkillSigns::changed`] when the level it says is
+    /// the skill's base level, which differs from the level in effect that the skills screen
+    /// shows: `base `.
+    pub base: String,
+    /// The gods whose followers' levels in effect differ from their base levels by an amount
+    /// that changes with their piety or penance, without a message: `Ashenzari`
+    /// (`player::skill`).
+    pub shifting_gods: Vec<String>,
+}
+
+/// What the game says as the player learns or forgets a spell.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpellSigns {
+    /// As the player forgets a spell, the spell's name: `Your memory of {} unravels.`
+    /// (`del_spell_from_memory_by_slot`).
+    pub forgotten: Template,
+    /// As the player finishes memorising a spell, which it doesn't name: `You finish
+    /// memorising.` (`MemoriseDelay`).
+    pub memorised: String,
+    /// As the player learns a spell without memorising it, the spell's name, such as a djinni's
+    /// as they gain a level: `The power to cast {} wells up from within.`.
+    pub learned: Vec<Template>,
+}
+
+/// A mutation, from `mut_data` in `mutation-data.h`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Mutation {
+    /// Its `mutation_type` identifier, such as `MUT_TOUGH_SKIN`.
+    pub id: EnumId,
+    /// How the mutations screen (`A`) describes it at each of its levels, first level first
+    /// (`have`). One crawl finishes with a number as it shows it, such as `A meltable icy envelope
+    /// protects you from harm. (AC +`, is the start of what it shows (`mutation_desc`).
+    pub shown: Vec<String>,
+    /// The message crawl gives as the player gains each of its levels, first level first
+    /// (`gain`): `None` where it gives none from the table.
+    pub gained: Vec<Option<String>>,
+    /// The message crawl gives as the player loses each of its levels, first level first
+    /// (`lose`): `None` where it gives none from the table.
+    pub lost: Vec<Option<String>>,
+}
+
+impl Mutation {
+    /// Whether the mutations screen's description `entry` describes its level `at`, counted
+    /// from 0: the description crawl gives it, or one crawl finishes with a number.
+    #[must_use]
+    pub fn describes(&self, entry: &str, at: usize) -> bool {
+        self.shown.get(at).is_some_and(|shown| {
+            entry == shown || (!shown.ends_with(['.', ')', '!']) && entry.starts_with(shown))
+        })
+    }
+}
+
+/// A bane, from `bane_data` in `bane-data.h`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Bane {
+    /// Its `bane_type` identifier, such as `BANE_LETHARGY`.
+    pub id: EnumId,
+    /// How the mutations screen (`A`) describes it (`description`).
+    pub shown: String,
+    /// The messages crawl gives as the player is stricken with it and as it grows stronger
+    /// (`add_bane` in `mutation.cc`).
+    pub gained: Vec<String>,
+    /// The message crawl gives as it is lifted (`remove_bane`).
+    pub lifted: String,
+}
+
+/// A message crawl gives, with `{}` where it names something, such as `Your memory of {}
+/// unravels.`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Template(pub String);
+
+impl Template {
+    /// What `message` names in each `{}`, in order, if it is this message: each the shortest that
+    /// lets the rest match, and none of them empty.
+    #[must_use]
+    pub fn names<'m>(&self, message: &'m str) -> Option<Vec<&'m str>> {
+        let mut pieces = self.0.split("{}");
+        let first = pieces.next()?;
+        let mut rest = message.strip_prefix(first)?;
+        let mut names = Vec::new();
+        let mut pieces = pieces.peekable();
+        while let Some(piece) = pieces.next() {
+            let (name, after) = if pieces.peek().is_none() {
+                (rest.strip_suffix(piece)?, "")
+            } else if piece.is_empty() {
+                return None;
+            } else {
+                let first = rest.chars().next()?.len_utf8();
+                let at = rest.get(first..)?.find(piece)? + first;
+                (rest.get(..at)?, rest.get(at + piece.len()..)?)
+            };
+            if name.is_empty() {
+                return None;
+            }
+            names.push(name);
+            rest = after;
+        }
+        rest.is_empty().then_some(names)
+    }
+}
+
 /// A status light, and what it tells of the player's speed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -508,9 +648,6 @@ pub struct SpeedMutation {
     /// It is a mutation of the player's anatomy (`mutflag::anatomy`), which stops working in a
     /// form that changes it.
     pub anatomy: bool,
-    /// The messages the game gives as the player gains or loses a level of it (`gain` and
-    /// `lose`).
-    pub messages: Vec<String>,
 }
 
 /// A bane that changes how fast the player moves, from `bane_data` in `bane-data.h`.
@@ -521,9 +658,6 @@ pub struct SpeedBane {
     pub id: EnumId,
     /// How the mutations screen (`A`) describes it (`description`).
     pub shown: String,
-    /// The messages the game gives as the player gains it, it grows stronger, or it is lifted
-    /// (`add_bane` and `remove_bane`).
-    pub messages: Vec<String>,
 }
 
 /// The holiness a form gives the player: its `holiness` in `dat/forms`, or, for a form
@@ -1661,4 +1795,61 @@ pub struct InnateMutation {
     pub mutation: EnumId,
     /// The levels of it that come then.
     pub levels: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn template(text: &str) -> Template {
+        Template(text.to_owned())
+    }
+
+    #[test]
+    fn a_template_names_what_a_message_fills_in_each_place() {
+        let changed = template("Your {} skill gained {} levels and is now at level {}!");
+        assert_eq!(
+            changed.names("Your Maces & Flails skill gained 2 levels and is now at level 7!"),
+            Some(vec!["Maces & Flails", "2", "7"])
+        );
+        assert_eq!(
+            template("You finish memorising.").names("You finish memorising."),
+            Some(Vec::new())
+        );
+    }
+
+    #[test]
+    fn a_template_doesnt_match_a_message_it_isnt_or_one_that_names_nothing() {
+        let forgotten = template("Your memory of {} unravels.");
+        assert_eq!(forgotten.names("Your memory of  unravels."), None);
+        assert_eq!(forgotten.names("Your memory of Blink unravels!"), None);
+        assert_eq!(
+            template("You finish memorising.").names("You finish memorising. x2"),
+            None
+        );
+        assert_eq!(
+            template("Your {} skill increases to level {}!")
+                .names("Your skill increases to level 3!"),
+            None
+        );
+    }
+
+    #[test]
+    fn a_mutation_describes_its_level_as_crawl_shows_it_or_finishes_it_with_a_number() {
+        let mutation = |shown: &[&str]| Mutation {
+            id: EnumId("MUT_TEST".to_owned()),
+            shown: shown.iter().map(|&text| text.to_owned()).collect(),
+            gained: Vec::new(),
+            lost: Vec::new(),
+        };
+        let icemail = mutation(&["A meltable icy envelope protects you from harm. (AC +"]);
+        assert!(icemail.describes("A meltable icy envelope protects you from harm. (AC +5)", 0));
+        let tough = mutation(&[
+            "You have tough skin. (AC +1)",
+            "You have very tough skin. (AC +2)",
+        ]);
+        assert!(tough.describes("You have very tough skin. (AC +2)", 1));
+        assert!(!tough.describes("You have tough skin. (AC +1) and more", 0));
+        assert!(!tough.describes("You have tough skin. (AC +1)", 2));
+    }
 }

@@ -75816,11 +75816,7 @@
           "You move with supernatural speed. (Speed++)",
           "You move with supernatural speed. (Speed+++)"
         ],
-        "anatomy": false,
-        "messages": [
-          "You feel quick.",
-          "You feel sluggish."
-        ]
+        "anatomy": false
       },
       {
         "id": "MUT_SLOW",
@@ -75829,11 +75825,7 @@
           "You cover ground very slowly.",
           "You cover ground extremely slowly."
         ],
-        "anatomy": false,
-        "messages": [
-          "You feel sluggish.",
-          "You feel quick."
-        ]
+        "anatomy": false
       },
       {
         "id": "MUT_FROG_LEGS",
@@ -75841,10 +75833,7 @@
           "You can hop short distances, but move slowly.",
           "You can hop long distances, but move slowly."
         ],
-        "anatomy": true,
-        "messages": [
-          "Your legs feel stronger."
-        ]
+        "anatomy": true
       },
       {
         "id": "MUT_CONSTRICTING_TAIL",
@@ -75852,13 +75841,7 @@
           "Your snake-like lower body moves slowly.",
           "Your snake-like lower body moves slowly, but can constrict enemies."
         ],
-        "anatomy": true,
-        "messages": [
-          "Your lower body turns into a snake tail.",
-          "Your tail grows strong enough to constrict your enemies.",
-          "Your lower body returns to normal.",
-          "Your snake tail weakens and can no longer constrict your enemies."
-        ]
+        "anatomy": true
       },
       {
         "id": "MUT_NIMBLE_SWIMMER",
@@ -75866,23 +75849,13 @@
           "You are camouflaged when in or above water. (Stealth+)",
           "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
         ],
-        "anatomy": true,
-        "messages": [
-          "You feel comfortable near water.",
-          "You feel very comfortable near water.",
-          "You feel less comfortable near water."
-        ]
+        "anatomy": true
       }
     ],
     "banes": [
       {
         "id": "BANE_LETHARGY",
-        "shown": "You cover ground slowly.",
-        "messages": [
-          "You are stricken with the Bane of Lethargy.",
-          "Your Bane of Lethargy grows stronger.",
-          "The Bane of Lethargy upon you is lifted."
-        ]
+        "shown": "You cover ground slowly."
       }
     ],
     "slowingGods": [
@@ -75899,6 +75872,3194 @@
     ],
     "quickeningGear": [
       "lightning scales"
+    ]
+  },
+  "character": {
+    "skills": {
+      "changed": [
+        "Your {} skill increases to level {}!",
+        "Your {} skill decreases to level {}!",
+        "Your {} skill gained {} levels and is now at level {}!",
+        "Your {} skill lost {} levels and is now at level {}!"
+      ],
+      "mastered": "You have mastered {}!",
+      "most": 27,
+      "base": "base ",
+      "shiftingGods": [
+        "Ashenzari"
+      ]
+    },
+    "spells": {
+      "forgotten": "Your memory of {} unravels.",
+      "memorised": "You finish memorising.",
+      "learned": [
+        "The power to cast {} wells up from within.",
+        "(You can now cast {}.)"
+      ]
+    },
+    "powers": [
+      "You can now {}.",
+      "You can no longer {}."
+    ],
+    "mutations": [
+      {
+        "id": "MUT_IRON_FUSED_SCALES",
+        "shown": [
+          "Your scales are fused with iron. (AC + 5)"
+        ],
+        "gained": [
+          "Iron fuses itself to your scales."
+        ],
+        "lost": [
+          "The iron flakes away from your scales."
+        ]
+      },
+      {
+        "id": "MUT_INVIOLATE_MAGIC",
+        "shown": [
+          "Your magical power and effects resist disruption."
+        ],
+        "gained": [
+          "Your magical power grows resistant to disruption."
+        ],
+        "lost": [
+          "Your magical power loses its resistance to disruption."
+        ]
+      },
+      {
+        "id": "MUT_TOUGH_SKIN",
+        "shown": [
+          "You have tough skin. (AC +1)",
+          "You have very tough skin. (AC +2)",
+          "You have extremely tough skin. (AC +3)"
+        ],
+        "gained": [
+          "Your skin toughens.",
+          "Your skin toughens.",
+          "Your skin toughens."
+        ],
+        "lost": [
+          "Your skin feels delicate.",
+          "Your skin feels delicate.",
+          "Your skin feels delicate."
+        ]
+      },
+      {
+        "id": "MUT_STRONG",
+        "shown": [
+          "You are strong. (Str +4, Int/Dex -1)",
+          "You are very strong. (Str +8, Int/Dex -2)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_CLEVER",
+        "shown": [
+          "Your mind is acute. (Int +4, Str/Dex -1)",
+          "Your mind is very acute. (Int +8, Str/Dex -2)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_AGILE",
+        "shown": [
+          "You are agile. (Dex +4, Str/Int -1)",
+          "You are very agile. (Dex +8, Str/Int -2)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_POISON_RESISTANCE",
+        "shown": [
+          "You are resistant to poisons. (rPois)"
+        ],
+        "gained": [
+          "You feel resistant to poisons."
+        ],
+        "lost": [
+          "You feel less resistant to poisons."
+        ]
+      },
+      {
+        "id": "MUT_HEAT_RESISTANCE",
+        "shown": [
+          "You are heat resistant. (rF+)",
+          "You are very heat resistant. (rF++)",
+          "You are almost immune to the effects of heat. (rF+++)"
+        ],
+        "gained": [
+          "You feel resistant to heat.",
+          "You feel more resistant to heat.",
+          "You feel more resistant to heat."
+        ],
+        "lost": [
+          "You no longer feel heat resistant.",
+          "You feel less heat resistant.",
+          "You feel less heat resistant."
+        ]
+      },
+      {
+        "id": "MUT_COLD_RESISTANCE",
+        "shown": [
+          "You are cold resistant. (rC+)",
+          "You are very cold resistant. (rC++)",
+          "You are almost immune to the effects of cold. (rC+++)"
+        ],
+        "gained": [
+          "You feel resistant to cold.",
+          "You feel more resistant to cold.",
+          "You feel more resistant to cold."
+        ],
+        "lost": [
+          "You no longer feel cold resistant.",
+          "You feel less cold resistant.",
+          "You feel less cold resistant."
+        ]
+      },
+      {
+        "id": "MUT_HEAT_VULNERABILITY",
+        "shown": [
+          "You are vulnerable to heat. (rF-)",
+          "You are very vulnerable to heat. (rF--)",
+          "You are extremely vulnerable to heat. (rF---)"
+        ],
+        "gained": [
+          "You feel vulnerable to heat.",
+          "You feel vulnerable to heat.",
+          "You feel vulnerable to heat."
+        ],
+        "lost": [
+          "You no longer feel vulnerable to heat.",
+          "You feel less vulnerable to heat.",
+          "You feel less vulnerable to heat."
+        ]
+      },
+      {
+        "id": "MUT_COLD_VULNERABILITY",
+        "shown": [
+          "You are vulnerable to cold. (rC-)",
+          "You are very vulnerable to cold. (rC--)",
+          "You are extremely vulnerable to cold. (rC---)"
+        ],
+        "gained": [
+          "You feel vulnerable to cold.",
+          "You feel vulnerable to cold.",
+          "You feel vulnerable to cold."
+        ],
+        "lost": [
+          "You no longer feel vulnerable to cold.",
+          "You feel less vulnerable to cold.",
+          "You feel less vulnerable to cold."
+        ]
+      },
+      {
+        "id": "MUT_DEMONIC_GUARDIAN",
+        "shown": [
+          "A weak demonic guardian rushes to your aid.",
+          "A demonic guardian rushes to your aid.",
+          "A powerful demonic guardian rushes to your aid."
+        ],
+        "gained": [
+          "You feel the presence of a demonic guardian.",
+          "Your guardian grows in power.",
+          "Your guardian grows in power."
+        ],
+        "lost": [
+          "Your demonic guardian is gone.",
+          "Your demonic guardian is weakened.",
+          "Your demonic guardian is weakened."
+        ]
+      },
+      {
+        "id": "MUT_SHOCK_RESISTANCE",
+        "shown": [
+          "You are resistant to electric shocks. (rElec)"
+        ],
+        "gained": [
+          "You feel insulated."
+        ],
+        "lost": [
+          "You feel conductive."
+        ]
+      },
+      {
+        "id": "MUT_SHOCK_VULNERABILITY",
+        "shown": [
+          "You are vulnerable to electric shocks. (rElec-)"
+        ],
+        "gained": [
+          "You feel vulnerable to electricity."
+        ],
+        "lost": [
+          "You feel less vulnerable to electricity."
+        ]
+      },
+      {
+        "id": "MUT_REGENERATION",
+        "shown": [
+          "Your natural rate of healing is unusually fast.",
+          "You heal very quickly.",
+          "You regenerate."
+        ],
+        "gained": [
+          "You begin to heal more quickly.",
+          "You begin to heal more quickly.",
+          "You begin to regenerate."
+        ],
+        "lost": [
+          "Your rate of healing slows.",
+          "Your rate of healing slows.",
+          "Your rate of healing slows."
+        ]
+      },
+      {
+        "id": "MUT_INHIBITED_REGENERATION",
+        "shown": [
+          "You do not regenerate when monsters are visible."
+        ],
+        "gained": [
+          "Your regeneration stops near monsters."
+        ],
+        "lost": [
+          "You begin to regenerate regardless of the presence of monsters."
+        ]
+      },
+      {
+        "id": "MUT_FEED_OFF_SUFFERING",
+        "shown": [
+          "You can sometimes gain power from killing poisoned or drained foes.",
+          "You can regularly gain power from killing poisoned or drained foes."
+        ],
+        "gained": [
+          "Vile energies swirl pleasantly through your soul.",
+          "The vile energy whirls more vigorously through your soul."
+        ],
+        "lost": [
+          "The vile energy swirling through your soul dissipates.",
+          "The vile energy whirling through your soul weakens."
+        ]
+      },
+      {
+        "id": "MUT_LUCKY",
+        "shown": [
+          "You discover slightly more artefacts.",
+          "You discover more artefacts."
+        ],
+        "gained": [
+          "You feel fortune smile upon you.",
+          "You feel fortune smile more brightly upon you."
+        ],
+        "lost": [
+          "You feel like your luck has run out.",
+          "You feel a little less lucky."
+        ]
+      },
+      {
+        "id": "MUT_WEAK",
+        "shown": [
+          "You are weak. (Str -3)",
+          "You are very weak. (Str -6)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_DOPEY",
+        "shown": [
+          "You are dopey. (Int -3)",
+          "You are very dopey. (Int -6)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_CLUMSY",
+        "shown": [
+          "You are clumsy. (Dex -3)",
+          "You are very clumsy. (Dex -6)"
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_MEEK",
+        "shown": [
+          "Your attacks are a little less effective. (Slay -3)",
+          "Your attacks are less effective. (Slay -5)",
+          "Your attacks are much less effective. (Slay -7)"
+        ],
+        "gained": [
+          "You feel meek.",
+          "You feel even more meek.",
+          "You feel meek as a lamb."
+        ],
+        "lost": [
+          "You feel aggression return to you.",
+          "You feel a little less meek.",
+          "You feel a little less meek."
+        ]
+      },
+      {
+        "id": "MUT_TELEPORTITIS",
+        "shown": [
+          "You are occasionally teleported next to monsters.",
+          "You are often teleported next to monsters."
+        ],
+        "gained": [
+          "You feel weirdly uncertain.",
+          "You feel even more weirdly uncertain."
+        ],
+        "lost": [
+          "You feel stable.",
+          "You feel stable."
+        ]
+      },
+      {
+        "id": "MUT_PERSISTENT_DRAIN",
+        "shown": [
+          "Your health recovers twice as slowly from being drained."
+        ],
+        "gained": [
+          "You begin to recover more slowly from draining effects."
+        ],
+        "lost": [
+          "You recover from draining at a normal speed again."
+        ]
+      },
+      {
+        "id": "MUT_CONTAMINATION_SUSCEPTIBLE",
+        "shown": [
+          "You absorb twice as much mutagenic energy from being contaminated."
+        ],
+        "gained": [
+          "You feel more susceptible to contamination."
+        ],
+        "lost": [
+          "You feel less susceptible to contamination."
+        ]
+      },
+      {
+        "id": "MUT_STRONG_WILLED",
+        "shown": [
+          "You are strong-willed. (Will+)",
+          "You are highly strong-willed. (Will++)",
+          "You are extremely strong-willed. (Will+++)"
+        ],
+        "gained": [
+          "You feel strong-willed.",
+          "You feel more strong-willed.",
+          "You feel your will become almost unbreakable."
+        ],
+        "lost": [
+          "You no longer feel strong-willed.",
+          "You feel less strong-willed.",
+          "You feel less strong-willed."
+        ]
+      },
+      {
+        "id": "MUT_FAST",
+        "shown": [
+          "You move with supernatural speed. (Speed+)",
+          "You move with supernatural speed. (Speed++)",
+          "You move with supernatural speed. (Speed+++)"
+        ],
+        "gained": [
+          "You feel quick.",
+          "You feel quick.",
+          "You feel quick."
+        ],
+        "lost": [
+          "You feel sluggish.",
+          "You feel sluggish.",
+          "You feel sluggish."
+        ]
+      },
+      {
+        "id": "MUT_SLOW",
+        "shown": [
+          "You cover ground slowly.",
+          "You cover ground very slowly.",
+          "You cover ground extremely slowly."
+        ],
+        "gained": [
+          "You feel sluggish.",
+          "You feel sluggish.",
+          "You feel sluggish."
+        ],
+        "lost": [
+          "You feel quick.",
+          "You feel quick.",
+          "You feel quick."
+        ]
+      },
+      {
+        "id": "MUT_ACUTE_VISION",
+        "shown": [
+          "You have supernaturally acute vision. (SInv)"
+        ],
+        "gained": [
+          "Your vision sharpens."
+        ],
+        "lost": [
+          "Your vision seems duller."
+        ]
+      },
+      {
+        "id": "MUT_DEFORMED",
+        "shown": [
+          "Armour fits poorly on your strangely shaped body."
+        ],
+        "gained": [
+          "Your body twists and deforms."
+        ],
+        "lost": [
+          "Your body's shape seems more normal."
+        ]
+      },
+      {
+        "id": "MUT_SPIT_POISON",
+        "shown": [
+          "You can spit poison.",
+          "You can exhale a cloud of poison."
+        ],
+        "gained": [
+          "There is a nasty taste in your mouth for a moment.",
+          "There is a nasty taste in your mouth for a moment."
+        ],
+        "lost": [
+          "You feel an ache in your throat.",
+          "You feel an ache in your throat."
+        ]
+      },
+      {
+        "id": "MUT_SCREAM",
+        "shown": [
+          "You occasionally shout uncontrollably at those who injure you.",
+          "You frequently scream uncontrollably at those who injure you."
+        ],
+        "gained": [
+          "You feel the urge to shout.",
+          "You feel a strong urge to scream."
+        ],
+        "lost": [
+          "Your urge to shout disappears.",
+          "Your urge to scream lessens."
+        ]
+      },
+      {
+        "id": "MUT_CLARITY",
+        "shown": [
+          "You possess an exceptional clarity of mind."
+        ],
+        "gained": [
+          "Your thoughts seem clearer."
+        ],
+        "lost": [
+          "Your thinking seems confused."
+        ]
+      },
+      {
+        "id": "MUT_POOR_CONSTITUTION",
+        "shown": [
+          "Your body sometimes grows weak upon taking damage.",
+          "Your body sometimes grows weak and slow upon taking damage."
+        ],
+        "gained": [
+          "You feel your constitution weaken.",
+          "You feel your constitution grow even weaker."
+        ],
+        "lost": [
+          "You feel your constitution return to normal.",
+          "You feel your constitution improve a little."
+        ]
+      },
+      {
+        "id": "MUT_MUTATION_RESISTANCE",
+        "shown": [
+          "You are somewhat resistant to further mutation.",
+          "You are somewhat resistant to both further mutation and mutation removal.",
+          "You are almost entirely resistant to further mutation and mutation removal."
+        ],
+        "gained": [
+          "You feel genetically stable.",
+          "You feel genetically stable.",
+          "You feel genetically immutable."
+        ],
+        "lost": [
+          "You feel genetically unstable.",
+          "You feel genetically unstable.",
+          "You feel genetically unstable."
+        ]
+      },
+      {
+        "id": "MUT_EVOLUTION",
+        "shown": [
+          "You have hidden genetic potential.",
+          "You have great hidden genetic potential."
+        ],
+        "gained": [
+          "You feel a hidden potential growing inside you.",
+          "Your hidden genetic potential grows."
+        ],
+        "lost": [
+          "You no longer feel a hidden potential within.",
+          "Your hidden genetic potential wanes."
+        ]
+      },
+      {
+        "id": "MUT_DEVOLUTION",
+        "shown": [
+          "You have hidden genetic defects.",
+          "You have terrible hidden genetic defects."
+        ],
+        "gained": [
+          "You feel a hidden malignance growing inside you.",
+          "The malignance inside you grows."
+        ],
+        "lost": [
+          "You no longer feel a malignance within.",
+          "Your genetic malignance weakens."
+        ]
+      },
+      {
+        "id": "MUT_PROTEAN_GRACE",
+        "shown": [
+          "You are empowered by your non-innate mutations. (+"
+        ],
+        "gained": [
+          "Mutagenic power surges through your limbs."
+        ],
+        "lost": [
+          "The mutagenic power surging through your limbs dissipates."
+        ]
+      },
+      {
+        "id": "MUT_FRAIL",
+        "shown": [
+          "You are frail. (-10% HP)",
+          "You are very frail. (-20% HP)",
+          "You are extremely frail. (-30% HP)"
+        ],
+        "gained": [
+          "You feel frail.",
+          "You feel frail.",
+          "You feel frail."
+        ],
+        "lost": [
+          "You feel robust.",
+          "You feel robust.",
+          "You feel robust."
+        ]
+      },
+      {
+        "id": "MUT_ROBUST",
+        "shown": [
+          "You are robust. (+10% HP)",
+          "You are very robust. (+20% HP)",
+          "You are extremely robust. (+30% HP)"
+        ],
+        "gained": [
+          "You feel robust.",
+          "You feel robust.",
+          "You feel robust."
+        ],
+        "lost": [
+          "You feel frail.",
+          "You feel frail.",
+          "You feel frail."
+        ]
+      },
+      {
+        "id": "MUT_TORMENT_RESISTANCE",
+        "shown": [
+          "You are resistant to unholy torment.",
+          "You are immune to unholy pain and torment."
+        ],
+        "gained": [
+          "You feel a strange anaesthesia.",
+          "You feel a very strange anaesthesia."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_NEGATIVE_ENERGY_RESISTANCE",
+        "shown": [
+          "You resist negative energy. (rN+)",
+          "You are quite resistant to negative energy. (rN++)",
+          "You are immune to negative energy. (rN+++)"
+        ],
+        "gained": [
+          "You feel resistant to negative energy.",
+          "You feel more resistant to negative energy.",
+          "You feel more resistant to negative energy."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_NECRO_ENHANCER",
+        "shown": [
+          "You are in touch with the powers of death.",
+          "You are strongly in touch with the powers of death."
+        ],
+        "gained": [
+          "You feel more in touch with the powers of death.",
+          "You feel more in touch with the powers of death."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_TENGU_FLIGHT",
+        "shown": [
+          "Your magical flight helps you evade attacks. (EV +4)"
+        ],
+        "gained": [
+          "Your magical nature develops, letting you fly evasively."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_ACROBATIC",
+        "shown": [
+          "You can magically evade attacks while moving or waiting."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_WIELD_OFFHAND",
+        "shown": [
+          "You can wield a second weapon in your off-hand."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_SLOW_WIELD",
+        "shown": [
+          "It takes a long time for you to wield or remove held weapons."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_INITIALLY_ATTRACTIVE",
+        "shown": [
+          "You sometimes pull newly seen creatures towards you.",
+          "You frequently pull newly seen creatures towards you."
+        ],
+        "gained": [
+          "You feel strangely attractive.",
+          "You feel even more attractive."
+        ],
+        "lost": [
+          "You feel less attractive.",
+          "You feel a little less attractive."
+        ]
+      },
+      {
+        "id": "MUT_WARMUP_STRIKES",
+        "shown": [
+          "Your first few attacks do less damage."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_NO_JEWELLERY",
+        "shown": [
+          "You cannot equip rings or amulets."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_HURL_DAMNATION",
+        "shown": [
+          "You can hurl damnation."
+        ],
+        "gained": [
+          "You smell a hint of brimstone."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_HORNS",
+        "shown": [
+          "You have a pair of small horns on your head.",
+          "You have a pair of horns on your head.",
+          "You have a pair of large horns on your head."
+        ],
+        "gained": [
+          "A pair of horns grows on your head!",
+          "The horns on your head grow some more.",
+          "The horns on your head grow some more."
+        ],
+        "lost": [
+          "The horns on your head shrink away.",
+          "The horns on your head shrink a bit.",
+          "The horns on your head shrink a bit."
+        ]
+      },
+      {
+        "id": "MUT_BEAK",
+        "shown": [
+          "You have a beak for a mouth."
+        ],
+        "gained": [
+          "Your mouth lengthens and hardens into a beak!"
+        ],
+        "lost": [
+          "Your beak shortens and softens into a mouth."
+        ]
+      },
+      {
+        "id": "MUT_CLAWS",
+        "shown": [
+          "You have sharp fingernails.",
+          "You have very sharp fingernails.",
+          "You have claws for hands."
+        ],
+        "gained": [
+          "Your fingernails lengthen.",
+          "Your fingernails sharpen.",
+          "Your hands twist into claws."
+        ],
+        "lost": [
+          "Your fingernails shrink to normal size.",
+          "Your fingernails look duller.",
+          "Your hands feel fleshier."
+        ]
+      },
+      {
+        "id": "MUT_FANGS",
+        "shown": [
+          "You have very sharp teeth.",
+          "You have extremely sharp teeth.",
+          "You have razor-sharp teeth."
+        ],
+        "gained": [
+          "Your teeth lengthen and sharpen.",
+          "Your teeth lengthen and sharpen some more.",
+          "Your teeth grow very long and razor-sharp."
+        ],
+        "lost": [
+          "Your teeth shrink to normal size.",
+          "Your teeth shrink and become duller.",
+          "Your teeth shrink and become duller."
+        ]
+      },
+      {
+        "id": "MUT_HOOVES",
+        "shown": [
+          "You have large cloven feet.",
+          "You have hoof-like feet.",
+          "You have hooves in place of feet."
+        ],
+        "gained": [
+          "Your feet thicken and deform.",
+          "Your feet thicken and deform.",
+          "Your feet have mutated into hooves."
+        ],
+        "lost": [
+          "Your hooves expand and flesh out into feet!",
+          "Your hooves look more like feet.",
+          "Your hooves look more like feet."
+        ]
+      },
+      {
+        "id": "MUT_ANTENNAE",
+        "shown": [
+          "You have a pair of small antennae on your head.",
+          "You have a pair of antennae on your head.",
+          "You have a pair of large antennae on your head. (SInv)"
+        ],
+        "gained": [
+          "A pair of antennae grows on your head!",
+          "The antennae on your head grow some more.",
+          "The antennae on your head grow some more."
+        ],
+        "lost": [
+          "The antennae on your head shrink away.",
+          "The antennae on your head shrink a bit.",
+          "The antennae on your head shrink a bit."
+        ]
+      },
+      {
+        "id": "MUT_TALONS",
+        "shown": [
+          "You have sharp toenails.",
+          "You have razor-sharp toenails.",
+          "You have claws for feet."
+        ],
+        "gained": [
+          "Your toenails lengthen and sharpen.",
+          "Your toenails lengthen and sharpen.",
+          "Your feet stretch into talons."
+        ],
+        "lost": [
+          "Your talons dull and shrink into feet.",
+          "Your talons look more like feet.",
+          "Your talons look more like feet."
+        ]
+      },
+      {
+        "id": "MUT_TENTACLE_SPIKE",
+        "shown": [
+          "One of your tentacles bears a spike.",
+          "One of your tentacles bears a nasty spike.",
+          "One of your tentacles bears a large vicious spike."
+        ],
+        "gained": [
+          "One of your lower tentacles grows a sharp spike.",
+          "Your tentacle spike grows bigger.",
+          "Your tentacle spike grows even bigger."
+        ],
+        "lost": [
+          "Your tentacle spike disappears.",
+          "Your tentacle spike becomes smaller.",
+          "Your tentacle spike recedes somewhat."
+        ]
+      },
+      {
+        "id": "MUT_CONSTRICTING_TAIL",
+        "shown": [
+          "Your snake-like lower body moves slowly.",
+          "Your snake-like lower body moves slowly, but can constrict enemies."
+        ],
+        "gained": [
+          "Your lower body turns into a snake tail.",
+          "Your tail grows strong enough to constrict your enemies."
+        ],
+        "lost": [
+          "Your lower body returns to normal.",
+          "Your snake tail weakens and can no longer constrict your enemies."
+        ]
+      },
+      {
+        "id": "MUT_STINGER",
+        "shown": [
+          "Your tail ends in a venomous barb.",
+          "Your tail ends in a sharp venomous barb.",
+          "Your tail ends in a wickedly sharp and venomous barb."
+        ],
+        "gained": [
+          "A venomous barb forms on the end of your tail.",
+          "The barb on your tail looks sharper.",
+          "The barb on your tail looks very sharp."
+        ],
+        "lost": [
+          "The barb on your tail disappears.",
+          "The barb on your tail seems less sharp.",
+          "The barb on your tail seems less sharp."
+        ]
+      },
+      {
+        "id": "MUT_BIG_WINGS",
+        "shown": [
+          "Your large and strong wings let you fly."
+        ],
+        "gained": [
+          "Your wings grow larger and stronger."
+        ],
+        "lost": [
+          "Your wings shrivel and weaken."
+        ]
+      },
+      {
+        "id": "MUT_FROG_LEGS",
+        "shown": [
+          "You can hop short distances, but move slowly.",
+          "You can hop long distances, but move slowly."
+        ],
+        "gained": [
+          null,
+          "Your legs feel stronger."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_ARMOURED_TAIL",
+        "shown": [
+          "You have an armoured tail.",
+          "You have a heavy armoured tail."
+        ],
+        "gained": [
+          null,
+          null
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_ROLLPAGE",
+        "shown": [
+          "You regenerate magic when rolling toward enemies. (Rampage MPRegen)",
+          "You regenerate magic and health when rolling toward enemies. (Rampage Regen)"
+        ],
+        "gained": [
+          "You begin to regenerate magic when rolling toward enemies.",
+          "You begin to regenerate health when rolling toward enemies."
+        ],
+        "lost": [
+          "You can no longer roll toward enemies.",
+          "You can no longer regenerate health when rolling toward enemies."
+        ]
+      },
+      {
+        "id": "MUT_SHAGGY_FUR",
+        "shown": [
+          "You are covered in fur. (AC +1)",
+          "You are covered in thick fur. (AC +2)",
+          "Your thick and shaggy fur keeps you warm. (AC +3, rC+)"
+        ],
+        "gained": [
+          "Fur sprouts all over your body.",
+          "Your fur grows into a thick mane.",
+          "Your thick fur grows shaggy and warm."
+        ],
+        "lost": [
+          "You shed all your fur.",
+          "Your thick fur recedes somewhat.",
+          "Your shaggy fur recedes somewhat."
+        ]
+      },
+      {
+        "id": "MUT_HIGH_MAGIC",
+        "shown": [
+          "You have an increased reservoir of magic. (+10% MP)",
+          "You have a considerably increased reservoir of magic. (+20% MP)",
+          "You have a greatly increased reservoir of magic. (+30% MP)"
+        ],
+        "gained": [
+          "You feel more energetic.",
+          "You feel more energetic.",
+          "You feel more energetic."
+        ],
+        "lost": [
+          "You feel less energetic.",
+          "You feel less energetic.",
+          "You feel less energetic."
+        ]
+      },
+      {
+        "id": "MUT_LOW_MAGIC",
+        "shown": [
+          "Your magical capacity is low. (-10% MP)",
+          "Your magical capacity is very low. (-20% MP)",
+          "Your magical capacity is extremely low. (-30% MP)"
+        ],
+        "gained": [
+          "You feel less energetic.",
+          "You feel less energetic.",
+          "You feel less energetic."
+        ],
+        "lost": [
+          "You feel more energetic.",
+          "You feel more energetic.",
+          "You feel more energetic."
+        ]
+      },
+      {
+        "id": "MUT_WILD_MAGIC",
+        "shown": [
+          "Your spells are a little harder to cast, but a little more powerful.",
+          "Your spells are harder to cast, but more powerful.",
+          "Your spells are much harder to cast, but much more powerful."
+        ],
+        "gained": [
+          "You feel less in control of your magic.",
+          "You feel less in control of your magic.",
+          "You feel your magical power running wild!"
+        ],
+        "lost": [
+          "You regain control of your magic.",
+          "You feel more in control of your magic.",
+          "You feel more in control of your magic."
+        ]
+      },
+      {
+        "id": "MUT_SUBDUED_MAGIC",
+        "shown": [
+          "Your spells are a little easier to cast, but a little less powerful.",
+          "Your spells are easier to cast, but less powerful.",
+          "Your spells are much easier to cast, but much less powerful."
+        ],
+        "gained": [
+          "Your connection to magic feels subdued.",
+          "Your connection to magic feels more subdued.",
+          "Your connection to magic feels nearly dormant."
+        ],
+        "lost": [
+          "Your magic regains its normal vibrancy.",
+          "Your connection to magic feels less subdued.",
+          "Your connection to magic feels less subdued."
+        ]
+      },
+      {
+        "id": "MUT_EFFICIENT_MAGIC",
+        "shown": [
+          "Spells you cast cost 1 less MP (to a minimum of 1).",
+          "Spells you cast cost 2 less MP (to a minimum of 1)."
+        ],
+        "gained": [
+          "You gain a new grip on the flow of your magic.",
+          "Your grip strengthens on the flow of your magic."
+        ],
+        "lost": [
+          "The flow of your magic slips from your grasp.",
+          "The flow of your magic starts slipping from your grasp."
+        ]
+      },
+      {
+        "id": "MUT_EPHEMERAL_SHIELD",
+        "shown": [
+          "A shield forms around you when casting spells or using Invocations. (SH +7)"
+        ],
+        "gained": [
+          "Ambient excess energy starts collecting around you."
+        ],
+        "lost": [
+          "The ambient excess energy around you dissipates."
+        ]
+      },
+      {
+        "id": "MUT_TIME_WARPED_BLOOD",
+        "shown": [
+          "Your blood hastes a few of your allies when you are sufficiently damaged.",
+          "Your blood hastes several of your allies when you are sufficiently damaged."
+        ],
+        "gained": [
+          "The flow of your blood desyncs from the flow of time itself.",
+          "The flow of your blood has become unstuck from time."
+        ],
+        "lost": [
+          "Your blood flow once more matches the normal passage of time.",
+          "Your blood flow starts aligning itself with the normal passage of time."
+        ]
+      },
+      {
+        "id": "MUT_DEMONIC_MAGIC",
+        "shown": [
+          "Spells you cast may paralyse adjacent enemies.",
+          "Spells you cast may paralyse nearby enemies.",
+          "Spells you cast and wands you use may paralyse nearby enemies."
+        ],
+        "gained": [
+          "A menacing aura infuses your magic.",
+          "Your magic grows more menacing.",
+          "Your wands become infused with your menacing aura."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_FORLORN",
+        "shown": [
+          "You shall have no god before yourself."
+        ],
+        "gained": [
+          "You feel forlorn."
+        ],
+        "lost": [
+          "You feel more spiritual."
+        ]
+      },
+      {
+        "id": "MUT_PASSIVE_MAPPING",
+        "shown": [
+          "You passively map the area around you.",
+          "You passively map a large area around you."
+        ],
+        "gained": [
+          "You feel a strange attunement to the structure of the dungeons.",
+          "Your attunement to dungeon structure grows further."
+        ],
+        "lost": [
+          "You feel slightly disoriented.",
+          "You feel slightly disoriented."
+        ]
+      },
+      {
+        "id": "MUT_ICEMAIL",
+        "shown": [
+          "A meltable icy envelope protects you from harm. (AC +",
+          "A thick, meltable icy envelope protects you from harm. (AC +"
+        ],
+        "gained": [
+          "An icy envelope takes form around you.",
+          "Your icy envelope grows thicker."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_CONDENSATION_SHIELD",
+        "shown": [
+          "A meltable shield of frost defends you. (SH +"
+        ],
+        "gained": [
+          "Frost condenses into a shield before you."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_PASSIVE_FREEZE",
+        "shown": [
+          "A frigid envelope surrounds you and freezes all who hurt you."
+        ],
+        "gained": [
+          "Your skin feels very cold."
+        ],
+        "lost": [
+          "Your skin warms up."
+        ]
+      },
+      {
+        "id": "MUT_NIGHTSTALKER",
+        "shown": [
+          "You are slightly more attuned to the shadows.",
+          "You are significantly more attuned to the shadows.",
+          "You are completely attuned to the shadows."
+        ],
+        "gained": [
+          "You slip into the darkness of the dungeon.",
+          "You slip further into the darkness.",
+          "You are surrounded by darkness."
+        ],
+        "lost": [
+          "Your affinity for the darkness vanishes.",
+          "Your affinity for the darkness weakens.",
+          "Your affinity for the darkness weakens."
+        ]
+      },
+      {
+        "id": "MUT_SPINY",
+        "shown": [
+          "You are partially covered in sharp spines.",
+          "You are mostly covered in sharp spines.",
+          "You are completely covered in sharp spines."
+        ],
+        "gained": [
+          "Sharp spines emerge from parts of your body.",
+          "Sharp spines emerge from more of your body.",
+          "Sharp spines emerge from your entire body."
+        ],
+        "lost": [
+          "Your sharp spines disappear entirely.",
+          "Your sharp spines retract somewhat.",
+          "Your sharp spines retract somewhat."
+        ]
+      },
+      {
+        "id": "MUT_POWERED_BY_DEATH",
+        "shown": [
+          "You regenerate a little health from kills.",
+          "You regenerate health from kills.",
+          "You regenerate a lot of health from kills."
+        ],
+        "gained": [
+          "A wave of death washes over you.",
+          "The wave of death grows in power.",
+          "The wave of death grows in power."
+        ],
+        "lost": [
+          "Your control of surrounding life forces is gone.",
+          "Your control of surrounding life forces weakens.",
+          "Your control of surrounding life forces weakens."
+        ]
+      },
+      {
+        "id": "MUT_POWERED_BY_PAIN",
+        "shown": [
+          "You sometimes gain a little power by taking damage.",
+          "You sometimes gain power by taking damage.",
+          "You are powered by pain."
+        ],
+        "gained": [
+          "You feel energised by your suffering.",
+          "You feel even more energised by your suffering.",
+          "You feel completely energised by your suffering."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_AUGMENTATION",
+        "shown": [
+          "Your magical and physical power is slightly enhanced at high health.",
+          "Your magical and physical power is enhanced at high health.",
+          "Your magical and physical power is greatly enhanced at high health."
+        ],
+        "gained": [
+          "You feel power flowing into your body.",
+          "You feel power rushing into your body.",
+          "You feel saturated with power."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_MANA_SHIELD",
+        "shown": [
+          "When hurt, damage is shared between your health and your magic reserves."
+        ],
+        "gained": [
+          "You feel your magical essence form a protective shroud around your flesh."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MANA_REGENERATION",
+        "shown": [
+          "You regenerate magic rapidly."
+        ],
+        "gained": [
+          "Your magic begins to regenerate rapidly."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MANA_LINK",
+        "shown": [
+          "When low on magic, you restore magic in place of health."
+        ],
+        "gained": [
+          "You feel your life force and your magical essence meld."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_GELATINOUS_BODY",
+        "shown": [
+          "Your rubbery body absorbs attacks. (AC +1, EV +1)",
+          "Your pliable body absorbs attacks. (AC +2, EV +2)",
+          "Your gelatinous body deflects attacks. (AC +3, EV +3)"
+        ],
+        "gained": [
+          "Your body becomes stretchy.",
+          "Your body becomes more malleable.",
+          "Your body becomes viscous."
+        ],
+        "lost": [
+          "Your body returns to its normal consistency.",
+          "Your body becomes less malleable.",
+          "Your body becomes less viscous."
+        ]
+      },
+      {
+        "id": "MUT_EYEBALLS",
+        "shown": [
+          "Your body has grown eyes which may confuse attackers. (Acc +3)",
+          "Your body has grown many eyes which may confuse attackers. (Acc +5)",
+          "Your body is covered in eyes which may confuse attackers. (Acc +7, SInv)"
+        ],
+        "gained": [
+          "Eyeballs grow over part of your body.",
+          "Eyeballs cover a large portion of your body.",
+          "Eyeballs cover you completely."
+        ],
+        "lost": [
+          "The eyeballs on your body disappear.",
+          "The eyeballs on your body recede somewhat.",
+          "The eyeballs on your body recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_TRANSLUCENT_SKIN",
+        "shown": [
+          "Your translucent skin slightly reduces your foes' accuracy. (Stealth+)",
+          "Your translucent skin reduces your foes' accuracy. (Stealth+)",
+          "Your transparent skin significantly reduces your foes' accuracy. (Stealth+)"
+        ],
+        "gained": [
+          "Your skin becomes partially translucent.",
+          "Your skin becomes more translucent.",
+          "Your skin becomes completely transparent."
+        ],
+        "lost": [
+          "Your skin returns to its normal opacity.",
+          "Your skin's translucency fades.",
+          "Your skin's transparency fades."
+        ]
+      },
+      {
+        "id": "MUT_PSEUDOPODS",
+        "shown": [
+          "Armour fits poorly on your pseudopods.",
+          "Armour fits poorly on your large pseudopods.",
+          "Armour fits poorly on your massive pseudopods."
+        ],
+        "gained": [
+          "Pseudopods emerge from your body.",
+          "Your pseudopods grow in size.",
+          "Your pseudopods grow in size."
+        ],
+        "lost": [
+          "Your pseudopods retract into your body.",
+          "Your pseudopods become smaller.",
+          "Your pseudopods become smaller."
+        ]
+      },
+      {
+        "id": "MUT_ACIDIC_BITE",
+        "shown": [
+          "You have acidic saliva."
+        ],
+        "gained": [
+          "Acid begins to drip from your mouth."
+        ],
+        "lost": [
+          "Your mouth feels dry."
+        ]
+      },
+      {
+        "id": "MUT_SLIME_SHROUD",
+        "shown": [
+          "A fragile, slimy shroud covers you, deflecting attacks."
+        ],
+        "gained": [
+          "A thin film of slime covers your body."
+        ],
+        "lost": [
+          "Your film of slime dries up."
+        ]
+      },
+      {
+        "id": "MUT_ANTIMAGIC_BITE",
+        "shown": [
+          "Your bite disrupts and absorbs the magic of your enemies."
+        ],
+        "gained": [
+          "You feel a sudden thirst for magic."
+        ],
+        "lost": [
+          "Your magical appetite wanes."
+        ]
+      },
+      {
+        "id": "MUT_EFFICIENT_METABOLISM",
+        "shown": [
+          "Your metabolism doubles the duration of potion status effects."
+        ],
+        "gained": [
+          "Your body churns, leaving you strangely parched."
+        ],
+        "lost": [
+          "Your body churns, leaving you strangely quenched."
+        ]
+      },
+      {
+        "id": "MUT_NO_POTION_HEAL",
+        "shown": [
+          "Potions are less effective at restoring your health.",
+          "Potions cannot restore your health."
+        ],
+        "gained": [
+          "Your system partially rejects the healing effects of potions.",
+          "Your system completely rejects the healing effects of potions."
+        ],
+        "lost": [
+          "Your system completely accepts the healing effects of potions.",
+          "Your system partly accepts the healing effects of potions."
+        ]
+      },
+      {
+        "id": "MUT_RECKLESS",
+        "shown": [
+          "Your SH is halved, but you deal more damage with two-handed weapons."
+        ],
+        "gained": [
+          "You feel a sudden disregard for your own safety."
+        ],
+        "lost": [
+          "You feel a little less reckless."
+        ]
+      },
+      {
+        "id": "MUT_SPATIAL_ENTANGLEMENT",
+        "shown": [
+          "When you translocate, a monster is sometimes pulled along with you."
+        ],
+        "gained": [
+          "You feel space start to knot itself around you."
+        ],
+        "lost": [
+          "You feel space untangle itself from you."
+        ]
+      },
+      {
+        "id": "MUT_DISTORTION_FIELD",
+        "shown": [
+          "You are surrounded by a mild repulsion field. (EV +2)",
+          "You are surrounded by a moderate repulsion field. (EV +3)",
+          "You are surrounded by a strong repulsion field. (EV +4, RMsl)"
+        ],
+        "gained": [
+          "You begin to radiate repulsive energy.",
+          "Your repulsive radiation grows stronger.",
+          "Your repulsive radiation grows stronger."
+        ],
+        "lost": [
+          "You feel less repulsive.",
+          "You feel less repulsive.",
+          "You feel less repulsive."
+        ]
+      },
+      {
+        "id": "MUT_ICY_BLUE_SCALES",
+        "shown": [
+          "You are partially covered in icy blue scales. (AC +2)",
+          "You are mostly covered in icy blue scales. (AC +3)",
+          "You are completely covered in icy blue scales. (AC +4, rC+)"
+        ],
+        "gained": [
+          "Icy blue scales grow over part of your body.",
+          "Icy blue scales spread over more of your body.",
+          "Icy blue scales cover your body completely."
+        ],
+        "lost": [
+          "Your icy blue scales disappear.",
+          "Your icy blue scales recede somewhat.",
+          "Your icy blue scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_IRIDESCENT_SCALES",
+        "shown": [
+          "You are partially covered in iridescent scales. (AC +2)",
+          "You are mostly covered in iridescent scales. (AC +4)",
+          "You are completely covered in iridescent scales. (AC +6)"
+        ],
+        "gained": [
+          "Iridescent scales grow over part of your body.",
+          "Iridescent scales spread over more of your body.",
+          "Iridescent scales cover your body completely."
+        ],
+        "lost": [
+          "Your iridescent scales disappear.",
+          "Your iridescent scales recede somewhat.",
+          "Your iridescent scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_LARGE_BONE_PLATES",
+        "shown": [
+          "You are partially covered in large bone plates. (SH +4)",
+          "You are mostly covered in large bone plates. (SH +6)",
+          "You are completely covered in large bone plates. (SH +8)"
+        ],
+        "gained": [
+          "Large bone plates grow over parts of your arms.",
+          "Large bone plates spread over more of your arms.",
+          "Large bone plates cover your arms completely."
+        ],
+        "lost": [
+          "Your large bone plates disappear.",
+          "Your large bone plates recede somewhat.",
+          "Your large bone plates recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_MOLTEN_SCALES",
+        "shown": [
+          "You are partially covered in molten scales. (AC +2)",
+          "You are mostly covered in molten scales. (AC +3)",
+          "You are completely covered in molten scales. (AC +4, rF+)"
+        ],
+        "gained": [
+          "Molten scales grow over part of your body.",
+          "Molten scales spread over more of your body.",
+          "Molten scales cover your body completely."
+        ],
+        "lost": [
+          "Your molten scales disappear.",
+          "Your molten scales recede somewhat.",
+          "Your molten scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_RUGGED_BROWN_SCALES",
+        "shown": [
+          "You are partially covered in rugged brown scales. (AC +1, +3% HP)",
+          "You are mostly covered in rugged brown scales. (AC +2, +5% HP)",
+          "You are completely covered in rugged brown scales. (AC +3, +7% HP)"
+        ],
+        "gained": [
+          "Rugged brown scales grow over part of your body.",
+          "Rugged brown scales spread over more of your body.",
+          "Rugged brown scales cover your body completely."
+        ],
+        "lost": [
+          "Your rugged brown scales disappear.",
+          "Your rugged brown scales recede somewhat.",
+          "Your rugged brown scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_SLIMY_GREEN_SCALES",
+        "shown": [
+          "You are partially covered in slimy green scales. (AC +2)",
+          "You are mostly covered in slimy green scales. (AC +3)",
+          "You are completely covered in slimy green scales. (AC +4, rPois)"
+        ],
+        "gained": [
+          "Slimy green scales grow over part of your body.",
+          "Slimy green scales spread over more of your body.",
+          "Slimy green scales cover your body completely."
+        ],
+        "lost": [
+          "Your slimy green scales disappear.",
+          "Your slimy green scales recede somewhat.",
+          "Your slimy green scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_THIN_METALLIC_SCALES",
+        "shown": [
+          "You are partially covered in thin metallic scales. (AC +2)",
+          "You are mostly covered in thin metallic scales. (AC +3)",
+          "You are completely covered in thin metallic scales. (AC +4, rElec)"
+        ],
+        "gained": [
+          "Thin metallic scales grow over part of your body.",
+          "Thin metallic scales spread over more of your body.",
+          "Thin metallic scales cover your body completely."
+        ],
+        "lost": [
+          "Your thin metallic scales disappear.",
+          "Your thin metallic scales recede somewhat.",
+          "Your thin metallic scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_THIN_SKELETAL_STRUCTURE",
+        "shown": [
+          "You have a somewhat thin skeletal structure. (Dex +2, Stealth+)",
+          "You have a moderately thin skeletal structure. (Dex +4, Stealth++)",
+          "You have an unnaturally thin skeletal structure. (Dex +6, Stealth+++)"
+        ],
+        "gained": [
+          "Your bones become slightly less dense.",
+          "Your bones become somewhat less dense.",
+          "Your bones become less dense."
+        ],
+        "lost": [
+          "Your skeletal structure returns to normal.",
+          "Your skeletal structure densifies.",
+          "Your skeletal structure densifies."
+        ]
+      },
+      {
+        "id": "MUT_YELLOW_SCALES",
+        "shown": [
+          "You are partially covered in yellow scales. (AC +2)",
+          "You are mostly covered in yellow scales. (AC +3)",
+          "You are completely covered in yellow scales. (AC +4, rCorr)"
+        ],
+        "gained": [
+          "Yellow scales grow over part of your body.",
+          "Yellow scales spread over more of your body.",
+          "Yellow scales cover your body completely."
+        ],
+        "lost": [
+          "Your yellow scales disappear.",
+          "Your yellow scales recede somewhat.",
+          "Your yellow scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_SHARP_SCALES",
+        "shown": [
+          "You are partially covered in razor-sharp scales. (AC +1, Slay +1)",
+          "You are mostly covered in razor-sharp scales. (AC +2, Slay +2)",
+          "You are completely covered in razor-sharp scales. (AC +3, Slay +3)"
+        ],
+        "gained": [
+          "Sharp scales grow over part of your body.",
+          "Sharp scales spread over more of your body.",
+          "Sharp scales cover your body completely."
+        ],
+        "lost": [
+          "Your sharp scales disappear.",
+          "Your sharp scales recede somewhat.",
+          "Your sharp scales recede somewhat."
+        ]
+      },
+      {
+        "id": "MUT_STURDY_FRAME",
+        "shown": [
+          "Your movements are slightly less encumbered by armour. (ER -2)",
+          "Your movements are less encumbered by armour. (ER -4)",
+          "Your movements are significantly less encumbered by armour. (ER -6)"
+        ],
+        "gained": [
+          "You feel less encumbered by your armour.",
+          "You feel less encumbered by your armour.",
+          "You feel less encumbered by your armour."
+        ],
+        "lost": [
+          "You feel more encumbered by your armour.",
+          "You feel more encumbered by your armour.",
+          "You feel more encumbered by your armour."
+        ]
+      },
+      {
+        "id": "MUT_SANGUINE_ARMOUR",
+        "shown": [
+          "When seriously injured, your blood forms armour. (AC +",
+          "When seriously injured, your blood forms thick armour. (AC +",
+          "When seriously injured, your blood forms very thick armour. (AC +"
+        ],
+        "gained": [
+          "You feel your blood ready itself to protect you.",
+          "You feel your blood thicken.",
+          "You feel your blood thicken."
+        ],
+        "lost": [
+          "You feel your blood become entirely quiescent.",
+          "You feel your blood thin.",
+          "You feel your blood thin."
+        ]
+      },
+      {
+        "id": "MUT_BIG_BRAIN",
+        "shown": [
+          "You have an unusually large brain. (Int +2)",
+          "You have an extremely huge brain. (Int +4)",
+          "You have an absolutely massive brain. (Int +6, Wiz)"
+        ],
+        "gained": [
+          "Your brain expands.",
+          "Your brain expands.",
+          "Your brain expands to incredible size."
+        ],
+        "lost": [
+          "Your brain returns to normal size.",
+          "Your brain shrinks.",
+          "Your brain shrinks."
+        ]
+      },
+      {
+        "id": "MUT_CAMOUFLAGE",
+        "shown": [
+          "Your skin changes colour to match your surroundings (Stealth+).",
+          "Your skin blends seamlessly with your surroundings (Stealth++).",
+          "Your skin perfectly mimics your surroundings (Stealth+++)."
+        ],
+        "gained": [
+          "Your skin functions as natural camouflage.",
+          "Your natural camouflage becomes more effective.",
+          "Your natural camouflage becomes more effective."
+        ],
+        "lost": [
+          "Your skin no longer functions as natural camouflage.",
+          "Your natural camouflage becomes less effective.",
+          "Your natural camouflage becomes less effective."
+        ]
+      },
+      {
+        "id": "MUT_IGNITE_BLOOD",
+        "shown": [
+          "Your demonic aura sometimes causes spilled blood to erupt in flames.",
+          "Your demonic aura often causes spilled blood to erupt in flames.",
+          "Your demonic aura causes all spilled blood to erupt in flames."
+        ],
+        "gained": [
+          "Your blood heats up.",
+          "Your blood runs red-hot!",
+          "Your blood burns even hotter!"
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_FOUL_STENCH",
+        "shown": [
+          "You may rarely emit foul miasma when damaged in melee.",
+          "You sometimes emit foul miasma when damaged in melee.",
+          "You frequently emit foul miasma when damaged in melee."
+        ],
+        "gained": [
+          "You begin to emit a foul stench of rot and decay.",
+          "Your foul stench grows more powerful.",
+          "You begin to radiate miasma."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_TENDRILS",
+        "shown": [
+          "You are covered in slimy tendrils that may disarm your opponents."
+        ],
+        "gained": [
+          "Thin, slimy tendrils emerge from your body."
+        ],
+        "lost": [
+          "Your tendrils retract into your body."
+        ]
+      },
+      {
+        "id": "MUT_JELLY_GROWTH",
+        "shown": [
+          "You have a small jelly attached to you that senses nearby items."
+        ],
+        "gained": [
+          "Your body partially splits into a small jelly."
+        ],
+        "lost": [
+          "The jelly growth is reabsorbed into your body."
+        ]
+      },
+      {
+        "id": "MUT_JELLY_MISSILE",
+        "shown": [
+          "You have a small jelly attached to you that may absorb projectiles."
+        ],
+        "gained": [
+          "Your body partially splits into a small jelly."
+        ],
+        "lost": [
+          "The jelly growth is reabsorbed into your body."
+        ]
+      },
+      {
+        "id": "MUT_STONE_BODY",
+        "shown": [
+          "Your stone body is resiliant and immune to petrification. (AC +"
+        ],
+        "gained": [
+          "Your body vibrates."
+        ],
+        "lost": [
+          "You briefly stop moving."
+        ]
+      },
+      {
+        "id": "MUT_BLACK_MARK",
+        "shown": [
+          "Your melee attacks may debilitate your foes."
+        ],
+        "gained": [
+          "An ominous black mark forms on your body."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_SILENCE_AURA",
+        "shown": [
+          "You are surrounded by an aura of silence."
+        ],
+        "gained": [
+          "An unnatural silence shrouds you."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_HEX_ENHANCER",
+        "shown": [
+          "Your hexes are more powerful."
+        ],
+        "gained": [
+          "You feel devilish."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_CORRUPTING_PRESENCE",
+        "shown": [
+          "Your presence sometimes corrodes those you injure.",
+          "Your presence sometimes corrodes or deforms those you injure."
+        ],
+        "gained": [
+          "You feel corrupt.",
+          "Your corrupting presence intensifies."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_WORD_OF_CHAOS",
+        "shown": [
+          "You can speak a Word of Chaos."
+        ],
+        "gained": [
+          "Your tongue twists."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_DEMONIC_WILL",
+        "shown": [
+          "You punish those that try to bend your will. (Will+)"
+        ],
+        "gained": [
+          "You feel wilful."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_WEAKNESS_STINGER",
+        "shown": [
+          "You have a small tail.",
+          "You have a tail ending in a sharp stinger.",
+          "You have a sharp stinger which inflicts weakening toxins."
+        ],
+        "gained": [
+          "You grow a small tail.",
+          "Your tail grows a sharp stinger.",
+          "Your stinger grows larger and begins to produce weakening toxins."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_DEMONIC_TOUCH",
+        "shown": [
+          "Your touch may inflict minor irresistible damage on your foes.",
+          "Your touch may inflict irresistible damage on your foes.",
+          "Your touch may irresistibly damage your foes and sap their willpower."
+        ],
+        "gained": [
+          "Your hands begin to faintly glow with unholy energy.",
+          "Your hands glow brighter with unholy energy.",
+          "Your hands twist and begin to emit a powerful aura of unholy energy."
+        ],
+        "lost": [
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_COLD_BLOODED",
+        "shown": [
+          "You are cold-blooded and may be slowed by cold attacks."
+        ],
+        "gained": [
+          "You feel cold-blooded."
+        ],
+        "lost": [
+          "You feel warm-blooded."
+        ]
+      },
+      {
+        "id": "MUT_FLAME_CLOUD_IMMUNITY",
+        "shown": [
+          "You are immune to clouds of flame."
+        ],
+        "gained": [
+          "You feel less concerned about heat."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_FREEZING_CLOUD_IMMUNITY",
+        "shown": [
+          "You are immune to freezing clouds."
+        ],
+        "gained": [
+          "You feel less concerned about cold."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_RENOUNCE_POTIONS",
+        "shown": [
+          "You refuse to drink potions in combat unless seriously injured."
+        ],
+        "gained": [
+          "You renounce the hedonism of uninhibited drinking."
+        ],
+        "lost": [
+          "You feel willing to use your potions freely once again."
+        ]
+      },
+      {
+        "id": "MUT_RENOUNCE_SCROLLS",
+        "shown": [
+          "You refuse to read scrolls in combat unless seriously injured."
+        ],
+        "gained": [
+          "You renounce the frivolity of worldly writings."
+        ],
+        "lost": [
+          "You feel willing to use your scrolls freely once again."
+        ]
+      },
+      {
+        "id": "MUT_MISSING_HAND",
+        "shown": [
+          "You are missing a hand."
+        ],
+        "gained": [
+          "One of your hands has vanished, leaving only a stump!"
+        ],
+        "lost": [
+          "Your stump has regrown into a hand!"
+        ]
+      },
+      {
+        "id": "MUT_BOOMING_VOICE",
+        "shown": [
+          "You read scrolls incredibly loudly when enemies are in sight."
+        ],
+        "gained": [
+          "You feel your voice swell to a thunderous volume."
+        ],
+        "lost": [
+          "You voice quiets to a reasonable volume."
+        ]
+      },
+      {
+        "id": "MUT_POTION_FUNGUS",
+        "shown": [
+          "You may spread the effect of potions you drink to nearby monsters."
+        ],
+        "gained": [
+          "A symbiotic fungus spreads across your body."
+        ],
+        "lost": [
+          "The fungus across your body shrivels and falls away."
+        ]
+      },
+      {
+        "id": "MUT_NO_STEALTH",
+        "shown": [
+          "You cannot be stealthy."
+        ],
+        "gained": [
+          "You can no longer be stealthy."
+        ],
+        "lost": [
+          "You can once more be stealthy."
+        ]
+      },
+      {
+        "id": "MUT_NO_ARTIFICE",
+        "shown": [
+          "You cannot study or use magical devices."
+        ],
+        "gained": [
+          "You can no longer study or use magical devices."
+        ],
+        "lost": [
+          "You can once more study and use magical devices."
+        ]
+      },
+      {
+        "id": "MUT_NO_LOVE",
+        "shown": [
+          "You are hated by all."
+        ],
+        "gained": [
+          "You are now hated by all."
+        ],
+        "lost": [
+          "You are no longer hated by all."
+        ]
+      },
+      {
+        "id": "MUT_COWARDICE",
+        "shown": [
+          "Your cowardice makes you less effective in combat with threatening foes."
+        ],
+        "gained": [
+          "You have lost your courage."
+        ],
+        "lost": [
+          "You have regained your courage."
+        ]
+      },
+      {
+        "id": "MUT_NO_DODGING",
+        "shown": [
+          "You cannot train Dodging skill."
+        ],
+        "gained": [
+          "You can no longer train Dodging skill."
+        ],
+        "lost": [
+          "You can once more train Dodging skill."
+        ]
+      },
+      {
+        "id": "MUT_NO_ARMOUR_SKILL",
+        "shown": [
+          "You cannot train Armour skill."
+        ],
+        "gained": [
+          "You can no longer train Armour skill."
+        ],
+        "lost": [
+          "You can once more train Armour skill."
+        ]
+      },
+      {
+        "id": "MUT_NO_AIR_MAGIC",
+        "shown": [
+          "You cannot study or cast Air magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Air magic."
+        ],
+        "lost": [
+          "You can once more study and cast Air magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_CONJURATION_MAGIC",
+        "shown": [
+          "You cannot study or cast Conjurations magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Conjurations magic."
+        ],
+        "lost": [
+          "You can once more study and cast Conjurations magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_EARTH_MAGIC",
+        "shown": [
+          "You cannot study or cast Earth magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Earth magic."
+        ],
+        "lost": [
+          "You can once more study and cast Earth magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_FIRE_MAGIC",
+        "shown": [
+          "You cannot study or cast Fire magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Fire magic."
+        ],
+        "lost": [
+          "You can once more study and cast Fire magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_HEXES_MAGIC",
+        "shown": [
+          "You cannot study or cast Hexes magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Hexes magic."
+        ],
+        "lost": [
+          "You can once more study and cast Hexes magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_ICE_MAGIC",
+        "shown": [
+          "You cannot study or cast Ice magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Ice magic."
+        ],
+        "lost": [
+          "You can once more study and cast Ice magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_NECROMANCY_MAGIC",
+        "shown": [
+          "You cannot study or cast Necromancy magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Necromancy magic."
+        ],
+        "lost": [
+          "You can once more study and cast Necromancy magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_ALCHEMY_MAGIC",
+        "shown": [
+          "You cannot study or cast Alchemy magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Alchemy magic."
+        ],
+        "lost": [
+          "You can once more study and cast Alchemy magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_FORGECRAFT_MAGIC",
+        "shown": [
+          "You cannot study or cast Forgecraft magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Forgecraft magic."
+        ],
+        "lost": [
+          "You can once more study and cast Forgecraft magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_SUMMONING_MAGIC",
+        "shown": [
+          "You cannot study or cast Summoning magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Summoning magic."
+        ],
+        "lost": [
+          "You can once more study and cast Summoning magic."
+        ]
+      },
+      {
+        "id": "MUT_NO_TRANSLOCATION_MAGIC",
+        "shown": [
+          "You cannot study or cast Translocations magic."
+        ],
+        "gained": [
+          "You can no longer study or cast Translocations magic."
+        ],
+        "lost": [
+          "You can once more study and cast Translocations magic."
+        ]
+      },
+      {
+        "id": "MUT_PHYSICAL_VULNERABILITY",
+        "shown": [
+          "You take slightly more damage. (AC -5)",
+          "You take more damage. (AC -10)",
+          "You take considerably more damage. (AC -15)"
+        ],
+        "gained": [
+          "You feel more vulnerable to harm.",
+          "You feel more vulnerable to harm.",
+          "You feel more vulnerable to harm."
+        ],
+        "lost": [
+          "You no longer feel extra vulnerable to harm.",
+          "You feel less vulnerable to harm.",
+          "You feel less vulnerable to harm."
+        ]
+      },
+      {
+        "id": "MUT_SLOW_REFLEXES",
+        "shown": [
+          "You have somewhat slow reflexes. (EV -5)",
+          "You have slow reflexes. (EV -10)",
+          "You have very slow reflexes. (EV -15)"
+        ],
+        "gained": [
+          "Your reflexes slow.",
+          "Your reflexes slow further.",
+          "Your reflexes slow further."
+        ],
+        "lost": [
+          "You reflexes return to normal.",
+          "You reflexes speed back up.",
+          "You reflexes speed back up."
+        ]
+      },
+      {
+        "id": "MUT_WEAK_WILLED",
+        "shown": [
+          "You are slightly weak-willed. (Will-)",
+          "You are weak-willed. (Will--)",
+          "You are extremely weak-willed. (Will---)"
+        ],
+        "gained": [
+          "You feel weak-willed.",
+          "You feel more weak-willed.",
+          "You feel more weak-willed."
+        ],
+        "lost": [
+          "You no longer feel weak-willed.",
+          "You feel less weak-willed.",
+          "You feel less weak-willed."
+        ]
+      },
+      {
+        "id": "MUT_ANTI_WIZARDRY",
+        "shown": [
+          "Your casting is slightly disrupted.",
+          "Your casting is disrupted.",
+          "Your casting is seriously disrupted."
+        ],
+        "gained": [
+          "Your ability to control magic is disrupted.",
+          "Your ability to control magic is more disrupted.",
+          "Your ability to control magic is more disrupted."
+        ],
+        "lost": [
+          "Your ability to control magic is no longer disrupted.",
+          "Your ability to control magic is less disrupted.",
+          "Your ability to control magic is less disrupted."
+        ]
+      },
+      {
+        "id": "MUT_MP_WANDS",
+        "shown": [
+          "You expend magic power (3 MP) to strengthen your wands."
+        ],
+        "gained": [
+          "You feel your magical essence link to the dungeon's wands."
+        ],
+        "lost": [
+          "Your magical essence no longer links to wands of the dungeon."
+        ]
+      },
+      {
+        "id": "MUT_UNSKILLED",
+        "shown": [
+          "You are somewhat unskilled. (-1 Apt)",
+          "You are unskilled. (-2 Apt)",
+          "You are extremely unskilled. (-3 Apt)"
+        ],
+        "gained": [
+          "You feel less skilled.",
+          "You feel less skilled.",
+          "You feel less skilled."
+        ],
+        "lost": [
+          "You regain all your skill.",
+          "You regain some skill.",
+          "You regain some skill."
+        ]
+      },
+      {
+        "id": "MUT_INEXPERIENCED",
+        "shown": [
+          "You are somewhat inexperienced. (-1 XL)",
+          "You are inexperienced. (-2 XL)",
+          "You are extremely inexperienced. (-3 XL)"
+        ],
+        "gained": [
+          "You feel less experienced.",
+          "You feel less experienced.",
+          "You feel less experienced."
+        ],
+        "lost": [
+          "You regain all your potential.",
+          "You regain some potential.",
+          "You regain some potential."
+        ]
+      },
+      {
+        "id": "MUT_PAWS",
+        "shown": [
+          "Your paws help you pounce on unaware monsters."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MISSING_EYE",
+        "shown": [
+          "You are missing an eye, making it more difficult to aim."
+        ],
+        "gained": [
+          "Your right eye vanishes! The world loses its depth."
+        ],
+        "lost": [
+          "Your right eye suddenly reappears! The world regains its depth."
+        ]
+      },
+      {
+        "id": "MUT_TEMPERATURE_SENSITIVITY",
+        "shown": [
+          "You are sensitive to extremes of temperature. (rF-, rC-)"
+        ],
+        "gained": [
+          "You feel sensitive to extremes of temperature."
+        ],
+        "lost": [
+          "You no longer feel sensitive to extremes of temperature"
+        ]
+      },
+      {
+        "id": "MUT_NO_FORMS",
+        "shown": [
+          "You cannot voluntarily change form."
+        ],
+        "gained": [
+          "You can no longer voluntarily change form."
+        ],
+        "lost": [
+          "You can once more change form."
+        ]
+      },
+      {
+        "id": "MUT_NO_REGENERATION",
+        "shown": [
+          "You do not regenerate."
+        ],
+        "gained": [
+          "You stop regenerating."
+        ],
+        "lost": [
+          "You start regenerating."
+        ]
+      },
+      {
+        "id": "MUT_TREASURE_SENSE",
+        "shown": [
+          "You have an uncanny knack for detecting items."
+        ],
+        "gained": [
+          "You suddenly feel aware of treasure."
+        ],
+        "lost": [
+          "You no longer feel aware of treasure."
+        ]
+      },
+      {
+        "id": "MUT_ACID_RESISTANCE",
+        "shown": [
+          "You are resistant to acid. (rCorr)"
+        ],
+        "gained": [
+          "You feel resistant to acid."
+        ],
+        "lost": [
+          "You feel less resistant to acid."
+        ]
+      },
+      {
+        "id": "MUT_QUADRUMANOUS",
+        "shown": [
+          "Your four strong arms can wield two-handed weapons with a shield."
+        ],
+        "gained": [
+          "Two of your arms shrink away."
+        ],
+        "lost": [
+          "You grow two extra arms."
+        ]
+      },
+      {
+        "id": "MUT_NO_DRINK",
+        "shown": [
+          "You cannot drink."
+        ],
+        "gained": [
+          "Your mouth dries to ashes."
+        ],
+        "lost": [
+          "You gain the ability to drink."
+        ]
+      },
+      {
+        "id": "MUT_FAITH",
+        "shown": [
+          "You have a special connection with the divine. (Faith)"
+        ],
+        "gained": [
+          "You feel connected to something greater than you."
+        ],
+        "lost": [
+          "You feel rebellious."
+        ]
+      },
+      {
+        "id": "MUT_REFLEXIVE_HEADBUTT",
+        "shown": [
+          "You reflexively headbutt those who attack you in melee."
+        ],
+        "gained": [
+          "Your retaliatory reflexes feel sharp."
+        ],
+        "lost": [
+          "Your retaliatory reflexes feel dull."
+        ]
+      },
+      {
+        "id": "MUT_STEAM_RESISTANCE",
+        "shown": [
+          "You are immune to the effects of steam."
+        ],
+        "gained": [
+          "You are now immune to the effects of steam."
+        ],
+        "lost": [
+          "You are no longer immune to the effects of steam."
+        ]
+      },
+      {
+        "id": "MUT_NO_GRASPING",
+        "shown": [
+          "You are incapable of wielding weapons or throwing items."
+        ],
+        "gained": [
+          "You can no longer grasp objects."
+        ],
+        "lost": [
+          "You can now grasp objects."
+        ]
+      },
+      {
+        "id": "MUT_NO_ARMOUR",
+        "shown": [
+          "You cannot wear armour."
+        ],
+        "gained": [
+          "You can no longer wear armour."
+        ],
+        "lost": [
+          "You can now wear armour."
+        ]
+      },
+      {
+        "id": "MUT_MULTILIVED",
+        "shown": [
+          "You gain extra lives every three experience levels."
+        ],
+        "gained": [
+          "You are no longer multi-lived."
+        ],
+        "lost": [
+          "You can now gain extra lives."
+        ]
+      },
+      {
+        "id": "MUT_DISTRIBUTED_TRAINING",
+        "shown": [
+          "Your experience applies equally to all skills."
+        ],
+        "gained": [
+          "Your experience now applies equally to all skills."
+        ],
+        "lost": [
+          "Your experience no longer applies equally to all skills."
+        ]
+      },
+      {
+        "id": "MUT_NIMBLE_SWIMMER",
+        "shown": [
+          "You are camouflaged when in or above water. (Stealth+)",
+          "You are very nimble when in or above water. (Stealth+, EV+, Speed+++)"
+        ],
+        "gained": [
+          "You feel comfortable near water.",
+          "You feel very comfortable near water."
+        ],
+        "lost": [
+          "You feel less comfortable near water.",
+          "You feel less comfortable near water."
+        ]
+      },
+      {
+        "id": "MUT_TENTACLE_ARMS",
+        "shown": [
+          "You have tentacles for arms and can constrict enemies."
+        ],
+        "gained": [
+          "Your arms feel tentacular."
+        ],
+        "lost": [
+          "Your arms no longer feel tentacular."
+        ]
+      },
+      {
+        "id": "MUT_MERTAIL",
+        "shown": [
+          "Your lower body shifts to a powerful aquatic tail in water."
+        ],
+        "gained": [
+          "Your legs feel aquatic."
+        ],
+        "lost": [
+          "Your legs no longer feel aquatic."
+        ]
+      },
+      {
+        "id": "MUT_FLOAT",
+        "shown": [
+          "You float through the air rather than walking."
+        ],
+        "gained": [
+          "You feel both weightless and legless."
+        ],
+        "lost": [
+          "You feel dragged down by the weight of the world."
+        ]
+      },
+      {
+        "id": "MUT_INNATE_CASTER",
+        "shown": [
+          "You learn spells naturally, not from books."
+        ],
+        "gained": [
+          "You feel mystic power welling inside you."
+        ],
+        "lost": [
+          "You feel a greater respect for book-learning."
+        ]
+      },
+      {
+        "id": "MUT_HP_CASTING",
+        "shown": [
+          "Your magical power is your life essence."
+        ],
+        "gained": [
+          "Your magical power and health merge together."
+        ],
+        "lost": [
+          "Your life and magic unlink."
+        ]
+      },
+      {
+        "id": "MUT_FLAT_HP",
+        "shown": [
+          "You have superior vitality. (+4 MHP)",
+          "You have much superior vitality. (+8 MHP)",
+          "You have exceptionally superior vitality. (+12 MHP)"
+        ],
+        "gained": [
+          "You feel more vital.",
+          "You feel more vital.",
+          "You feel more vital."
+        ],
+        "lost": [
+          "You feel less vital.",
+          "You feel less vital.",
+          "You feel less vital."
+        ]
+      },
+      {
+        "id": "MUT_OOZE_FLOOD",
+        "shown": [
+          "Your melee attacks may flood your foes with ooze."
+        ],
+        "gained": [
+          "You begin exuding ooze."
+        ],
+        "lost": [
+          "You stop exuding ooze."
+        ]
+      },
+      {
+        "id": "MUT_DAYSTALKER",
+        "shown": [
+          "You have an extended range of vision and can be seen from far away."
+        ],
+        "gained": [
+          "The darkness flees at your approach."
+        ],
+        "lost": [
+          "The shadows grow bolder once more."
+        ]
+      },
+      {
+        "id": "MUT_DIVINE_ATTRS",
+        "shown": [
+          "Your divine heritage dramatically boosts your attributes as you level up."
+        ],
+        "gained": [
+          "You feel more divine."
+        ],
+        "lost": [
+          "You feel more mortal."
+        ]
+      },
+      {
+        "id": "MUT_DEVOUR_ON_KILL",
+        "shown": [
+          "You thrive by killing the living."
+        ],
+        "gained": [
+          "You feel hungry for flesh."
+        ],
+        "lost": [
+          "You feel less hungry for flesh."
+        ]
+      },
+      {
+        "id": "MUT_SHORT_LIFESPAN",
+        "shown": [
+          "You are easily found by Zot."
+        ],
+        "gained": [
+          "You feel your time running out."
+        ],
+        "lost": [
+          "You feel long-lived."
+        ]
+      },
+      {
+        "id": "MUT_FOUL_SHADOW",
+        "shown": [
+          "You are faintly shadowed, very rarely releasing foul flame when damaged in melee.",
+          "You are shadowed, sometimes releasing foul flame when damaged in melee.",
+          "You are darkly shadowed, frequently releasing foul flame when damaged in melee."
+        ],
+        "gained": [
+          "Your body darkens with foul flame.",
+          "Your body becomes darker with foul flame.",
+          "Your body becomes darker with foul flame."
+        ],
+        "lost": [
+          "Your body's darkness fades completely.",
+          "Your body's darkness fades.",
+          "Your body's darkness fades."
+        ]
+      },
+      {
+        "id": "MUT_EXPLORE_REGEN",
+        "shown": [
+          "You regain HP and MP as you explore."
+        ],
+        "gained": [
+          "You feel a fierce wanderlust."
+        ],
+        "lost": [
+          "You feel like a homebody."
+        ]
+      },
+      {
+        "id": "MUT_DOUBLE_POTION_HEAL",
+        "shown": [
+          "You gain doubled healing and magic from potions."
+        ],
+        "gained": [
+          "You heal twice as much from potions."
+        ],
+        "lost": [
+          "You no longer heal twice as much from potions."
+        ]
+      },
+      {
+        "id": "MUT_DRUNKEN_BRAWLING",
+        "shown": [
+          "Whenever you drink a healing potion, you attack all around you."
+        ],
+        "gained": [
+          "You brawl whenever you drink a healing potion."
+        ],
+        "lost": [
+          "You no longer brawl whenever you drink a healing potion."
+        ]
+      },
+      {
+        "id": "MUT_ARTEFACT_ENCHANTING",
+        "shown": [
+          "You can use scrolls of enchantment on lesser artefacts."
+        ],
+        "gained": [
+          "You can now use scrolls of enchantment on lesser artefacts."
+        ],
+        "lost": [
+          "You can no longer use scrolls of enchantment on lesser artefacts."
+        ]
+      },
+      {
+        "id": "MUT_RUNIC_MAGIC",
+        "shown": [
+          "Your spellcasting is much less encumbered by armour."
+        ],
+        "gained": [
+          "Your spellcasting becomes less encumbered by armour."
+        ],
+        "lost": [
+          "Your spellcasting no longer less encumbered by armour."
+        ]
+      },
+      {
+        "id": "MUT_FORMLESS",
+        "shown": [
+          "You can equip up to 6 pieces of aux armour in any combination.",
+          "You can equip up to 6 pieces of aux armour in any combination and unleash them."
+        ],
+        "gained": [
+          null,
+          "You feel ready to unleash a true cacophony."
+        ],
+        "lost": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "MUT_TRICKSTER",
+        "shown": [
+          "You gain AC when you inflict magical misfortune on nearby enemies."
+        ],
+        "gained": [
+          null
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MNEMOPHAGE",
+        "shown": [
+          "You can enhance your damage-dealing spells by burning harvested memories."
+        ],
+        "gained": [
+          "Your flames flicker hungrily."
+        ],
+        "lost": [
+          "Your flames grow less ravenous."
+        ]
+      },
+      {
+        "id": "MUT_SPELLCLAWS",
+        "shown": [
+          "You perform a melee attack whenever you cast damage-dealing spells."
+        ],
+        "gained": [
+          "You feel destructive magic coursing through your claws."
+        ],
+        "lost": [
+          "You no longer feel destructive magic coursing through your claws."
+        ]
+      },
+      {
+        "id": "MUT_ACCURSED",
+        "shown": [
+          "You recover more slowly from Doom and Banes."
+        ],
+        "gained": [
+          "You feel accursed."
+        ],
+        "lost": [
+          "You feel less accursed."
+        ]
+      },
+      {
+        "id": "MUT_SPITEFUL_BLOOD",
+        "shown": [
+          "Your shed blood may rise up to attack you.",
+          "Your shed blood may rise up to attack you as a group."
+        ],
+        "gained": [
+          "You feel a willful anger gathering in your blood.",
+          "You feel your blood grow even more spiteful."
+        ],
+        "lost": [
+          "Your blood calms down again.",
+          "Your blood feels a little less spiteful."
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_DESTRUCTION_GEH",
+        "shown": [
+          "You draw destruction from the endless fires of Gehenna."
+        ],
+        "gained": [
+          "You feel your soul grow hot with the fiery destruction of Gehenna."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_DESTRUCTION_COC",
+        "shown": [
+          "You draw destruction from the frigid wastes of Cocytus."
+        ],
+        "gained": [
+          "You feel your soul grow cold with the frigid destruction of Cocytus."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_DESTRUCTION_TAR",
+        "shown": [
+          "You draw destruction from the wailing grief of Tartarus."
+        ],
+        "gained": [
+          "You feel your soul grow tainted with the deathly destruction of Tartarus."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_DESTRUCTION_DIS",
+        "shown": [
+          "You draw destruction from the ruthless spite of Dis."
+        ],
+        "gained": [
+          "You feel your soul grow bitter with the corrosive destruction of Dis."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_HAEMOCLASM",
+        "shown": [
+          "You bear the Mark of Haemoclasm."
+        ],
+        "gained": [
+          "Gore shall rain upon your enemies."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_LEGION",
+        "shown": [
+          "You bear the Mark of the Legion."
+        ],
+        "gained": [
+          "The armies of chaos are now yours to lead."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_CARNAGE",
+        "shown": [
+          "You bear the Mark of Carnage."
+        ],
+        "gained": [
+          "Your servants grow eager to unleash destruction."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_ANNIHILATION",
+        "shown": [
+          "You bear the Mark of Annihilation."
+        ],
+        "gained": [
+          "You feel the destructive energies within you surge violently."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_TYRANT",
+        "shown": [
+          "You bear the Mark of the Tyrant."
+        ],
+        "gained": [
+          "Even fiends shall kneel before you now."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_CELEBRANT",
+        "shown": [
+          "You bear the Mark of the Celebrant."
+        ],
+        "gained": [
+          "Your suffering will be repaid in blood."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_EXECUTION",
+        "shown": [
+          "You bear the Mark of Execution."
+        ],
+        "gained": [
+          "Murder takes root in your soul."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_ATROCITY",
+        "shown": [
+          "You bear the Mark of Atrocity."
+        ],
+        "gained": [
+          "You will scour this world clean."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_MAKHLEB_MARK_FANATIC",
+        "shown": [
+          "You bear the Mark of the Fanatic."
+        ],
+        "gained": [
+          "You will become an instrument of Makhleb's will."
+        ],
+        "lost": [
+          null
+        ]
+      },
+      {
+        "id": "MUT_REMOVED_MUTATION",
+        "shown": [],
+        "gained": [],
+        "lost": []
+      }
+    ],
+    "banes": [
+      {
+        "id": "BANE_LETHARGY",
+        "shown": "You cover ground slowly.",
+        "gained": [
+          "You are stricken with the Bane of Lethargy.",
+          "Your Bane of Lethargy grows stronger."
+        ],
+        "lifted": "The Bane of Lethargy upon you is lifted."
+      },
+      {
+        "id": "BANE_HEATSTROKE",
+        "shown": "You often become slowed when damaged by fire.",
+        "gained": [
+          "You are stricken with the Bane of Heatstroke.",
+          "Your Bane of Heatstroke grows stronger."
+        ],
+        "lifted": "The Bane of Heatstroke upon you is lifted."
+      },
+      {
+        "id": "BANE_SNOW_BLINDNESS",
+        "shown": "You often become weak and blind when damaged by cold.",
+        "gained": [
+          "You are stricken with the Bane of Snow-blindness.",
+          "Your Bane of Snow-blindness grows stronger."
+        ],
+        "lifted": "The Bane of Snow-blindness upon you is lifted."
+      },
+      {
+        "id": "BANE_ELECTROSPASM",
+        "shown": "You often become unable to move when damaged by electricity.",
+        "gained": [
+          "You are stricken with the Bane of Electrospasm.",
+          "Your Bane of Electrospasm grows stronger."
+        ],
+        "lifted": "The Bane of Electrospasm upon you is lifted."
+      },
+      {
+        "id": "BANE_CLAUSTROPHOBIA",
+        "shown": "Your slaying and spellpower are decreased in confined spaces.",
+        "gained": [
+          "You are stricken with the Bane of Claustrophobia.",
+          "Your Bane of Claustrophobia grows stronger."
+        ],
+        "lifted": "The Bane of Claustrophobia upon you is lifted."
+      },
+      {
+        "id": "BANE_STUMBLING",
+        "shown": "Your evasion is greatly reduced on turns you move or wait in place.",
+        "gained": [
+          "You are stricken with the Bane of Stumbling.",
+          "Your Bane of Stumbling grows stronger."
+        ],
+        "lifted": "The Bane of Stumbling upon you is lifted."
+      },
+      {
+        "id": "BANE_RECKLESS_REMOVED",
+        "shown": "You feel a strange sense of nostalgia.",
+        "gained": [
+          "You are stricken with the Bane of the Removed.",
+          "Your Bane of the Removed grows stronger."
+        ],
+        "lifted": "The Bane of the Removed upon you is lifted."
+      },
+      {
+        "id": "BANE_SUCCOUR",
+        "shown": "You heal other nearby enemies whenever you kill a monster.",
+        "gained": [
+          "You are stricken with the Bane of Succour.",
+          "Your Bane of Succour grows stronger."
+        ],
+        "lifted": "The Bane of Succour upon you is lifted."
+      },
+      {
+        "id": "BANE_MULTIPLICITY",
+        "shown": "Enemies in your sight sometimes split into clones of themselves.",
+        "gained": [
+          "You are stricken with the Bane of Multiplicity.",
+          "Your Bane of Multiplicity grows stronger."
+        ],
+        "lifted": "The Bane of Multiplicity upon you is lifted."
+      },
+      {
+        "id": "BANE_DILETTANTE",
+        "shown": "You are less proficient with several skills.",
+        "gained": [
+          "You are stricken with the Bane of the Dilettante.",
+          "Your Bane of the Dilettante grows stronger."
+        ],
+        "lifted": "The Bane of the Dilettante upon you is lifted."
+      },
+      {
+        "id": "BANE_PARADOX",
+        "shown": "Enemies you spot sometimes become touched by paradox.",
+        "gained": [
+          "You are stricken with the Bane of Paradox.",
+          "Your Bane of Paradox grows stronger."
+        ],
+        "lifted": "The Bane of Paradox upon you is lifted."
+      },
+      {
+        "id": "BANE_WARDING",
+        "shown": "Enemies you encounter may be immune to damage from range.",
+        "gained": [
+          "You are stricken with the Bane of Warding.",
+          "Your Bane of Warding grows stronger."
+        ],
+        "lifted": "The Bane of Warding upon you is lifted."
+      },
+      {
+        "id": "BANE_HUNTED",
+        "shown": "When enemies are summoned, they will appear beside you instead.",
+        "gained": [
+          "You are stricken with the Bane of the Hunted.",
+          "Your Bane of the Hunted grows stronger."
+        ],
+        "lifted": "The Bane of the Hunted upon you is lifted."
+      },
+      {
+        "id": "BANE_MORTALITY",
+        "shown": "When alone and injured, reapers sometimes come to claim you.",
+        "gained": [
+          "You are stricken with the Bane of Mortality.",
+          "Your Bane of Mortality grows stronger."
+        ],
+        "lifted": "The Bane of Mortality upon you is lifted."
+      }
     ]
   },
   "formulas": {
