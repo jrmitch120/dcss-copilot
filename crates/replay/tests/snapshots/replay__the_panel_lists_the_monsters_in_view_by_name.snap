@@ -5,8 +5,11 @@ expression: focus
 [
   null,
   {
-    "card": "inView",
-    "monsters": null
+    "card": "join",
+    "join": {
+      "step": "asking",
+      "turn": 120
+    }
   },
   {
     "card": "inView",

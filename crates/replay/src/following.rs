@@ -144,6 +144,12 @@ impl Following {
         happened
     }
 
+    /// The player put the join card away. It comes back after the app restarts if the game's
+    /// Backfill still awaits the character dump, so nothing is saved.
+    pub fn close_join_card(&mut self) {
+        self.advisor.close_join_card();
+    }
+
     /// Tells the Advisor what the Game Source learned, and returns what happened, in order.
     fn take_in(&mut self, events: Vec<SourceEvent>) -> Vec<Happened> {
         let mut happened = Vec::new();

@@ -304,6 +304,12 @@ impl Replayer {
             }));
     }
 
+    /// The player put the join card away, as just after the envelopes applied so far. A backward
+    /// move forgets it, as it rebuilds the game from the start.
+    pub fn close_join_card(&mut self) {
+        self.game.following.close_join_card();
+    }
+
     /// Applies the next envelope, if any.
     pub fn step(&mut self) -> Applied {
         self.seek(self.position + 1)

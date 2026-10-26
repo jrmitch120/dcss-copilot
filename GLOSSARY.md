@@ -74,6 +74,10 @@ _Avoid_: History, memory, cache
 Every change to a game's Accumulated State, in the order it was made, each with the turn and time of the message that made it. It is only ever added to, so it tells what the Advisor knew of the game at any moment; it goes only with its game, when the player clears history or the game is pruned.
 _Avoid_: History (when meaning this), audit log, journal
 
+**Backfill**:
+Catching the Advisor up on what it missed of a game it joined part way through, such as the character's skills, spells and mutations and the levels already explored: what only the character dump tells at once. The join card asks the player to open it, or the lighter dungeon overview for the levels alone. Until the dump is read the Run Plan waits, while the Threat Level and Ways Out, judged from what is in view, work all the same. A game followed from its first turn has nothing to backfill.
+_Avoid_: Sync, catch-up (as a noun), import
+
 **Game History**:
 Every game the Advisor remembers between runs of the app, kept on the player's computer only: each one's Game Key, its Accumulated State and its Change Log. A game not played for 90 days is forgotten unless the player turns that off, and the player can clear the history of every game but the one they are playing.
 _Avoid_: Database, saves, history (alone, when meaning Accumulated State)
@@ -277,6 +281,10 @@ _Avoid_: Collapsed pill, notification
 **Focus Card**:
 The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
 _Avoid_: Main card, hero card
+
+**Join Card**:
+The Focus Card for a game the Advisor joined part way through, while nothing hostile is in view: it says what the Advisor can and can't see, asks the player to press `?` then `#` for the character dump, offers `Ctrl-O` for the levels alone, and once the player opens one, says what it read off it. The player can put it away with Not now; it asks again after the app restarts while the dump is still unread. It is never shown to a player watching someone else's game.
+_Avoid_: Onboarding card, welcome card
 
 **Fact Card**:
 A card in the Focus Card singling out an Exceptional Monster while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.

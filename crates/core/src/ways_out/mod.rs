@@ -534,7 +534,10 @@ mod tests {
         if read {
             remembered.mutations = Remembered::Known(AsOf {
                 value: MutationsRead {
-                    shown: ShownMutations::default(),
+                    shown: ShownMutations {
+                        mutations: Vec::new(),
+                        banes: Some(Vec::new()),
+                    },
                     xl: Some(1),
                 },
                 turn: Some(1),
@@ -691,6 +694,19 @@ mod tests {
         assert_eq!(unread.pace.unwrap().mutations_read, None);
         let read = ways_out(&visible, "Human", true);
         assert!(!read.not_modelled.contains(&NotModelled::PlayerSpeed));
+    }
+
+    /// The character dump lists mutations but never banes, such as lethargy, which slows them.
+    #[test]
+    fn player_speed_is_named_while_the_banes_are_unread_as_after_the_character_dump() {
+        let mut remembered = remembered(true);
+        if let Remembered::Known(read) = &mut remembered.mutations {
+            read.value.shown.banes = None;
+            read.source = Screen::CharacterDump;
+        }
+        let visible = corridor(&[], 0);
+        let ways_out = WaysOut::compute(&visible, Some(&remembered), Some("Human"), Some(bundle()));
+        assert!(ways_out.not_modelled.contains(&NotModelled::PlayerSpeed));
     }
 
     #[test]

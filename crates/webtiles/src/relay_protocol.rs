@@ -71,6 +71,9 @@ pub enum PanelCommand {
         /// It is the same game; otherwise it is a new one.
         same: bool,
     },
+    /// The player put the join card away: "Not now" while it asks for the character dump, "OK"
+    /// once it says what it read. Since protocol 4.
+    CloseJoinCard,
     /// Open the app's Settings window.
     OpenSettings,
 }

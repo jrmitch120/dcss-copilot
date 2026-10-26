@@ -12,6 +12,7 @@ mod exceptional;
 mod fact_sheet;
 mod fight_outcome;
 mod game_source;
+mod join_card;
 mod known_games;
 mod screen;
 mod suggested_action;
@@ -20,7 +21,7 @@ mod visible_state;
 mod ways_out;
 
 pub use accumulated_state::{
-    AccumulatedState, AsOf, GearSource, MutationsRead, Remembered, Shield,
+    AccumulatedState, AsOf, Backfill, GearSource, MutationsRead, Remembered, Shield,
 };
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
@@ -36,14 +37,14 @@ pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, 
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use known_games::{CharacterKey, GameKey, Identification, KnownGame, KnownGames};
 pub use screen::{
-    KnownAbility, KnownSpell, Resistance, Resistances, Screen, ScreenRead, ShownMutations, Skills,
-    SpellPower, SpellReach,
+    BranchFound, DungeonOverview, KnownAbility, KnownSpell, Resistance, Resistances, Screen,
+    ScreenRead, ShopsFound, ShownMutations, Skills, SpellPower, SpellReach,
 };
 pub use suggested_action::SuggestionRule;
 pub use view_model::{
-    Appearance, AskBox, AssistanceLevel, Character, Colour, Connection, Depiction, FactCard,
-    FocusCard, GameView, Glyph, Listing, NowPill, PickedUp, RunPlanRail, SuggestedActionCard,
-    TileName, ToolbarBadge, ViewModel, WayOutRow, WaysOutList,
+    Appearance, AskBox, AssistanceLevel, Character, ChecklistRow, Colour, Connection, Depiction,
+    FactCard, FocusCard, GameView, Glyph, JoinCard, Listing, NowPill, PickedUp, RunPlanRail,
+    SuggestedActionCard, TileName, ToolbarBadge, UnreadPart, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

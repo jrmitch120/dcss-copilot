@@ -1,0 +1,100 @@
+---
+source: crates/replay/tests/backfill.rs
+expression: panels_to_the_end(&mut replayer)
+---
+[
+  {
+    "turn": 4,
+    "focus": {
+      "card": "join",
+      "join": {
+        "step": "asking",
+        "turn": 4
+      }
+    },
+    "runPlan": {
+      "state": "awaitingDump"
+    }
+  },
+  {
+    "turn": 4,
+    "focus": {
+      "card": "join",
+      "join": {
+        "step": "caughtUpFromOverview",
+        "levels": "1 branch, 1 shop"
+      }
+    },
+    "runPlan": {
+      "state": "awaitingDump"
+    }
+  },
+  {
+    "turn": 4,
+    "focus": {
+      "card": "join",
+      "join": {
+        "step": "reading",
+        "checklist": [
+          {
+            "read": true,
+            "line": "Skills (5, with decimals)"
+          },
+          {
+            "read": true,
+            "line": "Spells (2, with failure rates)"
+          },
+          {
+            "read": true,
+            "line": "Mutations (3)"
+          },
+          {
+            "read": true,
+            "line": "Dungeon overview: 1 branch, no altars, 1 shop"
+          }
+        ]
+      }
+    },
+    "runPlan": {
+      "state": "notPlanned"
+    }
+  },
+  {
+    "turn": 4,
+    "focus": {
+      "card": "join",
+      "join": {
+        "step": "caughtUpFromDump",
+        "current": [
+          "skills",
+          "spells",
+          "mutations",
+          "the dungeon overview"
+        ],
+        "notInDump": []
+      }
+    },
+    "runPlan": {
+      "state": "notPlanned"
+    }
+  },
+  {
+    "turn": 5,
+    "focus": {
+      "card": "join",
+      "join": {
+        "step": "caughtUpFromDump",
+        "current": [
+          "skills",
+          "spells",
+          "mutations",
+          "the dungeon overview"
+        ],
+        "notInDump": []
+      }
+    },
+    "runPlan": {
+      "state": "notPlanned"
+    }
+  }
+]

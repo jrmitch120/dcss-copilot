@@ -303,6 +303,11 @@ impl Live {
         self.lock().game.answer_same_game(same);
     }
 
+    /// The player put the join card away.
+    pub fn close_join_card(&self) {
+        self.lock().game.close_join_card();
+    }
+
     /// The model a slot calls.
     pub fn model(&self, slot: ModelSlot) -> ModelChoice {
         self.lock().settings.model(slot).clone()

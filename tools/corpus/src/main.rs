@@ -92,23 +92,31 @@ async fn fetch(cache: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Plays a scenario's setup on a fresh account and records it over the scenario's Recording.
+/// Plays a scenario's setup on a fresh account and records it over the scenario's Recording: from
+/// the start, or from when the game is played again after it was played and saved unrecorded.
 async fn record_scenario(manifest: &Path, server: &str, game: &str) -> anyhow::Result<()> {
     let scenario = Scenario::load(manifest)?;
-    let mut session = Session::connect(server, &scenario.recording).await?;
-    session.register(&account("wiz"), PASSWORD).await?;
-    session.set_rc(game, &scenario.setup.rc).await?;
-    session.play(game).await?;
+    let setup = &scenario.setup;
+    let username = account("wiz");
     let deadline = Instant::now() + SCENARIO_TIMEOUT;
-    session.settle(deadline).await?;
-    for keys in &scenario.setup.keys {
-        session.input(keys).await?;
-        match session.settle(deadline).await? {
-            Stopped::Settled => {}
-            Stopped::GameOver => bail!("the game ended before the keys {keys:?}"),
-            Stopped::Deadline => bail!("the scenario took longer than {SCENARIO_TIMEOUT:?}"),
-        }
-    }
+    let mut session = if setup.before_joining.is_empty() {
+        let mut session = Session::connect(server, Some(&scenario.recording)).await?;
+        session.register(&username, PASSWORD).await?;
+        session.set_rc(game, &setup.rc).await?;
+        session
+    } else {
+        let mut unrecorded = Session::connect(server, None).await?;
+        unrecorded.register(&username, PASSWORD).await?;
+        unrecorded.set_rc(game, &setup.rc).await?;
+        unrecorded.play(game).await?;
+        type_keys(&mut unrecorded, &setup.before_joining, deadline).await?;
+        unrecorded.finish().await?;
+        let mut session = Session::connect(server, Some(&scenario.recording)).await?;
+        session.log_in(&username, PASSWORD).await?;
+        session
+    };
+    session.play(game).await?;
+    type_keys(&mut session, &setup.keys, deadline).await?;
     session.finish().await?;
 
     open_replayer(&scenario.recording)?
@@ -120,6 +128,24 @@ async fn record_scenario(manifest: &Path, server: &str, game: &str) -> anyhow::R
             )
         })?;
     println!("recorded {}", scenario.recording.display());
+    Ok(())
+}
+
+/// Types each of `keys` once the game has settled from the one before, from a game just started.
+async fn type_keys(
+    session: &mut Session,
+    keys: &[String],
+    deadline: Instant,
+) -> anyhow::Result<()> {
+    session.settle(deadline).await?;
+    for keys in keys {
+        session.input(keys).await?;
+        match session.settle(deadline).await? {
+            Stopped::Settled => {}
+            Stopped::GameOver => bail!("the game ended before the keys {keys:?}"),
+            Stopped::Deadline => bail!("the scenario took longer than {SCENARIO_TIMEOUT:?}"),
+        }
+    }
     Ok(())
 }
 

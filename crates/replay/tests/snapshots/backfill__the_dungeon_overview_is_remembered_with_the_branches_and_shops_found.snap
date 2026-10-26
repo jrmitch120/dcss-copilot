@@ -1,0 +1,28 @@
+---
+source: crates/replay/tests/backfill.rs
+expression: remembered.dungeon
+---
+{
+  "state": "known",
+  "value": {
+    "branches": [
+      {
+        "name": "Dungeon",
+        "explored": 3,
+        "levels": 15,
+        "entrances": []
+      }
+    ],
+    "altars": null,
+    "shops": [
+      {
+        "level": "D:2",
+        "count": 1
+      }
+    ]
+  },
+  "turn": 4,
+  "source": {
+    "kind": "dungeonOverview"
+  }
+}

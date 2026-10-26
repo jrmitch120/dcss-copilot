@@ -62,6 +62,13 @@ expression: replayer.advisor().accumulated()
   "mutations": {
     "state": "missing"
   },
+  "dungeon": {
+    "state": "missing"
+  },
+  "backfill": {
+    "state": "awaiting",
+    "joinedOn": 1234
+  },
   "carriedGear": {},
   "uniquesGear": {}
 }

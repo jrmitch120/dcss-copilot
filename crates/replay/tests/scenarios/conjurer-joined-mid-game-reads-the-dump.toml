@@ -1,0 +1,35 @@
+description = "A Deep Elf Conjurer of Vehumet, set up in wizard mode on D:3 and saved, is played again with the app open: the player opens the dungeon overview, then the character dump"
+recording = "conjurer-joined-mid-game-reads-the-dump.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = DECj
+game_seed = 1
+"""
+before_joining = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Set XL 9.
+  "&", "wiz\r", "l", "9\r", "\u001b", "\u001b",
+  # Two mutations, a level of each.
+  "&", "]", "poison resistance\r", "1\r", "\u001b",
+  "&", "]", "clarity\r", "1\r", "\u001b",
+  # Worship Vehumet, at 100 piety.
+  "&", "_", "Vehumet\r", "\u001b",
+  "&", "^", "100\r", "\u001b",
+  # Memorise Shock, which Vehumet offers, as a second spell.
+  "M", "a", "y", "\u001b",
+  # Fighting at 5.3.
+  "&", "s", "Fighting\r", "5.3\r", "\u001b",
+  # Down to D:3, mapping each level on the way.
+  "&", "{", "\u001b", "&", "d", "\u001b",
+  "&", "{", "\u001b", "&", "d", "\u001b",
+  "&", "{", "\u001b",
+  ".", ".",
+]
+keys = [
+  # The dungeon overview, then the character dump from the help menu.
+  "\u000f", "\u001b",
+  "?", "#", "\u001b",
+  ".",
+]

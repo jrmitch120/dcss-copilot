@@ -306,6 +306,9 @@ pub(crate) enum Unread {
     Light(String),
     /// The mutations screen hasn't been read, so only the species' own mutations are known.
     Mutations,
+    /// The mutations were read off what doesn't list banes, the character dump, so any bane
+    /// that slows the player is unknown.
+    Banes,
     /// They carry armour that changes their speed, and the Advisor doesn't know whether they
     /// wear it: taken as not worn.
     Gear,
@@ -366,7 +369,10 @@ pub(crate) fn read<'a>(bundle: &'a Bundle, seen: &Seen<'_>) -> Option<Read<'a>> 
                     *mutations.entry(id).or_default() += acquired;
                 }
             }
-            for shown in &read.shown.banes {
+            if read.shown.banes.is_none() {
+                unread.push(Unread::Banes);
+            }
+            for shown in read.shown.banes.iter().flatten() {
                 banes.extend(
                     signs
                         .banes

@@ -162,31 +162,40 @@ pub struct KnownAbility {
 
 impl ScreenRead {
     /// The spells, when this is the spell list showing failure rates rather than its other
-    /// columns: one per row as `a - Blink    Translocation    4%    2`, the name, the schools,
-    /// the failure rate and the level (`_spell_base_description` in crawl's `spl-cast.cc`). `None`
-    /// when a row reads otherwise, as the list's other columns do.
+    /// columns, or the character dump.
+    ///
+    /// The spell list draws one per row as `a - Blink    Translocation    4%    2`, the name, the
+    /// schools, the failure rate and the level (`_spell_base_description` in crawl's
+    /// `spl-cast.cc`); `None` when a row reads otherwise, as the list's other columns do.
+    ///
+    /// The dump lists them under `You know the following spells:` in columns of fixed width,
+    /// with the name cut to fit, so a long one is shown only as far as its first 20 letters
+    /// (`_sdump_spells` in `chardump.cc`); it says `You don't know any spells.` for none. `None`
+    /// when the dump holds no spells section.
     #[must_use]
     pub fn spells(&self) -> Option<Vec<KnownSpell>> {
-        if self.screen != Screen::Spells {
-            return None;
-        }
-        self.lines
-            .iter()
-            .filter_map(|line| menu_entry(line))
-            .map(|row| {
-                let columns = columns(row);
-                let [name, _schools, failure, .., level] = columns.as_slice() else {
-                    return None;
-                };
-                // The failure rate may be followed by another, as a revenant's enkindled one.
-                let failure = failure.split_whitespace().next()?;
-                Some(KnownSpell {
-                    name: (*name).to_owned(),
-                    failure_percent: percent(failure)?,
-                    level: level.parse().ok()?,
+        match self.screen {
+            Screen::Spells => self
+                .lines
+                .iter()
+                .filter_map(|line| menu_entry(line))
+                .map(|row| {
+                    let columns = columns(row);
+                    let [name, _schools, failure, .., level] = columns.as_slice() else {
+                        return None;
+                    };
+                    // The failure rate may be followed by another, as a revenant's enkindled one.
+                    let failure = failure.split_whitespace().next()?;
+                    Some(KnownSpell {
+                        name: (*name).to_owned(),
+                        failure_percent: percent(failure)?,
+                        level: level.parse().ok()?,
+                    })
                 })
-            })
-            .collect()
+                .collect(),
+            Screen::CharacterDump => dump_spells(&self.lines),
+            _ => None,
+        }
     }
 
     /// The power and range of each spell, when this is the spell list showing them rather than
@@ -324,6 +333,58 @@ fn spell_range(column: &str) -> Option<Option<i32>> {
     Some(Some(range.parse().ok()?))
 }
 
+/// What the character dump says before the spells the character knows (`_sdump_spells`).
+const DUMP_KNOWN_SPELLS: &str = "You know the following spells:";
+
+/// What the character dump says when the character knows no spells.
+const DUMP_NO_SPELLS: &str = "You don't know any spells.";
+
+/// Where each column of the character dump's spells starts, as `chop_string` pads them in
+/// `_sdump_spells`: the hotkey and name, then the schools, power, damage, failure rate and level.
+const DUMP_SPELL_FAILURE_AT: usize = 62;
+const DUMP_SPELL_LEVEL_AT: usize = 74;
+const DUMP_SPELL_NAME_ENDS: usize = "a - ".len() + DUMP_SPELL_NAME_LETTERS;
+
+/// The most letters of a spell's name the character dump shows, after its hotkey (`a - `): a
+/// longer name is cut short.
+pub(crate) const DUMP_SPELL_NAME_LETTERS: usize = 20;
+
+/// The spells the character dump lists as known, `None` when it says nothing of them.
+fn dump_spells(lines: &[String]) -> Option<Vec<KnownSpell>> {
+    let mut lines = lines.iter().map(|line| line.trim_end());
+    let said = lines
+        .by_ref()
+        .find(|line| *line == DUMP_KNOWN_SPELLS || *line == DUMP_NO_SPELLS)?;
+    if said == DUMP_NO_SPELLS {
+        return Some(Vec::new());
+    }
+    // A blank line, then the table's header, then a row for each spell.
+    let rows = lines
+        .skip_while(|line| line.is_empty())
+        .skip(1)
+        .take_while(|line| !line.is_empty());
+    let mut spells = Vec::new();
+    for row in rows {
+        let column = |from: usize, to: usize| -> String {
+            row.chars()
+                .take(to)
+                .skip(from)
+                .collect::<String>()
+                .trim()
+                .to_owned()
+        };
+        let name = menu_entry(&column(0, DUMP_SPELL_NAME_ENDS))?
+            .trim()
+            .to_owned();
+        spells.push(KnownSpell {
+            name,
+            failure_percent: percent(&column(DUMP_SPELL_FAILURE_AT, DUMP_SPELL_LEVEL_AT))?,
+            level: column(DUMP_SPELL_LEVEL_AT, usize::MAX).parse().ok()?,
+        });
+    }
+    Some(spells)
+}
+
 /// The skills a row of the skills screen shows, by name, in tenths of a level: each a name of
 /// words and `&` after a hotkey and a training sign, then its level. A number after another
 /// column, such as a cost, names no skill.
@@ -392,8 +453,8 @@ fn magic_cost(cost: &str) -> u32 {
         .unwrap_or(0)
 }
 
-/// What the mutations screen (`A`) shows: the mutations and banes the character has, as crawl
-/// describes them.
+/// What the mutations screen (`A`) or the character dump shows: the mutations and banes the
+/// character has, as crawl describes them.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShownMutations {
@@ -402,38 +463,88 @@ pub struct ShownMutations {
     /// future experience level. One that is transient, shown in brackets, or that their form
     /// suppresses, in parentheses (`mutation_desc`), is described without them.
     pub mutations: Vec<String>,
-    /// Each bane, by its description, such as `You cover ground slowly.`
-    pub banes: Vec<String>,
+    /// Each bane, by its description, such as `You cover ground slowly.`: `None` when what it
+    /// was read off doesn't list banes, as the character dump doesn't.
+    pub banes: Option<Vec<String>>,
 }
 
 impl ScreenRead {
-    /// The mutations and banes, when this is the mutations screen: one per row, after a hotkey
-    /// or an indent, as `_get_ordered_mutations` and `MutationMenu` in crawl's `mutation.cc` list
-    /// them. A mutation it will gain at a later level is `[description] XL 13`, which isn't one
-    /// the character has, and a bane is `description [3.5]`, with the experience levels until it
-    /// lifts.
+    /// The mutations and banes, when this is the mutations screen or the character dump.
+    ///
+    /// The screen lists one per row, after a hotkey or an indent, as `_get_ordered_mutations`
+    /// and `MutationMenu` in crawl's `mutation.cc` list them. A mutation it will gain at a later
+    /// level is `[description] XL 13`, which isn't one the character has, and a bane is
+    /// `description [3.5]`, with the experience levels until it lifts.
+    ///
+    /// The dump lists the mutations one per line the same way, without hotkeys, under the
+    /// screen's title, but never the banes (`_sdump_mutations` in `chardump.cc`, which lists
+    /// `_get_mutations_descs`), so they are unread. It leaves the section out for a character
+    /// with no mutations, whose overview says `A: no striking features` (`terse_mutation_list` in
+    /// `mutation.cc`): none then. `None` for a dump that holds neither.
     #[must_use]
     pub fn mutations(&self) -> Option<ShownMutations> {
-        if self.screen != Screen::Mutations {
-            return None;
-        }
-        let mut shown = ShownMutations::default();
-        for line in &self.lines {
-            let entry = menu_entry(line).unwrap_or(line).trim();
+        let lists_banes = self.screen == Screen::Mutations;
+        let entries: Vec<&str> = match self.screen {
+            Screen::Mutations => self
+                .lines
+                .iter()
+                .map(|line| menu_entry(line).unwrap_or(line))
+                .collect(),
+            Screen::CharacterDump => match dump_section(&self.lines, MUTATIONS_TITLE) {
+                Some(section) => section.collect(),
+                None if self
+                    .lines
+                    .iter()
+                    .any(|line| line.trim() == DUMP_NO_MUTATIONS) =>
+                {
+                    Vec::new()
+                }
+                None => return None,
+            },
+            _ => return None,
+        };
+        let mut mutations = Vec::new();
+        let mut banes = Vec::new();
+        for entry in entries {
+            let entry = entry.trim();
             if entry.is_empty() || future_level(entry) {
                 continue;
             }
             if let Some(bane) = bane(entry) {
-                shown.banes.push(bane.to_owned());
+                banes.push(bane.to_owned());
                 continue;
             }
             let transient = entry.strip_prefix('[').and_then(|e| e.strip_suffix(']'));
             let entry = transient.unwrap_or(entry);
             let suppressed = entry.strip_prefix('(').and_then(|e| e.strip_suffix(')'));
-            shown.mutations.push(suppressed.unwrap_or(entry).to_owned());
+            mutations.push(suppressed.unwrap_or(entry).to_owned());
         }
-        Some(shown)
+        Some(ShownMutations {
+            mutations,
+            banes: lists_banes.then_some(banes),
+        })
     }
+}
+
+/// What the character dump's overview says of a character without mutations.
+const DUMP_NO_MUTATIONS: &str = "A: no striking features";
+
+/// The title of the mutations screen, which the character dump also heads its mutations with.
+const MUTATIONS_TITLE: &str = "Innate Abilities, Weirdness & Mutations";
+
+/// The lines of the character dump's section headed `title`: those after the heading and the
+/// blank lines under it, up to the next blank line. `None` when the dump has no such section.
+fn dump_section<'a>(lines: &'a [String], title: &str) -> Option<impl Iterator<Item = &'a str>> {
+    let heading = lines.iter().position(|line| line.trim() == title)?;
+    Some(
+        lines
+            .get(heading + 1..)
+            .unwrap_or_default()
+            .iter()
+            .map(String::as_str)
+            .skip_while(|line| line.trim().is_empty())
+            .take_while(|line| !line.trim().is_empty()),
+    )
 }
 
 /// Whether a row of the mutations screen is a mutation gained at a future level, as
@@ -451,6 +562,190 @@ fn bane(entry: &str) -> Option<&str> {
     let (whole, tenth) = levels.strip_suffix(']')?.split_once('.')?;
     let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
     (digits(whole) && digits(tenth)).then_some(description)
+}
+
+/// What the dungeon overview (`Ctrl-O`) or the character dump shows of the levels the character
+/// has found: the branches, the altars and the shops (`overview_description_string` in crawl's
+/// `dgn-overview.cc`). Portals and the player's annotations aren't read.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DungeonOverview {
+    /// Each branch the character has found the way into, in crawl's order: not a portal branch
+    /// visited and left.
+    pub branches: Vec<BranchFound>,
+    /// The gods whose altars the character has found, as crawl names them, such as `Trog`.
+    /// `None` when the screen doesn't say: the dungeon overview lists every god the character
+    /// could worship, telling those whose altars they found only by colour, which isn't read.
+    /// The dump lists only those.
+    pub altars: Option<Vec<String>>,
+    /// The levels the character has found shops on, in crawl's order.
+    pub shops: Vec<ShopsFound>,
+}
+
+/// A branch the character has found the way into, as the dungeon overview shows it, such as
+/// `Lair (2/5) D:9`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BranchFound {
+    /// Crawl's short name for it, such as `Dungeon` or `Lair`.
+    pub name: String,
+    /// How deep the character has explored it: 0 until they enter it.
+    pub explored: u32,
+    /// How many levels it has.
+    pub levels: u32,
+    /// The levels its entrances are on, such as `D:9`: none for the Dungeon.
+    pub entrances: Vec<String>,
+}
+
+/// The shops the character has found on one level.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShopsFound {
+    /// The level, as crawl names it, such as `D:2`.
+    pub level: String,
+    /// How many shops.
+    pub count: u32,
+}
+
+/// The heading crawl starts the dungeon overview with, on the screen and in the character dump.
+const DUNGEON_OVERVIEW_HEADING: &str = "Dungeon Overview and Level Annotations";
+
+/// What the dungeon overview says under a heading of its own, after a blank line.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum OverviewPart {
+    Branches,
+    Altars,
+    Shops,
+    /// Anything else it says, which isn't read: the Realm of Zot's guardians, portals and
+    /// annotations.
+    Unread,
+}
+
+impl OverviewPart {
+    /// The part `line` heads, if it is a heading.
+    fn headed_by(line: &str) -> Option<Self> {
+        if line.starts_with("The Realm of Zot is guarded by") {
+            return Some(Self::Unread);
+        }
+        match line.split_once(':')?.0 {
+            "Branches" => Some(Self::Branches),
+            "Altars" => Some(Self::Altars),
+            "Shops" => Some(Self::Shops),
+            "Portals" | "Annotations" => Some(Self::Unread),
+            _ => None,
+        }
+    }
+}
+
+impl ScreenRead {
+    /// The levels the character has found, when this is the dungeon overview or the character
+    /// dump, which writes it as a section of its own (`_sdump_overview` in `chardump.cc`).
+    ///
+    /// Each part follows a heading after a blank line, so the section ends where a blank line is
+    /// followed by anything else. A found branch is drawn as `Lair (2/5) D:9`, its name, how deep
+    /// it is explored of how deep it goes, and where its entrances are; a branch not yet found as
+    /// `Lair: D:8-11`, which isn't read. Shops are listed by level, as `D:2 (+   D:4 *`, one
+    /// sign for each shop.
+    #[must_use]
+    pub fn dungeon_overview(&self) -> Option<DungeonOverview> {
+        let altars_listed = match self.screen {
+            Screen::DungeonOverview => false,
+            Screen::CharacterDump => true,
+            _ => return None,
+        };
+        let heading = self
+            .lines
+            .iter()
+            .position(|line| line.trim() == DUNGEON_OVERVIEW_HEADING)?;
+        let mut overview = DungeonOverview {
+            altars: altars_listed.then(Vec::new),
+            ..DungeonOverview::default()
+        };
+        let mut part = OverviewPart::Unread;
+        let mut after_blank = false;
+        for line in self.lines.get(heading + 1..).unwrap_or_default() {
+            let line = line.trim();
+            if line.is_empty() {
+                after_blank = true;
+                continue;
+            }
+            if let Some(headed) = OverviewPart::headed_by(line) {
+                part = headed;
+            } else if after_blank {
+                break;
+            } else {
+                match part {
+                    OverviewPart::Branches => overview.branches.extend(branches_found(line)),
+                    OverviewPart::Altars => {
+                        if let Some(altars) = &mut overview.altars {
+                            altars.push(line.to_owned());
+                        }
+                    }
+                    OverviewPart::Shops => overview.shops.extend(shops_found(line)),
+                    OverviewPart::Unread => {}
+                }
+            }
+            after_blank = false;
+        }
+        Some(overview)
+    }
+}
+
+/// The branches found that a line of the dungeon overview's branches shows: each a name, then
+/// how deep it is explored as `(2/5)`, then the levels of its entrances, as `D:9`.
+fn branches_found(line: &str) -> Vec<BranchFound> {
+    let words: Vec<&str> = line.split_whitespace().collect();
+    let mut found = Vec::new();
+    let mut at = 0;
+    while let Some(&name) = words.get(at) {
+        let Some((explored, levels)) = words.get(at + 1).and_then(|word| explored(word)) else {
+            at += 1;
+            continue;
+        };
+        let entrances: Vec<String> = words
+            .iter()
+            .skip(at + 2)
+            .take_while(|word| names_a_level(word))
+            .map(|&word| word.to_owned())
+            .collect();
+        at += 2 + entrances.len();
+        found.push(BranchFound {
+            name: name.to_owned(),
+            explored,
+            levels,
+            entrances,
+        });
+    }
+    found
+}
+
+/// How deep a branch is explored of how deep it goes, as `(2/5)`.
+fn explored(word: &str) -> Option<(u32, u32)> {
+    let (explored, levels) = word.strip_prefix('(')?.strip_suffix(')')?.split_once('/')?;
+    Some((explored.parse().ok()?, levels.parse().ok()?))
+}
+
+/// Whether `word` names a level as crawl writes one with its depth, such as `D:9`: not a heading
+/// such as `Zot:`, which the Zot clock writes before its turns.
+fn names_a_level(word: &str) -> bool {
+    word.split_once(':')
+        .is_some_and(|(branch, depth)| !branch.is_empty() && depth.parse::<u32>().is_ok())
+}
+
+/// The shops a line of the dungeon overview's shops shows: each level, then one sign for each
+/// shop on it.
+fn shops_found(line: &str) -> Vec<ShopsFound> {
+    let words: Vec<&str> = line.split_whitespace().collect();
+    words
+        .chunks(2)
+        .filter_map(|pair| match pair {
+            [level, shops] => Some(ShopsFound {
+                level: (*level).to_owned(),
+                count: u32::try_from(shops.chars().count()).ok()?,
+            }),
+            _ => None,
+        })
+        .collect()
 }
 
 /// The tag crawl gives the full-view list, which the ordinary pickup menu shares
@@ -752,7 +1047,10 @@ mod tests {
                 "You cover ground very slowly.",
             ]
         );
-        assert_eq!(shown.banes, ["You cover ground slowly."]);
+        assert_eq!(
+            shown.banes,
+            Some(vec!["You cover ground slowly.".to_owned()])
+        );
         assert_eq!(read(Screen::Abilities, &[]).mutations(), None);
     }
 
@@ -775,5 +1073,131 @@ mod tests {
         assert_eq!(skills.tenths("Dodging"), 270);
         assert_eq!(skills.tenths("Stealth"), 12);
         assert_eq!(skills.tenths.len(), 4);
+    }
+
+    /// The Scenarios reach only the Dungeon, so a dungeon overview further on is read here, as
+    /// `_get_seen_branches` and `_get_unseen_branches` lay it out with the Zot clock showing.
+    #[test]
+    fn the_dungeon_overview_reads_each_branch_found_with_its_entrances_but_not_those_unfound() {
+        let overview = read(
+            Screen::DungeonOverview,
+            &[
+                "                    Dungeon Overview and Level Annotations",
+                "",
+                "Branches: (press G to reach them and ?/b for more information)",
+                "Dungeon (9/15)            Zot: 4800 Temple (1/1) D:4        Zot: 5000",
+                "   Orc (0/2) D:9          Zot: 5000    Lair (2/5) D:10       Zot: 5000",
+                "    Lair: D:8-11                          Snake: Lair:2-4",
+                "",
+                "Altars: (press _ to reach them and ?/g for information about gods)",
+                "Ashenzari          Cheibriados            Trog",
+                "",
+                "Shops: (press $ to reach them - yellow denotes antique shop)",
+                "D:2 (+   D:7 *",
+                "",
+                "Portals:",
+                "D:8 Sewer (12 turns)",
+            ],
+        );
+        let overview = overview.dungeon_overview().unwrap();
+        let branches: Vec<_> = overview
+            .branches
+            .iter()
+            .map(|branch| {
+                (
+                    branch.name.as_str(),
+                    branch.explored,
+                    branch.levels,
+                    branch.entrances.join(" "),
+                )
+            })
+            .collect();
+        assert_eq!(
+            branches,
+            [
+                ("Dungeon", 9, 15, String::new()),
+                ("Temple", 1, 1, "D:4".to_owned()),
+                ("Orc", 0, 2, "D:9".to_owned()),
+                ("Lair", 2, 5, "D:10".to_owned()),
+            ]
+        );
+        assert_eq!(overview.altars, None);
+        let shops: Vec<_> = overview
+            .shops
+            .iter()
+            .map(|shops| (shops.level.as_str(), shops.count))
+            .collect();
+        assert_eq!(shops, [("D:2", 2), ("D:7", 1)]);
+    }
+
+    /// Without mutations, the next section of the dump follows the overview after a single blank
+    /// line, and isn't read as part of it.
+    #[test]
+    fn the_character_dump_lists_altars_found_and_its_overview_ends_where_its_next_section_starts() {
+        let dump = read(
+            Screen::CharacterDump,
+            &[
+                "Dungeon Overview and Level Annotations",
+                "",
+                "Branches:",
+                "Dungeon (3/15)            Temple (1/1) D:4",
+                "",
+                "Altars:",
+                "Trog",
+                "The Shining One",
+                "",
+                "Shops:",
+                "D:2 (",
+                "",
+                "Message History",
+                "",
+                "You feel a little pissed off.",
+            ],
+        );
+        let overview = dump.dungeon_overview().unwrap();
+        assert_eq!(
+            overview.altars,
+            Some(vec!["Trog".to_owned(), "The Shining One".to_owned()])
+        );
+        assert_eq!(overview.shops.len(), 1);
+        assert_eq!(dump.mutations(), None);
+    }
+
+    #[test]
+    fn the_character_dump_of_a_character_who_knows_no_spells_says_so() {
+        let dump = read(
+            Screen::CharacterDump,
+            &[
+                "You have 3 spell levels left.",
+                "You don't know any spells.",
+                "Your spell library is empty.",
+            ],
+        );
+        assert_eq!(dump.spells(), Some(Vec::new()));
+        assert_eq!(read(Screen::CharacterDump, &["Skills:"]).spells(), None);
+    }
+
+    /// Crawl leaves the mutations out of the dump of a character with none, but says so in its
+    /// overview; the Scenarios' characters all have some.
+    #[test]
+    fn the_character_dump_of_a_character_without_mutations_says_so_in_its_overview() {
+        let dump = |lines: &[&str]| read(Screen::CharacterDump, lines).mutations();
+        let none = dump(&[
+            "%: no passive effects",
+            "@: no status effects",
+            "A: no striking features",
+            "a: no special abilities",
+            "",
+            "Message History",
+        ]);
+        assert_eq!(
+            none,
+            Some(ShownMutations {
+                mutations: Vec::new(),
+                banes: None,
+            })
+        );
+        // Some, but their section left out of the dump by the player's options.
+        assert_eq!(dump(&["A: magic regeneration, clarity"]), None);
     }
 }

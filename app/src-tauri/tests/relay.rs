@@ -335,6 +335,25 @@ async fn a_browser_is_sent_the_panel_and_its_side_panels_commands_are_answered()
         Some(json!({ "type": "panel-command-done", "id": 9, "error": null }))
     );
 
+    send(
+        &mut socket,
+        json!({
+            "type": "panel-command",
+            "id": 10,
+            "command": { "kind": "close-join-card" }
+        }),
+    )
+    .await;
+    let SidePanelEvent::Command(request) = side_panel_event(&mut app).await else {
+        panic!("expected a command");
+    };
+    assert_eq!(request.command, PanelCommand::CloseJoinCard);
+    request.answer(Ok(()));
+    assert_eq!(
+        receive(&mut socket).await,
+        Some(json!({ "type": "panel-command-done", "id": 10, "error": null }))
+    );
+
     socket.close(None).await.unwrap();
     assert!(matches!(
         app.events.recv().await,

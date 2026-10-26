@@ -137,6 +137,17 @@ fn answer_same_game(same: bool, app: AppHandle, live: State<'_, Live>) -> Result
     Ok(())
 }
 
+/// The player put the join card away: "Not now" while it asks for the character dump, "OK" once
+/// it says what it read.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn close_join_card(app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
+    live.close_join_card();
+    push_view_model(&app, &live);
+    Ok(())
+}
+
 /// Opens the Settings window, or brings it to the front.
 #[tauri::command]
 #[specta::specta]
@@ -285,6 +296,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             set_appearance,
             set_assistance,
             answer_same_game,
+            close_join_card,
             open_settings,
             settings_view,
             set_start_at_login,
@@ -485,6 +497,7 @@ fn side_panel(app: &AppHandle, event: SidePanelEvent) {
                 PanelCommand::AnswerSameGame { same } => {
                     answer_same_game(same, app.clone(), app.state())
                 }
+                PanelCommand::CloseJoinCard => close_join_card(app.clone(), app.state()),
                 PanelCommand::OpenSettings => open_settings(app.clone()),
             };
             request.answer(done);

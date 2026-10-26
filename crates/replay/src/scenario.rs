@@ -46,6 +46,11 @@ pub struct Setup {
     /// Crawl options for the account's rc file, such as `combo` and `game_seed`, which pick the
     /// character and the dungeon.
     pub rc: String,
+    /// What to type before the Advisor joins the game, if anything, as `keys` are typed: the game
+    /// is played this far unrecorded and saved, then recorded from when it is played again, as
+    /// the Advisor sees a game the player opens the app part way through.
+    #[serde(default)]
+    pub before_joining: Vec<String>,
     /// What to type, in order. Each entry is sent as one input once the game has settled from
     /// the last, so a prompt it opens has been drawn.
     pub keys: Vec<String>,
