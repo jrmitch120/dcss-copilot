@@ -22,6 +22,7 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       character={view.game.character}
       now={view.game.now}
       assistance={view.assistance}
+      gaps={view.game.gaps}
       {actions}
     />
   {/if}

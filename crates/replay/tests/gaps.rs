@@ -4,7 +4,7 @@
 // Helpers outside #[test] functions panic on bad fixtures too.
 #![allow(clippy::unwrap_used)]
 
-use copilot_core::{FocusCard, GameView, Gap, NowPill, Value};
+use copilot_core::{FocusCard, GameView, Gap, GapRow, NowPill, Value};
 use copilot_replay::{Recording, Replayer};
 
 /// A Minotaur Berserker, who has read none of their screens, shot at with a longbow of flaming.
@@ -146,4 +146,99 @@ fn the_threat_from_damage_no_resistance_changes_is_not_marked() {
     let detail = first_shown(OGRE, now_detail);
 
     assert_eq!(detail.gap, None, "{detail:?}");
+}
+
+/// A spectator watching a wizard-mode game on trunk.
+const SPECTATING: &[u8] = include_bytes!("recordings/spectating-trunk-wizard.dcssrec");
+
+/// A row of the Gaps chip: what is missing, why it matters and the keys that fill it.
+fn row(what: &str, why: &str, keys: &[&str]) -> GapRow {
+    GapRow {
+        what: what.to_owned(),
+        why: why.to_owned(),
+        keys: keys.iter().map(|&key| key.to_owned()).collect(),
+    }
+}
+
+#[test]
+fn the_gaps_chip_lists_each_gap_why_it_matters_and_its_key() {
+    let replayer = replayed(CENTAUR);
+    let chip = replayer.view_model().game.unwrap().gaps;
+
+    assert_eq!(
+        chip.gaps,
+        [
+            row(
+                "Ability menu",
+                "Your abilities aren't counted among your Ways Out.",
+                &["a"]
+            ),
+            row(
+                "Spell list",
+                "Your spells aren't counted among your Ways Out or attacks.",
+                &["I"]
+            ),
+            row("Skills", "No fight can be judged without them.", &["m"]),
+            row(
+                "Resistances",
+                "Monsters' fire, cold, poison and the like are played as if you resist none.",
+                &["%"]
+            ),
+        ]
+    );
+    assert_eq!(chip.dump_fills, ["skills", "the spell list", "resistances"]);
+}
+
+#[test]
+fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
+    // At its end the Conjurer follows Ashenzari, with the spell list read again since the
+    // spell they memorised, but not its power, and a rat beside them, whose bite no resistance
+    // changes: the character overview is unread all the same.
+    let replayer = replayed(CONJURER);
+    assert!(
+        !replayer
+            .advisor()
+            .fact_sheet()
+            .gaps
+            .contains(&Gap::Resistances)
+    );
+    let chip = replayer.view_model().game.unwrap().gaps;
+
+    assert_eq!(
+        chip.gaps,
+        [
+            row(
+                "Ability menu",
+                "Your abilities aren't counted among your Ways Out.",
+                &["a"]
+            ),
+            row(
+                "Resistances",
+                "Monsters' fire, cold, poison and the like are played as if you resist none.",
+                &["%"]
+            ),
+            row(
+                "~Spell power as of turn 0",
+                "Fights play it as it was.",
+                &["I", "!"]
+            ),
+            row(
+                "Skills",
+                "Ashenzari shifts them with your piety, so they may differ from the skills \
+                 screen's.",
+                &[]
+            ),
+        ]
+    );
+    assert_eq!(chip.dump_fills, ["resistances"]);
+}
+
+#[test]
+fn a_spectator_is_told_of_the_gaps_but_not_asked_to_press_keys_in_a_game_not_theirs() {
+    let replayer = replayed(SPECTATING);
+    let chip = replayer.view_model().game.unwrap().gaps;
+
+    assert!(!chip.gaps.is_empty());
+    assert!(chip.gaps.iter().all(|row| row.keys.is_empty()), "{chip:?}");
+    assert!(chip.dump_fills.is_empty(), "{chip:?}");
 }

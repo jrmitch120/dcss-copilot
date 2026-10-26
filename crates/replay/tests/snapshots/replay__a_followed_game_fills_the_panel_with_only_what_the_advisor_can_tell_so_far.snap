@@ -36,5 +36,42 @@ expression: replay.view_models.last().unwrap().game
   "badge": {
     "decisionsWaiting": 0,
     "callsForPanel": false
+  },
+  "gaps": {
+    "gaps": [
+      {
+        "what": "Ability menu",
+        "why": "Your abilities aren't counted among your Ways Out.",
+        "keys": [
+          "a"
+        ]
+      },
+      {
+        "what": "Spell list",
+        "why": "Your spells aren't counted among your Ways Out or attacks.",
+        "keys": [
+          "I"
+        ]
+      },
+      {
+        "what": "Skills",
+        "why": "No fight can be judged without them.",
+        "keys": [
+          "m"
+        ]
+      },
+      {
+        "what": "Resistances",
+        "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+        "keys": [
+          "%"
+        ]
+      }
+    ],
+    "dumpFills": [
+      "skills",
+      "the spell list",
+      "resistances"
+    ]
   }
 }

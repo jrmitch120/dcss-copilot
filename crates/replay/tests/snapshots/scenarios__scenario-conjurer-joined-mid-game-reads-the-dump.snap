@@ -253,6 +253,26 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Spell power",
+            "why": "Your attack spells aren't played in a fight.",
+            "keys": [
+              "I",
+              "!"
+            ]
+          }
+        ],
+        "dumpFills": []
       }
     }
   }

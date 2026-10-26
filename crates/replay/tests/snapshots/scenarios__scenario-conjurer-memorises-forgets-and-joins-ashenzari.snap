@@ -323,6 +323,40 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "~Spell power as of turn 0",
+            "why": "Fights play it as it was.",
+            "keys": [
+              "I",
+              "!"
+            ]
+          },
+          {
+            "what": "Skills",
+            "why": "Ashenzari shifts them with your piety, so they may differ from the skills screen's.",
+            "keys": []
+          }
+        ],
+        "dumpFills": [
+          "resistances"
+        ]
       }
     }
   }

@@ -144,6 +144,34 @@ pub struct GameView {
     pub accumulated_unreadable: Option<String>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
+    /// Every Gap in what the Advisor knows of the game, in the header.
+    pub gaps: GapsChip,
+}
+
+/// The Gaps chip in the panel's header: every Gap in what the Advisor knows of the game, each with
+/// why it matters and the keys that fill it.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GapsChip {
+    /// One row a Gap, those the same in words as one.
+    pub gaps: Vec<GapRow>,
+    /// What the character dump (`?` then `#`) fills of them at once, each as a sentence names
+    /// it, such as `the spell list`: none when it fills none, or the player is watching a game
+    /// not theirs.
+    pub dump_fills: Vec<String>,
+}
+
+/// One Gap as the Gaps chip lists it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GapRow {
+    /// What is missing or out of date, such as `Spell list` or `~Skills as of turn 12`.
+    pub what: String,
+    /// Why it matters, in one sentence.
+    pub why: String,
+    /// The keys to press in the game that fill it, such as `I` then `!`: none when no screen
+    /// does, or the player is watching a game not theirs.
+    pub keys: Vec<String>,
 }
 
 /// A game seen before that a game process picked up again on a later turn, as last seen. Nobody

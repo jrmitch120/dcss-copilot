@@ -235,6 +235,8 @@ export type GameView = {
 	accumulatedUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
+	/**  Every Gap in what the Advisor knows of the game, in the header. */
+	gaps: GapsChip,
 };
 
 /**  How many games the Advisor remembers, in Settings → History. */
@@ -247,6 +249,34 @@ games: number } |
 { state: "uncounted"; 
 /**  Why not. */
 why: string };
+
+/**  One Gap as the Gaps chip lists it. */
+export type GapRow = {
+	/**  What is missing or out of date, such as `Spell list` or `~Skills as of turn 12`. */
+	what: string,
+	/**  Why it matters, in one sentence. */
+	why: string,
+	/**
+	 *  The keys to press in the game that fill it, such as `I` then `!`: none when no screen
+	 *  does, or the player is watching a game not theirs.
+	 */
+	keys: string[],
+};
+
+/**
+ *  The Gaps chip in the panel's header: every Gap in what the Advisor knows of the game, each with
+ *  why it matters and the keys that fill it.
+ */
+export type GapsChip = {
+	/**  One row a Gap, those the same in words as one. */
+	gaps: GapRow[],
+	/**
+	 *  What the character dump (`?` then `#`) fills of them at once, each as a sentence names
+	 *  it, such as `the spell list`: none when it fills none, or the player is watching a game
+	 *  not theirs.
+	 */
+	dumpFills: string[],
+};
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
 export type Glyph = {

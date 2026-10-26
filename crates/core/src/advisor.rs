@@ -1,6 +1,6 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::sync::OnceLock;
 
 use copilot_gk::{Bundle, Library, Monster};
@@ -10,7 +10,7 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
-use crate::gaps::Gap;
+use crate::gaps::{self, Gap};
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
@@ -309,6 +309,7 @@ impl Advisor {
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
+            gaps: gaps::chip(&self.gaps(), identity.role == Some(Role::Spectating)),
         })
     }
 }
@@ -328,6 +329,20 @@ impl Advisor {
             self.join_card().map(|join| FocusCard::Join { join })
         };
         card.unwrap_or(FocusCard::InView { monsters })
+    }
+
+    /// Every Gap in what the Advisor knows of the followed game: those in what it remembers,
+    /// whatever is in view, and those that affected this moment.
+    fn gaps(&self) -> BTreeSet<Gap> {
+        let mut gaps: BTreeSet<Gap> = self.fact_sheet().gaps.iter().cloned().collect();
+        if let Some(remembered) = self.accumulated() {
+            gaps.extend(gaps::of_the_game(
+                &self.visible,
+                remembered,
+                self.game_knowledge(),
+            ));
+        }
+        gaps
     }
 
     /// The join card, while it shows: never to a player watching the game, who can't open its

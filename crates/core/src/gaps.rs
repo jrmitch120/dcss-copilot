@@ -1,9 +1,15 @@
 //! Gaps: the facts the Advisor needs about a game but doesn't have, or has only an out-of-date
 //! copy of, and how the panel words them.
 
-use serde::Serialize;
+use std::collections::BTreeSet;
 
-use crate::view_model::capitalised;
+use copilot_gk::Bundle;
+use serde::{Deserialize, Serialize};
+
+use crate::accumulated_state::{AccumulatedState, Remembered};
+use crate::fight_outcome;
+use crate::view_model::{GapRow, GapsChip, capitalised};
+use crate::visible_state::{Religion, VisibleState};
 
 /// A fact the Advisor needs about the game but doesn't have, or has only an out-of-date copy of.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
@@ -91,7 +97,164 @@ pub enum Gap {
     },
 }
 
+/// A remembered fact a screen the player can open fills, and so what a Gap prompt asks for:
+/// each Gap about it is filled by the same keys.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Fillable {
+    /// The skills, off the skills screen (`m`).
+    Skills,
+    /// The spells known and their failure rates, off the spell list (`I`).
+    SpellList,
+    /// The spells' power and range, off the spell list switched to them (`I`, then `!`).
+    SpellPower,
+    /// The abilities and their failure rates, off the ability menu (`a`).
+    AbilityMenu,
+    /// The resistances, off the character overview (`%`).
+    Resistances,
+}
+
+impl Fillable {
+    /// The keys that open the screen showing it, such as `I` then `!`.
+    fn keys(self) -> &'static [&'static str] {
+        match self {
+            Self::Skills => &["m"],
+            Self::SpellList => &["I"],
+            Self::SpellPower => &["I", "!"],
+            Self::AbilityMenu => &["a"],
+            Self::Resistances => &["%"],
+        }
+    }
+
+    /// It, as a sentence names it, when the character dump (`?` then `#`) shows it too.
+    fn in_dump(self) -> Option<&'static str> {
+        match self {
+            Self::Skills => Some("skills"),
+            Self::SpellList => Some("the spell list"),
+            Self::Resistances => Some("resistances"),
+            Self::SpellPower | Self::AbilityMenu => None,
+        }
+    }
+}
+
 impl Gap {
+    /// The remembered fact it is about that a screen the player can open fills, if any.
+    pub(crate) fn fillable(&self) -> Option<Fillable> {
+        match self {
+            Self::Skills | Self::StaleSkills { .. } => Some(Fillable::Skills),
+            Self::SpellList | Self::StaleSpellList { .. } | Self::SpellMemorised { .. } => {
+                Some(Fillable::SpellList)
+            }
+            Self::SpellPower | Self::StaleSpellPower { .. } => Some(Fillable::SpellPower),
+            Self::AbilityMenu | Self::StaleAbilityMenu { .. } => Some(Fillable::AbilityMenu),
+            Self::Resistances | Self::StaleResistances { .. } => Some(Fillable::Resistances),
+            Self::HitPoints
+            | Self::Defences
+            | Self::MonstersInView
+            | Self::Map
+            | Self::Position
+            | Self::GameKnowledge
+            | Self::MonsterKnowledge { .. }
+            | Self::Inventory
+            | Self::Wielded
+            | Self::Attributes
+            | Self::SkillsShifting { .. } => None,
+        }
+    }
+
+    /// What is missing or out of date, as the Gaps chip names it, such as `~Skills as of turn
+    /// 12`.
+    fn what(&self) -> String {
+        match self {
+            Self::HitPoints | Self::Defences | Self::Attributes => "Stats".to_owned(),
+            Self::MonstersInView | Self::Map => "Map".to_owned(),
+            Self::Position => "Where you stand".to_owned(),
+            Self::GameKnowledge => "Game Knowledge".to_owned(),
+            Self::MonsterKnowledge { monster } => capitalised(monster),
+            Self::AbilityMenu => "Ability menu".to_owned(),
+            Self::SpellList => "Spell list".to_owned(),
+            Self::Skills | Self::SkillsShifting { .. } => "Skills".to_owned(),
+            Self::SpellPower => "Spell power".to_owned(),
+            Self::Resistances => "Resistances".to_owned(),
+            Self::Inventory | Self::Wielded => "Inventory".to_owned(),
+            Self::StaleSkills { turn } => out_of_date("Skills", *turn),
+            Self::StaleSpellList { turn } => out_of_date("Spell list", *turn),
+            Self::StaleSpellPower { turn } => out_of_date("Spell power", *turn),
+            Self::StaleAbilityMenu { turn } => out_of_date("Ability menu", *turn),
+            Self::StaleResistances { turn } => out_of_date("Resistances", *turn),
+            Self::SpellMemorised { turn: Some(turn) } => {
+                format!("A spell memorised on turn {turn}")
+            }
+            Self::SpellMemorised { turn: None } => "A spell memorised".to_owned(),
+        }
+    }
+
+    /// Why it matters, in one sentence.
+    fn why(&self) -> String {
+        match self {
+            Self::HitPoints
+            | Self::Defences
+            | Self::Attributes
+            | Self::Inventory
+            | Self::Wielded => "The game hasn't sent them yet.".to_owned(),
+            Self::MonstersInView | Self::Map => "The game hasn't sent it yet.".to_owned(),
+            Self::Position => "The game hasn't said yet.".to_owned(),
+            Self::GameKnowledge => {
+                "There is none for this version, so nothing can be judged.".to_owned()
+            }
+            Self::MonsterKnowledge { .. } => {
+                "It isn't in the Game Knowledge for this version, so it isn't counted.".to_owned()
+            }
+            Self::AbilityMenu => "Your abilities aren't counted among your Ways Out.".to_owned(),
+            Self::SpellList => {
+                "Your spells aren't counted among your Ways Out or attacks.".to_owned()
+            }
+            Self::Skills => "No fight can be judged without them.".to_owned(),
+            Self::SpellPower => "Your attack spells aren't played in a fight.".to_owned(),
+            Self::Resistances => {
+                "Monsters' fire, cold, poison and the like are played as if you resist none."
+                    .to_owned()
+            }
+            Self::StaleSkills { .. } => "Fights are played with them as they were.".to_owned(),
+            Self::StaleSpellList { .. } => {
+                "A spell learned since isn't counted, and failure rates may have changed."
+                    .to_owned()
+            }
+            Self::StaleSpellPower { .. } => "Fights play it as it was.".to_owned(),
+            Self::StaleAbilityMenu { .. } => {
+                "An ability gained since isn't counted, and failure rates may have changed."
+                    .to_owned()
+            }
+            Self::StaleResistances { .. } => {
+                "Monsters' damage is played with them as they were.".to_owned()
+            }
+            Self::SpellMemorised { .. } => {
+                "The game didn't name it, so it isn't counted.".to_owned()
+            }
+            Self::SkillsShifting { god } => {
+                format!(
+                    "{god} shifts them with your piety, so they may differ from the skills screen's."
+                )
+            }
+        }
+    }
+
+    /// Its row in the Gaps chip, with the keys that fill it unless the player is watching a game
+    /// not theirs, whose screens they can't open.
+    fn row(&self, watching: bool) -> GapRow {
+        let keys = match self.fillable() {
+            Some(fillable) if !watching => {
+                fillable.keys().iter().map(|&key| key.to_owned()).collect()
+            }
+            _ => Vec::new(),
+        };
+        GapRow {
+            what: self.what(),
+            why: self.why(),
+            keys,
+        }
+    }
+
     /// What it keeps the Advisor from judging, or how out of date it is, and how to fill it where
     /// the player can, in one sentence.
     pub(crate) fn sentence(&self) -> String {
@@ -148,6 +311,68 @@ impl Gap {
                 "Your skills may differ from the skills screen's: {god} shifts them with your piety."
             ),
         }
+    }
+}
+
+/// The Gaps in what the Advisor remembers of the game, whatever is in view: each fact the engine
+/// reads off a screen that is unread or out of date, and each Blind Spot, as `visible` shows the
+/// game, judged through `knowledge` for its Crawl Version where it needs it.
+pub(crate) fn of_the_game(
+    visible: &VisibleState,
+    remembered: &AccumulatedState,
+    knowledge: Option<&Bundle>,
+) -> BTreeSet<Gap> {
+    let mut gaps = BTreeSet::new();
+    gaps.extend(match &remembered.skills {
+        Remembered::Missing => Some(Gap::Skills),
+        Remembered::Stale(read) => Some(Gap::StaleSkills { turn: read.turn }),
+        Remembered::Known(_) => None,
+    });
+    gaps.extend(match &remembered.abilities {
+        Remembered::Missing => Some(Gap::AbilityMenu),
+        Remembered::Stale(read) => Some(Gap::StaleAbilityMenu { turn: read.turn }),
+        Remembered::Known(_) => None,
+    });
+    gaps.extend(match &remembered.resistances {
+        Remembered::Missing => Some(Gap::Resistances),
+        Remembered::Stale(read) => Some(Gap::StaleResistances { turn: read.turn }),
+        Remembered::Known(_) => None,
+    });
+    if let Some(bundle) = knowledge {
+        let mp_max = visible.stats.mp_max.unwrap_or(0);
+        gaps.extend(fight_outcome::spell_gaps(Some(remembered), mp_max, bundle));
+        if let Some(Religion::God { name, .. }) = &visible.religion
+            && bundle.character.skills.shifting_gods.contains(name)
+        {
+            gaps.insert(Gap::SkillsShifting { god: name.clone() });
+        }
+    }
+    gaps
+}
+
+/// The Gaps chip listing `gaps`, without keys to press for a player `watching` a game not
+/// theirs.
+pub(crate) fn chip(gaps: &BTreeSet<Gap>, watching: bool) -> GapsChip {
+    let mut rows: Vec<GapRow> = Vec::new();
+    for gap in gaps {
+        let row = gap.row(watching);
+        if !rows.contains(&row) {
+            rows.push(row);
+        }
+    }
+    let in_dump: BTreeSet<Fillable> = gaps
+        .iter()
+        .filter_map(Gap::fillable)
+        .filter(|fillable| fillable.in_dump().is_some())
+        .collect();
+    GapsChip {
+        gaps: rows,
+        dump_fills: in_dump
+            .into_iter()
+            .filter_map(Fillable::in_dump)
+            .filter(|_| !watching)
+            .map(str::to_owned)
+            .collect(),
     }
 }
 

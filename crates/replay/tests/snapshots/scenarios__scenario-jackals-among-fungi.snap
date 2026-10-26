@@ -379,6 +379,35 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Ability menu",
+              "why": "Your abilities aren't counted among your Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "resistances"
+          ]
         }
       }
     }
@@ -756,6 +785,35 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "resistances"
+        ]
       }
     }
   }

@@ -290,6 +290,10 @@ _Avoid_: Main card, hero card
 The Focus Card for a game the Advisor joined part way through, while nothing hostile is in view: it says what the Advisor can and can't see, asks the player to press `?` then `#` for the character dump, offers `Ctrl-O` for the levels alone, and once the player opens one, says what it read off it. The player can put it away with Not now; it asks again after the app restarts while the dump is still unread. It is never shown to a player watching someone else's game.
 _Avoid_: Onboarding card, welcome card
 
+**Gaps Chip**:
+The chip in the panel's header counting every Gap in what the Advisor knows of the game, whatever is in view: opened, it lists each with why it matters and the keys that fill it, and what of them the character dump (`?` then `#`) fills at once. A player watching someone else's game is shown the Gaps but no keys, as they can't open its screens.
+_Avoid_: Missing-data badge, warnings
+
 **Fact Card**:
 A card in the Focus Card singling out an Exceptional Monster while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.
 _Avoid_: Monster card, info card

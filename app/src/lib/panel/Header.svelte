@@ -1,6 +1,7 @@
 <script lang="ts">
-import type { AssistanceLevel, Character, NowPill } from "$lib/bindings";
+import type { AssistanceLevel, Character, GapsChip, NowPill } from "$lib/bindings";
 import { type PanelActions, unsaved } from "./actions";
+import GapsList from "./GapsList.svelte";
 import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
 
@@ -8,12 +9,20 @@ let {
   character,
   now,
   assistance,
+  gaps,
   actions,
-}: { character: Character; now: NowPill; assistance: AssistanceLevel; actions: PanelActions } =
-  $props();
+}: {
+  character: Character;
+  now: NowPill;
+  assistance: AssistanceLevel;
+  gaps: GapsChip;
+  actions: PanelActions;
+} = $props();
 
 let tone = $derived(threatTone(now));
 let saveError = $state<string | null>(null);
+/** The player opened the Gaps chip's list. */
+let gapsOpen = $state(false);
 
 const LEVELS: [AssistanceLevel, string][] = [
   ["info", "Info"],
@@ -39,9 +48,23 @@ function stat(value: number | null): string {
     · T {stat(character.turn)}
   </span>
   <span class="levels">
+    {#if gaps.gaps.length > 0}
+      <button
+        type="button"
+        class="chip"
+        aria-expanded={gapsOpen}
+        title="What the Advisor can't see, and the keys that show it"
+        onclick={() => (gapsOpen = !gapsOpen)}
+      >
+        Gaps {gaps.gaps.length}
+      </button>
+    {/if}
     <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
   </span>
 </header>
+{#if gapsOpen && gaps.gaps.length > 0}
+  <GapsList {gaps} />
+{/if}
 {#if saveError}
   <p class="error small">{saveError}</p>
 {/if}
@@ -100,7 +123,25 @@ header {
 }
 
 .levels {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
+}
+
+.chip {
+  padding: 2px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chip[aria-expanded="true"] {
+  border-style: solid;
+  color: var(--text-strong);
 }
 
 .error {
