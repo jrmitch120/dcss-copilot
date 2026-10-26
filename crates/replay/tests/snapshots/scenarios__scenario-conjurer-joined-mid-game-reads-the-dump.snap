@@ -193,6 +193,7 @@ expression: replay
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
+          "playerSpeed",
           "hitsOnTheWay",
           "monstersOutOfView"
         ]
@@ -223,6 +224,12 @@ expression: replay
         "card": "join",
         "join": {
           "step": "caughtUpFromDump",
+          "current": [
+            "skills",
+            "spells",
+            "mutations",
+            "the dungeon overview"
+          ],
           "notInDump": []
         }
       },

@@ -286,8 +286,13 @@ checklist: ChecklistRow[] } |
 /**  The player closed the character dump: the Advisor is caught up on what it showed. */
 { step: "caughtUpFromDump"; 
 /**
- *  The parts of the dump the Advisor reads that it didn't show, each with the keys that
- *  open the screen showing it: none when it showed them all.
+ *  The parts of the dump the Advisor read off it, as a sentence names them, such as
+ *  `skills` or `the dungeon overview`.
+ */
+current: string[]; 
+/**
+ *  The parts of the dump the Advisor reads that it didn't show and that the Advisor
+ *  doesn't know otherwise, each with the keys that open the screen showing it.
  */
 notInDump: UnreadPart[] } | 
 /**
@@ -556,7 +561,7 @@ export type ToolbarBadge = {
  *  and how to show it.
  */
 export type UnreadPart = {
-	/**  What it is, such as `spells` or `dungeon overview`. */
+	/**  What it is, as a sentence names it, such as `spells` or `the dungeon overview`. */
 	name: string,
 	/**
 	 *  The keys to press in the game that open the screen showing it, such as `I`, or `Ctrl`

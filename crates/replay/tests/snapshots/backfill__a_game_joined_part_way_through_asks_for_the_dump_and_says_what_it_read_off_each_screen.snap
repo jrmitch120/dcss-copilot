@@ -65,6 +65,12 @@ expression: panels_to_the_end(&mut replayer)
       "card": "join",
       "join": {
         "step": "caughtUpFromDump",
+        "current": [
+          "skills",
+          "spells",
+          "mutations",
+          "the dungeon overview"
+        ],
         "notInDump": []
       }
     },
@@ -78,6 +84,12 @@ expression: panels_to_the_end(&mut replayer)
       "card": "join",
       "join": {
         "step": "caughtUpFromDump",
+        "current": [
+          "skills",
+          "spells",
+          "mutations",
+          "the dungeon overview"
+        ],
         "notInDump": []
       }
     },

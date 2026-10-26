@@ -47,7 +47,7 @@ expression: "serde_json::json!({\n    \"skills\": remembered.skills, \"spells\":
           "You possess an exceptional clarity of mind.",
           "You are resistant to poisons. (rPois)"
         ],
-        "banes": []
+        "banes": null
       },
       "xl": 9
     },

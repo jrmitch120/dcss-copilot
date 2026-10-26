@@ -453,8 +453,8 @@ fn magic_cost(cost: &str) -> u32 {
         .unwrap_or(0)
 }
 
-/// What the mutations screen (`A`) shows: the mutations and banes the character has, as crawl
-/// describes them.
+/// What the mutations screen (`A`) or the character dump shows: the mutations and banes the
+/// character has, as crawl describes them.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShownMutations {
@@ -463,8 +463,9 @@ pub struct ShownMutations {
     /// future experience level. One that is transient, shown in brackets, or that their form
     /// suppresses, in parentheses (`mutation_desc`), is described without them.
     pub mutations: Vec<String>,
-    /// Each bane, by its description, such as `You cover ground slowly.`
-    pub banes: Vec<String>,
+    /// Each bane, by its description, such as `You cover ground slowly.`: `None` when what it
+    /// was read off doesn't list banes, as the character dump doesn't.
+    pub banes: Option<Vec<String>>,
 }
 
 impl ScreenRead {
@@ -475,12 +476,14 @@ impl ScreenRead {
     /// level is `[description] XL 13`, which isn't one the character has, and a bane is
     /// `description [3.5]`, with the experience levels until it lifts.
     ///
-    /// The dump lists them one per line the same way, without hotkeys, under the screen's title
-    /// (`_sdump_mutations` in `chardump.cc`). It leaves the section out for a character with
-    /// none, whose overview says `A: no striking features` (`terse_mutation_list` in
+    /// The dump lists the mutations one per line the same way, without hotkeys, under the
+    /// screen's title, but never the banes (`_sdump_mutations` in `chardump.cc`, which lists
+    /// `_get_mutations_descs`), so they are unread. It leaves the section out for a character
+    /// with no mutations, whose overview says `A: no striking features` (`terse_mutation_list` in
     /// `mutation.cc`): none then. `None` for a dump that holds neither.
     #[must_use]
     pub fn mutations(&self) -> Option<ShownMutations> {
+        let lists_banes = self.screen == Screen::Mutations;
         let entries: Vec<&str> = match self.screen {
             Screen::Mutations => self
                 .lines
@@ -500,22 +503,26 @@ impl ScreenRead {
             },
             _ => return None,
         };
-        let mut shown = ShownMutations::default();
+        let mut mutations = Vec::new();
+        let mut banes = Vec::new();
         for entry in entries {
             let entry = entry.trim();
             if entry.is_empty() || future_level(entry) {
                 continue;
             }
             if let Some(bane) = bane(entry) {
-                shown.banes.push(bane.to_owned());
+                banes.push(bane.to_owned());
                 continue;
             }
             let transient = entry.strip_prefix('[').and_then(|e| e.strip_suffix(']'));
             let entry = transient.unwrap_or(entry);
             let suppressed = entry.strip_prefix('(').and_then(|e| e.strip_suffix(')'));
-            shown.mutations.push(suppressed.unwrap_or(entry).to_owned());
+            mutations.push(suppressed.unwrap_or(entry).to_owned());
         }
-        Some(shown)
+        Some(ShownMutations {
+            mutations,
+            banes: lists_banes.then_some(banes),
+        })
     }
 }
 
@@ -1040,7 +1047,10 @@ mod tests {
                 "You cover ground very slowly.",
             ]
         );
-        assert_eq!(shown.banes, ["You cover ground slowly."]);
+        assert_eq!(
+            shown.banes,
+            Some(vec!["You cover ground slowly.".to_owned()])
+        );
         assert_eq!(read(Screen::Abilities, &[]).mutations(), None);
     }
 
@@ -1180,7 +1190,13 @@ mod tests {
             "",
             "Message History",
         ]);
-        assert_eq!(none, Some(ShownMutations::default()));
+        assert_eq!(
+            none,
+            Some(ShownMutations {
+                mutations: Vec::new(),
+                banes: None,
+            })
+        );
         // Some, but their section left out of the dump by the player's options.
         assert_eq!(dump(&["A: magic regeneration, clarity"]), None);
     }

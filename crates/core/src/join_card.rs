@@ -15,9 +15,7 @@ pub(crate) enum Joining {
     Asking,
     /// The Advisor read the character dump the player opened, while the game's Backfill awaited
     /// it, and this is what it read of each part, if it showed it.
-    ReadDump {
-        parts: Vec<(DumpPart, Option<String>)>,
-    },
+    ReadDump { parts: Vec<PartRead> },
     /// The Advisor read the dungeon overview the player opened while it asked, and this is what
     /// it read of the levels.
     ReadOverview { levels: String },
@@ -74,18 +72,16 @@ impl Joining {
                     .is_some_and(|read| read.screen == Screen::CharacterDump);
                 Some(if dump_open {
                     JoinCard::Reading {
-                        checklist: parts
-                            .iter()
-                            .map(|(part, read)| part.row(read.as_ref()))
-                            .collect(),
+                        checklist: parts.iter().map(PartRead::row).collect(),
                     }
                 } else {
                     JoinCard::CaughtUpFromDump {
-                        not_in_dump: parts
+                        current: parts
                             .iter()
-                            .filter(|(_, read)| read.is_none())
-                            .map(|(part, _)| part.unread())
+                            .filter(|read| read.off_dump.is_some())
+                            .map(|read| read.part.phrase().to_owned())
                             .collect(),
+                        not_in_dump: parts.iter().filter_map(PartRead::unread).collect(),
                     }
                 })
             }
@@ -106,6 +102,17 @@ pub(crate) enum DumpPart {
     DungeonOverview,
 }
 
+/// What the Advisor read of one part of the character dump.
+#[derive(Debug, Clone)]
+pub(crate) struct PartRead {
+    part: DumpPart,
+    /// What the dump showed of it, as the card's row says it, such as `Skills (12, with
+    /// decimals)`: `None` when the dump didn't show it.
+    off_dump: Option<String>,
+    /// The Advisor knows it all the same, as read now off the dump or before off its own screen.
+    known: bool,
+}
+
 impl DumpPart {
     /// Every part, in the order the card lists them.
     const ALL: [Self; 4] = [
@@ -115,13 +122,23 @@ impl DumpPart {
         Self::DungeonOverview,
     ];
 
-    /// Its name, as a row of the card starts.
+    /// Its name, as a row of the checklist starts.
     fn name(self) -> &'static str {
         match self {
             Self::Skills => "Skills",
             Self::Spells => "Spells",
             Self::Mutations => "Mutations",
             Self::DungeonOverview => "Dungeon overview",
+        }
+    }
+
+    /// It, as a sentence names it, such as `the dungeon overview`.
+    fn phrase(self) -> &'static str {
+        match self {
+            Self::Skills => "skills",
+            Self::Spells => "spells",
+            Self::Mutations => "mutations",
+            Self::DungeonOverview => "the dungeon overview",
         }
     }
 
@@ -135,58 +152,79 @@ impl DumpPart {
         }
     }
 
-    /// What `accumulated` holds of it read off the character dump, as the card's row says it,
-    /// such as `Skills (12, with decimals)`: `None` when the dump didn't show it.
-    fn off_dump(self, accumulated: &AccumulatedState) -> Option<String> {
-        match self {
-            Self::Skills => off_dump(&accumulated.skills)
-                .map(|skills| format!("Skills ({}, with decimals)", skills.tenths.len())),
-            Self::Spells => off_dump(&accumulated.spells).map(|spells| match spells.len() {
-                0 => "Spells: none memorised".to_owned(),
-                known => format!("Spells ({known}, with failure rates)"),
-            }),
-            Self::Mutations => off_dump(&accumulated.mutations).map(|mutations| {
-                let shown = &mutations.shown;
-                match (shown.mutations.len(), shown.banes.len()) {
-                    (0, 0) => "Mutations: none".to_owned(),
-                    (mutations, 0) => format!("Mutations ({mutations})"),
-                    (mutations, banes) => format!("Mutations ({mutations}) and banes ({banes})"),
-                }
-            }),
-            Self::DungeonOverview => off_dump(&accumulated.dungeon)
-                .map(|overview| format!("Dungeon overview: {}", levels(overview))),
+    /// What `accumulated` holds of it.
+    fn read(self, accumulated: &AccumulatedState) -> PartRead {
+        let (off_dump, known) = match self {
+            Self::Skills => (
+                off_dump(&accumulated.skills)
+                    .map(|skills| format!("Skills ({}, with decimals)", skills.tenths.len())),
+                accumulated.skills.known().is_some(),
+            ),
+            Self::Spells => (
+                off_dump(&accumulated.spells).map(|spells| match spells.len() {
+                    0 => "Spells: none memorised".to_owned(),
+                    known => format!("Spells ({known}, with failure rates)"),
+                }),
+                accumulated.spells.known().is_some(),
+            ),
+            Self::Mutations => (
+                off_dump(&accumulated.mutations).map(|read| {
+                    let shown = &read.shown;
+                    let banes = shown.banes.as_ref().map_or(0, Vec::len);
+                    match (shown.mutations.len(), banes) {
+                        (0, 0) => "Mutations: none".to_owned(),
+                        (mutations, 0) => format!("Mutations ({mutations})"),
+                        (mutations, banes) => {
+                            format!("Mutations ({mutations}) and banes ({banes})")
+                        }
+                    }
+                }),
+                accumulated.mutations.known().is_some(),
+            ),
+            Self::DungeonOverview => (
+                off_dump(&accumulated.dungeon)
+                    .map(|overview| format!("Dungeon overview: {}", levels(overview))),
+                accumulated.dungeon.known().is_some(),
+            ),
+        };
+        PartRead {
+            part: self,
+            off_dump,
+            known,
         }
     }
+}
 
-    /// Its row on the card, with what the dump showed of it, if it showed it.
-    fn row(self, read: Option<&String>) -> ChecklistRow {
-        match read {
+impl PartRead {
+    /// Its row on the checklist.
+    fn row(&self) -> ChecklistRow {
+        match &self.off_dump {
             Some(line) => ChecklistRow {
                 read: true,
                 line: line.clone(),
             },
             None => ChecklistRow {
                 read: false,
-                line: format!("{}: not in your dump", self.name()),
+                line: format!("{}: not in your dump", self.part.name()),
             },
         }
     }
 
-    /// It, as the card names a part the dump didn't show.
-    fn unread(self) -> UnreadPart {
-        UnreadPart {
-            name: self.name().to_lowercase(),
-            keys: self.keys().iter().map(|&key| key.to_owned()).collect(),
-        }
+    /// It, as the card names a part the dump didn't show and the Advisor doesn't know: `None`
+    /// when it isn't one.
+    fn unread(&self) -> Option<UnreadPart> {
+        (self.off_dump.is_none() && !self.known).then(|| UnreadPart {
+            name: self.part.phrase().to_owned(),
+            keys: self.part.keys().iter().map(|&key| key.to_owned()).collect(),
+        })
     }
 }
 
-/// What `accumulated` holds that it read off the character dump, for each part the Advisor
-/// reads.
-fn read_off_dump(accumulated: &AccumulatedState) -> Vec<(DumpPart, Option<String>)> {
+/// What `accumulated` holds of each part of the character dump the Advisor reads.
+fn read_off_dump(accumulated: &AccumulatedState) -> Vec<PartRead> {
     DumpPart::ALL
         .into_iter()
-        .map(|part| (part, part.off_dump(accumulated)))
+        .map(|part| part.read(accumulated))
         .collect()
 }
 
@@ -276,11 +314,14 @@ mod tests {
             ]
         );
         let closed = VisibleState::default();
-        let Some(JoinCard::CaughtUpFromDump { not_in_dump }) =
-            joining.card(Backfill::Complete, &closed)
+        let Some(JoinCard::CaughtUpFromDump {
+            current,
+            not_in_dump,
+        }) = joining.card(Backfill::Complete, &closed)
         else {
             panic!("not caught up");
         };
+        assert_eq!(current, ["skills", "mutations"]);
         let unread: Vec<_> = not_in_dump
             .iter()
             .map(|part| (part.name.as_str(), part.keys.join(" ")))
@@ -289,8 +330,39 @@ mod tests {
             unread,
             [
                 ("spells", "I".to_owned()),
-                ("dungeon overview", "Ctrl O".to_owned())
+                ("the dungeon overview", "Ctrl O".to_owned())
             ]
         );
+    }
+
+    #[test]
+    fn caught_up_from_a_dump_doesnt_ask_for_a_part_already_read_off_its_own_screen() {
+        let screen = |screen: Screen, lines: &[&str]| ScreenRead {
+            screen,
+            title: None,
+            lines: lines.iter().map(|&line| line.to_owned()).collect(),
+            colours: BTreeMap::new(),
+        };
+        let spell_list = screen(
+            Screen::Spells,
+            &[" a - Magic Dart                      Conjuration               4%       1"],
+        );
+        let dump = screen(
+            Screen::CharacterDump,
+            &["   Skills:", " + Level 5.3 Fighting"],
+        );
+        let mut accumulated = AccumulatedState::default();
+        accumulated.read(&spell_list, &VisibleState::default(), None);
+        accumulated.read(&dump, &VisibleState::default(), None);
+        let mut joining = Joining::Asking;
+        joining.read(&dump, Backfill::Awaiting { joined_on: None }, &accumulated);
+
+        let Some(JoinCard::CaughtUpFromDump { not_in_dump, .. }) =
+            joining.card(Backfill::Complete, &VisibleState::default())
+        else {
+            panic!("not caught up");
+        };
+        let names: Vec<_> = not_in_dump.iter().map(|part| part.name.as_str()).collect();
+        assert_eq!(names, ["mutations", "the dungeon overview"]);
     }
 }

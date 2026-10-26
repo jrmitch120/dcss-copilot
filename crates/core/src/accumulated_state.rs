@@ -63,8 +63,9 @@ pub struct AccumulatedState {
     /// was read explains it: a status that stops it or too little magic, which the Ways Out
     /// judge afresh every turn.
     pub abilities: Remembered<Vec<KnownAbility>>,
-    /// The mutations and banes the character has, as the mutations screen (`A`) last showed
-    /// them, with the experience level they had then. It goes Stale when the experience level
+    /// The mutations and banes the character has, as the mutations screen (`A`) or the
+    /// character dump last showed them, with the experience level they had then: the dump
+    /// leaves the banes unread. It goes Stale when the experience level
     /// changes, as banes lift and a species grows mutations with it, or the game gives a message
     /// of a mutation or bane that changes the character's speed coming or going. Any other
     /// mutation coming or going goes unnoticed.
@@ -900,7 +901,10 @@ mod tests {
         };
         assert_eq!(read.turn, Some(40));
         assert_eq!(read.value.xl, Some(5));
-        assert_eq!(read.value.shown.banes, ["You cover ground slowly."]);
+        assert_eq!(
+            read.value.shown.banes,
+            Some(vec!["You cover ground slowly.".to_owned()])
+        );
         let next_turn = VisibleState {
             turn: Some(41),
             ..character()
@@ -972,23 +976,22 @@ mod tests {
         assert!(goes_stale(&character(), &converted));
     }
 
-    /// A spell name the dump cuts short is completed only when one spell starts so, so no two in
-    /// a shipped bundle may share the letters it shows.
+    /// A spell name the dump cuts short, and trims should the cut fall on a space, is completed
+    /// only when one spell starts so: each spell in a shipped bundle must come back whole.
     #[test]
-    fn no_two_spells_in_a_shipped_bundle_share_the_letters_the_dump_shows_of_a_name() {
+    fn every_spell_in_a_shipped_bundle_is_remembered_whole_as_the_dump_cuts_its_name() {
         let library = copilot_gk::Library::shipped().unwrap();
         let mut bundles = 0;
         for bundle in library.bundles() {
             bundles += 1;
-            let mut by_shown: BTreeMap<String, &str> = BTreeMap::new();
             for spell in bundle.spells.values() {
                 let shown: String = spell.name.chars().take(DUMP_SPELL_NAME_LETTERS).collect();
-                if let Some(other) = by_shown.insert(shown.clone(), &spell.name) {
-                    panic!(
-                        "{}: the dump shows {other:?} and {:?} alike, as {shown:?}",
-                        bundle.crawl.tag, spell.name
-                    );
-                }
+                assert_eq!(
+                    whole_spell_name(shown.trim_end(), bundle),
+                    spell.name,
+                    "{}: the dump's {shown:?}",
+                    bundle.crawl.tag
+                );
             }
         }
         assert!(bundles > 0, "no shipped bundles");
