@@ -64,7 +64,7 @@ let {
     {@render inView(focus.monsters)}
     <p class="line"><MarkedValue value={focus.line} /></p>
     {#each focus.others as other, i (i)}
-      <p class="muted small">{other}</p>
+      <p class="muted small"><MarkedValue value={other} /></p>
     {/each}
     {#if focus.notModelled}
       <p class="muted small not-modelled">{focus.notModelled}</p>

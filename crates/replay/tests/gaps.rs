@@ -383,3 +383,18 @@ fn a_gap_a_prompt_card_asked_for_is_never_asked_for_again_in_that_game() {
         Detection::GapPrompt { .. }
     )));
 }
+
+#[test]
+fn the_fight_cards_other_plans_are_marked_as_its_best_plan_is() {
+    let (line, others) = first_shown(CONJURER, |game| match &game.focus {
+        FocusCard::Fight { line, others, .. } => Some((line.clone(), others.clone())),
+        _ => None,
+    });
+
+    assert!(line.gap.is_some(), "{line:?}");
+    assert!(!others.is_empty());
+    assert!(
+        others.iter().all(|other| other.gap == line.gap),
+        "{others:?}"
+    );
+}

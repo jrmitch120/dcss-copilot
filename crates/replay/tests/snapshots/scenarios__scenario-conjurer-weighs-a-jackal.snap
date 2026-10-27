@@ -275,7 +275,10 @@ expression: replay
             "gap": null
           },
           "others": [
-            "Melee: ~74% win, ~62% HP lost"
+            {
+              "text": "Melee: ~74% win, ~62% HP lost",
+              "gap": null
+            }
           ],
           "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
           "gaps": []
@@ -621,7 +624,10 @@ expression: replay
           "gap": null
         },
         "others": [
-          "Melee: ~74% win, ~62% HP lost"
+          {
+            "text": "Melee: ~74% win, ~62% HP lost",
+            "gap": null
+          }
         ],
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
         "gaps": []

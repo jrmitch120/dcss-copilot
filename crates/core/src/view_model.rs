@@ -353,8 +353,9 @@ pub enum FocusCard {
         /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
         /// the Gaps that keep it from being judged or may hide a better plan.
         line: MarkedValue,
-        /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
-        others: Vec<String>,
+        /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`,
+        /// marked as `line` is.
+        others: Vec<MarkedValue>,
         /// What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.
         /// `None` when the fight wasn't judged.
         not_modelled: Option<String>,

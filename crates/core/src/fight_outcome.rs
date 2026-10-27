@@ -765,12 +765,12 @@ impl Fight {
     /// small fight to judge, or the Advisor can't judge the moment at all, which the now pill
     /// says.
     pub(crate) fn card(&self, monsters: Option<Vec<Listing>>) -> Option<FocusCard> {
-        let card = |line: String, others, not_modelled, gaps: &[Gap]| FocusCard::Fight {
+        let card = |line: String, others, not_modelled| FocusCard::Fight {
             monsters,
             line: self.marked(line),
             others,
             not_modelled,
-            gaps: gaps.iter().map(gap).collect(),
+            gaps: self.gaps().iter().map(gap).collect(),
         };
         match self {
             Self::NoFight => None,
@@ -778,14 +778,12 @@ impl Fight {
                 format!("Too many hostiles to judge a fight: {hostiles} in view."),
                 Vec::new(),
                 None,
-                &[],
             )),
             Self::Unjudged { gaps } if !gaps.iter().any(fight_input) => None,
-            Self::Unjudged { gaps } => Some(card(
+            Self::Unjudged { .. } => Some(card(
                 "The Advisor can't judge a fight yet.".to_owned(),
                 Vec::new(),
                 None,
-                gaps,
             )),
             Self::Judged(outcome) => {
                 let hp = outcome.hp;
@@ -794,7 +792,7 @@ impl Fight {
                     || "No plan to fight with.".to_owned(),
                     |best| format!("Best plan ({}): {}", best.plan.name(), odds(best, hp)),
                 );
-                let others = plans.map(|plan| plan.summary(hp)).collect();
+                let others = plans.map(|plan| self.marked(plan.summary(hp))).collect();
                 let words: Vec<&str> = outcome
                     .not_modelled
                     .iter()
@@ -805,7 +803,7 @@ impl Fight {
                     not_modelled
                         .push_str(&format!(". Not played: {}", outcome.not_played.join(", ")));
                 }
-                Some(card(line, others, Some(not_modelled), &outcome.gaps))
+                Some(card(line, others, Some(not_modelled)))
             }
         }
     }
