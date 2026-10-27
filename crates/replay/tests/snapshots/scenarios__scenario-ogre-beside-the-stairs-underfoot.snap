@@ -359,28 +359,28 @@ expression: replay
             },
             {
               "what": "Ability menu",
-              "why": "Your abilities aren't counted among your Ways Out.",
+              "why": "Abilities aren't counted among the Ways Out.",
               "keys": [
                 "a"
               ]
             },
             {
               "what": "Mutations",
-              "why": "Your speed to the stairs counts only your species' mutations.",
+              "why": "The race to the stairs counts only the species' own mutations.",
               "keys": [
                 "A"
               ]
             },
             {
               "what": "Resistances",
-              "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
               "keys": [
                 "%"
               ]
             },
             {
               "what": "Equipped gear",
-              "why": "A shield, a halo or armour that slows you is taken as not worn.",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
               "keys": [
                 "%"
               ]
@@ -780,28 +780,28 @@ expression: replay
           },
           {
             "what": "Ability menu",
-            "why": "Your abilities aren't counted among your Ways Out.",
+            "why": "Abilities aren't counted among the Ways Out.",
             "keys": [
               "a"
             ]
           },
           {
             "what": "Mutations",
-            "why": "Your speed to the stairs counts only your species' mutations.",
+            "why": "The race to the stairs counts only the species' own mutations.",
             "keys": [
               "A"
             ]
           },
           {
             "what": "Resistances",
-            "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
             "keys": [
               "%"
             ]
           },
           {
             "what": "Equipped gear",
-            "why": "A shield, a halo or armour that slows you is taken as not worn.",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
             "keys": [
               "%"
             ]

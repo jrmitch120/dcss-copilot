@@ -192,22 +192,25 @@ impl ScreenFact {
         }
     }
 
-    /// Why it matters while unread, in one sentence.
+    /// Why it matters while unread, in one sentence said of the character, as a player watching
+    /// someone else's game reads it too.
     fn why_unread(self) -> &'static str {
         match self {
             Self::Skills => "No fight can be judged without them.",
-            Self::SpellList => "Your spells aren't counted among your Ways Out or attacks.",
-            Self::SpellPower => "Your attack spells aren't played in a fight.",
-            Self::AbilityMenu => "Your abilities aren't counted among your Ways Out.",
-            Self::Mutations => "Your speed to the stairs counts only your species' mutations.",
+            Self::SpellList => "Spells aren't counted among the Ways Out or attacks.",
+            Self::SpellPower => "Attack spells aren't played in a fight.",
+            Self::AbilityMenu => "Abilities aren't counted among the Ways Out.",
+            Self::Mutations => "The race to the stairs counts only the species' own mutations.",
             Self::Resistances => {
-                "Monsters' fire, cold, poison and the like are played as if you resist none."
+                "Monsters' fire, cold, poison and the like are played as if resisted by nothing."
             }
-            Self::Equipped => "A shield, a halo or armour that slows you is taken as not worn.",
+            Self::Equipped => {
+                "A shield, a halo or armour that slows the character is taken as not worn."
+            }
         }
     }
 
-    /// Why it matters while out of date, in one sentence.
+    /// Why it matters while out of date, in one sentence said as [`ScreenFact::why_unread`] is.
     fn why_stale(self) -> &'static str {
         match self {
             Self::Skills => "Fights are played with them as they were.",
@@ -218,9 +221,9 @@ impl ScreenFact {
             Self::AbilityMenu => {
                 "An ability gained since isn't counted, and failure rates may have changed."
             }
-            Self::Mutations => "Your speed to the stairs counts them as they were.",
+            Self::Mutations => "The race to the stairs counts them as they were.",
             Self::Resistances => "Monsters' damage is played with them as they were.",
-            Self::Equipped => "What you wear may have changed: a shield is taken as none.",
+            Self::Equipped => "What is worn may have changed: a shield is taken as none.",
         }
     }
 
@@ -266,7 +269,7 @@ impl Gap {
         match self {
             Self::HitPoints | Self::Defences | Self::Attributes => "Stats".to_owned(),
             Self::MonstersInView | Self::Map => "Map".to_owned(),
-            Self::Position => "Where you stand".to_owned(),
+            Self::Position => "Where the character stands".to_owned(),
             Self::GameKnowledge => "Game Knowledge".to_owned(),
             Self::MonsterKnowledge { monster } => capitalised(monster),
             Self::Inventory | Self::Wielded => "Inventory".to_owned(),
@@ -280,7 +283,8 @@ impl Gap {
         }
     }
 
-    /// Why it matters, in one sentence.
+    /// Why it matters, in one sentence said of the character, as a player watching someone else's
+    /// game reads it too.
     fn why(&self) -> String {
         match self {
             Self::HitPoints
@@ -303,7 +307,7 @@ impl Gap {
             }
             Self::SkillsShifting { god } => {
                 format!(
-                    "{god} shifts them with your piety, so they may differ from the skills screen's."
+                    "{god} shifts them with piety, so they may differ from the skills screen's."
                 )
             }
         }

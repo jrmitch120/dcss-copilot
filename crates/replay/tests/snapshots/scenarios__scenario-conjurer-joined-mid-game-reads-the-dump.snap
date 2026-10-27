@@ -260,7 +260,7 @@ expression: replay
         "gaps": [
           {
             "what": "Spell power",
-            "why": "Your attack spells aren't played in a fight.",
+            "why": "Attack spells aren't played in a fight.",
             "keys": [
               "I",
               "!"
@@ -268,7 +268,7 @@ expression: replay
           },
           {
             "what": "Ability menu",
-            "why": "Your abilities aren't counted among your Ways Out.",
+            "why": "Abilities aren't counted among the Ways Out.",
             "keys": [
               "a"
             ]

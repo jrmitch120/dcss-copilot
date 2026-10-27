@@ -185,27 +185,27 @@ fn the_gaps_chip_lists_each_gap_why_it_matters_and_its_key() {
             row("Skills", "No fight can be judged without them.", &["m"]),
             row(
                 "Spell list",
-                "Your spells aren't counted among your Ways Out or attacks.",
+                "Spells aren't counted among the Ways Out or attacks.",
                 &["I"]
             ),
             row(
                 "Ability menu",
-                "Your abilities aren't counted among your Ways Out.",
+                "Abilities aren't counted among the Ways Out.",
                 &["a"]
             ),
             row(
                 "Mutations",
-                "Your speed to the stairs counts only your species' mutations.",
+                "The race to the stairs counts only the species' own mutations.",
                 &["A"]
             ),
             row(
                 "Resistances",
-                "Monsters' fire, cold, poison and the like are played as if you resist none.",
+                "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
                 &["%"]
             ),
             row(
                 "Equipped gear",
-                "A shield, a halo or armour that slows you is taken as not worn.",
+                "A shield, a halo or armour that slows the character is taken as not worn.",
                 &["%"]
             ),
         ]
@@ -240,22 +240,22 @@ fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
         [
             row(
                 "Ability menu",
-                "Your abilities aren't counted among your Ways Out.",
+                "Abilities aren't counted among the Ways Out.",
                 &["a"]
             ),
             row(
                 "Mutations",
-                "Your speed to the stairs counts only your species' mutations.",
+                "The race to the stairs counts only the species' own mutations.",
                 &["A"]
             ),
             row(
                 "Resistances",
-                "Monsters' fire, cold, poison and the like are played as if you resist none.",
+                "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
                 &["%"]
             ),
             row(
                 "Equipped gear",
-                "A shield, a halo or armour that slows you is taken as not worn.",
+                "A shield, a halo or armour that slows the character is taken as not worn.",
                 &["%"]
             ),
             row(
@@ -265,8 +265,7 @@ fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
             ),
             row(
                 "Skills",
-                "Ashenzari shifts them with your piety, so they may differ from the skills \
-                 screen's.",
+                "Ashenzari shifts them with piety, so they may differ from the skills screen's.",
                 &[]
             ),
         ]
@@ -284,6 +283,13 @@ fn a_spectator_is_told_of_the_gaps_but_not_asked_to_press_keys_in_a_game_not_the
 
     assert!(!chip.gaps.is_empty());
     assert!(chip.gaps.iter().all(|row| row.keys.is_empty()), "{chip:?}");
+    // The game isn't theirs: why each Gap matters is said of the character, not of them.
+    assert!(
+        chip.gaps
+            .iter()
+            .all(|row| !row.why.to_lowercase().contains("you")),
+        "{chip:?}"
+    );
     assert!(chip.dump_fills.is_empty(), "{chip:?}");
 }
 
