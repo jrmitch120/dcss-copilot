@@ -341,12 +341,18 @@ fn all_clear(replayer: &Replayer) -> bool {
 }
 
 #[test]
-fn a_prompt_card_asks_for_the_gaps_at_the_first_all_clear_and_goes_as_an_encounter_starts() {
+fn a_prompt_card_asks_at_the_first_all_clear_for_the_gaps_that_affected_a_moment() {
+    // Nothing hostile came into view, so no fight or damage was judged, and no staircase was
+    // raced to: only the spell list and the ability menu, unread, were missing from the Ways Out.
     let mut replayer = rook_without_join_card(replayer(STATUSES));
     step_until(&mut replayer, all_clear);
 
     let card = prompt(&replayer).unwrap();
-    assert_eq!(card, replayer.view_model().game.unwrap().gaps);
+    let chip = replayer.view_model().game.unwrap().gaps;
+    assert!(
+        card.gaps.iter().all(|row| chip.gaps.contains(row)),
+        "{card:?}"
+    );
     assert!(card.gaps.iter().all(|row| !row.keys.is_empty()), "{card:?}");
     let asked = replayer
         .detections()
@@ -358,17 +364,11 @@ fn a_prompt_card_asks_for_the_gaps_at_the_first_all_clear_and_goes_as_an_encount
         asked,
         Some((
             Some(304),
-            vec![
-                ScreenFact::Skills,
-                ScreenFact::SpellList,
-                ScreenFact::AbilityMenu,
-                ScreenFact::Mutations,
-                ScreenFact::Resistances,
-                ScreenFact::Equipped
-            ]
+            vec![ScreenFact::SpellList, ScreenFact::AbilityMenu]
         ))
     );
 
+    // It goes as the next Encounter starts.
     step_until(&mut replayer, |replayer| {
         replayer
             .detections()

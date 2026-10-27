@@ -22,7 +22,6 @@ expression: detections
       "spellList",
       "abilityMenu",
       "mutations",
-      "resistances",
       "equipped"
     ]
   },

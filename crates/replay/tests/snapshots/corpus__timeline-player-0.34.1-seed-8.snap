@@ -42,10 +42,7 @@ expression: detections
     "asks": [
       "skills",
       "spellList",
-      "abilityMenu",
-      "mutations",
-      "resistances",
-      "equipped"
+      "abilityMenu"
     ]
   },
   {

@@ -34,9 +34,7 @@ expression: detections
     "asks": [
       "spellList",
       "abilityMenu",
-      "mutations",
-      "resistances",
-      "equipped"
+      "mutations"
     ]
   },
   {

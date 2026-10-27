@@ -58,13 +58,17 @@ struct Followed {
     /// The facts the Gap prompt card asks for that are still open, while it shows: until the
     /// player puts it away or an Encounter starts.
     gap_prompt: Option<BTreeSet<ScreenFact>>,
+    /// The Screen Facts whose Gaps affected a moment the Advisor judged of the game since it
+    /// began following it: what the prompt card may ask for.
+    felt: BTreeSet<ScreenFact>,
 }
 
 impl Followed {
     /// The Gap prompt card at a Settled Update where the detectors noticed `detections`, with
     /// the facts in `open` unread or out of date, and what it asks for if it is raised: one card
-    /// a game, at the first All Clear where it `may_prompt` and any fact is open, asking for each
-    /// open fact. What is filled drops off it, and an Encounter starting puts it away.
+    /// a game, at the first All Clear where it `may_prompt` and an open fact's Gap has affected a
+    /// moment, asking for each such fact. What is filled drops off it, and an Encounter starting
+    /// puts it away.
     fn prompt_for_gaps(
         &mut self,
         detections: &[Detection],
@@ -81,14 +85,15 @@ impl Followed {
             }
         }
         let asked_before = !self.accumulated.gaps_prompted.is_empty();
+        // Only a Gap that has made a difference is worth asking the player to fill.
+        let asks: BTreeSet<ScreenFact> = open.intersection(&self.felt).copied().collect();
         if asked_before
             || !may_prompt
-            || open.is_empty()
+            || asks.is_empty()
             || !detections.contains(&Detection::AllClear)
         {
             return None;
         }
-        let asks = open.clone();
         self.accumulated.gaps_prompted.extend(asks.iter().copied());
         let detection = Detection::GapPrompt {
             asks: asks.iter().copied().collect(),
@@ -253,6 +258,8 @@ impl Advisor {
         }) {
             game.alert = Some((alert.clone(), self.visible.turn));
         }
+        game.felt
+            .extend(fact_sheet.gaps.iter().filter_map(Gap::screen_fact));
         detections.extend(game.prompt_for_gaps(&detections, &open, may_prompt));
         detections
     }

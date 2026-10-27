@@ -299,7 +299,7 @@ The chip in the panel's header counting every Gap in what the Advisor knows of t
 _Avoid_: Missing-data badge, warnings
 
 **Gap Prompt**:
-The Focus Card that, once a game, at the first All Clear with a Gap open, asks the player to fill the Gaps open then, as the Gaps Chip lists them, dropping each as it is filled. It never asks again in that game, even after the app restarts: an Encounter starting puts it away, and so does the player, for good. It waits while the join card asks for the character dump, and is never shown to a player watching someone else's game.
+The Focus Card that, once a game, at the first All Clear with a Gap open that has affected a moment of the game, asks the player to fill those Gaps, as the Gaps Chip lists them, dropping each as it is filled. A Gap that has never made a difference, such as unread resistances before any damage they would change, isn't asked about. It never asks again in that game, even after the app restarts: an Encounter starting puts it away, and so does the player, for good. It waits while the join card asks for the character dump, and is never shown to a player watching someone else's game.
 _Avoid_: Nag, reminder
 
 **Fact Card**:

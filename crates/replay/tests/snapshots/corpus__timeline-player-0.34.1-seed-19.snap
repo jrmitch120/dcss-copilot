@@ -19,10 +19,7 @@ expression: detections
     "event": "gapPrompt",
     "asks": [
       "spellList",
-      "abilityMenu",
-      "mutations",
-      "resistances",
-      "equipped"
+      "abilityMenu"
     ]
   },
   {

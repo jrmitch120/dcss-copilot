@@ -62,10 +62,7 @@ expression: detections
     "turn": 98,
     "event": "gapPrompt",
     "asks": [
-      "abilityMenu",
-      "mutations",
-      "resistances",
-      "equipped"
+      "abilityMenu"
     ]
   },
   {
