@@ -1,7 +1,6 @@
 <script lang="ts">
 import type { AssistanceLevel, Character, GapsChip, NowPill } from "$lib/bindings";
 import { type PanelActions, unsaved } from "./actions";
-import GapsList from "./GapsList.svelte";
 import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
 
@@ -10,19 +9,22 @@ let {
   now,
   assistance,
   gaps,
+  gapsOpen,
+  toggleGaps,
   actions,
 }: {
   character: Character;
   now: NowPill;
   assistance: AssistanceLevel;
   gaps: GapsChip;
+  /** The Gaps chip's list is open, under the now pill. */
+  gapsOpen: boolean;
+  toggleGaps: () => void;
   actions: PanelActions;
 } = $props();
 
 let tone = $derived(threatTone(now));
 let saveError = $state<string | null>(null);
-/** The player opened the Gaps chip's list. */
-let gapsOpen = $state(false);
 
 const LEVELS: [AssistanceLevel, string][] = [
   ["info", "Info"],
@@ -54,7 +56,7 @@ function stat(value: number | null): string {
         class="chip"
         aria-expanded={gapsOpen}
         title="What the Advisor can't see, and the keys that show it"
-        onclick={() => (gapsOpen = !gapsOpen)}
+        onclick={toggleGaps}
       >
         Gaps {gaps.gaps.length}
       </button>
@@ -62,12 +64,6 @@ function stat(value: number | null): string {
     <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
   </span>
 </header>
-{#if gapsOpen && gaps.gaps.length > 0}
-  <section class="card gaps">
-    <div class="lbl">Gaps <em>what the Advisor can't see</em></div>
-    <GapsList {gaps} />
-  </section>
-{/if}
 {#if saveError}
   <p class="error small">{saveError}</p>
 {/if}
@@ -130,10 +126,6 @@ header {
   align-items: center;
   gap: 6px;
   margin-left: auto;
-}
-
-.gaps {
-  margin: 8px 14px 0;
 }
 
 .chip {

@@ -5,6 +5,7 @@ import type { PanelActions } from "./actions";
 import ConnectionNotice from "./ConnectionNotice.svelte";
 import FocusCard from "./FocusCard.svelte";
 import Footer from "./Footer.svelte";
+import GapsList from "./GapsList.svelte";
 import Header from "./Header.svelte";
 import NowPill from "./NowPill.svelte";
 import RunPlanRail from "./RunPlanRail.svelte";
@@ -14,6 +15,18 @@ import WaysOut from "./WaysOut.svelte";
 
 /** The whole panel for `view`, in the app's window or a browser's side panel. */
 let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
+
+/** The player opened the Gaps chip's list, which shows under the now pill. */
+let gapsOpen = $state(false);
+
+/** The moment is above CALM: the fight takes the panel, so the Gaps list closes. */
+let inDanger = $derived(view.game?.now.state === "rated" && view.game.now.level !== "calm");
+
+$effect(() => {
+  if (inDanger) {
+    gapsOpen = false;
+  }
+});
 </script>
 
 <main class="panel">
@@ -23,6 +36,8 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
       now={view.game.now}
       assistance={view.assistance}
       gaps={view.game.gaps}
+      {gapsOpen}
+      toggleGaps={() => (gapsOpen = !gapsOpen)}
       {actions}
     />
   {/if}
@@ -54,6 +69,12 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
         </p>
       {/if}
       <NowPill now={view.game.now} />
+      {#if gapsOpen && view.game.gaps.gaps.length > 0}
+        <section class="card">
+          <div class="lbl">Gaps <em>what the Advisor can't see</em></div>
+          <GapsList gaps={view.game.gaps} />
+        </section>
+      {/if}
       {#if view.game.suggestedAction}
         <SuggestedAction suggested={view.game.suggestedAction} />
       {/if}
