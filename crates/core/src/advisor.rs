@@ -241,8 +241,7 @@ impl Advisor {
         let hostile = self.hostile_in_view();
         let open: BTreeSet<ScreenFact> = self.gaps().iter().filter_map(Gap::screen_fact).collect();
         // The join card asks for the dump already; a player watching can't open the screens.
-        let may_prompt = self.join_card().is_none()
-            && self.identity.as_ref().and_then(|identity| identity.role) != Some(Role::Spectating);
+        let may_prompt = self.join_card().is_none() && !self.watching();
         let fact_sheet = self.fact_sheet.get_or_init(|| self.compute_fact_sheet());
         let Some(game) = self.games.get_mut(&key) else {
             return Vec::new();
@@ -329,6 +328,7 @@ impl Advisor {
     #[must_use]
     pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
+        let gaps = self.gaps();
         Some(GameView {
             character: Character {
                 name: identity.character.clone(),
@@ -346,7 +346,7 @@ impl Advisor {
                 .then(|| self.suggested_action())
                 .flatten()
                 .map(|suggested| suggested.card(&self.fact_sheet().fight)),
-            focus: self.focus(),
+            focus: self.focus(&gaps),
             fact_cards: self.fact_cards(),
             ways_out: self
                 .hostile_in_view()
@@ -363,15 +363,16 @@ impl Advisor {
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
-            gaps: gaps::list(&self.gaps(), identity.role == Some(Role::Spectating)),
+            gaps: gaps::list(&gaps, self.watching()),
         })
     }
 }
 
 impl Advisor {
     /// The focus card: a small fight while anything hostile is in view, or else what is in view;
-    /// with nothing hostile in view, the join card while it shows, or else the Gap prompt card.
-    fn focus(&self) -> FocusCard {
+    /// with nothing hostile in view, the join card while it shows, or else the Gap prompt card
+    /// asking for what is open of `gaps`, the game's.
+    fn focus(&self, gaps: &BTreeSet<Gap>) -> FocusCard {
         let monsters = self
             .visible
             .monsters
@@ -382,7 +383,7 @@ impl Advisor {
         } else {
             self.join_card()
                 .map(|join| FocusCard::Join { join })
-                .or_else(|| self.gap_prompt())
+                .or_else(|| self.gap_prompt(gaps))
         };
         card.unwrap_or(FocusCard::InView { monsters })
     }
@@ -404,23 +405,29 @@ impl Advisor {
     /// The join card, while it shows: never to a player watching the game, who can't open its
     /// screens.
     fn join_card(&self) -> Option<JoinCard> {
-        if self.identity.as_ref()?.role == Some(Role::Spectating) {
+        if self.watching() {
             return None;
         }
         let game = self.followed_game()?;
         game.joining.card(game.accumulated.backfill, &self.visible)
     }
 
-    /// The Gap prompt card, while it shows and any Gap it asks for is open.
-    fn gap_prompt(&self) -> Option<FocusCard> {
+    /// Whether the player is watching someone else's game, whose screens they can't open.
+    fn watching(&self) -> bool {
+        self.identity.as_ref().and_then(|identity| identity.role) == Some(Role::Spectating)
+    }
+
+    /// The Gap prompt card, while it shows and any Gap it asks for is open among `gaps`, the
+    /// game's.
+    fn gap_prompt(&self, gaps: &BTreeSet<Gap>) -> Option<FocusCard> {
         let asks = self.followed_game()?.gap_prompt.as_ref()?;
-        let open: BTreeSet<Gap> = self
-            .gaps()
-            .into_iter()
+        let open: BTreeSet<Gap> = gaps
+            .iter()
             .filter(|gap| {
                 gap.screen_fact()
                     .is_some_and(|screen_fact| asks.contains(&screen_fact))
             })
+            .cloned()
             .collect();
         (!open.is_empty()).then(|| FocusCard::GapPrompt {
             gaps: gaps::list(&open, false),

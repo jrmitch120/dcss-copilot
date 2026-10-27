@@ -8,7 +8,7 @@ use copilot_gk::{Bundle, EscapeAbility, Relief, Use};
 use super::{Blocker, Escape, Usable, WayOut, current};
 use crate::accumulated_state::AccumulatedState;
 use crate::crawl_ids::object_classes;
-use crate::gaps::{Gap, ScreenFact};
+use crate::gaps::{self, Gap, ScreenFact};
 use crate::visible_state::VisibleState;
 
 /// What the player carries, has and knows, with the Game Knowledge that says which are Ways
@@ -153,37 +153,16 @@ impl Carried<'_> {
     }
 
     /// The spells that are Ways Out, as the spell list last showed them, each stopped by the
-    /// player's statuses or their magic. Never having read the list is a Gap in `gaps` for a
-    /// player with magic to cast with, and so is a spell memorised since that the game didn't
-    /// name, which may be a Way Out, and a list of spells out of date, whose failure rates may
-    /// have changed.
+    /// player's statuses or their magic. What [`gaps::spell_list`] finds is a Gap in `gaps`: a
+    /// spell unread or memorised unnamed may be a Way Out, and failure rates out of date.
     pub(super) fn spells(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
-        if let Some(memorised) = self
-            .remembered
-            .and_then(|remembered| remembered.spell_memorised)
-        {
-            gaps.insert(Gap::SpellMemorised {
-                turn: memorised.turn,
-            });
-        }
+        gaps.extend(gaps::spell_list(self.remembered, gaps::casts(self.visible)));
         let Some((spells, read)) = self
             .remembered
             .and_then(|remembered| current(&remembered.spells))
         else {
-            if self.visible.stats.mp_max.is_some_and(|mp| mp > 0) {
-                gaps.insert(Gap::Unread {
-                    fact: ScreenFact::SpellList,
-                });
-            }
             return Vec::new();
         };
-        // A list of no spells out of date hides a Way Out only as a spell memorised does.
-        if read.stale && !spells.is_empty() {
-            gaps.insert(Gap::Stale {
-                fact: ScreenFact::SpellList,
-                turn: read.turn,
-            });
-        }
         let signs = &self.bundle.ways_out;
         spells
             .iter()

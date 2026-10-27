@@ -17,7 +17,7 @@ use crate::fact_sheet::{Chance, NotModelled};
 use crate::gaps::{self, Gap, ScreenFact, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
-use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
+use crate::visible_state::{InventoryItem, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
 /// fewer (spec #24, "Engine (ADR 0003)"). A bigger fight isn't judged.
@@ -384,18 +384,12 @@ fn skills_out_of_date(
     remembered: Option<&AccumulatedState>,
     bundle: &Bundle,
 ) -> BTreeSet<Gap> {
-    let mut gaps = BTreeSet::new();
-    if let Some(Remembered::Stale(read)) = remembered.map(|state| &state.skills) {
-        gaps.insert(Gap::Stale {
-            fact: ScreenFact::Skills,
-            turn: read.turn,
-        });
-    }
-    if let Some(Religion::God { name, .. }) = &visible.religion
-        && bundle.character.skills.shifting_gods.contains(name)
-    {
-        gaps.insert(Gap::SkillsShifting { god: name.clone() });
-    }
+    // The fight is played only once the skills are read: a Gap here is their being Stale.
+    let mut gaps: BTreeSet<Gap> = remembered
+        .and_then(|state| ScreenFact::Skills.gap(&state.skills))
+        .into_iter()
+        .collect();
+    gaps.extend(gaps::skills_shifting(visible, bundle));
     gaps
 }
 
@@ -560,7 +554,7 @@ impl<'v> Player<'v> {
         not_played: &mut Vec<String>,
         not_modelled: &mut BTreeSet<NotModelled>,
     ) -> Vec<(PlanOpening, Opening<'b>)> {
-        gaps.extend(spell_gaps(remembered, self.mp_max, bundle));
+        gaps.extend(spell_gaps(remembered, self.mp_max > 0, bundle));
         let Some(known) = remembered.and_then(|state| state.spells.read_value()) else {
             return Vec::new();
         };
@@ -704,45 +698,27 @@ fn spell_opening<'b>(
 
 /// What keeps the Fight Outcome from playing the player's attack spells, or may hide one,
 /// whatever is in view: the spell list never read, for a player with magic to cast with
-/// (`mp_max`); a spell memorised the game didn't name; the list or its power and range out of
-/// date; and an attack spell the engine ports whose power and range haven't been read.
+/// (`casts`), a spell memorised the game didn't name and the list out of date, as
+/// [`gaps::spell_list`] finds them; its power and range out of date; and an attack spell the
+/// engine ports whose power and range haven't been read.
 pub(crate) fn spell_gaps(
     remembered: Option<&AccumulatedState>,
-    mp_max: i32,
+    casts: bool,
     bundle: &Bundle,
 ) -> BTreeSet<Gap> {
-    let mut gaps = BTreeSet::new();
+    let mut gaps = gaps::spell_list(remembered, casts);
     let (Some(state), Some(known)) = (
         remembered,
         remembered.and_then(|state| state.spells.read_value()),
     ) else {
-        // Only a player with magic to cast with may know an attack spell.
-        if mp_max > 0 {
-            gaps.insert(Gap::Unread {
-                fact: ScreenFact::SpellList,
-            });
-        }
         return gaps;
     };
-    if let Some(memorised) = state.spell_memorised {
-        gaps.insert(Gap::SpellMemorised {
-            turn: memorised.turn,
+    // Power out of date hides an attack only among spells known.
+    if let (false, Remembered::Stale(read)) = (known.is_empty(), &state.spell_reaches) {
+        gaps.insert(Gap::Stale {
+            fact: ScreenFact::SpellPower,
+            turn: read.turn,
         });
-    }
-    // A list of no spells out of date hides an attack only as a spell memorised does.
-    if !known.is_empty() {
-        if let Remembered::Stale(read) = &state.spells {
-            gaps.insert(Gap::Stale {
-                fact: ScreenFact::SpellList,
-                turn: read.turn,
-            });
-        }
-        if let Remembered::Stale(read) = &state.spell_reaches {
-            gaps.insert(Gap::Stale {
-                fact: ScreenFact::SpellPower,
-                turn: read.turn,
-            });
-        }
     }
     let reaches = state.spell_reaches.read_value();
     let unreached = |spell: &KnownSpell| {

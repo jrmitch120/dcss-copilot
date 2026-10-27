@@ -335,6 +335,60 @@ pub(crate) fn open_to(fact: ScreenFact, to: &str) -> String {
     format!("{} {to}", capitalised(&fact.how_to_open(false)))
 }
 
+/// The Gaps in the spell list `remembered`, for a player who `casts`, with magic to cast with:
+/// the list never read, for one who casts; a spell memorised since that the game didn't name;
+/// and the list out of date, when it lists any spell. A list of no spells out of date hides a
+/// spell only as a spell memorised does.
+pub(crate) fn spell_list(remembered: Option<&AccumulatedState>, casts: bool) -> BTreeSet<Gap> {
+    let mut gaps = BTreeSet::new();
+    let unread = Gap::Unread {
+        fact: ScreenFact::SpellList,
+    };
+    let Some(state) = remembered else {
+        if casts {
+            gaps.insert(unread);
+        }
+        return gaps;
+    };
+    if let Some(memorised) = state.spell_memorised {
+        gaps.insert(Gap::SpellMemorised {
+            turn: memorised.turn,
+        });
+    }
+    match &state.spells {
+        Remembered::Missing if casts => {
+            gaps.insert(unread);
+        }
+        Remembered::Stale(read) if !read.value.is_empty() => {
+            gaps.insert(Gap::Stale {
+                fact: ScreenFact::SpellList,
+                turn: read.turn,
+            });
+        }
+        Remembered::Missing | Remembered::Stale(_) | Remembered::Known(_) => {}
+    }
+    gaps
+}
+
+/// The Blind Spot of a player whose god, as `visible` shows them, shifts their skills with
+/// piety without a message, as `bundle` tells: they may differ from what the skills screen
+/// showed.
+pub(crate) fn skills_shifting(visible: &VisibleState, bundle: &Bundle) -> Option<Gap> {
+    match &visible.religion {
+        Some(Religion::God { name, .. })
+            if bundle.character.skills.shifting_gods.contains(name) =>
+        {
+            Some(Gap::SkillsShifting { god: name.clone() })
+        }
+        _ => None,
+    }
+}
+
+/// Whether the player `visible` shows has magic to cast with, so may know spells.
+pub(crate) fn casts(visible: &VisibleState) -> bool {
+    visible.stats.mp_max.is_some_and(|mp| mp > 0)
+}
+
 /// The Gaps in what the Advisor remembers of the game, whatever is in view: each fact the engine
 /// reads off a screen that is unread or out of date, and each Blind Spot, as `visible` shows the
 /// game, judged through `knowledge` for its Crawl Version where it needs it.
@@ -348,13 +402,12 @@ pub(crate) fn of_the_game(
     gaps.extend(ScreenFact::AbilityMenu.gap(&remembered.abilities));
     gaps.extend(ScreenFact::Resistances.gap(&remembered.resistances));
     if let Some(bundle) = knowledge {
-        let mp_max = visible.stats.mp_max.unwrap_or(0);
-        gaps.extend(fight_outcome::spell_gaps(Some(remembered), mp_max, bundle));
-        if let Some(Religion::God { name, .. }) = &visible.religion
-            && bundle.character.skills.shifting_gods.contains(name)
-        {
-            gaps.insert(Gap::SkillsShifting { god: name.clone() });
-        }
+        gaps.extend(fight_outcome::spell_gaps(
+            Some(remembered),
+            casts(visible),
+            bundle,
+        ));
+        gaps.extend(skills_shifting(visible, bundle));
     }
     gaps
 }
@@ -369,17 +422,17 @@ pub(crate) fn list(gaps: &BTreeSet<Gap>, watching: bool) -> GapList {
             rows.push(row);
         }
     }
-    let in_dump: BTreeSet<ScreenFact> = gaps
-        .iter()
-        .filter_map(Gap::screen_fact)
-        .filter(|screen_fact| screen_fact.in_dump().is_some())
-        .collect();
+    // A player watching can't open the dump.
+    let in_dump: BTreeSet<ScreenFact> = if watching {
+        BTreeSet::new()
+    } else {
+        gaps.iter().filter_map(Gap::screen_fact).collect()
+    };
     GapList {
         gaps: rows,
         dump_fills: in_dump
             .into_iter()
             .filter_map(ScreenFact::in_dump)
-            .filter(|_| !watching)
             .map(str::to_owned)
             .collect(),
     }
