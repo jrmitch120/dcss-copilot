@@ -87,7 +87,7 @@ How current a fact the Advisor remembers is. It is Known once read from the game
 _Avoid_: Fresh, expired, cached
 
 **Screen Fact**:
-A fact about the character the Advisor reads off a screen the player opens, such as their skills off the skills screen, their spells off the spell list or their resistances off the character overview. A Gap in one is filled by opening its screen; the Gap Prompt asks for Screen Facts.
+A fact about the character the Advisor reads off a screen the player opens: their skills off the skills screen, their spells, and their power and range, off the spell list, their abilities off the ability menu, their mutations off the mutations screen, and their resistances and what they have equipped off the character overview. A Gap in one is unread or Stale, and filled by opening its screen; the Gap Prompt asks for Screen Facts.
 _Avoid_: Screen data, fillable
 
 **Blind Spot**:
@@ -145,7 +145,7 @@ The player's AC, EV and SH as the game shows them: whole points. Crawl keeps eac
 _Avoid_: True AC, real defences
 
 **Resistances**:
-The player's resistances to fire, cold, negative energy, poison, electricity and corrosion, as the character overview (`%`) or dump last showed them, temporary ones included. The Threat Level cuts or raises the damage it plays by them, Known or Stale, and takes the player to resist nothing until they are read.
+The player's resistances to fire, cold, negative energy, poison, electricity and corrosion, as the character overview (`%`) or dump last showed them, temporary ones included. The Threat Level cuts or raises the damage it plays by them, Known or Stale, and takes the player to resist nothing until they are read rather than judge no Threat Level at all: a Gap it names, and marks on the numbers it judged so, wherever such damage counts.
 _Avoid_: Resists, rFire etc. as a name for all of them
 
 **Holiness**:
