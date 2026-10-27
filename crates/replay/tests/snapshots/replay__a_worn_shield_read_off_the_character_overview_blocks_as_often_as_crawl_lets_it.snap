@@ -185,10 +185,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -200,10 +202,11 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -211,16 +214,19 @@ expression: by_turn
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }
@@ -379,10 +385,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -394,10 +402,11 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -405,16 +414,19 @@ expression: by_turn
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }
@@ -574,10 +586,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -589,10 +603,11 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -600,16 +615,19 @@ expression: by_turn
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }

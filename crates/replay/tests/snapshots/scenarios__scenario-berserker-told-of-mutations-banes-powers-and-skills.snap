@@ -108,7 +108,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "staleAbilityMenu",
+            "gap": "stale",
+            "fact": "abilityMenu",
             "turn": 0
           }
         ],
@@ -127,7 +128,8 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "staleAbilityMenu",
+          "gap": "stale",
+          "fact": "abilityMenu",
           "turn": 0
         }
       ]

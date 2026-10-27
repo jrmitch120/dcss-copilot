@@ -143,10 +143,12 @@ expression: fact_sheets_by_turn(JACKALS)
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -158,10 +160,11 @@ expression: fact_sheets_by_turn(JACKALS)
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -169,16 +172,19 @@ expression: fact_sheets_by_turn(JACKALS)
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }
@@ -297,10 +303,12 @@ expression: fact_sheets_by_turn(JACKALS)
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -312,10 +320,11 @@ expression: fact_sheets_by_turn(JACKALS)
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -323,16 +332,19 @@ expression: fact_sheets_by_turn(JACKALS)
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }
@@ -451,10 +463,12 @@ expression: fact_sheets_by_turn(JACKALS)
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -466,10 +480,11 @@ expression: fact_sheets_by_turn(JACKALS)
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -477,16 +492,19 @@ expression: fact_sheets_by_turn(JACKALS)
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
-        },
-        {
-          "gap": "spellList"
-        },
-        {
-          "gap": "skills"
-        },
-        {
           "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     }

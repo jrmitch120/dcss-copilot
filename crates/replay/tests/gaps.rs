@@ -81,10 +81,18 @@ fn the_fact_sheet_lists_the_gaps_that_affected_the_moment() {
     assert_eq!(
         replayer.advisor().fact_sheet().gaps,
         [
-            Gap::AbilityMenu,
-            Gap::SpellList,
-            Gap::Skills,
-            Gap::Resistances
+            Gap::Unread {
+                fact: ScreenFact::Skills
+            },
+            Gap::Unread {
+                fact: ScreenFact::SpellList
+            },
+            Gap::Unread {
+                fact: ScreenFact::AbilityMenu
+            },
+            Gap::Unread {
+                fact: ScreenFact::Resistances
+            }
         ]
     );
 }
@@ -171,17 +179,17 @@ fn the_gaps_chip_lists_each_gap_why_it_matters_and_its_key() {
     assert_eq!(
         chip.gaps,
         [
-            row(
-                "Ability menu",
-                "Your abilities aren't counted among your Ways Out.",
-                &["a"]
-            ),
+            row("Skills", "No fight can be judged without them.", &["m"]),
             row(
                 "Spell list",
                 "Your spells aren't counted among your Ways Out or attacks.",
                 &["I"]
             ),
-            row("Skills", "No fight can be judged without them.", &["m"]),
+            row(
+                "Ability menu",
+                "Your abilities aren't counted among your Ways Out.",
+                &["a"]
+            ),
             row(
                 "Resistances",
                 "Monsters' fire, cold, poison and the like are played as if you resist none.",
@@ -199,11 +207,9 @@ fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
     // changes: the character overview is unread all the same.
     let replayer = replayed(CONJURER);
     assert!(
-        !replayer
-            .advisor()
-            .fact_sheet()
-            .gaps
-            .contains(&Gap::Resistances)
+        !replayer.advisor().fact_sheet().gaps.contains(&Gap::Unread {
+            fact: ScreenFact::Resistances
+        })
     );
     let chip = replayer.view_model().game.unwrap().gaps;
 

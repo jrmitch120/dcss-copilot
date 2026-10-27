@@ -453,6 +453,7 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
+    use crate::gaps::ScreenFact;
     use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
     use crate::view_model::{Colour, Glyph, MarkedValue, WayOutRow};
     use crate::visible_state::{
@@ -969,8 +970,14 @@ mod tests {
         assert_eq!(
             gaps(&remembered, &levelled),
             [
-                Gap::StaleSpellList { turn: Some(1) },
-                Gap::StaleAbilityMenu { turn: visible.turn },
+                Gap::Stale {
+                    fact: ScreenFact::SpellList,
+                    turn: Some(1)
+                },
+                Gap::Stale {
+                    fact: ScreenFact::AbilityMenu,
+                    turn: visible.turn
+                },
             ]
         );
     }

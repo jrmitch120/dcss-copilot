@@ -166,7 +166,8 @@ expression: threats
       ],
       "gaps": [
         {
-          "gap": "resistances"
+          "gap": "unread",
+          "fact": "resistances"
         }
       ]
     }
@@ -403,7 +404,8 @@ expression: threats
       ],
       "gaps": [
         {
-          "gap": "resistances"
+          "gap": "unread",
+          "fact": "resistances"
         }
       ]
     }
@@ -611,7 +613,8 @@ expression: threats
       ],
       "gaps": [
         {
-          "gap": "resistances"
+          "gap": "unread",
+          "fact": "resistances"
         }
       ]
     }

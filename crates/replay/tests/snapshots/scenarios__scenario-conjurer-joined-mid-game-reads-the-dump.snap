@@ -188,7 +188,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -206,7 +207,8 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     },
@@ -257,18 +259,18 @@ expression: replay
       "gaps": {
         "gaps": [
           {
-            "what": "Ability menu",
-            "why": "Your abilities aren't counted among your Ways Out.",
-            "keys": [
-              "a"
-            ]
-          },
-          {
             "what": "Spell power",
             "why": "Your attack spells aren't played in a fight.",
             "keys": [
               "I",
               "!"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
+            "keys": [
+              "a"
             ]
           }
         ],

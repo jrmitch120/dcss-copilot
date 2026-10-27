@@ -817,7 +817,7 @@ fn threat<'a>(
     // Unread or out of date, for damage they would change.
     let resistances = ScreenFact::Resistances;
     let gaps = if needs.any() {
-        remembered.map_or(Some(resistances.unread()), |state| {
+        remembered.map_or(Some(Gap::Unread { fact: resistances }), |state| {
             resistances.gap(&state.resistances)
         })
     } else {
@@ -1315,10 +1315,18 @@ mod tests {
         let gaps = |name: &str, remembered: Option<&AccumulatedState>| {
             rated(&facing(name, 2), remembered, Some("Human")).gaps
         };
-        assert_eq!(gaps("fire giant", None), [Gap::Resistances]);
+        assert_eq!(
+            gaps("fire giant", None),
+            [Gap::Unread {
+                fact: ScreenFact::Resistances
+            }]
+        );
         assert_eq!(
             gaps("fire giant", Some(&read_with_fire(0, true))),
-            [Gap::StaleResistances { turn: Some(40) }]
+            [Gap::Stale {
+                fact: ScreenFact::Resistances,
+                turn: Some(40)
+            }]
         );
         assert_eq!(gaps("fire giant", Some(&read_with_fire(0, false))), []);
         assert_eq!(gaps("ogre", None), []);

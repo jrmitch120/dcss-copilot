@@ -40,10 +40,10 @@ expression: replay.view_models.last().unwrap().game
   "gaps": {
     "gaps": [
       {
-        "what": "Ability menu",
-        "why": "Your abilities aren't counted among your Ways Out.",
+        "what": "Skills",
+        "why": "No fight can be judged without them.",
         "keys": [
-          "a"
+          "m"
         ]
       },
       {
@@ -54,10 +54,10 @@ expression: replay.view_models.last().unwrap().game
         ]
       },
       {
-        "what": "Skills",
-        "why": "No fight can be judged without them.",
+        "what": "Ability menu",
+        "why": "Your abilities aren't counted among your Ways Out.",
         "keys": [
-          "m"
+          "a"
         ]
       },
       {

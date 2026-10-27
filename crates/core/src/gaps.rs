@@ -32,55 +32,24 @@ pub enum Gap {
         /// The monster, as the game names it.
         monster: String,
     },
-    /// The player hasn't opened the ability menu (`a`), so which of their abilities are Ways Out
-    /// isn't known.
-    AbilityMenu,
-    /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
-    /// how often they fail, isn't known.
-    SpellList,
-    /// The player hasn't opened the skills screen (`m`), so their attacks can't be played out.
-    Skills,
-    /// The player hasn't switched the spell list to its power and range (`I`, then `!`), so their
-    /// attack spells can't be played out.
-    SpellPower,
-    /// The player hasn't opened the character overview (`%`), so monsters' damage that their
-    /// resistances would change is played as if they resist nothing.
-    Resistances,
     /// The game hasn't sent the inventory.
     Inventory,
     /// The game hasn't said what the player holds.
     Wielded,
     /// The player's Strength, Dexterity or magic points haven't been reported.
     Attributes,
-    /// The skills were read on `turn`, and something seen since may have changed them: they
-    /// are played all the same.
-    StaleSkills {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
+    /// The player hasn't opened the screen that shows `fact`, so what depends on it isn't
+    /// judged, or is judged as [`ScreenFact`] says for each.
+    Unread {
+        /// What isn't read.
+        fact: ScreenFact,
     },
-    /// The spell list was read on `turn`, and something seen since may have changed which
-    /// spells the player knows or how often they fail: it is played all the same.
-    StaleSpellList {
+    /// `fact` was read on `turn`, and something seen since may have changed it: it is used all
+    /// the same.
+    Stale {
+        /// What is out of date.
+        fact: ScreenFact,
         /// The game's turn when it was read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The spells' power and range were read on `turn`, and something seen since may have
-    /// changed them: they are played all the same.
-    StaleSpellPower {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The ability menu was read on `turn`, and something seen since may have changed which
-    /// abilities the player has, what they cost or how often they fail: it is judged all the
-    /// same.
-    StaleAbilityMenu {
-        /// The game's turn when it was read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The resistances were read on `turn`, and something seen since may have changed them:
-    /// they are applied all the same.
-    StaleResistances {
-        /// The game's turn when they were read, if it had reported one.
         turn: Option<u32>,
     },
     /// The player memorised a spell the game's message didn't name, a Blind Spot until the
@@ -103,15 +72,19 @@ pub enum Gap {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ScreenFact {
-    /// The skills, off the skills screen (`m`).
+    /// The skills, off the skills screen (`m`). Unread, no fight can be judged.
     Skills,
-    /// The spells known and their failure rates, off the spell list (`I`).
+    /// The spells known and their failure rates, off the spell list (`I`). Unread, the spells
+    /// aren't counted among the Ways Out or the Attack Plans.
     SpellList,
-    /// The spells' power and range, off the spell list switched to them (`I`, then `!`).
+    /// The spells' power and range, off the spell list switched to them (`I`, then `!`). Unread,
+    /// the attack spells aren't played in a fight.
     SpellPower,
-    /// The abilities and their failure rates, off the ability menu (`a`).
+    /// The abilities and their failure rates, off the ability menu (`a`). Unread, the abilities
+    /// aren't counted among the Ways Out.
     AbilityMenu,
-    /// The resistances, off the character overview (`%`).
+    /// The resistances, off the character overview (`%`). Unread, monsters' damage they would
+    /// change is played as if the player resists nothing.
     Resistances,
 }
 
@@ -127,20 +100,41 @@ impl ScreenFact {
         }
     }
 
-    /// The screen showing it, as a sentence names it, such as `the spell list`.
-    fn screen(self) -> &'static str {
+    /// Its name, as a line of the panel starts, such as `Spell list`.
+    fn name(self) -> &'static str {
         match self {
-            Self::Skills => "the skills screen",
-            Self::SpellList | Self::SpellPower => "the spell list",
-            Self::AbilityMenu => "the ability menu",
-            Self::Resistances => "the character overview",
+            Self::Skills => "Skills",
+            Self::SpellList => "Spell list",
+            Self::SpellPower => "Spell power",
+            Self::AbilityMenu => "Ability menu",
+            Self::Resistances => "Resistances",
+        }
+    }
+
+    /// The word a sentence goes on to name it by.
+    fn pronoun(self) -> &'static str {
+        match self {
+            Self::Skills | Self::Resistances => "them",
+            Self::SpellList | Self::SpellPower | Self::AbilityMenu => "it",
+        }
+    }
+
+    /// The screen showing it, as a sentence names it, such as `the spell list`, and whether its
+    /// name names that screen already.
+    fn screen(self) -> (&'static str, bool) {
+        match self {
+            Self::Skills => ("the skills screen", false),
+            Self::SpellList => ("the spell list", true),
+            Self::SpellPower => ("the spell list", false),
+            Self::AbilityMenu => ("the ability menu", true),
+            Self::Resistances => ("the character overview", false),
         }
     }
 
     /// How to open the screen showing it, as a sentence goes on, such as `open the spell list (I)
     /// and press !`, or, when the sentence has named the screen already, `open it (I)`.
-    pub(crate) fn opening(self, named: bool) -> String {
-        let screen = if named { "it" } else { self.screen() };
+    pub(crate) fn how_to_open(self, named: bool) -> String {
+        let screen = if named { "it" } else { self.screen().0 };
         match self.keys() {
             [key, then @ ..] => {
                 let then: String = then.iter().map(|key| format!(" and press {key}")).collect();
@@ -150,33 +144,14 @@ impl ScreenFact {
         }
     }
 
-    /// The Gap in it never read.
-    pub(crate) fn unread(self) -> Gap {
-        match self {
-            Self::Skills => Gap::Skills,
-            Self::SpellList => Gap::SpellList,
-            Self::SpellPower => Gap::SpellPower,
-            Self::AbilityMenu => Gap::AbilityMenu,
-            Self::Resistances => Gap::Resistances,
-        }
-    }
-
-    /// The Gap in it read on `turn` and out of date since.
-    pub(crate) fn stale(self, turn: Option<u32>) -> Gap {
-        match self {
-            Self::Skills => Gap::StaleSkills { turn },
-            Self::SpellList => Gap::StaleSpellList { turn },
-            Self::SpellPower => Gap::StaleSpellPower { turn },
-            Self::AbilityMenu => Gap::StaleAbilityMenu { turn },
-            Self::Resistances => Gap::StaleResistances { turn },
-        }
-    }
-
     /// The Gap in what is `remembered` of it: unread, out of date, or none while it is Known.
     pub(crate) fn gap<T, S>(self, remembered: &Remembered<T, S>) -> Option<Gap> {
         match remembered {
-            Remembered::Missing => Some(self.unread()),
-            Remembered::Stale(read) => Some(self.stale(read.turn)),
+            Remembered::Missing => Some(Gap::Unread { fact: self }),
+            Remembered::Stale(read) => Some(Gap::Stale {
+                fact: self,
+                turn: read.turn,
+            }),
             Remembered::Known(_) => None,
         }
     }
@@ -190,19 +165,56 @@ impl ScreenFact {
             Self::SpellPower | Self::AbilityMenu => None,
         }
     }
+
+    /// Why it matters while unread, in one sentence.
+    fn why_unread(self) -> &'static str {
+        match self {
+            Self::Skills => "No fight can be judged without them.",
+            Self::SpellList => "Your spells aren't counted among your Ways Out or attacks.",
+            Self::SpellPower => "Your attack spells aren't played in a fight.",
+            Self::AbilityMenu => "Your abilities aren't counted among your Ways Out.",
+            Self::Resistances => {
+                "Monsters' fire, cold, poison and the like are played as if you resist none."
+            }
+        }
+    }
+
+    /// Why it matters while out of date, in one sentence.
+    fn why_stale(self) -> &'static str {
+        match self {
+            Self::Skills => "Fights are played with them as they were.",
+            Self::SpellList => {
+                "A spell learned since isn't counted, and failure rates may have changed."
+            }
+            Self::SpellPower => "Fights play it as it was.",
+            Self::AbilityMenu => {
+                "An ability gained since isn't counted, and failure rates may have changed."
+            }
+            Self::Resistances => "Monsters' damage is played with them as they were.",
+        }
+    }
+
+    /// What reading it lets the Advisor do, as a sentence that says to open its screen ends,
+    /// such as `to judge your spells.`
+    fn to_judge(self) -> &'static str {
+        match self {
+            Self::Skills => "to judge your attacks.",
+            Self::SpellList => "to judge your spells.",
+            Self::SpellPower => "to judge your spells' power.",
+            Self::AbilityMenu => "to judge your abilities.",
+            Self::Resistances => {
+                "to read your resistances: until then you're taken to resist nothing."
+            }
+        }
+    }
 }
 
 impl Gap {
     /// The Screen Fact it is about, if a screen the player can open fills it.
     pub(crate) fn screen_fact(&self) -> Option<ScreenFact> {
         match self {
-            Self::Skills | Self::StaleSkills { .. } => Some(ScreenFact::Skills),
-            Self::SpellList | Self::StaleSpellList { .. } | Self::SpellMemorised { .. } => {
-                Some(ScreenFact::SpellList)
-            }
-            Self::SpellPower | Self::StaleSpellPower { .. } => Some(ScreenFact::SpellPower),
-            Self::AbilityMenu | Self::StaleAbilityMenu { .. } => Some(ScreenFact::AbilityMenu),
-            Self::Resistances | Self::StaleResistances { .. } => Some(ScreenFact::Resistances),
+            Self::Unread { fact } | Self::Stale { fact, .. } => Some(*fact),
+            Self::SpellMemorised { .. } => Some(ScreenFact::SpellList),
             Self::HitPoints
             | Self::Defences
             | Self::MonstersInView
@@ -217,8 +229,7 @@ impl Gap {
         }
     }
 
-    /// What is missing or out of date, as the Gaps chip names it, such as `~Skills as of turn
-    /// 12`.
+    /// What is missing or out of date, as the panel names it, such as `~Skills as of turn 12`.
     fn what(&self) -> String {
         match self {
             Self::HitPoints | Self::Defences | Self::Attributes => "Stats".to_owned(),
@@ -226,17 +237,10 @@ impl Gap {
             Self::Position => "Where you stand".to_owned(),
             Self::GameKnowledge => "Game Knowledge".to_owned(),
             Self::MonsterKnowledge { monster } => capitalised(monster),
-            Self::AbilityMenu => "Ability menu".to_owned(),
-            Self::SpellList => "Spell list".to_owned(),
-            Self::Skills | Self::SkillsShifting { .. } => "Skills".to_owned(),
-            Self::SpellPower => "Spell power".to_owned(),
-            Self::Resistances => "Resistances".to_owned(),
             Self::Inventory | Self::Wielded => "Inventory".to_owned(),
-            Self::StaleSkills { turn } => out_of_date("Skills", *turn),
-            Self::StaleSpellList { turn } => out_of_date("Spell list", *turn),
-            Self::StaleSpellPower { turn } => out_of_date("Spell power", *turn),
-            Self::StaleAbilityMenu { turn } => out_of_date("Ability menu", *turn),
-            Self::StaleResistances { turn } => out_of_date("Resistances", *turn),
+            Self::Unread { fact } => fact.name().to_owned(),
+            Self::Stale { fact, turn } => out_of_date(fact.name(), *turn),
+            Self::SkillsShifting { .. } => ScreenFact::Skills.name().to_owned(),
             Self::SpellMemorised { turn: Some(turn) } => {
                 format!("A spell memorised on turn {turn}")
             }
@@ -260,29 +264,8 @@ impl Gap {
             Self::MonsterKnowledge { .. } => {
                 "It isn't in the Game Knowledge for this version, so it isn't counted.".to_owned()
             }
-            Self::AbilityMenu => "Your abilities aren't counted among your Ways Out.".to_owned(),
-            Self::SpellList => {
-                "Your spells aren't counted among your Ways Out or attacks.".to_owned()
-            }
-            Self::Skills => "No fight can be judged without them.".to_owned(),
-            Self::SpellPower => "Your attack spells aren't played in a fight.".to_owned(),
-            Self::Resistances => {
-                "Monsters' fire, cold, poison and the like are played as if you resist none."
-                    .to_owned()
-            }
-            Self::StaleSkills { .. } => "Fights are played with them as they were.".to_owned(),
-            Self::StaleSpellList { .. } => {
-                "A spell learned since isn't counted, and failure rates may have changed."
-                    .to_owned()
-            }
-            Self::StaleSpellPower { .. } => "Fights play it as it was.".to_owned(),
-            Self::StaleAbilityMenu { .. } => {
-                "An ability gained since isn't counted, and failure rates may have changed."
-                    .to_owned()
-            }
-            Self::StaleResistances { .. } => {
-                "Monsters' damage is played with them as they were.".to_owned()
-            }
+            Self::Unread { fact } => fact.why_unread().to_owned(),
+            Self::Stale { fact, .. } => fact.why_stale().to_owned(),
             Self::SpellMemorised { .. } => {
                 "The game didn't name it, so it isn't counted.".to_owned()
             }
@@ -294,15 +277,11 @@ impl Gap {
         }
     }
 
-    /// Its row in the Gaps chip, with the keys that fill it unless the player is watching a game
-    /// not theirs, whose screens they can't open.
+    /// Its row in the panel's list, with the keys that fill it unless the player is watching a
+    /// game not theirs, whose screens they can't open.
     fn row(&self, watching: bool) -> GapRow {
         let keys = match self.screen_fact() {
-            Some(screen_fact) if !watching => screen_fact
-                .keys()
-                .iter()
-                .map(|&key| key.to_owned())
-                .collect(),
+            Some(fact) if !watching => fact.keys().iter().map(|&key| key.to_owned()).collect(),
             _ => Vec::new(),
         };
         GapRow {
@@ -328,46 +307,20 @@ impl Gap {
                 "{} isn't in the Game Knowledge, so it isn't counted.",
                 capitalised(monster)
             ),
-            Self::AbilityMenu => opening(ScreenFact::AbilityMenu, "to judge your abilities."),
-            Self::SpellList => opening(ScreenFact::SpellList, "to judge your spells."),
-            Self::Skills => opening(ScreenFact::Skills, "to judge your attacks."),
-            Self::SpellPower => opening(ScreenFact::SpellPower, "to judge your spells' power."),
-            Self::Resistances => opening(
-                ScreenFact::Resistances,
-                "to read your resistances: until then you're taken to resist nothing.",
-            ),
             Self::Inventory | Self::Wielded => {
                 "The game hasn't sent your inventory yet.".to_owned()
             }
-            Self::StaleSkills { turn } => format!(
-                "{}: {} to bring them up to date.",
-                out_of_date("Skills", *turn),
-                ScreenFact::Skills.opening(false)
-            ),
-            Self::StaleSpellList { turn } => format!(
-                "{}: {} to bring it up to date.",
-                out_of_date("Spell list", *turn),
-                ScreenFact::SpellList.opening(true)
-            ),
-            Self::StaleSpellPower { turn } => format!(
-                "{}: {} to bring it up to date.",
-                out_of_date("Spell power", *turn),
-                ScreenFact::SpellPower.opening(false)
-            ),
-            Self::StaleAbilityMenu { turn } => format!(
-                "{}: {} to bring it up to date.",
-                out_of_date("Ability menu", *turn),
-                ScreenFact::AbilityMenu.opening(true)
-            ),
-            Self::StaleResistances { turn } => format!(
-                "{}: {} to bring them up to date.",
-                out_of_date("Resistances", *turn),
-                ScreenFact::Resistances.opening(false)
+            Self::Unread { fact } => open_to(*fact, fact.to_judge()),
+            Self::Stale { fact, turn } => format!(
+                "{}: {} to bring {} up to date.",
+                out_of_date(fact.name(), *turn),
+                fact.how_to_open(fact.screen().1),
+                fact.pronoun()
             ),
             Self::SpellMemorised { turn } => format!(
                 "{}: {} to judge it.",
                 memorised_unnamed(*turn),
-                ScreenFact::SpellList.opening(false)
+                ScreenFact::SpellList.how_to_open(false)
             ),
             Self::SkillsShifting { god } => format!(
                 "Your skills may differ from the skills screen's: {god} shifts them with your piety."
@@ -378,8 +331,8 @@ impl Gap {
 
 /// A sentence saying to open the screen showing `fact`, `to` do what, such as `Open the skills
 /// screen (m) to judge a fight.`
-pub(crate) fn opening(fact: ScreenFact, to: &str) -> String {
-    format!("{} {to}", capitalised(&fact.opening(false)))
+pub(crate) fn open_to(fact: ScreenFact, to: &str) -> String {
+    format!("{} {to}", capitalised(&fact.how_to_open(false)))
 }
 
 /// The Gaps in what the Advisor remembers of the game, whatever is in view: each fact the engine

@@ -271,7 +271,8 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
             }
           ],
           "notModelled": [
@@ -286,7 +287,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -294,10 +296,12 @@ expression: replay
         "dangerousStatuses": [],
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "skills"
           },
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ]
       },
@@ -383,17 +387,17 @@ expression: replay
         "gaps": {
           "gaps": [
             {
-              "what": "Ability menu",
-              "why": "Your abilities aren't counted among your Ways Out.",
-              "keys": [
-                "a"
-              ]
-            },
-            {
               "what": "Skills",
               "why": "No fight can be judged without them.",
               "keys": [
                 "m"
+              ]
+            },
+            {
+              "what": "Ability menu",
+              "why": "Your abilities aren't counted among your Ways Out.",
+              "keys": [
+                "a"
               ]
             },
             {
@@ -677,7 +681,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -692,7 +697,8 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -700,10 +706,12 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
+          "gap": "unread",
+          "fact": "skills"
         },
         {
-          "gap": "skills"
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     },
@@ -789,17 +797,17 @@ expression: replay
       "gaps": {
         "gaps": [
           {
-            "what": "Ability menu",
-            "why": "Your abilities aren't counted among your Ways Out.",
-            "keys": [
-              "a"
-            ]
-          },
-          {
             "what": "Skills",
             "why": "No fight can be judged without them.",
             "keys": [
               "m"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
+            "keys": [
+              "a"
             ]
           },
           {

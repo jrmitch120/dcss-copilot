@@ -169,7 +169,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -207,7 +208,8 @@ expression: replay
         ],
         "gaps": [
           {
-            "gap": "staleSpellPower",
+            "gap": "stale",
+            "fact": "spellPower",
             "turn": 0
           },
           {
@@ -232,10 +234,12 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
+          "gap": "unread",
+          "fact": "abilityMenu"
         },
         {
-          "gap": "staleSpellPower",
+          "gap": "stale",
+          "fact": "spellPower",
           "turn": 0
         },
         {

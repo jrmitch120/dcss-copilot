@@ -60,7 +60,7 @@ impl Fight {
     /// `text`, said of this fight, marked with the Gaps that keep it from being judged or may
     /// hide a better plan, as its card words them.
     pub(crate) fn marked(&self, text: String) -> MarkedValue {
-        MarkedValue::marked(text, self.gaps().iter().map(gap))
+        MarkedValue::marked(text, self.gaps().iter().map(fight_gap))
     }
 
     /// The best plan's outcome, when the fight was judged.
@@ -386,7 +386,10 @@ fn skills_out_of_date(
 ) -> BTreeSet<Gap> {
     let mut gaps = BTreeSet::new();
     if let Some(Remembered::Stale(read)) = remembered.map(|state| &state.skills) {
-        gaps.insert(ScreenFact::Skills.stale(read.turn));
+        gaps.insert(Gap::Stale {
+            fact: ScreenFact::Skills,
+            turn: read.turn,
+        });
     }
     if let Some(Religion::God { name, .. }) = &visible.religion
         && bundle.character.skills.shifting_gods.contains(name)
@@ -425,7 +428,9 @@ impl<'v> Player<'v> {
         }
         let skills = remembered.and_then(|state| state.skills.read_value());
         if skills.is_none() {
-            gaps.insert(ScreenFact::Skills.unread());
+            gaps.insert(Gap::Unread {
+                fact: ScreenFact::Skills,
+            });
         }
         if visible.inventory.is_none() {
             gaps.insert(Gap::Inventory);
@@ -713,7 +718,9 @@ pub(crate) fn spell_gaps(
     ) else {
         // Only a player with magic to cast with may know an attack spell.
         if mp_max > 0 {
-            gaps.insert(ScreenFact::SpellList.unread());
+            gaps.insert(Gap::Unread {
+                fact: ScreenFact::SpellList,
+            });
         }
         return gaps;
     };
@@ -725,10 +732,16 @@ pub(crate) fn spell_gaps(
     // A list of no spells out of date hides an attack only as a spell memorised does.
     if !known.is_empty() {
         if let Remembered::Stale(read) = &state.spells {
-            gaps.insert(ScreenFact::SpellList.stale(read.turn));
+            gaps.insert(Gap::Stale {
+                fact: ScreenFact::SpellList,
+                turn: read.turn,
+            });
         }
         if let Remembered::Stale(read) = &state.spell_reaches {
-            gaps.insert(ScreenFact::SpellPower.stale(read.turn));
+            gaps.insert(Gap::Stale {
+                fact: ScreenFact::SpellPower,
+                turn: read.turn,
+            });
         }
     }
     let reaches = state.spell_reaches.read_value();
@@ -739,7 +752,9 @@ pub(crate) fn spell_gaps(
         .iter()
         .any(|spell| attack_zap(spell, bundle).is_some() && unreached(spell))
     {
-        gaps.insert(ScreenFact::SpellPower.unread());
+        gaps.insert(Gap::Unread {
+            fact: ScreenFact::SpellPower,
+        });
     }
     gaps
 }
@@ -770,7 +785,7 @@ impl Fight {
             line: self.marked(line),
             others,
             not_modelled,
-            gaps: self.gaps().iter().map(gap).collect(),
+            gaps: self.gaps().iter().map(fight_gap).collect(),
         };
         match self {
             Self::NoFight => None,
@@ -814,7 +829,11 @@ impl Fight {
 fn fight_input(gap: &Gap) -> bool {
     matches!(
         gap,
-        Gap::Skills | Gap::SpellPower | Gap::Inventory | Gap::Wielded | Gap::Attributes
+        Gap::Unread {
+            fact: ScreenFact::Skills | ScreenFact::SpellPower
+        } | Gap::Inventory
+            | Gap::Wielded
+            | Gap::Attributes
     )
 }
 
@@ -880,11 +899,14 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
 }
 
 /// What a Gap keeps the Advisor from judging of a fight, and how to fill it where the player can.
-fn gap(gap: &Gap) -> String {
+fn fight_gap(gap: &Gap) -> String {
     match gap {
-        Gap::Skills => gaps::opening(ScreenFact::Skills, "to judge a fight."),
-        Gap::SpellList => gaps::opening(ScreenFact::SpellList, "to count your attack spells."),
-        Gap::SpellPower => gaps::opening(ScreenFact::SpellPower, "to count your attack spells."),
+        Gap::Unread {
+            fact: fact @ ScreenFact::Skills,
+        } => gaps::open_to(*fact, "to judge a fight."),
+        Gap::Unread {
+            fact: fact @ (ScreenFact::SpellList | ScreenFact::SpellPower),
+        } => gaps::open_to(*fact, "to count your attack spells."),
         Gap::Map | Gap::MonstersInView | Gap::Position => {
             "The game hasn't sent its map yet.".to_owned()
         }
@@ -895,21 +917,18 @@ fn gap(gap: &Gap) -> String {
         Gap::SpellMemorised { turn } => format!(
             "{}: {} to count it.",
             memorised_unnamed(*turn),
-            ScreenFact::SpellList.opening(false)
+            ScreenFact::SpellList.how_to_open(false)
         ),
         Gap::HitPoints
         | Gap::Defences
         | Gap::GameKnowledge
-        | Gap::AbilityMenu
-        | Gap::Resistances
+        | Gap::Unread {
+            fact: ScreenFact::AbilityMenu | ScreenFact::Resistances,
+        }
         | Gap::Inventory
         | Gap::Wielded
         | Gap::Attributes
-        | Gap::StaleSkills { .. }
-        | Gap::StaleSpellList { .. }
-        | Gap::StaleSpellPower { .. }
-        | Gap::StaleAbilityMenu { .. }
-        | Gap::StaleResistances { .. }
+        | Gap::Stale { .. }
         | Gap::SkillsShifting { .. } => gap.sentence(),
     }
 }
@@ -1229,7 +1248,9 @@ mod tests {
         assert_eq!(
             sheet.fight,
             Fight::Unjudged {
-                gaps: vec![Gap::Skills]
+                gaps: vec![Gap::Unread {
+                    fact: ScreenFact::Skills
+                }]
             }
         );
     }
@@ -1241,12 +1262,19 @@ mod tests {
         unread.spells = None;
         assert_eq!(
             judged(&unread.against(&[("jackal", 2)])).gaps,
-            [Gap::SpellList]
+            [Gap::Unread {
+                fact: ScreenFact::SpellList
+            }]
         );
         let mut powerless = fighter().casting(10, &[("Magic Dart", 0, 1)], &[]);
         powerless.powers = None;
         let sheet = powerless.against(&[("jackal", 2)]);
-        assert_eq!(judged(&sheet).gaps, [Gap::SpellPower]);
+        assert_eq!(
+            judged(&sheet).gaps,
+            [Gap::Unread {
+                fact: ScreenFact::SpellPower
+            }]
+        );
         assert!(
             judged(&sheet)
                 .plans

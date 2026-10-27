@@ -158,7 +158,8 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
             }
           ],
           "notModelled": [
@@ -231,7 +232,8 @@ expression: replay
         "dangerousStatuses": [],
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ]
       },
@@ -507,7 +509,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -580,7 +583,8 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     },

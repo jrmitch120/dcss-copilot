@@ -105,10 +105,12 @@ expression: replayer.advisor().fact_sheet()
     },
     "gaps": [
       {
-        "gap": "abilityMenu"
+        "gap": "unread",
+        "fact": "spellList"
       },
       {
-        "gap": "spellList"
+        "gap": "unread",
+        "fact": "abilityMenu"
       }
     ],
     "notModelled": [
@@ -123,7 +125,8 @@ expression: replayer.advisor().fact_sheet()
     "state": "unjudged",
     "gaps": [
       {
-        "gap": "skills"
+        "gap": "unread",
+        "fact": "skills"
       }
     ]
   },
@@ -131,13 +134,16 @@ expression: replayer.advisor().fact_sheet()
   "dangerousStatuses": [],
   "gaps": [
     {
-      "gap": "abilityMenu"
+      "gap": "unread",
+      "fact": "skills"
     },
     {
-      "gap": "spellList"
+      "gap": "unread",
+      "fact": "spellList"
     },
     {
-      "gap": "skills"
+      "gap": "unread",
+      "fact": "abilityMenu"
     }
   ]
 }

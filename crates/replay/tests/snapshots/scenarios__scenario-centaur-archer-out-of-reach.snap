@@ -160,10 +160,12 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "spellList"
             },
             {
-              "gap": "spellList"
+              "gap": "unread",
+              "fact": "abilityMenu"
             }
           ],
           "notModelled": [
@@ -178,7 +180,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -200,13 +203,16 @@ expression: replay
         "dangerousStatuses": [],
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "skills"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ]
       },
@@ -286,8 +292,8 @@ expression: replay
           ],
           "ground": "On open ground: 3 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities.",
-            "Open the spell list (I) to judge your spells."
+            "Open the spell list (I) to judge your spells.",
+            "Open the ability menu (a) to judge your abilities."
           ]
         },
         "runPlan": {
@@ -306,10 +312,10 @@ expression: replay
         "gaps": {
           "gaps": [
             {
-              "what": "Ability menu",
-              "why": "Your abilities aren't counted among your Ways Out.",
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
               "keys": [
-                "a"
+                "m"
               ]
             },
             {
@@ -320,10 +326,10 @@ expression: replay
               ]
             },
             {
-              "what": "Skills",
-              "why": "No fight can be judged without them.",
+              "what": "Ability menu",
+              "why": "Your abilities aren't counted among your Ways Out.",
               "keys": [
-                "m"
+                "a"
               ]
             },
             {
@@ -488,10 +494,12 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "spellList"
             },
             {
-              "gap": "spellList"
+              "gap": "unread",
+              "fact": "abilityMenu"
             }
           ],
           "notModelled": [
@@ -506,7 +514,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -528,13 +537,16 @@ expression: replay
         "dangerousStatuses": [],
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "skills"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ]
       },
@@ -614,8 +626,8 @@ expression: replay
           ],
           "ground": "On open ground: 3 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities.",
-            "Open the spell list (I) to judge your spells."
+            "Open the spell list (I) to judge your spells.",
+            "Open the ability menu (a) to judge your abilities."
           ]
         },
         "runPlan": {
@@ -634,10 +646,10 @@ expression: replay
         "gaps": {
           "gaps": [
             {
-              "what": "Ability menu",
-              "why": "Your abilities aren't counted among your Ways Out.",
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
               "keys": [
-                "a"
+                "m"
               ]
             },
             {
@@ -648,10 +660,10 @@ expression: replay
               ]
             },
             {
-              "what": "Skills",
-              "why": "No fight can be judged without them.",
+              "what": "Ability menu",
+              "why": "Your abilities aren't counted among your Ways Out.",
               "keys": [
-                "m"
+                "a"
               ]
             },
             {
@@ -841,10 +853,12 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -859,7 +873,8 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -881,13 +896,16 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "abilityMenu"
+          "gap": "unread",
+          "fact": "skills"
         },
         {
-          "gap": "spellList"
+          "gap": "unread",
+          "fact": "spellList"
         },
         {
-          "gap": "skills"
+          "gap": "unread",
+          "fact": "abilityMenu"
         }
       ]
     },
@@ -967,8 +985,8 @@ expression: replay
         ],
         "ground": "On open ground: 3 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities.",
-          "Open the spell list (I) to judge your spells."
+          "Open the spell list (I) to judge your spells.",
+          "Open the ability menu (a) to judge your abilities."
         ]
       },
       "runPlan": {
@@ -987,10 +1005,10 @@ expression: replay
       "gaps": {
         "gaps": [
           {
-            "what": "Ability menu",
-            "why": "Your abilities aren't counted among your Ways Out.",
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
             "keys": [
-              "a"
+              "m"
             ]
           },
           {
@@ -1001,10 +1019,10 @@ expression: replay
             ]
           },
           {
-            "what": "Skills",
-            "why": "No fight can be judged without them.",
+            "what": "Ability menu",
+            "why": "Your abilities aren't counted among your Ways Out.",
             "keys": [
-              "m"
+              "a"
             ]
           },
           {

@@ -238,7 +238,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -246,7 +247,8 @@ expression: replay
         "dangerousStatuses": [],
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -648,7 +650,8 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -656,7 +659,8 @@ expression: replay
       "dangerousStatuses": [],
       "gaps": [
         {
-          "gap": "skills"
+          "gap": "unread",
+          "fact": "skills"
         }
       ]
     },

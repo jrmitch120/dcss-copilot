@@ -35,7 +35,7 @@ impl WaysOut {
         WaysOutList {
             rows: stairs.chain(carried).map(row).collect(),
             ground: self.ground.as_ref().map(ground),
-            gaps: self.gaps.iter().map(gap).collect(),
+            gaps: self.gaps.iter().map(ways_out_gap).collect(),
         }
     }
 }
@@ -60,12 +60,14 @@ impl Escape {
     /// date.
     fn gap(&self) -> Option<Gap> {
         match self {
-            Escape::Ability { read, .. } if read.stale => {
-                Some(ScreenFact::AbilityMenu.stale(read.turn))
-            }
-            Escape::Spell { read, .. } if read.stale => {
-                Some(ScreenFact::SpellList.stale(read.turn))
-            }
+            Escape::Ability { read, .. } if read.stale => Some(Gap::Stale {
+                fact: ScreenFact::AbilityMenu,
+                turn: read.turn,
+            }),
+            Escape::Spell { read, .. } if read.stale => Some(Gap::Stale {
+                fact: ScreenFact::SpellList,
+                turn: read.turn,
+            }),
             Escape::Stairs { .. }
             | Escape::Item { .. }
             | Escape::Ability { .. }
@@ -262,7 +264,7 @@ fn ground(ground: &Ground) -> String {
 
 /// What a Gap keeps the Advisor from judging of the Ways Out, and how to fill it where the
 /// player can.
-fn gap(gap: &Gap) -> String {
+fn ways_out_gap(gap: &Gap) -> String {
     match gap {
         Gap::Map | Gap::MonstersInView => {
             "The stairs can't be judged until the game sends its map.".to_owned()
@@ -274,19 +276,11 @@ fn gap(gap: &Gap) -> String {
         | Gap::Defences
         | Gap::GameKnowledge
         | Gap::MonsterKnowledge { .. }
-        | Gap::AbilityMenu
-        | Gap::SpellList
-        | Gap::Skills
-        | Gap::SpellPower
-        | Gap::Resistances
         | Gap::Inventory
         | Gap::Wielded
         | Gap::Attributes
-        | Gap::StaleSkills { .. }
-        | Gap::StaleSpellList { .. }
-        | Gap::StaleSpellPower { .. }
-        | Gap::StaleAbilityMenu { .. }
-        | Gap::StaleResistances { .. }
+        | Gap::Unread { .. }
+        | Gap::Stale { .. }
         | Gap::SpellMemorised { .. }
         | Gap::SkillsShifting { .. } => gap.sentence(),
     }
