@@ -66,6 +66,17 @@ pub enum Gap {
     },
 }
 
+/// Who reads what the panel says of a Gap: the player, who can open the game's screens to fill
+/// it, or a spectator watching someone else's game, who can't, and is told only what is missing
+/// and why it matters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Reader {
+    /// The player of the game.
+    Player,
+    /// A player watching someone else's game.
+    Spectator,
+}
+
 /// A Screen Fact: a fact about the character the Advisor reads off a screen the player opens,
 /// such as their skills, so a Gap in it is filled by opening that screen. The Gap prompt asks for
 /// Screen Facts.
@@ -313,12 +324,11 @@ impl Gap {
         }
     }
 
-    /// Its row in the panel's list, with the keys that fill it unless the player is watching a
-    /// game not theirs, whose screens they can't open.
-    fn row(&self, watching: bool) -> GapRow {
-        let keys = match self.screen_fact() {
-            Some(fact) if !watching => fact.keys().iter().map(|&key| key.to_owned()).collect(),
-            _ => Vec::new(),
+    /// Its row in the panel's list, for `reader`: with the keys that fill it for the player.
+    fn row(&self, reader: Reader) -> GapRow {
+        let keys = match (self.screen_fact(), reader) {
+            (Some(fact), Reader::Player) => fact.keys().iter().map(|&key| key.to_owned()).collect(),
+            (_, Reader::Spectator) | (None, Reader::Player) => Vec::new(),
         };
         GapRow {
             what: self.what(),
@@ -327,9 +337,19 @@ impl Gap {
         }
     }
 
-    /// What it keeps the Advisor from judging, or how out of date it is, and how to fill it where
-    /// the player can, in one sentence.
-    pub(crate) fn sentence(&self) -> String {
+    /// What it keeps the Advisor from judging, or how out of date it is, in one sentence for
+    /// `reader`: for the player, with how to fill it where they can; for a spectator, what is
+    /// missing and why it matters, as its row says it.
+    pub(crate) fn sentence(&self, reader: Reader) -> String {
+        if reader == Reader::Spectator {
+            let why = self.why();
+            // A god's name starts one sentence, and keeps its capital.
+            let why = match self {
+                Self::SkillsShifting { .. } => why,
+                _ => lowered(&why),
+            };
+            return format!("{}: {why}", self.what());
+        }
         match self {
             Self::HitPoints | Self::Defences | Self::Attributes => {
                 "The game hasn't sent your stats yet.".to_owned()
@@ -455,21 +475,20 @@ pub(crate) fn of_the_game(
     gaps
 }
 
-/// The panel's list of `gaps`, without keys to press for a player `watching` a game not
-/// theirs.
-pub(crate) fn list(gaps: &BTreeSet<Gap>, watching: bool) -> GapList {
+/// The panel's list of `gaps`, for `reader`: without keys to press, or the dump, for a
+/// spectator.
+pub(crate) fn list(gaps: &BTreeSet<Gap>, reader: Reader) -> GapList {
     let mut rows: Vec<GapRow> = Vec::new();
     for gap in gaps {
-        let row = gap.row(watching);
+        let row = gap.row(reader);
         if !rows.contains(&row) {
             rows.push(row);
         }
     }
     // A player watching can't open the dump.
-    let in_dump: BTreeSet<ScreenFact> = if watching {
-        BTreeSet::new()
-    } else {
-        gaps.iter().filter_map(Gap::screen_fact).collect()
+    let in_dump: BTreeSet<ScreenFact> = match reader {
+        Reader::Player => gaps.iter().filter_map(Gap::screen_fact).collect(),
+        Reader::Spectator => BTreeSet::new(),
     };
     GapList {
         gaps: rows,
@@ -479,6 +498,14 @@ pub(crate) fn list(gaps: &BTreeSet<Gap>, watching: bool) -> GapList {
             .map(str::to_owned)
             .collect(),
     }
+}
+
+/// `text` with its first letter lower case, as it goes on after a colon.
+fn lowered(text: &str) -> String {
+    let mut chars = text.chars();
+    chars.next().map_or_else(String::new, |first| {
+        first.to_lowercase().chain(chars).collect()
+    })
 }
 
 /// What was read of `what` on `turn` and may have changed since, such as `~Skills as of turn
@@ -496,5 +523,68 @@ pub(crate) fn memorised_unnamed(turn: Option<u32>) -> String {
     match turn {
         Some(turn) => format!("You memorised a spell on turn {turn} that the game didn't name"),
         None => "You memorised a spell that the game didn't name".to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// One Gap of each kind, and one of each Screen Fact unread and Stale.
+    fn every_kind() -> Vec<Gap> {
+        let facts = [
+            ScreenFact::Skills,
+            ScreenFact::SpellList,
+            ScreenFact::SpellPower,
+            ScreenFact::AbilityMenu,
+            ScreenFact::Mutations,
+            ScreenFact::Resistances,
+            ScreenFact::Equipped,
+        ];
+        let mut gaps = vec![
+            Gap::HitPoints,
+            Gap::Defences,
+            Gap::MonstersInView,
+            Gap::Map,
+            Gap::Position,
+            Gap::GameKnowledge,
+            Gap::MonsterKnowledge {
+                monster: "kobold".to_owned(),
+            },
+            Gap::Inventory,
+            Gap::Wielded,
+            Gap::Attributes,
+            Gap::SpellMemorised { turn: Some(5) },
+            Gap::SkillsShifting {
+                god: "Ashenzari".to_owned(),
+            },
+        ];
+        gaps.extend(facts.iter().map(|&fact| Gap::Unread { fact }));
+        gaps.extend(facts.iter().map(|&fact| Gap::Stale {
+            fact,
+            turn: Some(12),
+        }));
+        gaps
+    }
+
+    #[test]
+    fn a_spectator_is_told_what_a_gap_is_and_why_it_matters_but_never_to_open_a_screen() {
+        for gap in every_kind() {
+            let said = gap.sentence(Reader::Spectator);
+            let lower = said.to_lowercase();
+            assert!(said.starts_with(&gap.what()), "{said}");
+            assert!(!lower.contains("you") && !lower.contains("open "), "{said}");
+        }
+    }
+
+    #[test]
+    fn a_god_who_shifts_skills_keeps_their_capital_after_the_colon() {
+        let gap = Gap::SkillsShifting {
+            god: "Ashenzari".to_owned(),
+        };
+        assert_eq!(
+            gap.sentence(Reader::Spectator),
+            "Skills: Ashenzari shifts them with piety, so they may differ from the skills screen's."
+        );
     }
 }

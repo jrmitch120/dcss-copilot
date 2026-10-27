@@ -10,7 +10,7 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
-use crate::gaps::{self, Gap, ScreenFact};
+use crate::gaps::{self, Gap, Reader, ScreenFact};
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
@@ -351,17 +351,17 @@ impl Advisor {
                 hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
-            now: now_pill(&self.fact_sheet().threat, alert),
+            now: now_pill(&self.fact_sheet().threat, alert, self.reader()),
             suggested_action: assistance
                 .suggests()
                 .then(|| self.suggested_action())
                 .flatten()
-                .map(|suggested| suggested.card(&self.fact_sheet().fight)),
+                .map(|suggested| suggested.card(&self.fact_sheet().fight, self.reader())),
             focus: self.focus(&gaps),
             fact_cards: self.fact_cards(),
             ways_out: self
                 .hostile_in_view()
-                .then(|| self.fact_sheet().ways_out.list()),
+                .then(|| self.fact_sheet().ways_out.list(self.reader())),
             run_plan: self.run_plan(),
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
@@ -374,7 +374,7 @@ impl Advisor {
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
-            gaps: gaps::list(&gaps, self.watching()),
+            gaps: gaps::list(&gaps, self.reader()),
             warning,
         })
     }
@@ -391,7 +391,9 @@ impl Advisor {
             .as_ref()
             .map(|monsters| in_view(monsters, self.game_knowledge()));
         let card = if self.hostile_in_view() {
-            self.fact_sheet().fight.card(monsters.clone())
+            self.fact_sheet()
+                .fight
+                .card(monsters.clone(), self.reader())
         } else {
             self.join_card()
                 .map(|join| FocusCard::Join { join })
@@ -429,6 +431,15 @@ impl Advisor {
         self.identity.as_ref().and_then(|identity| identity.role) == Some(Role::Spectating)
     }
 
+    /// Who reads what the panel says of the game's Gaps.
+    fn reader(&self) -> Reader {
+        if self.watching() {
+            Reader::Spectator
+        } else {
+            Reader::Player
+        }
+    }
+
     /// The Gap prompt card, while it shows and any Gap it asks for is open among `gaps`, the
     /// game's.
     fn gap_prompt(&self, gaps: &BTreeSet<Gap>) -> Option<FocusCard> {
@@ -442,7 +453,7 @@ impl Advisor {
             .cloned()
             .collect();
         (!open.is_empty()).then(|| FocusCard::GapPrompt {
-            gaps: gaps::list(&open, false),
+            gaps: gaps::list(&open, Reader::Player),
         })
     }
 
@@ -523,8 +534,9 @@ fn fact_card(exceptional: &ExceptionalMonster, depiction: Depiction) -> FactCard
 /// Monte Carlo's sampling error is as large as the number.
 const DEATH_SHOWN_FROM_PERCENT: f64 = 0.1;
 
-/// The now pill for a moment's threat, with the `alert` raised at it.
-fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
+/// The now pill for a moment's threat, with the `alert` raised at it, its numbers marked for
+/// `reader`.
+fn now_pill(threat: &Threat, alert: Option<String>, reader: Reader) -> NowPill {
     match threat {
         Threat::Unrated { .. } => NowPill::Unrated { alert },
         Threat::Rated(assessment) => NowPill::Rated {
@@ -532,7 +544,10 @@ fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
             alert,
             line: threat_line(assessment),
             detail: threat_detail(assessment).map(|detail| {
-                MarkedValue::marked(detail, assessment.gaps.iter().map(Gap::sentence))
+                MarkedValue::marked(
+                    detail,
+                    assessment.gaps.iter().map(|gap| gap.sentence(reader)),
+                )
             }),
         },
     }

@@ -454,7 +454,7 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
-    use crate::gaps::ScreenFact;
+    use crate::gaps::{Reader, ScreenFact};
     use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
     use crate::view_model::{Colour, Glyph, MarkedValue, WayOutRow};
     use crate::visible_state::{
@@ -586,7 +586,7 @@ mod tests {
     /// Advisor remembers the game in `remembered`.
     fn ability_row(visible: &VisibleState, remembered: &AccumulatedState, name: &str) -> WayOutRow {
         remembering_menu(visible, remembered)
-            .list()
+            .list(Reader::Player)
             .rows
             .into_iter()
             .find(|row| row.name == name)
@@ -751,7 +751,7 @@ mod tests {
         let in_view = ways_out(&corridor(&[], 0), "Human", true);
         assert!(!over_remembered_squares(&in_view));
         assert_eq!(
-            in_view.list().rows[0]
+            in_view.list(Reader::Player).rows[0]
                 .detail
                 .as_ref()
                 .map(|detail| detail.text.as_str()),
@@ -772,7 +772,7 @@ mod tests {
                 "{species}"
             );
             assert_eq!(
-                remembered.list().rows[0]
+                remembered.list(Reader::Player).rows[0]
                     .detail
                     .as_ref()
                     .map(|detail| detail.text.as_str()),
@@ -985,6 +985,27 @@ mod tests {
                     turn: Some(1)
                 },
             ]
+        );
+    }
+
+    #[test]
+    fn a_spectator_is_told_what_hides_a_way_out_but_not_asked_to_open_a_screen() {
+        let ways_out = ways_out(&corridor(&[], 0), "Human", true);
+        let tooltip = |reader: Reader| {
+            ways_out
+                .list(reader)
+                .rows
+                .into_iter()
+                .find(|row| row.name == "Abilities")
+                .and_then(|row| row.detail?.gap)
+        };
+        assert_eq!(
+            tooltip(Reader::Player).as_deref(),
+            Some("Open the ability menu (a) to judge your abilities.")
+        );
+        assert_eq!(
+            tooltip(Reader::Spectator).as_deref(),
+            Some("Ability menu: abilities aren't counted among the Ways Out.")
         );
     }
 }

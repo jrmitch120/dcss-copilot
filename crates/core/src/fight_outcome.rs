@@ -14,7 +14,7 @@ use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
-use crate::gaps::{self, Gap, ScreenFact, memorised_unnamed};
+use crate::gaps::{self, Gap, Reader, ScreenFact, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
 use crate::visible_state::{InventoryItem, SquareLight, VisibleState, Wielding};
@@ -58,9 +58,9 @@ impl Fight {
     }
 
     /// `text`, said of this fight, marked with the Gaps that keep it from being judged or may
-    /// hide a better plan, as its card words them.
-    pub(crate) fn marked(&self, text: String) -> MarkedValue {
-        MarkedValue::marked(text, self.gaps().iter().map(fight_gap))
+    /// hide a better plan, as its card words them for `reader`.
+    pub(crate) fn marked(&self, text: String, reader: Reader) -> MarkedValue {
+        MarkedValue::marked(text, self.gaps().iter().map(|gap| fight_gap(gap, reader)))
     }
 
     /// The best plan's outcome, when the fight was judged.
@@ -752,16 +752,20 @@ fn charges(name: &str) -> Option<u32> {
 }
 
 impl Fight {
-    /// The focus card for this fight with `monsters` listed in view: `None` when there is no
-    /// small fight to judge, or the Advisor can't judge the moment at all, which the now pill
-    /// says.
-    pub(crate) fn card(&self, monsters: Option<Vec<Listing>>) -> Option<FocusCard> {
+    /// The focus card for this fight with `monsters` listed in view, for `reader`: `None` when
+    /// there is no small fight to judge, or the Advisor can't judge the moment at all, which the
+    /// now pill says.
+    pub(crate) fn card(&self, monsters: Option<Vec<Listing>>, reader: Reader) -> Option<FocusCard> {
         let card = |line: String, others, not_modelled| FocusCard::Fight {
             monsters,
-            line: self.marked(line),
+            line: self.marked(line, reader),
             others,
             not_modelled,
-            gaps: self.gaps().iter().map(fight_gap).collect(),
+            gaps: self
+                .gaps()
+                .iter()
+                .map(|gap| fight_gap(gap, reader))
+                .collect(),
         };
         match self {
             Self::NoFight => None,
@@ -783,7 +787,9 @@ impl Fight {
                     || "No plan to fight with.".to_owned(),
                     |best| format!("Best plan ({}): {}", best.plan.name(), odds(best, hp)),
                 );
-                let others = plans.map(|plan| self.marked(plan.summary(hp))).collect();
+                let others = plans
+                    .map(|plan| self.marked(plan.summary(hp), reader))
+                    .collect();
                 let words: Vec<&str> = outcome
                     .not_modelled
                     .iter()
@@ -874,8 +880,12 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
     }
 }
 
-/// What a Gap keeps the Advisor from judging of a fight, and how to fill it where the player can.
-fn fight_gap(gap: &Gap) -> String {
+/// What a Gap keeps the Advisor from judging of a fight, for `reader`: for the player, with how
+/// to fill it where they can.
+fn fight_gap(gap: &Gap, reader: Reader) -> String {
+    if reader == Reader::Spectator {
+        return gap.sentence(reader);
+    }
     match gap {
         Gap::Unread {
             fact: fact @ ScreenFact::Skills,
@@ -909,7 +919,7 @@ fn fight_gap(gap: &Gap) -> String {
         | Gap::Wielded
         | Gap::Attributes
         | Gap::Stale { .. }
-        | Gap::SkillsShifting { .. } => gap.sentence(),
+        | Gap::SkillsShifting { .. } => gap.sentence(reader),
     }
 }
 
@@ -1270,7 +1280,8 @@ mod tests {
             .carrying('c', "a wand of flame", 1, "OBJ_WANDS", "WAND_FLAME")
             .against(&[("jackal", 2)]);
         assert_eq!(judged(&sheet).not_played, ["Blink", "wand of flame"]);
-        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None) else {
+        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None, Reader::Player)
+        else {
             panic!("no fight card");
         };
         assert!(
@@ -1288,10 +1299,24 @@ mod tests {
     }
 
     #[test]
+    fn a_spectator_is_told_what_keeps_a_fight_unjudged_but_not_asked_to_open_a_screen() {
+        let mut player = fighter();
+        player.skills = None;
+        let sheet = player.against(&[("jackal", 2)]);
+        let Some(FocusCard::Fight { line, gaps, .. }) = sheet.fight.card(None, Reader::Spectator)
+        else {
+            panic!("no fight card");
+        };
+        let said = "Skills: no fight can be judged without them.";
+        assert_eq!(line.gap.as_deref(), Some(said));
+        assert_eq!(gaps, [said]);
+    }
+
+    #[test]
     fn too_many_hostiles_are_said_on_the_card() {
         let sheet =
             fighter().against(&[("jackal", 2), ("jackal", 3), ("jackal", 4), ("jackal", 5)]);
-        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None) else {
+        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None, Reader::Player) else {
             panic!("no fight card");
         };
         assert_eq!(
@@ -1305,7 +1330,7 @@ mod tests {
         let sheet = dart_thrower(20);
         let Some(FocusCard::Fight {
             line, not_modelled, ..
-        }) = sheet.fight.card(None)
+        }) = sheet.fight.card(None, Reader::Player)
         else {
             panic!("no fight card");
         };

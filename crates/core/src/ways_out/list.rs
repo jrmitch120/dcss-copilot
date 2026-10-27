@@ -3,13 +3,13 @@
 use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
-use crate::gaps::{Gap, ScreenFact};
+use crate::gaps::{Gap, Reader, ScreenFact};
 use crate::view_model::{MarkedValue, WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
-    /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
-    /// of the two first, then each escape carried, ability and spell.
-    pub(crate) fn list(&self) -> WaysOutList {
+    /// The panel's list for `reader`: the nearest usable staircase each way, or else the
+    /// nearest, the nearer of the two first, then each escape carried, ability and spell.
+    pub(crate) fn list(&self, reader: Reader) -> WaysOutList {
         let shown: Vec<&WayOut> = [StairDirection::Down, StairDirection::Up]
             .into_iter()
             .filter_map(|direction| {
@@ -42,10 +42,12 @@ impl WaysOut {
                     Some(ScreenFact::Mutations | ScreenFact::Equipped)
                 )
             })
-            .map(Gap::sentence)
+            .map(|gap| gap.sentence(reader))
             .collect();
-        let (mut hidden, said): (Vec<&Gap>, Vec<&Gap>) =
-            self.gaps.iter().partition(|gap| hidden_row(gap).is_some());
+        let (mut hidden, said): (Vec<&Gap>, Vec<&Gap>) = self
+            .gaps
+            .iter()
+            .partition(|gap| hidden_row(gap, reader).is_some());
         // Abilities before spells, as the rows of those read are.
         hidden.sort_by_key(|gap| {
             !matches!(
@@ -58,11 +60,14 @@ impl WaysOut {
         WaysOutList {
             rows: stairs
                 .chain(carried)
-                .map(|way_out| row(way_out, &pace))
-                .chain(hidden.into_iter().filter_map(hidden_row))
+                .map(|way_out| row(way_out, &pace, reader))
+                .chain(hidden.into_iter().filter_map(|gap| hidden_row(gap, reader)))
                 .collect(),
             ground: self.ground.as_ref().map(ground),
-            gaps: said.into_iter().map(ways_out_gap).collect(),
+            gaps: said
+                .into_iter()
+                .map(|gap| ways_out_gap(gap, reader))
+                .collect(),
         }
     }
 }
@@ -77,10 +82,10 @@ impl Escape {
         }
     }
 
-    /// The Way Out as one line, as [`Escape::summary`] says it, marked when the menu or list it
-    /// was read off is out of date.
-    pub(crate) fn value(&self) -> MarkedValue {
-        MarkedValue::marked(self.summary(), self.gap().as_ref().map(Gap::sentence))
+    /// The Way Out as one line, as [`Escape::summary`] says it, marked for `reader` when the menu
+    /// or list it was read off is out of date.
+    pub(crate) fn value(&self, reader: Reader) -> MarkedValue {
+        MarkedValue::marked(self.summary(), self.gap().map(|gap| gap.sentence(reader)))
     }
 
     /// The Gap it was judged around: the ability menu or spell list it was read off out of
@@ -152,8 +157,8 @@ impl Escape {
 
 /// The row for the Ways Out `gap` hides, if it hides any: the abilities of an ability menu, or
 /// the spells of a spell list, never read, and a spell memorised the game didn't name. Whether
-/// they can be used is unknown, and the row says so, marked with what fills it.
-fn hidden_row(gap: &Gap) -> Option<WayOutRow> {
+/// they can be used is unknown, and the row says so, marked with what fills it for `reader`.
+fn hidden_row(gap: &Gap, reader: Reader) -> Option<WayOutRow> {
     let name = match gap {
         Gap::Unread {
             fact: ScreenFact::AbilityMenu,
@@ -189,20 +194,21 @@ fn hidden_row(gap: &Gap) -> Option<WayOutRow> {
         name,
         detail: Some(MarkedValue::marked(
             "unknown".to_owned(),
-            [ways_out_gap(gap)],
+            [ways_out_gap(gap, reader)],
         )),
         why_not: None,
     })
 }
 
-/// A Way Out's row, a staircase's marked with `pace`, what its race was judged around.
-fn row(way_out: &WayOut, pace: &[String]) -> WayOutRow {
+/// A Way Out's row for `reader`, a staircase's marked with `pace`, what its race was judged
+/// around.
+fn row(way_out: &WayOut, pace: &[String], reader: Reader) -> WayOutRow {
     let (name, detail) = way_out.option.named();
     let menu_gap = way_out.option.gap();
     let marks: Vec<String> = match way_out.option {
         Escape::Stairs { .. } => pace.to_vec(),
         Escape::Item { .. } | Escape::Ability { .. } | Escape::Spell { .. } => {
-            menu_gap.iter().map(Gap::sentence).collect()
+            menu_gap.iter().map(|gap| gap.sentence(reader)).collect()
         }
     };
     let (usable, why_not) = match &way_out.usable {
@@ -213,7 +219,10 @@ fn row(way_out: &WayOut, pace: &[String]) -> WayOutRow {
             let greyed_out = because
                 .iter()
                 .any(|blocker| matches!(blocker, Blocker::GreyedOut { .. }));
-            let gap = menu_gap.as_ref().filter(|_| greyed_out).map(Gap::sentence);
+            let gap = menu_gap
+                .as_ref()
+                .filter(|_| greyed_out)
+                .map(|gap| gap.sentence(reader));
             (false, Some(MarkedValue::marked(why_not, gap)))
         }
     };
@@ -339,9 +348,12 @@ fn ground(ground: &Ground) -> String {
     }
 }
 
-/// What a Gap keeps the Advisor from judging of the Ways Out, and how to fill it where the
-/// player can.
-fn ways_out_gap(gap: &Gap) -> String {
+/// What a Gap keeps the Advisor from judging of the Ways Out, for `reader`: for the player, with
+/// how to fill it where they can.
+fn ways_out_gap(gap: &Gap, reader: Reader) -> String {
+    if reader == Reader::Spectator {
+        return gap.sentence(reader);
+    }
     match gap {
         Gap::Map | Gap::MonstersInView => {
             "The stairs can't be judged until the game sends its map.".to_owned()
@@ -359,6 +371,6 @@ fn ways_out_gap(gap: &Gap) -> String {
         | Gap::Unread { .. }
         | Gap::Stale { .. }
         | Gap::SpellMemorised { .. }
-        | Gap::SkillsShifting { .. } => gap.sentence(),
+        | Gap::SkillsShifting { .. } => gap.sentence(reader),
     }
 }
