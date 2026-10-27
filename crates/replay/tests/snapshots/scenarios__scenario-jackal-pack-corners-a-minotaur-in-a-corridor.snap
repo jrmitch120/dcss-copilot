@@ -262,6 +262,10 @@ expression: replay
             {
               "gap": "unread",
               "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -315,6 +319,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ]
       },
@@ -377,7 +385,7 @@ expression: replay
               "name": "Escape hatch in the floor",
               "detail": {
                 "text": "4 steps",
-                "gap": null
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": {
                 "text": "Jackal is in the way; Jackal is faster, and 1 more",
@@ -387,7 +395,8 @@ expression: replay
           ],
           "ground": "In a corridor: 2 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities."
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -413,15 +422,31 @@ expression: replay
               ]
             },
             {
+              "what": "Mutations",
+              "why": "Your speed to the stairs counts only your species' mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
               "what": "Resistances",
               "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows you is taken as not worn.",
               "keys": [
                 "%"
               ]
             }
           ],
           "dumpFills": [
-            "resistances"
+            "mutations",
+            "resistances",
+            "equipped gear"
           ]
         }
       }
@@ -697,6 +722,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -750,6 +779,10 @@ expression: replay
         {
           "gap": "unread",
           "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
         }
       ]
     },
@@ -812,7 +845,7 @@ expression: replay
             "name": "Escape hatch in the floor",
             "detail": {
               "text": "4 steps",
-              "gap": null
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
             },
             "whyNot": {
               "text": "Jackal is in the way; Jackal is faster, and 1 more",
@@ -822,7 +855,8 @@ expression: replay
         ],
         "ground": "In a corridor: 2 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -848,15 +882,31 @@ expression: replay
             ]
           },
           {
+            "what": "Mutations",
+            "why": "Your speed to the stairs counts only your species' mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
             "what": "Resistances",
             "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
             "keys": [
               "%"
             ]
           }
         ],
         "dumpFills": [
-          "resistances"
+          "mutations",
+          "resistances",
+          "equipped gear"
         ]
       }
     }

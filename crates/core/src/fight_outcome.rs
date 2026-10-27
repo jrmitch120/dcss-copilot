@@ -899,7 +899,11 @@ fn fight_gap(gap: &Gap) -> String {
         | Gap::Defences
         | Gap::GameKnowledge
         | Gap::Unread {
-            fact: ScreenFact::AbilityMenu | ScreenFact::Resistances,
+            fact:
+                ScreenFact::AbilityMenu
+                | ScreenFact::Mutations
+                | ScreenFact::Resistances
+                | ScreenFact::Equipped,
         }
         | Gap::Inventory
         | Gap::Wielded

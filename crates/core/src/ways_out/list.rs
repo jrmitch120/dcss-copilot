@@ -32,8 +32,23 @@ impl WaysOut {
             .options
             .iter()
             .filter(|way_out| !matches!(way_out.option, Escape::Stairs { .. }));
+        // A staircase's verdict leans on the player's Pace, and so on what it was judged around.
+        let pace: Vec<String> = self
+            .gaps
+            .iter()
+            .filter(|gap| {
+                matches!(
+                    gap.screen_fact(),
+                    Some(ScreenFact::Mutations | ScreenFact::Equipped)
+                )
+            })
+            .map(Gap::sentence)
+            .collect();
         WaysOutList {
-            rows: stairs.chain(carried).map(row).collect(),
+            rows: stairs
+                .chain(carried)
+                .map(|way_out| row(way_out, &pace))
+                .collect(),
             ground: self.ground.as_ref().map(ground),
             gaps: self.gaps.iter().map(ways_out_gap).collect(),
         }
@@ -123,10 +138,16 @@ impl Escape {
     }
 }
 
-/// A Way Out's row.
-fn row(way_out: &WayOut) -> WayOutRow {
+/// A Way Out's row, a staircase's marked with `pace`, what its race was judged around.
+fn row(way_out: &WayOut, pace: &[String]) -> WayOutRow {
     let (name, detail) = way_out.option.named();
     let menu_gap = way_out.option.gap();
+    let marks: Vec<String> = match way_out.option {
+        Escape::Stairs { .. } => pace.to_vec(),
+        Escape::Item { .. } | Escape::Ability { .. } | Escape::Spell { .. } => {
+            menu_gap.iter().map(Gap::sentence).collect()
+        }
+    };
     let (usable, why_not) = match &way_out.usable {
         Usable::Yes => (true, None),
         Usable::No { because } => {
@@ -142,8 +163,7 @@ fn row(way_out: &WayOut) -> WayOutRow {
     WayOutRow {
         usable,
         name,
-        detail: detail
-            .map(|detail| MarkedValue::marked(detail, menu_gap.as_ref().map(Gap::sentence))),
+        detail: detail.map(|detail| MarkedValue::marked(detail, marks)),
         why_not,
     }
 }

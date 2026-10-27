@@ -408,12 +408,20 @@ expression: replay
               "keys": [
                 "%"
               ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows you is taken as not worn.",
+              "keys": [
+                "%"
+              ]
             }
           ],
           "dumpFills": [
             "skills",
             "the spell list",
-            "resistances"
+            "resistances",
+            "equipped gear"
           ]
         }
       }
@@ -821,12 +829,20 @@ expression: replay
             "keys": [
               "%"
             ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
+            "keys": [
+              "%"
+            ]
           }
         ],
         "dumpFills": [
           "skills",
           "the spell list",
-          "resistances"
+          "resistances",
+          "equipped gear"
         ]
       }
     }

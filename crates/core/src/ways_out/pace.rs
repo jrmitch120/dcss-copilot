@@ -5,7 +5,8 @@ use copilot_gk::{Bundle, PlayerMove};
 
 use super::{PaceReason, PlayerPace, ReadOn, STANDARD_TIME, current};
 use crate::accumulated_state::{AccumulatedState, Remembered};
-use crate::engine::player_move::{self, Read, Seen, Slowest};
+use crate::engine::player_move::{self, Read, Seen, Slowest, Unread};
+use crate::gaps::{Gap, ScreenFact};
 use crate::visible_state::{Religion, VisibleState};
 
 /// The player's Pace, as the Advisor reads it.
@@ -96,6 +97,23 @@ impl<'a> Pace<'a> {
         self.read
             .as_ref()
             .is_none_or(|read| !read.unread.is_empty())
+    }
+
+    /// The Gaps their Pace was judged around in what is `remembered` of the game: their
+    /// mutations unread, counting only their species' own, or out of date; and what they wear,
+    /// unread or out of date, while they carry armour that changes their speed.
+    pub(super) fn gaps(&self, remembered: Option<&AccumulatedState>) -> Vec<Gap> {
+        let Some(read) = &self.read else {
+            return Vec::new();
+        };
+        let mut gaps: Vec<Gap> = ScreenFact::Mutations
+            .gap_in(remembered, |state| &state.mutations)
+            .into_iter()
+            .collect();
+        if read.unread.contains(&Unread::Gear) {
+            gaps.extend(ScreenFact::Equipped.gap_in(remembered, |state| &state.equipped));
+        }
+        gaps
     }
 
     /// Their Pace as the Fact Sheet records it.

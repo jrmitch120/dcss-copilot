@@ -63,7 +63,9 @@ expression: detections
     "event": "gapPrompt",
     "asks": [
       "abilityMenu",
-      "resistances"
+      "mutations",
+      "resistances",
+      "equipped"
     ]
   },
   {

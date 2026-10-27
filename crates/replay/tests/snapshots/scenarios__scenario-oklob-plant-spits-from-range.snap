@@ -144,6 +144,10 @@ expression: replay
             {
               "gap": "unread",
               "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -177,6 +181,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           },
           {
             "gap": "unread",
@@ -237,7 +245,7 @@ expression: replay
               "name": "Escape hatch in the floor",
               "detail": {
                 "text": "1 step",
-                "gap": null
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
             }
@@ -245,7 +253,8 @@ expression: replay
           "ground": "On open ground: 5 sides open · a corridor 5 steps away",
           "gaps": [
             "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities."
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -285,8 +294,22 @@ expression: replay
               ]
             },
             {
+              "what": "Mutations",
+              "why": "Your speed to the stairs counts only your species' mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
               "what": "Resistances",
               "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows you is taken as not worn.",
               "keys": [
                 "%"
               ]
@@ -295,7 +318,9 @@ expression: replay
           "dumpFills": [
             "skills",
             "the spell list",
-            "resistances"
+            "mutations",
+            "resistances",
+            "equipped gear"
           ]
         }
       }
@@ -430,6 +455,10 @@ expression: replay
             {
               "gap": "unread",
               "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -463,6 +492,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           },
           {
             "gap": "unread",
@@ -531,7 +564,7 @@ expression: replay
               "name": "Escape hatch in the floor",
               "detail": {
                 "text": "underfoot",
-                "gap": null
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
             }
@@ -539,7 +572,8 @@ expression: replay
           "ground": "On open ground: 5 sides open · a corridor 4 steps away",
           "gaps": [
             "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities."
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -579,8 +613,22 @@ expression: replay
               ]
             },
             {
+              "what": "Mutations",
+              "why": "Your speed to the stairs counts only your species' mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
               "what": "Resistances",
               "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows you is taken as not worn.",
               "keys": [
                 "%"
               ]
@@ -589,7 +637,9 @@ expression: replay
           "dumpFills": [
             "skills",
             "the spell list",
-            "resistances"
+            "mutations",
+            "resistances",
+            "equipped gear"
           ]
         }
       }
@@ -724,6 +774,10 @@ expression: replay
             {
               "gap": "unread",
               "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -757,6 +811,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           },
           {
             "gap": "unread",
@@ -825,7 +883,7 @@ expression: replay
               "name": "Escape hatch in the floor",
               "detail": {
                 "text": "underfoot",
-                "gap": null
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
             }
@@ -833,7 +891,8 @@ expression: replay
           "ground": "On open ground: 5 sides open · a corridor 4 steps away",
           "gaps": [
             "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities."
+            "Open the ability menu (a) to judge your abilities.",
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -873,8 +932,22 @@ expression: replay
               ]
             },
             {
+              "what": "Mutations",
+              "why": "Your speed to the stairs counts only your species' mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
               "what": "Resistances",
               "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows you is taken as not worn.",
               "keys": [
                 "%"
               ]
@@ -883,7 +956,9 @@ expression: replay
           "dumpFills": [
             "skills",
             "the spell list",
-            "resistances"
+            "mutations",
+            "resistances",
+            "equipped gear"
           ]
         }
       }
@@ -1057,6 +1132,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -1090,6 +1169,10 @@ expression: replay
         {
           "gap": "unread",
           "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
         },
         {
           "gap": "unread",
@@ -1158,7 +1241,7 @@ expression: replay
             "name": "Escape hatch in the floor",
             "detail": {
               "text": "underfoot",
-              "gap": null
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
             },
             "whyNot": null
           }
@@ -1166,7 +1249,8 @@ expression: replay
         "ground": "On open ground: 5 sides open · a corridor 4 steps away",
         "gaps": [
           "Open the spell list (I) to judge your spells.",
-          "Open the ability menu (a) to judge your abilities."
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -1206,8 +1290,22 @@ expression: replay
             ]
           },
           {
+            "what": "Mutations",
+            "why": "Your speed to the stairs counts only your species' mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
             "what": "Resistances",
             "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
             "keys": [
               "%"
             ]
@@ -1216,7 +1314,9 @@ expression: replay
         "dumpFills": [
           "skills",
           "the spell list",
-          "resistances"
+          "mutations",
+          "resistances",
+          "equipped gear"
         ]
       }
     }

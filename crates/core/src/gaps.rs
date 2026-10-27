@@ -83,9 +83,16 @@ pub enum ScreenFact {
     /// The abilities and their failure rates, off the ability menu (`a`). Unread, the abilities
     /// aren't counted among the Ways Out.
     AbilityMenu,
+    /// The mutations and banes, off the mutations screen (`A`). Unread, the player's Pace counts
+    /// only their species' own.
+    Mutations,
     /// The resistances, off the character overview (`%`). Unread, monsters' damage they would
     /// change is played as if the player resists nothing.
     Resistances,
+    /// What the player has equipped, off the character overview (`%`). Unread, a shield they
+    /// wear blocks as if it were none, a halo of their own is taken as none, and armour they
+    /// carry that changes their speed as not worn.
+    Equipped,
 }
 
 impl ScreenFact {
@@ -96,7 +103,8 @@ impl ScreenFact {
             Self::SpellList => &["I"],
             Self::SpellPower => &["I", "!"],
             Self::AbilityMenu => &["a"],
-            Self::Resistances => &["%"],
+            Self::Mutations => &["A"],
+            Self::Resistances | Self::Equipped => &["%"],
         }
     }
 
@@ -107,15 +115,17 @@ impl ScreenFact {
             Self::SpellList => "Spell list",
             Self::SpellPower => "Spell power",
             Self::AbilityMenu => "Ability menu",
+            Self::Mutations => "Mutations",
             Self::Resistances => "Resistances",
+            Self::Equipped => "Equipped gear",
         }
     }
 
     /// The word a sentence goes on to name it by.
     fn pronoun(self) -> &'static str {
         match self {
-            Self::Skills | Self::Resistances => "them",
-            Self::SpellList | Self::SpellPower | Self::AbilityMenu => "it",
+            Self::Skills | Self::Mutations | Self::Resistances => "them",
+            Self::SpellList | Self::SpellPower | Self::AbilityMenu | Self::Equipped => "it",
         }
     }
 
@@ -127,7 +137,8 @@ impl ScreenFact {
             Self::SpellList => ("the spell list", true),
             Self::SpellPower => ("the spell list", false),
             Self::AbilityMenu => ("the ability menu", true),
-            Self::Resistances => ("the character overview", false),
+            Self::Mutations => ("the mutations screen", false),
+            Self::Resistances | Self::Equipped => ("the character overview", false),
         }
     }
 
@@ -156,12 +167,27 @@ impl ScreenFact {
         }
     }
 
+    /// The Gap in it as `read` finds it in what is `remembered` of the game, unread when nothing
+    /// is.
+    pub(crate) fn gap_in<T, S>(
+        self,
+        remembered: Option<&AccumulatedState>,
+        read: impl FnOnce(&AccumulatedState) -> &Remembered<T, S>,
+    ) -> Option<Gap> {
+        match remembered {
+            Some(state) => self.gap(read(state)),
+            None => Some(Gap::Unread { fact: self }),
+        }
+    }
+
     /// It, as a sentence names it, when the character dump (`?` then `#`) shows it too.
     fn in_dump(self) -> Option<&'static str> {
         match self {
             Self::Skills => Some("skills"),
             Self::SpellList => Some("the spell list"),
+            Self::Mutations => Some("mutations"),
             Self::Resistances => Some("resistances"),
+            Self::Equipped => Some("equipped gear"),
             Self::SpellPower | Self::AbilityMenu => None,
         }
     }
@@ -173,9 +199,11 @@ impl ScreenFact {
             Self::SpellList => "Your spells aren't counted among your Ways Out or attacks.",
             Self::SpellPower => "Your attack spells aren't played in a fight.",
             Self::AbilityMenu => "Your abilities aren't counted among your Ways Out.",
+            Self::Mutations => "Your speed to the stairs counts only your species' mutations.",
             Self::Resistances => {
                 "Monsters' fire, cold, poison and the like are played as if you resist none."
             }
+            Self::Equipped => "A shield, a halo or armour that slows you is taken as not worn.",
         }
     }
 
@@ -190,7 +218,9 @@ impl ScreenFact {
             Self::AbilityMenu => {
                 "An ability gained since isn't counted, and failure rates may have changed."
             }
+            Self::Mutations => "Your speed to the stairs counts them as they were.",
             Self::Resistances => "Monsters' damage is played with them as they were.",
+            Self::Equipped => "What you wear may have changed: a shield is taken as none.",
         }
     }
 
@@ -202,9 +232,11 @@ impl ScreenFact {
             Self::SpellList => "to judge your spells.",
             Self::SpellPower => "to judge your spells' power.",
             Self::AbilityMenu => "to judge your abilities.",
+            Self::Mutations => "to judge your speed to the stairs.",
             Self::Resistances => {
                 "to read your resistances: until then you're taken to resist nothing."
             }
+            Self::Equipped => "to read what you wear.",
         }
     }
 }
@@ -400,7 +432,14 @@ pub(crate) fn of_the_game(
     let mut gaps = BTreeSet::new();
     gaps.extend(ScreenFact::Skills.gap(&remembered.skills));
     gaps.extend(ScreenFact::AbilityMenu.gap(&remembered.abilities));
+    gaps.extend(ScreenFact::Mutations.gap(&remembered.mutations));
     gaps.extend(ScreenFact::Resistances.gap(&remembered.resistances));
+    // Once read, what is worn matters only where a moment's judgement leans on it.
+    if matches!(remembered.equipped, Remembered::Missing) {
+        gaps.insert(Gap::Unread {
+            fact: ScreenFact::Equipped,
+        });
+    }
     if let Some(bundle) = knowledge {
         gaps.extend(fight_outcome::spell_gaps(
             Some(remembered),

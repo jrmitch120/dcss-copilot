@@ -88,7 +88,12 @@ expression: replay
           "because": [],
           "mutationsRead": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ],
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
@@ -102,7 +107,12 @@ expression: replay
       },
       "exceptional": [],
       "dangerousStatuses": [],
-      "gaps": []
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -149,8 +159,22 @@ expression: replay
             ]
           },
           {
+            "what": "Mutations",
+            "why": "Your speed to the stairs counts only your species' mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
             "what": "Resistances",
             "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
             "keys": [
               "%"
             ]
@@ -158,7 +182,9 @@ expression: replay
         ],
         "dumpFills": [
           "skills",
-          "resistances"
+          "mutations",
+          "resistances",
+          "equipped gear"
         ]
       }
     }

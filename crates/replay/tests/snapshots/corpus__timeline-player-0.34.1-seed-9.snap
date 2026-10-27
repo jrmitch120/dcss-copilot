@@ -72,7 +72,9 @@ expression: detections
       "skills",
       "spellList",
       "abilityMenu",
-      "resistances"
+      "mutations",
+      "resistances",
+      "equipped"
     ]
   },
   {

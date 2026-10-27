@@ -207,6 +207,10 @@ expression: replay
           {
             "gap": "unread",
             "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -236,6 +240,10 @@ expression: replay
         {
           "gap": "unread",
           "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
         }
       ]
     },
@@ -289,14 +297,15 @@ expression: replay
             "name": "Stone staircase leading down",
             "detail": {
               "text": "5 steps",
-              "gap": null
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
             },
             "whyNot": null
           }
         ],
         "ground": "On open ground: 3 sides open · a corridor 5 steps away",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the ability menu (a) to judge your abilities.",
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -329,8 +338,22 @@ expression: replay
             ]
           },
           {
+            "what": "Mutations",
+            "why": "Your speed to the stairs counts only your species' mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
             "what": "Resistances",
             "why": "Monsters' fire, cold, poison and the like are played as if you resist none.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
             "keys": [
               "%"
             ]
@@ -338,7 +361,9 @@ expression: replay
         ],
         "dumpFills": [
           "skills",
-          "resistances"
+          "mutations",
+          "resistances",
+          "equipped gear"
         ]
       }
     }

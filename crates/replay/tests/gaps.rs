@@ -75,7 +75,7 @@ fn marked(text: &str, gap: &str) -> MarkedValue {
 fn the_fact_sheet_lists_the_gaps_that_affected_the_moment() {
     // The fire the bow adds is played as if the character resists none, as the character
     // overview is unread; the fight waits for the skills screen; the Ways Out for the ability
-    // menu and the spell list.
+    // menu and the spell list; and the race to the stairs counts only the species' mutations.
     let replayer = replayed(CENTAUR);
 
     assert_eq!(
@@ -89,6 +89,9 @@ fn the_fact_sheet_lists_the_gaps_that_affected_the_moment() {
             },
             Gap::Unread {
                 fact: ScreenFact::AbilityMenu
+            },
+            Gap::Unread {
+                fact: ScreenFact::Mutations
             },
             Gap::Unread {
                 fact: ScreenFact::Resistances
@@ -191,13 +194,32 @@ fn the_gaps_chip_lists_each_gap_why_it_matters_and_its_key() {
                 &["a"]
             ),
             row(
+                "Mutations",
+                "Your speed to the stairs counts only your species' mutations.",
+                &["A"]
+            ),
+            row(
                 "Resistances",
                 "Monsters' fire, cold, poison and the like are played as if you resist none.",
                 &["%"]
             ),
+            row(
+                "Equipped gear",
+                "A shield, a halo or armour that slows you is taken as not worn.",
+                &["%"]
+            ),
         ]
     );
-    assert_eq!(chip.dump_fills, ["skills", "the spell list", "resistances"]);
+    assert_eq!(
+        chip.dump_fills,
+        [
+            "skills",
+            "the spell list",
+            "mutations",
+            "resistances",
+            "equipped gear"
+        ]
+    );
 }
 
 #[test]
@@ -222,8 +244,18 @@ fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
                 &["a"]
             ),
             row(
+                "Mutations",
+                "Your speed to the stairs counts only your species' mutations.",
+                &["A"]
+            ),
+            row(
                 "Resistances",
                 "Monsters' fire, cold, poison and the like are played as if you resist none.",
+                &["%"]
+            ),
+            row(
+                "Equipped gear",
+                "A shield, a halo or armour that slows you is taken as not worn.",
                 &["%"]
             ),
             row(
@@ -239,7 +271,10 @@ fn the_gaps_chip_lists_the_games_gaps_and_blind_spots_not_only_the_moments() {
             ),
         ]
     );
-    assert_eq!(chip.dump_fills, ["resistances"]);
+    assert_eq!(
+        chip.dump_fills,
+        ["mutations", "resistances", "equipped gear"]
+    );
 }
 
 #[test]
@@ -321,7 +356,9 @@ fn a_prompt_card_asks_for_the_gaps_at_the_first_all_clear_and_goes_as_an_encount
                 ScreenFact::Skills,
                 ScreenFact::SpellList,
                 ScreenFact::AbilityMenu,
-                ScreenFact::Resistances
+                ScreenFact::Mutations,
+                ScreenFact::Resistances,
+                ScreenFact::Equipped
             ]
         ))
     );
@@ -402,5 +439,79 @@ fn the_fight_cards_other_plans_are_marked_as_its_best_plan_is() {
     assert!(
         others.iter().all(|other| other.gap == line.gap),
         "{others:?}"
+    );
+}
+
+/// A Minotaur Berserker, who has read none of their screens, racing a centaur to the stairs.
+const STAIR_RACE: &[u8] = include_bytes!("scenarios/centaur-cuts-off-the-stairs.dcssrec");
+
+/// Rook reads his resistances on turn 101 and puts on a kite shield on 102.
+const KITE_SHIELD: &[u8] = include_bytes!("recordings/rook-reads-his-kite-shield.dcssrec");
+
+#[test]
+fn unread_mutations_are_a_gap_when_they_may_change_the_stair_race_and_mark_the_stairs() {
+    let replayer = replayed(STAIR_RACE);
+    let ways_out = replayer.view_model().game.unwrap().ways_out.unwrap();
+    let stairs = ways_out
+        .rows
+        .iter()
+        .find(|row| row.name.contains("staircase"))
+        .unwrap();
+    assert_eq!(
+        stairs
+            .detail
+            .as_ref()
+            .and_then(|detail| detail.gap.as_deref()),
+        Some("Open the mutations screen (A) to judge your speed to the stairs.")
+    );
+
+    assert!(
+        replayer.advisor().fact_sheet().gaps.contains(&Gap::Unread {
+            fact: ScreenFact::Mutations
+        }),
+        "{:?}",
+        replayer.advisor().fact_sheet().gaps
+    );
+}
+
+#[test]
+fn what_the_player_wears_is_a_gap_while_their_shield_is_unknown() {
+    let mut replayer = replayer(KITE_SHIELD);
+    let worn_gaps = |replayer: &Replayer| -> Vec<Gap> {
+        replayer
+            .advisor()
+            .fact_sheet()
+            .gaps
+            .iter()
+            .filter(|gap| {
+                matches!(
+                    gap,
+                    Gap::Unread {
+                        fact: ScreenFact::Equipped
+                    } | Gap::Stale {
+                        fact: ScreenFact::Equipped,
+                        ..
+                    }
+                )
+            })
+            .cloned()
+            .collect()
+    };
+    replayer.seek_turn(101).unwrap();
+    let before_overview = worn_gaps(&replayer);
+    replayer.seek(usize::MAX);
+
+    assert_eq!(
+        before_overview,
+        [Gap::Unread {
+            fact: ScreenFact::Equipped
+        }]
+    );
+    assert_eq!(
+        worn_gaps(&replayer),
+        [Gap::Stale {
+            fact: ScreenFact::Equipped,
+            turn: Some(101)
+        }]
     );
 }

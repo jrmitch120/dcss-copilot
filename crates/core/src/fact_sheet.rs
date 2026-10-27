@@ -115,7 +115,8 @@ pub struct ThreatAssessment {
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
     /// The Gaps it was judged around: the player's resistances unread, and played as resisting
-    /// nothing, or out of date, for damage they would change.
+    /// nothing, or out of date, for damage they would change; and what they wear, unread or out
+    /// of date, while their shield or a halo of their own is unknown.
     pub gaps: Vec<Gap>,
 }
 
@@ -674,8 +675,11 @@ fn threat<'a>(
     let formulas = bundle.formulas;
     let worn_shield = remembered.and_then(|state| state.worn_shield.known().copied());
     let mut not_modelled = ALWAYS_NOT_MODELLED.to_vec();
+    // What the judgement is made around, unread or out of date.
+    let mut gaps: BTreeSet<Gap> = BTreeSet::new();
     if sh > 0 && worn_shield.is_none() {
         not_modelled.push(NotModelled::WornShield);
+        gaps.extend(ScreenFact::Equipped.gap_in(remembered, |state| &state.worn_shield));
     }
     if hostile
         .iter()
@@ -697,6 +701,9 @@ fn threat<'a>(
     }
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
+    if own_halo.is_some() {
+        gaps.extend(ScreenFact::Equipped.gap_in(remembered, |state| &state.equipped));
+    }
     not_modelled.extend(own_halo);
     let defences = DisplayedDefences { ac, ev, sh };
     if defences.any_hides_a_fraction() {
@@ -814,15 +821,10 @@ fn threat<'a>(
     if resists.unsettled(needs) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
-    // Unread or out of date, for damage they would change.
-    let resistances = ScreenFact::Resistances;
-    let gaps = if needs.any() {
-        remembered.map_or(Some(Gap::Unread { fact: resistances }), |state| {
-            resistances.gap(&state.resistances)
-        })
-    } else {
-        None
-    };
+    // The resistances count only for damage they would change.
+    if needs.any() {
+        gaps.extend(ScreenFact::Resistances.gap_in(remembered, |state| &state.resistances));
+    }
     if attackers.iter().any(|attacker| {
         let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
             reach.casts > reach.strikes || spell.zap.explodes

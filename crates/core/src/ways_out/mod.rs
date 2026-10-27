@@ -377,6 +377,7 @@ impl WaysOut {
                     if pace.unseen() {
                         ways_out.not_modelled.push(NotModelled::PlayerSpeed);
                     }
+                    gaps.extend(pace.gaps(remembered));
                     ways_out.not_modelled.extend(STAIRS_NOT_MODELLED);
                     ways_out.pace = Some(pace.record());
                 }
@@ -977,6 +978,11 @@ mod tests {
                 Gap::Stale {
                     fact: ScreenFact::AbilityMenu,
                     turn: visible.turn
+                },
+                // A new level puts the mutations out of date too, which the stair race counts.
+                Gap::Stale {
+                    fact: ScreenFact::Mutations,
+                    turn: Some(1)
                 },
             ]
         );

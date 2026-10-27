@@ -179,6 +179,13 @@ expression: replay
             ]
           },
           {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows you is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
             "what": "~Ability menu as of turn 0",
             "why": "An ability gained since isn't counted, and failure rates may have changed.",
             "keys": [
@@ -187,7 +194,8 @@ expression: replay
           }
         ],
         "dumpFills": [
-          "resistances"
+          "resistances",
+          "equipped gear"
         ]
       }
     }
