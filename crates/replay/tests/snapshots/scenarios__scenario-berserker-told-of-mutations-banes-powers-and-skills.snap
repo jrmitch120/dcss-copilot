@@ -197,7 +197,8 @@ expression: replay
           "resistances",
           "equipped gear"
         ]
-      }
+      },
+      "warning": false
     }
   }
 }

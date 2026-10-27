@@ -336,6 +336,13 @@ impl Advisor {
     pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
         let gaps = self.gaps();
+        let alert = self.current_alert().map(|alert| alert.line.clone());
+        let warning = alert.is_some()
+            || self
+                .fact_sheet()
+                .threat
+                .level()
+                .is_some_and(|level| level > ThreatLevel::Calm);
         Some(GameView {
             character: Character {
                 name: identity.character.clone(),
@@ -344,10 +351,7 @@ impl Advisor {
                 hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
-            now: now_pill(
-                &self.fact_sheet().threat,
-                self.current_alert().map(|alert| alert.line.clone()),
-            ),
+            now: now_pill(&self.fact_sheet().threat, alert),
             suggested_action: assistance
                 .suggests()
                 .then(|| self.suggested_action())
@@ -371,6 +375,7 @@ impl Advisor {
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
             gaps: gaps::list(&gaps, self.watching()),
+            warning,
         })
     }
 }

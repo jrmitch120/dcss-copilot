@@ -146,6 +146,9 @@ pub struct GameView {
     pub badge: ToolbarBadge,
     /// Every Gap in what the Advisor knows of the game, for the Gaps chip in the header.
     pub gaps: GapList,
+    /// The moment warns the player: it is above CALM, or the now pill shows an Alert, as a
+    /// Dangerous Status raises at CALM. The panel puts away what can wait, such as the Gaps list.
+    pub warning: bool,
 }
 
 /// Gaps as the panel lists them, in the Gaps chip and on the Gap prompt card: each with why it

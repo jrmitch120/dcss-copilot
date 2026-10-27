@@ -400,7 +400,8 @@ expression: replay
             "resistances",
             "equipped gear"
           ]
-        }
+        },
+        "warning": true
       }
     }
   ],
@@ -829,7 +830,8 @@ expression: replay
           "resistances",
           "equipped gear"
         ]
-      }
+      },
+      "warning": true
     }
   }
 }

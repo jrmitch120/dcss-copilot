@@ -563,3 +563,22 @@ fn a_way_out_list_never_read_is_an_unknown_row_marked_in_place() {
         ways_out.gaps
     );
 }
+
+#[test]
+fn the_panel_is_warning_the_player_while_an_alert_shows_or_the_moment_is_above_calm() {
+    // Rook is All Clear on 304, at CALM, then confused beside lava on 306, still at CALM, with an
+    // Alert.
+    let mut replayer = replayer(STATUSES);
+    step_until(&mut replayer, all_clear);
+    assert!(!replayer.view_model().game.unwrap().warning);
+
+    step_until(&mut replayer, |replayer| {
+        replayer
+            .view_model()
+            .game
+            .is_some_and(|game| match game.now {
+                NowPill::Rated { alert, .. } | NowPill::Unrated { alert } => alert.is_some(),
+            })
+    });
+    assert!(replayer.view_model().game.unwrap().warning);
+}

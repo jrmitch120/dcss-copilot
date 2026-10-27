@@ -89,5 +89,6 @@ expression: replay.view_models.last().unwrap().game
       "resistances",
       "equipped gear"
     ]
-  }
+  },
+  "warning": false
 }

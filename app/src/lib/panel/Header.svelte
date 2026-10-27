@@ -50,17 +50,18 @@ function stat(value: number | null): string {
     · T {stat(character.turn)}
   </span>
   <span class="levels">
-    {#if gaps.gaps.length > 0}
-      <button
-        type="button"
-        class="chip"
-        aria-expanded={gapsOpen}
-        title="What the Advisor can't see, and the keys that show it"
-        onclick={toggleGaps}
-      >
-        Gaps {gaps.gaps.length}
-      </button>
-    {/if}
+    <button
+      type="button"
+      class="chip"
+      aria-expanded={gapsOpen}
+      disabled={gaps.gaps.length === 0}
+      title={gaps.gaps.length === 0
+        ? "The Advisor has read everything it needs to judge this game"
+        : "What the Advisor can't see, and the keys that show it"}
+      onclick={toggleGaps}
+    >
+      {gaps.gaps.length === 0 ? "No Gaps" : `Gaps ${gaps.gaps.length}`}
+    </button>
     <Segmented label="Assistance level" choices={LEVELS} chosen={assistance} {choose} />
   </span>
 </header>
@@ -136,6 +137,12 @@ header {
   color: var(--text-muted);
   font-size: 11px;
   cursor: pointer;
+}
+
+.chip:disabled {
+  border-style: solid;
+  cursor: default;
+  opacity: 0.6;
 }
 
 .chip[aria-expanded="true"] {

@@ -249,6 +249,11 @@ export type GameView = {
 	badge: ToolbarBadge,
 	/**  Every Gap in what the Advisor knows of the game, for the Gaps chip in the header. */
 	gaps: GapList,
+	/**
+	 *  The moment warns the player: it is above CALM, or the now pill shows an Alert, as a
+	 *  Dangerous Status raises at CALM. The panel puts away what can wait, such as the Gaps list.
+	 */
+	warning: boolean,
 };
 
 /**  How many games the Advisor remembers, in Settings → History. */
