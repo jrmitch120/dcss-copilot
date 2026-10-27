@@ -358,13 +358,28 @@ expression: replay
                 "text": "Goblin is faster",
                 "gap": null
               }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 4 sides open · a corridor 3 steps away",
-          "gaps": [
-            "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities."
-          ]
+          "gaps": []
         },
         "runPlan": {
           "state": "notPlanned"
@@ -779,13 +794,28 @@ expression: replay
               "text": "Goblin is faster",
               "gap": null
             }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Spells",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the spell list (I) to judge your spells."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 4 sides open · a corridor 3 steps away",
-        "gaps": [
-          "Open the spell list (I) to judge your spells.",
-          "Open the ability menu (a) to judge your abilities."
-        ]
+        "gaps": []
       },
       "runPlan": {
         "state": "notPlanned"

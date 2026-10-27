@@ -521,3 +521,45 @@ fn what_the_player_wears_is_a_gap_while_their_shield_is_unknown() {
         }]
     );
 }
+
+#[test]
+fn a_way_out_list_never_read_is_an_unknown_row_marked_in_place() {
+    let replayer = replayed(CENTAUR);
+    let ways_out = replayer.view_model().game.unwrap().ways_out.unwrap();
+    let unknown: Vec<(String, Option<bool>, Option<MarkedValue>)> = ways_out
+        .rows
+        .iter()
+        .filter(|row| row.usable.is_none())
+        .map(|row| (row.name.clone(), row.usable, row.detail.clone()))
+        .collect();
+
+    assert_eq!(
+        unknown,
+        [
+            (
+                "Abilities".to_owned(),
+                None,
+                Some(marked(
+                    "unknown",
+                    "Open the ability menu (a) to judge your abilities."
+                ))
+            ),
+            (
+                "Spells".to_owned(),
+                None,
+                Some(marked(
+                    "unknown",
+                    "Open the spell list (I) to judge your spells."
+                ))
+            ),
+        ]
+    );
+    assert!(
+        ways_out
+            .gaps
+            .iter()
+            .all(|line| !line.contains("ability menu") && !line.contains("spell list")),
+        "{:?}",
+        ways_out.gaps
+    );
+}

@@ -248,12 +248,28 @@ expression: replay
                 "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 5 sides open · a corridor 5 steps away",
           "gaps": [
-            "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities.",
             "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
@@ -567,12 +583,28 @@ expression: replay
                 "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 5 sides open · a corridor 4 steps away",
           "gaps": [
-            "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities.",
             "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
@@ -886,12 +918,28 @@ expression: replay
                 "gap": "Open the mutations screen (A) to judge your speed to the stairs."
               },
               "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 5 sides open · a corridor 4 steps away",
           "gaps": [
-            "Open the spell list (I) to judge your spells.",
-            "Open the ability menu (a) to judge your abilities.",
             "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
@@ -1244,12 +1292,28 @@ expression: replay
               "gap": "Open the mutations screen (A) to judge your speed to the stairs."
             },
             "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Spells",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the spell list (I) to judge your spells."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 5 sides open · a corridor 4 steps away",
         "gaps": [
-          "Open the spell list (I) to judge your spells.",
-          "Open the ability menu (a) to judge your abilities.",
           "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },

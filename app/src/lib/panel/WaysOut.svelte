@@ -13,8 +13,13 @@ let { waysOut }: { waysOut: WaysOutList } = $props();
     <ul>
       {#each waysOut.rows as row, i (i)}
         <li>
-          <span class="mark" class:ok={row.usable} class:no={!row.usable}>
-            {row.usable ? "✓" : "✕"}
+          <span
+            class="mark"
+            class:ok={row.usable === true}
+            class:no={row.usable === false}
+            class:unknown={row.usable === null}
+          >
+            {row.usable === null ? "?" : row.usable ? "✓" : "✕"}
           </span>
           <span>
             {row.name}
@@ -68,6 +73,10 @@ li {
 
 .no {
   color: var(--danger);
+}
+
+.unknown {
+  color: var(--unrated);
 }
 
 .why {

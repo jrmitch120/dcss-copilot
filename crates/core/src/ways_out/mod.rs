@@ -856,7 +856,7 @@ mod tests {
         let visible = on_turn(corridor(&[], 0), 5);
         let mut remembered = read_on(&ability_menu(&[("Berserk", true)]), &visible);
         let known = ability_row(&visible, &remembered, "Berserk");
-        assert!(!known.usable);
+        assert_eq!(known.usable, Some(false));
         assert_eq!(
             known.why_not,
             Some(MarkedValue::known(
@@ -867,7 +867,7 @@ mod tests {
         levelled.stats.xl = Some(2);
         remembered.update(&visible, &levelled, Some(bundle()));
         let stale = ability_row(&levelled, &remembered, "Berserk");
-        assert!(!stale.usable);
+        assert_eq!(stale.usable, Some(false));
         let menu_out_of_date = "~Ability menu as of turn 5: open it (a) to bring it up to date.";
         assert_eq!(
             stale.why_not,

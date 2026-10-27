@@ -663,8 +663,11 @@ export type ViewModelChanged = ViewModel;
 
 /**  One Way Out in the panel's list. */
 export type WayOutRow = {
-	/**  It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. */
-	usable: boolean,
+	/**
+	 *  It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. `None` for Ways Out
+	 *  a Gap hides, such as the spells of a spell list never read, drawn `?`.
+	 */
+	usable: boolean | null,
 	/**  What it is, such as `Stone staircase leading down` or `Teleportation`. */
 	name: string,
 	/**
@@ -691,7 +694,10 @@ export type WaysOutList = {
 	 *  can tell.
 	 */
 	ground: string | null,
-	/**  What keeps the Advisor from judging more, such as a screen to open, one sentence each. */
+	/**
+	 *  What keeps the Advisor from judging more, such as the map not yet sent, one sentence
+	 *  each: the Ways Out a Gap hides are rows of their own.
+	 */
 	gaps: string[],
 };
 

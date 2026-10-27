@@ -44,13 +44,25 @@ impl WaysOut {
             })
             .map(Gap::sentence)
             .collect();
+        let (mut hidden, said): (Vec<&Gap>, Vec<&Gap>) =
+            self.gaps.iter().partition(|gap| hidden_row(gap).is_some());
+        // Abilities before spells, as the rows of those read are.
+        hidden.sort_by_key(|gap| {
+            !matches!(
+                gap,
+                Gap::Unread {
+                    fact: ScreenFact::AbilityMenu
+                }
+            )
+        });
         WaysOutList {
             rows: stairs
                 .chain(carried)
                 .map(|way_out| row(way_out, &pace))
+                .chain(hidden.into_iter().filter_map(hidden_row))
                 .collect(),
             ground: self.ground.as_ref().map(ground),
-            gaps: self.gaps.iter().map(ways_out_gap).collect(),
+            gaps: said.into_iter().map(ways_out_gap).collect(),
         }
     }
 }
@@ -138,6 +150,51 @@ impl Escape {
     }
 }
 
+/// The row for the Ways Out `gap` hides, if it hides any: the abilities of an ability menu, or
+/// the spells of a spell list, never read, and a spell memorised the game didn't name. Whether
+/// they can be used is unknown, and the row says so, marked with what fills it.
+fn hidden_row(gap: &Gap) -> Option<WayOutRow> {
+    let name = match gap {
+        Gap::Unread {
+            fact: ScreenFact::AbilityMenu,
+        } => "Abilities".to_owned(),
+        Gap::Unread {
+            fact: ScreenFact::SpellList,
+        } => "Spells".to_owned(),
+        Gap::SpellMemorised { turn: Some(turn) } => format!("A spell memorised on turn {turn}"),
+        Gap::SpellMemorised { turn: None } => "A spell memorised".to_owned(),
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::MonstersInView
+        | Gap::Map
+        | Gap::Position
+        | Gap::GameKnowledge
+        | Gap::MonsterKnowledge { .. }
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::Unread {
+            fact:
+                ScreenFact::Skills
+                | ScreenFact::SpellPower
+                | ScreenFact::Mutations
+                | ScreenFact::Resistances
+                | ScreenFact::Equipped,
+        }
+        | Gap::Stale { .. }
+        | Gap::SkillsShifting { .. } => return None,
+    };
+    Some(WayOutRow {
+        usable: None,
+        name,
+        detail: Some(MarkedValue::marked(
+            "unknown".to_owned(),
+            [ways_out_gap(gap)],
+        )),
+        why_not: None,
+    })
+}
+
 /// A Way Out's row, a staircase's marked with `pace`, what its race was judged around.
 fn row(way_out: &WayOut, pace: &[String]) -> WayOutRow {
     let (name, detail) = way_out.option.named();
@@ -161,7 +218,7 @@ fn row(way_out: &WayOut, pace: &[String]) -> WayOutRow {
         }
     };
     WayOutRow {
-        usable,
+        usable: Some(usable),
         name,
         detail: detail.map(|detail| MarkedValue::marked(detail, marks)),
         why_not,

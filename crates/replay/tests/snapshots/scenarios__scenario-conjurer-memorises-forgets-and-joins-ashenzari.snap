@@ -316,11 +316,19 @@ expression: replay
               "text": "Rat is beside it",
               "gap": null
             }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 5 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities.",
           "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },

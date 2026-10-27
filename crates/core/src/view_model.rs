@@ -209,7 +209,8 @@ pub struct WaysOutList {
     /// The ground the player stands on, such as `In a corridor: 2 sides open`, once the Advisor
     /// can tell.
     pub ground: Option<String>,
-    /// What keeps the Advisor from judging more, such as a screen to open, one sentence each.
+    /// What keeps the Advisor from judging more, such as the map not yet sent, one sentence
+    /// each: the Ways Out a Gap hides are rows of their own.
     pub gaps: Vec<String>,
 }
 
@@ -255,8 +256,9 @@ pub(crate) fn capitalised(text: &str) -> String {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WayOutRow {
-    /// It can be used now, as far as the Advisor can tell: drawn ✓, else ✕.
-    pub usable: bool,
+    /// It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. `None` for Ways Out
+    /// a Gap hides, such as the spells of a spell list never read, drawn `?`.
+    pub usable: Option<bool>,
     /// What it is, such as `Stone staircase leading down` or `Teleportation`.
     pub name: String,
     /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the

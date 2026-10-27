@@ -358,12 +358,19 @@ expression: replay
                 "text": "Goblin can get there first",
                 "gap": null
               }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 3 sides open · a corridor 4 steps away",
-          "gaps": [
-            "Open the ability menu (a) to judge your abilities."
-          ]
+          "gaps": []
         },
         "runPlan": {
           "state": "notPlanned"
@@ -687,12 +694,19 @@ expression: replay
               "gap": null
             },
             "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 3 sides open · a corridor 4 steps away",
-        "gaps": [
-          "Open the ability menu (a) to judge your abilities."
-        ]
+        "gaps": []
       },
       "runPlan": {
         "state": "notPlanned"
