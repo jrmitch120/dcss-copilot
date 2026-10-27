@@ -14,7 +14,7 @@ use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
-use crate::gaps::{Gap, memorised_unnamed};
+use crate::gaps::{self, Gap, ScreenFact, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
 use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
@@ -386,7 +386,7 @@ fn skills_out_of_date(
 ) -> BTreeSet<Gap> {
     let mut gaps = BTreeSet::new();
     if let Some(Remembered::Stale(read)) = remembered.map(|state| &state.skills) {
-        gaps.insert(Gap::StaleSkills { turn: read.turn });
+        gaps.insert(ScreenFact::Skills.stale(read.turn));
     }
     if let Some(Religion::God { name, .. }) = &visible.religion
         && bundle.character.skills.shifting_gods.contains(name)
@@ -425,7 +425,7 @@ impl<'v> Player<'v> {
         }
         let skills = remembered.and_then(|state| state.skills.read_value());
         if skills.is_none() {
-            gaps.insert(Gap::Skills);
+            gaps.insert(ScreenFact::Skills.unread());
         }
         if visible.inventory.is_none() {
             gaps.insert(Gap::Inventory);
@@ -713,7 +713,7 @@ pub(crate) fn spell_gaps(
     ) else {
         // Only a player with magic to cast with may know an attack spell.
         if mp_max > 0 {
-            gaps.insert(Gap::SpellList);
+            gaps.insert(ScreenFact::SpellList.unread());
         }
         return gaps;
     };
@@ -725,10 +725,10 @@ pub(crate) fn spell_gaps(
     // A list of no spells out of date hides an attack only as a spell memorised does.
     if !known.is_empty() {
         if let Remembered::Stale(read) = &state.spells {
-            gaps.insert(Gap::StaleSpellList { turn: read.turn });
+            gaps.insert(ScreenFact::SpellList.stale(read.turn));
         }
         if let Remembered::Stale(read) = &state.spell_reaches {
-            gaps.insert(Gap::StaleSpellPower { turn: read.turn });
+            gaps.insert(ScreenFact::SpellPower.stale(read.turn));
         }
     }
     let reaches = state.spell_reaches.read_value();
@@ -739,7 +739,7 @@ pub(crate) fn spell_gaps(
         .iter()
         .any(|spell| attack_zap(spell, bundle).is_some() && unreached(spell))
     {
-        gaps.insert(Gap::SpellPower);
+        gaps.insert(ScreenFact::SpellPower.unread());
     }
     gaps
 }
@@ -884,11 +884,9 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
 /// What a Gap keeps the Advisor from judging of a fight, and how to fill it where the player can.
 fn gap(gap: &Gap) -> String {
     match gap {
-        Gap::Skills => "Open the skills screen (m) to judge a fight.".to_owned(),
-        Gap::SpellList => "Open the spell list (I) to count your attack spells.".to_owned(),
-        Gap::SpellPower => {
-            "Open the spell list (I) and press ! to count your attack spells.".to_owned()
-        }
+        Gap::Skills => gaps::opening(ScreenFact::Skills, "to judge a fight."),
+        Gap::SpellList => gaps::opening(ScreenFact::SpellList, "to count your attack spells."),
+        Gap::SpellPower => gaps::opening(ScreenFact::SpellPower, "to count your attack spells."),
         Gap::Map | Gap::MonstersInView | Gap::Position => {
             "The game hasn't sent its map yet.".to_owned()
         }
@@ -897,8 +895,9 @@ fn gap(gap: &Gap) -> String {
             capitalised(monster)
         ),
         Gap::SpellMemorised { turn } => format!(
-            "{}: open the spell list (I) to count it.",
-            memorised_unnamed(*turn)
+            "{}: {} to count it.",
+            memorised_unnamed(*turn),
+            ScreenFact::SpellList.opening(false)
         ),
         Gap::HitPoints
         | Gap::Defences

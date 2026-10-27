@@ -3,7 +3,7 @@
 use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
-use crate::gaps::Gap;
+use crate::gaps::{Gap, ScreenFact};
 use crate::view_model::{MarkedValue, WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
@@ -61,10 +61,10 @@ impl Escape {
     fn gap(&self) -> Option<Gap> {
         match self {
             Escape::Ability { read, .. } if read.stale => {
-                Some(Gap::StaleAbilityMenu { turn: read.turn })
+                Some(ScreenFact::AbilityMenu.stale(read.turn))
             }
             Escape::Spell { read, .. } if read.stale => {
-                Some(Gap::StaleSpellList { turn: read.turn })
+                Some(ScreenFact::SpellList.stale(read.turn))
             }
             Escape::Stairs { .. }
             | Escape::Item { .. }

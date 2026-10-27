@@ -127,6 +127,60 @@ impl ScreenFact {
         }
     }
 
+    /// The screen showing it, as a sentence names it, such as `the spell list`.
+    fn screen(self) -> &'static str {
+        match self {
+            Self::Skills => "the skills screen",
+            Self::SpellList | Self::SpellPower => "the spell list",
+            Self::AbilityMenu => "the ability menu",
+            Self::Resistances => "the character overview",
+        }
+    }
+
+    /// How to open the screen showing it, as a sentence goes on, such as `open the spell list (I)
+    /// and press !`, or, when the sentence has named the screen already, `open it (I)`.
+    pub(crate) fn opening(self, named: bool) -> String {
+        let screen = if named { "it" } else { self.screen() };
+        match self.keys() {
+            [key, then @ ..] => {
+                let then: String = then.iter().map(|key| format!(" and press {key}")).collect();
+                format!("open {screen} ({key}){then}")
+            }
+            [] => format!("open {screen}"),
+        }
+    }
+
+    /// The Gap in it never read.
+    pub(crate) fn unread(self) -> Gap {
+        match self {
+            Self::Skills => Gap::Skills,
+            Self::SpellList => Gap::SpellList,
+            Self::SpellPower => Gap::SpellPower,
+            Self::AbilityMenu => Gap::AbilityMenu,
+            Self::Resistances => Gap::Resistances,
+        }
+    }
+
+    /// The Gap in it read on `turn` and out of date since.
+    pub(crate) fn stale(self, turn: Option<u32>) -> Gap {
+        match self {
+            Self::Skills => Gap::StaleSkills { turn },
+            Self::SpellList => Gap::StaleSpellList { turn },
+            Self::SpellPower => Gap::StaleSpellPower { turn },
+            Self::AbilityMenu => Gap::StaleAbilityMenu { turn },
+            Self::Resistances => Gap::StaleResistances { turn },
+        }
+    }
+
+    /// The Gap in what is `remembered` of it: unread, out of date, or none while it is Known.
+    pub(crate) fn gap<T, S>(self, remembered: &Remembered<T, S>) -> Option<Gap> {
+        match remembered {
+            Remembered::Missing => Some(self.unread()),
+            Remembered::Stale(read) => Some(self.stale(read.turn)),
+            Remembered::Known(_) => None,
+        }
+    }
+
     /// It, as a sentence names it, when the character dump (`?` then `#`) shows it too.
     fn in_dump(self) -> Option<&'static str> {
         match self {
@@ -274,47 +328,58 @@ impl Gap {
                 "{} isn't in the Game Knowledge, so it isn't counted.",
                 capitalised(monster)
             ),
-            Self::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
-            Self::SpellList => "Open the spell list (I) to judge your spells.".to_owned(),
-            Self::Skills => "Open the skills screen (m) to judge your attacks.".to_owned(),
-            Self::SpellPower => {
-                "Open the spell list (I) and press ! to judge your spells' power.".to_owned()
-            }
-            Self::Resistances => "Open the character overview (%) to read your resistances: \
-                until then you're taken to resist nothing."
-                .to_owned(),
+            Self::AbilityMenu => opening(ScreenFact::AbilityMenu, "to judge your abilities."),
+            Self::SpellList => opening(ScreenFact::SpellList, "to judge your spells."),
+            Self::Skills => opening(ScreenFact::Skills, "to judge your attacks."),
+            Self::SpellPower => opening(ScreenFact::SpellPower, "to judge your spells' power."),
+            Self::Resistances => opening(
+                ScreenFact::Resistances,
+                "to read your resistances: until then you're taken to resist nothing.",
+            ),
             Self::Inventory | Self::Wielded => {
                 "The game hasn't sent your inventory yet.".to_owned()
             }
             Self::StaleSkills { turn } => format!(
-                "{}: open the skills screen (m) to bring them up to date.",
-                out_of_date("Skills", *turn)
+                "{}: {} to bring them up to date.",
+                out_of_date("Skills", *turn),
+                ScreenFact::Skills.opening(false)
             ),
             Self::StaleSpellList { turn } => format!(
-                "{}: open it (I) to bring it up to date.",
-                out_of_date("Spell list", *turn)
+                "{}: {} to bring it up to date.",
+                out_of_date("Spell list", *turn),
+                ScreenFact::SpellList.opening(true)
             ),
             Self::StaleSpellPower { turn } => format!(
-                "{}: open the spell list (I) and press ! to bring it up to date.",
-                out_of_date("Spell power", *turn)
+                "{}: {} to bring it up to date.",
+                out_of_date("Spell power", *turn),
+                ScreenFact::SpellPower.opening(false)
             ),
             Self::StaleAbilityMenu { turn } => format!(
-                "{}: open it (a) to bring it up to date.",
-                out_of_date("Ability menu", *turn)
+                "{}: {} to bring it up to date.",
+                out_of_date("Ability menu", *turn),
+                ScreenFact::AbilityMenu.opening(true)
             ),
             Self::StaleResistances { turn } => format!(
-                "{}: open the character overview (%) to bring them up to date.",
-                out_of_date("Resistances", *turn)
+                "{}: {} to bring them up to date.",
+                out_of_date("Resistances", *turn),
+                ScreenFact::Resistances.opening(false)
             ),
             Self::SpellMemorised { turn } => format!(
-                "{}: open the spell list (I) to judge it.",
-                memorised_unnamed(*turn)
+                "{}: {} to judge it.",
+                memorised_unnamed(*turn),
+                ScreenFact::SpellList.opening(false)
             ),
             Self::SkillsShifting { god } => format!(
                 "Your skills may differ from the skills screen's: {god} shifts them with your piety."
             ),
         }
     }
+}
+
+/// A sentence saying to open the screen showing `fact`, `to` do what, such as `Open the skills
+/// screen (m) to judge a fight.`
+pub(crate) fn opening(fact: ScreenFact, to: &str) -> String {
+    format!("{} {to}", capitalised(&fact.opening(false)))
 }
 
 /// The Gaps in what the Advisor remembers of the game, whatever is in view: each fact the engine
@@ -326,21 +391,9 @@ pub(crate) fn of_the_game(
     knowledge: Option<&Bundle>,
 ) -> BTreeSet<Gap> {
     let mut gaps = BTreeSet::new();
-    gaps.extend(match &remembered.skills {
-        Remembered::Missing => Some(Gap::Skills),
-        Remembered::Stale(read) => Some(Gap::StaleSkills { turn: read.turn }),
-        Remembered::Known(_) => None,
-    });
-    gaps.extend(match &remembered.abilities {
-        Remembered::Missing => Some(Gap::AbilityMenu),
-        Remembered::Stale(read) => Some(Gap::StaleAbilityMenu { turn: read.turn }),
-        Remembered::Known(_) => None,
-    });
-    gaps.extend(match &remembered.resistances {
-        Remembered::Missing => Some(Gap::Resistances),
-        Remembered::Stale(read) => Some(Gap::StaleResistances { turn: read.turn }),
-        Remembered::Known(_) => None,
-    });
+    gaps.extend(ScreenFact::Skills.gap(&remembered.skills));
+    gaps.extend(ScreenFact::AbilityMenu.gap(&remembered.abilities));
+    gaps.extend(ScreenFact::Resistances.gap(&remembered.resistances));
     if let Some(bundle) = knowledge {
         let mp_max = visible.stats.mp_max.unwrap_or(0);
         gaps.extend(fight_outcome::spell_gaps(Some(remembered), mp_max, bundle));

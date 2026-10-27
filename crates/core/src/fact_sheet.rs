@@ -19,7 +19,7 @@ use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
-use crate::gaps::Gap;
+use crate::gaps::{Gap, ScreenFact};
 use crate::screen::Resistances;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
@@ -814,8 +814,12 @@ fn threat<'a>(
     if resists.unsettled(needs) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
+    // Unread or out of date, for damage they would change.
+    let resistances = ScreenFact::Resistances;
     let gaps = if needs.any() {
-        resistances_gap(remembered)
+        remembered.map_or(Some(resistances.unread()), |state| {
+            resistances.gap(&state.resistances)
+        })
     } else {
         None
     };
@@ -865,16 +869,6 @@ fn threat<'a>(
         threat,
         defender: Ok(Some(defender)),
         hostiles,
-    }
-}
-
-/// The Gap in the player's resistances `remembered`, for damage they would change: unread, or
-/// out of date.
-fn resistances_gap(remembered: Option<&AccumulatedState>) -> Option<Gap> {
-    match remembered.map(|state| &state.resistances) {
-        Some(Remembered::Known(_)) => None,
-        Some(Remembered::Stale(read)) => Some(Gap::StaleResistances { turn: read.turn }),
-        Some(Remembered::Missing) | None => Some(Gap::Resistances),
     }
 }
 

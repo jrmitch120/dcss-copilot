@@ -8,7 +8,7 @@ use copilot_gk::{Bundle, EscapeAbility, Relief, Use};
 use super::{Blocker, Escape, Usable, WayOut, current};
 use crate::accumulated_state::AccumulatedState;
 use crate::crawl_ids::object_classes;
-use crate::gaps::Gap;
+use crate::gaps::{Gap, ScreenFact};
 use crate::visible_state::VisibleState;
 
 /// What the player carries, has and knows, with the Game Knowledge that says which are Ways
@@ -94,11 +94,11 @@ impl Carried<'_> {
             .remembered
             .and_then(|remembered| current(&remembered.abilities))
         else {
-            gaps.insert(Gap::AbilityMenu);
+            gaps.insert(ScreenFact::AbilityMenu.unread());
             return Vec::new();
         };
         if read.stale {
-            gaps.insert(Gap::StaleAbilityMenu { turn: read.turn });
+            gaps.insert(ScreenFact::AbilityMenu.stale(read.turn));
         }
         abilities
             .iter()
@@ -166,13 +166,13 @@ impl Carried<'_> {
             .and_then(|remembered| current(&remembered.spells))
         else {
             if self.visible.stats.mp_max.is_some_and(|mp| mp > 0) {
-                gaps.insert(Gap::SpellList);
+                gaps.insert(ScreenFact::SpellList.unread());
             }
             return Vec::new();
         };
         // A list of no spells out of date hides a Way Out only as a spell memorised does.
         if read.stale && !spells.is_empty() {
-            gaps.insert(Gap::StaleSpellList { turn: read.turn });
+            gaps.insert(ScreenFact::SpellList.stale(read.turn));
         }
         let signs = &self.bundle.ways_out;
         spells
