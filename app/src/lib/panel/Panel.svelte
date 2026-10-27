@@ -5,7 +5,7 @@ import type { PanelActions } from "./actions";
 import ConnectionNotice from "./ConnectionNotice.svelte";
 import FocusCard from "./FocusCard.svelte";
 import Footer from "./Footer.svelte";
-import GapsList from "./GapsList.svelte";
+import GapRows from "./GapRows.svelte";
 import Header from "./Header.svelte";
 import NowPill from "./NowPill.svelte";
 import RunPlanRail from "./RunPlanRail.svelte";
@@ -72,7 +72,7 @@ $effect(() => {
       {#if gapsOpen && view.game.gaps.gaps.length > 0}
         <section class="card">
           <div class="lbl">Gaps <em>what the Advisor can't see</em></div>
-          <GapsList gaps={view.game.gaps} />
+          <GapRows gaps={view.game.gaps} />
         </section>
       {/if}
       {#if view.game.suggestedAction}

@@ -454,7 +454,7 @@ mod tests {
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
     use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
-    use crate::view_model::{Colour, Glyph, Value, WayOutRow};
+    use crate::view_model::{Colour, Glyph, MarkedValue, WayOutRow};
     use crate::visible_state::{
         Attitude, LevelMap, MapCell, Religion, SquareLight, Stats, Status, VisibleMonster,
     };
@@ -857,7 +857,7 @@ mod tests {
         assert!(!known.usable);
         assert_eq!(
             known.why_not,
-            Some(Value::known(
+            Some(MarkedValue::known(
                 "greyed out in the ability menu as of turn 5".to_owned()
             ))
         );
@@ -869,7 +869,7 @@ mod tests {
         let menu_out_of_date = "~Ability menu as of turn 5: open it (a) to bring it up to date.";
         assert_eq!(
             stale.why_not,
-            Some(Value::marked(
+            Some(MarkedValue::marked(
                 "~greyed out in the ability menu as of turn 5".to_owned(),
                 [menu_out_of_date.to_owned()]
             ))

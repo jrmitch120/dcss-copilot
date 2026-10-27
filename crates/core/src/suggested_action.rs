@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fact_sheet::{Chance, FactSheet, Threat, ThreatLevel};
 use crate::fight_outcome::{Fight, PlanOutcome};
-use crate::view_model::{SuggestedActionCard, Value, capitalised};
+use crate::view_model::{MarkedValue, SuggestedActionCard, capitalised};
 use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
 
 /// Fight on at DANGEROUS only when the best Attack Plan wins at least this often, in percent. From
@@ -337,10 +337,10 @@ impl SuggestedAction {
             action: match &self.action {
                 CandidateAction::WayOut(escape) => escape.value(),
                 CandidateAction::Corridor(CorridorToHold::StandingIn) => {
-                    Value::known("The corridor you stand in".to_owned())
+                    MarkedValue::known("The corridor you stand in".to_owned())
                 }
                 CandidateAction::Corridor(CorridorToHold::Near(square)) => {
-                    Value::known(match square.steps {
+                    MarkedValue::known(match square.steps {
                         1 => "The corridor 1 step away".to_owned(),
                         steps => format!("The corridor {steps} steps away"),
                     })
@@ -362,9 +362,10 @@ impl SuggestedAction {
                 } => fight.marked("The Advisor can't judge this fight".to_owned()),
             },
             if_lethal: (self.rule == SuggestionRule::FightCarefully).then(|| {
-                self.if_lethal
-                    .as_ref()
-                    .map_or_else(|| Value::known("no Way Out left".to_owned()), Escape::value)
+                self.if_lethal.as_ref().map_or_else(
+                    || MarkedValue::known("no Way Out left".to_owned()),
+                    Escape::value,
+                )
             }),
         }
     }

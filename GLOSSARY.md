@@ -86,6 +86,10 @@ _Avoid_: Database, saves, history (alone, when meaning Accumulated State)
 How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, or when the Advisor picks a game up again at a later turn than it last saw it on, as the turns between could have changed anything; every remembered fact keeps the turn it was read on and where it was read, so it is shown as of that turn, with a `~`, rather than as current. A message that tells how a fact changed, such as a skill's new level or a mutation gained, keeps it Known as of the message, unless the message doesn't fit what was read, which makes it Stale.
 _Avoid_: Fresh, expired, cached
 
+**Screen Fact**:
+A fact about the character the Advisor reads off a screen the player opens, such as their skills off the skills screen, their spells off the spell list or their resistances off the character overview. A Gap in one is filled by opening its screen; the Gap Prompt asks for Screen Facts.
+_Avoid_: Screen data, fillable
+
 **Blind Spot**:
 A change to the character the game makes without saying what changed, so the Advisor knows a fact it remembers may be wrong but can't set it right: a spell memorised, whose message doesn't name it, until the spell list is read; and the skills of a follower of a god who shifts them with piety, such as Ashenzari, which needn't stay as the skills screen showed them. The Advisor names each as a Gap.
 _Avoid_: Unknown, uncertainty

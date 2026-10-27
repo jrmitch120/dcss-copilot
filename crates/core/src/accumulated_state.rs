@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, bane_types, object_classes};
-use crate::gaps::Fillable;
+use crate::gaps::ScreenFact;
 use crate::screen::{
     DungeonOverview, KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations,
     Skills, SpellReach,
@@ -97,7 +97,7 @@ pub struct AccumulatedState {
     /// The facts the game's Gap prompt card asked the player to fill: none until it has shown.
     /// It shows once a game, whether the player filled them, put it away or an Encounter did.
     #[serde(default)]
-    pub gaps_prompted: BTreeSet<Fillable>,
+    pub gaps_prompted: BTreeSet<ScreenFact>,
     /// The Carried Gear of each monster in view the Advisor has read it for, but uniques', by
     /// its Sighting: forgotten once it leaves view. It goes Stale when the game shows a monster of
     /// its name picking up, dropping or wielding something.

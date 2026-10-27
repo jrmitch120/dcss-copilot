@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { AssistanceLevel, Character, GapsChip, NowPill } from "$lib/bindings";
+import type { AssistanceLevel, Character, GapList, NowPill } from "$lib/bindings";
 import { type PanelActions, unsaved } from "./actions";
 import Segmented from "./Segmented.svelte";
 import { threatTone } from "./tone";
@@ -16,7 +16,7 @@ let {
   character: Character;
   now: NowPill;
   assistance: AssistanceLevel;
-  gaps: GapsChip;
+  gaps: GapList;
   /** The Gaps chip's list is open, under the now pill. */
   gapsOpen: boolean;
   toggleGaps: () => void;

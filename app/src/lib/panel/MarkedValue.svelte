@@ -1,11 +1,11 @@
 <script lang="ts">
-import type { Value } from "$lib/bindings";
+import type { MarkedValue } from "$lib/bindings";
 
 /**
  * A value as the panel shows it: marked in place, with a dotted underline and a tooltip naming
  * the screen that fills it, while a Gap leaves it unknown or out of date.
  */
-let { value }: { value: Value } = $props();
+let { value }: { value: MarkedValue } = $props();
 </script>
 
 {#if value.gap}

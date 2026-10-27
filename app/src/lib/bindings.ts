@@ -172,7 +172,7 @@ monsters: Listing[] | null;
  *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
  *  the Gaps that keep it from being judged or may hide a better plan.
  */
-line: Value; 
+line: MarkedValue; 
 /**  The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`. */
 others: string[]; 
 /**
@@ -197,8 +197,8 @@ join: JoinCard } |
  *  the Gaps open then, until the player puts it away or an Encounter starts.
  */
 { card: "gapPrompt"; 
-/**  The Gaps it asks for that are still open, as the Gaps chip lists them. */
-gaps: GapsChip };
+/**  The Gaps it asks for that are still open. */
+gaps: GapList };
 
 /**
  *  The panel for the followed game, top to bottom: header, now pill, focus card,
@@ -244,8 +244,8 @@ export type GameView = {
 	accumulatedUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
-	/**  Every Gap in what the Advisor knows of the game, in the header. */
-	gaps: GapsChip,
+	/**  Every Gap in what the Advisor knows of the game, for the Gaps chip in the header. */
+	gaps: GapList,
 };
 
 /**  How many games the Advisor remembers, in Settings → History. */
@@ -259,7 +259,22 @@ games: number } |
 /**  Why not. */
 why: string };
 
-/**  One Gap as the Gaps chip lists it. */
+/**
+ *  Gaps as the panel lists them, in the Gaps chip and on the Gap prompt card: each with why it
+ *  matters and the keys that fill it.
+ */
+export type GapList = {
+	/**  One row a Gap, those the same in words as one. */
+	gaps: GapRow[],
+	/**
+	 *  What the character dump (`?` then `#`) fills of them at once, each as a sentence names
+	 *  it, such as `the spell list`: none when it fills none, or the player is watching a game
+	 *  not theirs.
+	 */
+	dumpFills: string[],
+};
+
+/**  One Gap as the panel lists it. */
 export type GapRow = {
 	/**  What is missing or out of date, such as `Spell list` or `~Skills as of turn 12`. */
 	what: string,
@@ -270,21 +285,6 @@ export type GapRow = {
 	 *  does, or the player is watching a game not theirs.
 	 */
 	keys: string[],
-};
-
-/**
- *  The Gaps chip in the panel's header: every Gap in what the Advisor knows of the game, each with
- *  why it matters and the keys that fill it.
- */
-export type GapsChip = {
-	/**  One row a Gap, those the same in words as one. */
-	gaps: GapRow[],
-	/**
-	 *  What the character dump (`?` then `#`) fills of them at once, each as a sentence names
-	 *  it, such as `the spell list`: none when it fills none, or the player is watching a game
-	 *  not theirs.
-	 */
-	dumpFills: string[],
 };
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
@@ -415,6 +415,21 @@ export type Listing = {
 	count: number,
 };
 
+/**
+ *  A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
+ *  with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
+ */
+export type MarkedValue = {
+	/**  The value, such as `spell · ~4% fail as of turn 12`. */
+	text: string,
+	/**
+	 *  What leaves it unknown or out of date, and how to fill it where the player can, one
+	 *  sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
+	 *  `None` while no Gap touches it.
+	 */
+	gap: string | null,
+};
+
 /**  A model the player can choose. */
 export type ModelOption = {
 	/**  The model's id. */
@@ -466,7 +481,7 @@ line: string;
  *  when anything can attack, marked when they were judged around a Gap, such as
  *  resistances unread.
  */
-detail: Value | null };
+detail: MarkedValue | null };
 
 /**
  *  A game seen before that a game process picked up again on a later turn, as last seen. Nobody
@@ -542,12 +557,12 @@ export type SuggestedActionCard = {
 	 *  What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
 	 *  ~95% win, ~20% HP lost`, marked when a Gap leaves its facts unknown or out of date.
 	 */
-	action: Value,
+	action: MarkedValue,
 	/**
 	 *  At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
 	 *  spell · 4% fail`, or that none is left, marked as `action` is.
 	 */
-	ifLethal: Value | null,
+	ifLethal: MarkedValue | null,
 };
 
 /**
@@ -612,21 +627,6 @@ export type UnreadPart = {
 };
 
 /**
- *  A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
- *  with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
- */
-export type Value = {
-	/**  The value, such as `spell · ~4% fail as of turn 12`. */
-	text: string,
-	/**
-	 *  What leaves it unknown or out of date, and how to fill it where the player can, one
-	 *  sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
-	 *  `None` while no Gap touches it.
-	 */
-	gap: string | null,
-};
-
-/**
  *  Everything the panel renders, pushed by the core to the webview.
  * 
  *  The webview holds no game logic: it only draws this. TypeScript types are
@@ -668,12 +668,12 @@ export type WayOutRow = {
 	 *  A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the
 	 *  menu or list it was read off is out of date.
 	 */
-	detail: Value | null,
+	detail: MarkedValue | null,
 	/**
 	 *  Why it can't be used, when it can't, such as `Centaur is faster`, marked when it rests on
 	 *  a menu out of date.
 	 */
-	whyNot: Value | null,
+	whyNot: MarkedValue | null,
 };
 
 /**  The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not. */

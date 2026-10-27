@@ -1,8 +1,8 @@
 <script lang="ts">
-import type { GapsChip } from "$lib/bindings";
+import type { GapList } from "$lib/bindings";
 
 /** Each Gap, why it matters and the keys that fill it, as the Gaps chip and prompt card list them. */
-let { gaps }: { gaps: GapsChip } = $props();
+let { gaps }: { gaps: GapList } = $props();
 
 /** Joins a list as the panel's sentences do, with no comma before the last: `a, b and c`. */
 const sentenceList = new Intl.ListFormat("en-GB", { type: "conjunction" });

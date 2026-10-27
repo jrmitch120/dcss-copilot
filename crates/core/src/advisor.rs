@@ -10,13 +10,13 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
-use crate::gaps::{self, Fillable, Gap};
+use crate::gaps::{self, Gap, ScreenFact};
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
-    Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, Value, capitalised,
+    Listing, MarkedValue, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -57,7 +57,7 @@ struct Followed {
     joining: Joining,
     /// The facts the Gap prompt card asks for that are still open, while it shows: until the
     /// player puts it away or an Encounter starts.
-    gap_prompt: Option<BTreeSet<Fillable>>,
+    gap_prompt: Option<BTreeSet<ScreenFact>>,
 }
 
 impl Followed {
@@ -68,14 +68,14 @@ impl Followed {
     fn prompt_for_gaps(
         &mut self,
         detections: &[Detection],
-        open: &BTreeSet<Fillable>,
+        open: &BTreeSet<ScreenFact>,
         may_prompt: bool,
     ) -> Option<Detection> {
         if detections.contains(&Detection::EncounterStarted) {
             self.gap_prompt = None;
         }
         if let Some(asks) = &mut self.gap_prompt {
-            asks.retain(|fillable| open.contains(fillable));
+            asks.retain(|screen_fact| open.contains(screen_fact));
             if asks.is_empty() {
                 self.gap_prompt = None;
             }
@@ -239,7 +239,7 @@ impl Advisor {
             return Vec::new();
         };
         let hostile = self.hostile_in_view();
-        let open: BTreeSet<Fillable> = self.gaps().iter().filter_map(Gap::fillable).collect();
+        let open: BTreeSet<ScreenFact> = self.gaps().iter().filter_map(Gap::screen_fact).collect();
         // The join card asks for the dump already; a player watching can't open the screens.
         let may_prompt = self.join_card().is_none()
             && self.identity.as_ref().and_then(|identity| identity.role) != Some(Role::Spectating);
@@ -363,7 +363,7 @@ impl Advisor {
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
-            gaps: gaps::chip(&self.gaps(), identity.role == Some(Role::Spectating)),
+            gaps: gaps::list(&self.gaps(), identity.role == Some(Role::Spectating)),
         })
     }
 }
@@ -418,12 +418,12 @@ impl Advisor {
             .gaps()
             .into_iter()
             .filter(|gap| {
-                gap.fillable()
-                    .is_some_and(|fillable| asks.contains(&fillable))
+                gap.screen_fact()
+                    .is_some_and(|screen_fact| asks.contains(&screen_fact))
             })
             .collect();
         (!open.is_empty()).then(|| FocusCard::GapPrompt {
-            gaps: gaps::chip(&open, false),
+            gaps: gaps::list(&open, false),
         })
     }
 
@@ -512,8 +512,9 @@ fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
             level: assessment.level,
             alert,
             line: threat_line(assessment),
-            detail: threat_detail(assessment)
-                .map(|detail| Value::marked(detail, assessment.gaps.iter().map(Gap::sentence))),
+            detail: threat_detail(assessment).map(|detail| {
+                MarkedValue::marked(detail, assessment.gaps.iter().map(Gap::sentence))
+            }),
         },
     }
 }

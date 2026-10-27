@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { WaysOutList } from "$lib/bindings";
-import Marked from "./Marked.svelte";
+import MarkedValue from "./MarkedValue.svelte";
 
 let { waysOut }: { waysOut: WaysOutList } = $props();
 </script>
@@ -19,10 +19,10 @@ let { waysOut }: { waysOut: WaysOutList } = $props();
           <span>
             {row.name}
             {#if row.detail}
-              <span class="muted small"><Marked value={row.detail} /></span>
+              <span class="muted small"><MarkedValue value={row.detail} /></span>
             {/if}
             {#if row.whyNot}
-              <span class="why small"><Marked value={row.whyNot} /></span>
+              <span class="why small"><MarkedValue value={row.whyNot} /></span>
             {/if}
           </span>
         </li>

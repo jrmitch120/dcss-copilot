@@ -1,10 +1,10 @@
 <script lang="ts">
-import type { GapsChip } from "$lib/bindings";
+import type { GapList } from "$lib/bindings";
 import type { PanelActions } from "./actions";
-import GapsList from "./GapsList.svelte";
+import GapRows from "./GapRows.svelte";
 
 /** The Gap prompt card: once a game, at an All Clear, what the Advisor can't see yet. */
-let { gaps, actions }: { gaps: GapsChip; actions: PanelActions } = $props();
+let { gaps, actions }: { gaps: GapList; actions: PanelActions } = $props();
 
 let dismissError = $state<string | null>(null);
 
@@ -20,7 +20,7 @@ async function dismiss() {
     While it's quiet: I can't see these yet. Open them in the game when you can, and I'll judge with
     them. Nothing is sent to the game by DCSS Copilot.
   </p>
-  <GapsList {gaps} />
+  <GapRows {gaps} />
   <div class="acts"><button type="button" onclick={dismiss}>Don't ask again</button></div>
 </section>
 {#if dismissError}

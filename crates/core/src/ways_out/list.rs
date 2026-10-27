@@ -4,7 +4,7 @@ use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
 use crate::gaps::Gap;
-use crate::view_model::{Value, WayOutRow, WaysOutList, capitalised};
+use crate::view_model::{MarkedValue, WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
     /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
@@ -52,8 +52,8 @@ impl Escape {
 
     /// The Way Out as one line, as [`Escape::summary`] says it, marked when the menu or list it
     /// was read off is out of date.
-    pub(crate) fn value(&self) -> Value {
-        Value::marked(self.summary(), self.gap().as_ref().map(Gap::sentence))
+    pub(crate) fn value(&self) -> MarkedValue {
+        MarkedValue::marked(self.summary(), self.gap().as_ref().map(Gap::sentence))
     }
 
     /// The Gap it was judged around: the ability menu or spell list it was read off out of
@@ -134,13 +134,14 @@ fn row(way_out: &WayOut) -> WayOutRow {
                 .iter()
                 .any(|blocker| matches!(blocker, Blocker::GreyedOut { .. }));
             let gap = menu_gap.as_ref().filter(|_| greyed_out).map(Gap::sentence);
-            (false, Some(Value::marked(why_not, gap)))
+            (false, Some(MarkedValue::marked(why_not, gap)))
         }
     };
     WayOutRow {
         usable,
         name,
-        detail: detail.map(|detail| Value::marked(detail, menu_gap.as_ref().map(Gap::sentence))),
+        detail: detail
+            .map(|detail| MarkedValue::marked(detail, menu_gap.as_ref().map(Gap::sentence))),
         why_not,
     }
 }

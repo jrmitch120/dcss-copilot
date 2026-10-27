@@ -4,7 +4,7 @@ import type { PanelActions } from "./actions";
 import GapPrompt from "./GapPrompt.svelte";
 import JoinCard from "./JoinCard.svelte";
 import ListingRow from "./ListingRow.svelte";
-import Marked from "./Marked.svelte";
+import MarkedValue from "./MarkedValue.svelte";
 import Tile from "./Tile.svelte";
 
 let {
@@ -62,7 +62,7 @@ let {
     {@render facts()}
     <div class="lbl">Fight <em>computed</em></div>
     {@render inView(focus.monsters)}
-    <p class="line"><Marked value={focus.line} /></p>
+    <p class="line"><MarkedValue value={focus.line} /></p>
     {#each focus.others as other, i (i)}
       <p class="muted small">{other}</p>
     {/each}

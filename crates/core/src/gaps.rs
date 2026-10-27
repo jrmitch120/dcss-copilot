@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::fight_outcome;
-use crate::view_model::{GapRow, GapsChip, capitalised};
+use crate::view_model::{GapList, GapRow, capitalised};
 use crate::visible_state::{Religion, VisibleState};
 
 /// A fact the Advisor needs about the game but doesn't have, or has only an out-of-date copy of.
@@ -97,11 +97,12 @@ pub enum Gap {
     },
 }
 
-/// A remembered fact a screen the player can open fills, and so what a Gap prompt asks for:
-/// each Gap about it is filled by the same keys.
+/// A Screen Fact: a fact about the character the Advisor reads off a screen the player opens,
+/// such as their skills, so a Gap in it is filled by opening that screen. The Gap prompt asks for
+/// Screen Facts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum Fillable {
+pub enum ScreenFact {
     /// The skills, off the skills screen (`m`).
     Skills,
     /// The spells known and their failure rates, off the spell list (`I`).
@@ -114,7 +115,7 @@ pub enum Fillable {
     Resistances,
 }
 
-impl Fillable {
+impl ScreenFact {
     /// The keys that open the screen showing it, such as `I` then `!`.
     fn keys(self) -> &'static [&'static str] {
         match self {
@@ -138,16 +139,16 @@ impl Fillable {
 }
 
 impl Gap {
-    /// The remembered fact it is about that a screen the player can open fills, if any.
-    pub(crate) fn fillable(&self) -> Option<Fillable> {
+    /// The Screen Fact it is about, if a screen the player can open fills it.
+    pub(crate) fn screen_fact(&self) -> Option<ScreenFact> {
         match self {
-            Self::Skills | Self::StaleSkills { .. } => Some(Fillable::Skills),
+            Self::Skills | Self::StaleSkills { .. } => Some(ScreenFact::Skills),
             Self::SpellList | Self::StaleSpellList { .. } | Self::SpellMemorised { .. } => {
-                Some(Fillable::SpellList)
+                Some(ScreenFact::SpellList)
             }
-            Self::SpellPower | Self::StaleSpellPower { .. } => Some(Fillable::SpellPower),
-            Self::AbilityMenu | Self::StaleAbilityMenu { .. } => Some(Fillable::AbilityMenu),
-            Self::Resistances | Self::StaleResistances { .. } => Some(Fillable::Resistances),
+            Self::SpellPower | Self::StaleSpellPower { .. } => Some(ScreenFact::SpellPower),
+            Self::AbilityMenu | Self::StaleAbilityMenu { .. } => Some(ScreenFact::AbilityMenu),
+            Self::Resistances | Self::StaleResistances { .. } => Some(ScreenFact::Resistances),
             Self::HitPoints
             | Self::Defences
             | Self::MonstersInView
@@ -242,10 +243,12 @@ impl Gap {
     /// Its row in the Gaps chip, with the keys that fill it unless the player is watching a game
     /// not theirs, whose screens they can't open.
     fn row(&self, watching: bool) -> GapRow {
-        let keys = match self.fillable() {
-            Some(fillable) if !watching => {
-                fillable.keys().iter().map(|&key| key.to_owned()).collect()
-            }
+        let keys = match self.screen_fact() {
+            Some(screen_fact) if !watching => screen_fact
+                .keys()
+                .iter()
+                .map(|&key| key.to_owned())
+                .collect(),
             _ => Vec::new(),
         };
         GapRow {
@@ -350,9 +353,9 @@ pub(crate) fn of_the_game(
     gaps
 }
 
-/// The Gaps chip listing `gaps`, without keys to press for a player `watching` a game not
+/// The panel's list of `gaps`, without keys to press for a player `watching` a game not
 /// theirs.
-pub(crate) fn chip(gaps: &BTreeSet<Gap>, watching: bool) -> GapsChip {
+pub(crate) fn list(gaps: &BTreeSet<Gap>, watching: bool) -> GapList {
     let mut rows: Vec<GapRow> = Vec::new();
     for gap in gaps {
         let row = gap.row(watching);
@@ -360,16 +363,16 @@ pub(crate) fn chip(gaps: &BTreeSet<Gap>, watching: bool) -> GapsChip {
             rows.push(row);
         }
     }
-    let in_dump: BTreeSet<Fillable> = gaps
+    let in_dump: BTreeSet<ScreenFact> = gaps
         .iter()
-        .filter_map(Gap::fillable)
-        .filter(|fillable| fillable.in_dump().is_some())
+        .filter_map(Gap::screen_fact)
+        .filter(|screen_fact| screen_fact.in_dump().is_some())
         .collect();
-    GapsChip {
+    GapList {
         gaps: rows,
         dump_fills: in_dump
             .into_iter()
-            .filter_map(Fillable::in_dump)
+            .filter_map(ScreenFact::in_dump)
             .filter(|_| !watching)
             .map(str::to_owned)
             .collect(),

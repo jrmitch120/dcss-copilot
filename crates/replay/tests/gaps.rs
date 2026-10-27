@@ -5,7 +5,7 @@
 #![allow(clippy::unwrap_used)]
 
 use copilot_core::{
-    Detection, Fillable, FocusCard, GameView, Gap, GapRow, GapsChip, NowPill, Value,
+    Detection, FocusCard, GameView, Gap, GapList, GapRow, MarkedValue, NowPill, ScreenFact,
 };
 use copilot_replay::{Happened, Recording, Replayer};
 use copilot_store::Store;
@@ -45,7 +45,7 @@ fn first_shown<T>(recording: &[u8], shown: impl Fn(&GameView) -> Option<T>) -> T
 }
 
 /// The fight card's line, once the panel shows one.
-fn fight_line(game: &GameView) -> Option<Value> {
+fn fight_line(game: &GameView) -> Option<MarkedValue> {
     match &game.focus {
         FocusCard::Fight { line, .. } => Some(line.clone()),
         _ => None,
@@ -53,7 +53,7 @@ fn fight_line(game: &GameView) -> Option<Value> {
 }
 
 /// The numbers behind the now pill's Threat Level, once it shows any.
-fn now_detail(game: &GameView) -> Option<Value> {
+fn now_detail(game: &GameView) -> Option<MarkedValue> {
     match &game.now {
         NowPill::Rated {
             detail: Some(detail),
@@ -64,8 +64,8 @@ fn now_detail(game: &GameView) -> Option<Value> {
 }
 
 /// A value the panel marks in place, with the tooltip saying what fills it.
-fn marked(text: &str, gap: &str) -> Value {
-    Value {
+fn marked(text: &str, gap: &str) -> MarkedValue {
+    MarkedValue {
         text: text.to_owned(),
         gap: Some(gap.to_owned()),
     }
@@ -270,7 +270,7 @@ fn noticed(replayer: &Replayer, detection: impl Fn(&Detection) -> bool) -> bool 
 }
 
 /// The Gap prompt card, while the panel shows it.
-fn prompt(replayer: &Replayer) -> Option<GapsChip> {
+fn prompt(replayer: &Replayer) -> Option<GapList> {
     match replayer.view_model().game?.focus {
         FocusCard::GapPrompt { gaps } => Some(gaps),
         _ => None,
@@ -312,10 +312,10 @@ fn a_prompt_card_asks_for_the_gaps_at_the_first_all_clear_and_goes_as_an_encount
         Some((
             Some(304),
             vec![
-                Fillable::Skills,
-                Fillable::SpellList,
-                Fillable::AbilityMenu,
-                Fillable::Resistances
+                ScreenFact::Skills,
+                ScreenFact::SpellList,
+                ScreenFact::AbilityMenu,
+                ScreenFact::Resistances
             ]
         ))
     );

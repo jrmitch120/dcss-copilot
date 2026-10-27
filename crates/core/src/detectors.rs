@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::dangerous_status::DangerousStatus;
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, ThreatLevel};
-use crate::gaps::Fillable;
+use crate::gaps::ScreenFact;
 use crate::suggested_action::{SuggestedAction, SuggestionRule};
 use crate::view_model::capitalised;
 use crate::visible_state::VisibleState;
@@ -42,7 +42,7 @@ pub enum Detection {
     /// detectors, as it asks of what the Advisor remembers.
     GapPrompt {
         /// What it asked for.
-        asks: Vec<Fillable>,
+        asks: Vec<ScreenFact>,
     },
     /// The rules picked a new Suggested Action this Encounter, which the panel shows from now
     /// on, at DANGEROUS and LETHAL moments.
