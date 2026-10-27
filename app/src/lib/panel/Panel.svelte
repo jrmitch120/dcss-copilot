@@ -19,11 +19,18 @@ let { view, actions }: { view: ViewModel; actions: PanelActions } = $props();
 /** The player opened the Gaps chip's list, which shows under the now pill. */
 let gapsOpen = $state(false);
 
-/** The moment is above CALM: the fight takes the panel, so the Gaps list closes. */
-let inDanger = $derived(view.game?.now.state === "rated" && view.game.now.level !== "calm");
+/**
+ * The moment is above CALM or the now pill shows an Alert, as a Dangerous Status raises at CALM:
+ * the danger takes the panel, so the Gaps list closes.
+ */
+let warned = $derived(
+  view.game !== null &&
+    ((view.game.now.state === "rated" && view.game.now.level !== "calm") ||
+      view.game.now.alert !== null),
+);
 
 $effect(() => {
-  if (inDanger) {
+  if (warned) {
     gapsOpen = false;
   }
 });
