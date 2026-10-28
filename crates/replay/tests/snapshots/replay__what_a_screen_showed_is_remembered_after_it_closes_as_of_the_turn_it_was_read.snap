@@ -72,5 +72,8 @@ expression: replayer.advisor().accumulated()
   "spellMemorised": null,
   "gapsPrompted": [],
   "carriedGear": {},
-  "uniquesGear": {}
+  "uniquesGear": {},
+  "levels": {},
+  "onLevel": null,
+  "uniques": {}
 }

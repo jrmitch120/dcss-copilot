@@ -70,6 +70,26 @@ _Avoid_: Tick, frame, turn (when meaning this)
 What the Advisor has remembered across turns of one game that the game no longer shows, such as explored levels, items seen, uniques encountered, what it read from screens the player opened, and the Run Plan. Each fact remembers where it came from and how recent it is. It is saved as it changes, by the game's Game Key, so the Advisor picks a game up again with it after the app restarts; a game watched rather than played is never saved.
 _Avoid_: History, memory, cache
 
+**Level Record**:
+What the Advisor remembers of one level of a game: its map as the player last left it, its Landmarks, the items seen on its floor and in its shops, and each Visit to it. A level is told apart by its branch and depth, as `Dungeon:3`, or its branch alone for one only one level deep, as `Temple`.
+_Avoid_: Level memory, level cache
+
+**Landmark**:
+A feature the player remembers a level by: a staircase, an altar, a shop, a branch entrance or a portal, with where it is and what the game calls it. Game Knowledge says which features are which.
+_Avoid_: Point of interest, feature (alone, which is crawl's word for every square's terrain)
+
+**Visit**:
+One stay of the player on a level, from when the Advisor first saw them there until it first saw them on another, with whether they cleared the floor while there.
+_Avoid_: Trip, stay
+
+**Spotted**:
+An item seen on a level's floor or in a shop that, as far as the Advisor knows, is still there: the next time the game tells what lies on its square or in its shop without it, it is gone, whoever took it. The game names the items on a square as the player comes to it and a shop's stock as its menu opens, so a pile too big for it to name, or a square the player only sees from afar, leaves the items there as they were.
+_Avoid_: Seen, available, on the floor (when meaning this)
+
+**Floor Cleared**:
+The player has explored a level as far as they can during a Visit, with no hostile in view: crawl said `Done exploring.`, or no square they can walk to borders one they haven't seen. A square only magic mapping drew is unseen, and a transporter they can walk to may lead on, as the map doesn't show where, so a level with one is cleared only as crawl says. It happens at most once per Visit.
+_Avoid_: Explored, done (alone)
+
 **Change Log**:
 Every change to a game's Accumulated State, in the order it was made, each with the turn and time of the message that made it. It is only ever added to, so it tells what the Advisor knew of the game at any moment; it goes only with its game, when the player clears history or the game is pruned.
 _Avoid_: History (when meaning this), audit log, journal
@@ -261,7 +281,7 @@ The Advisor's current plan for one game: intended route, skill targets, outstand
 _Avoid_: Build, strategy (when meaning this artifact)
 
 **Great Find**:
-An item, spell or upgrade that is exceptionally valuable to this particular game, judged against its Run Plan rather than general rarity. Tiered as Nice, Great or Run-changing. Ones seen but not yet obtained (on the floor, in a shop) are Spotted.
+An item, spell or upgrade that is exceptionally valuable to this particular game, judged against its Run Plan rather than general rarity. Tiered as Nice, Great or Run-changing. Ones seen but not yet obtained, on a level's floor or in its shop, are Spotted.
 _Avoid_: Loot alert, rare drop
 
 **Assistance Level**:

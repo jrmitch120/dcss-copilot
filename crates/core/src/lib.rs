@@ -9,6 +9,7 @@ mod dangerous_status;
 mod detectors;
 mod engine;
 mod exceptional;
+mod explored;
 mod fact_sheet;
 mod fight_outcome;
 mod game_source;
@@ -32,6 +33,10 @@ pub use dangerous_status::DangerousStatus;
 pub use detectors::{Alert, AlertCause, AlertKind, Detection};
 pub use engine::oracle;
 pub use exceptional::{Exceptional, ExceptionalMonster};
+pub use explored::{
+    Explored, ItemSeen, ItemStatus, LandmarkKind, LandmarkSeen, LevelRecord, OnLevel, ShopOffer,
+    UniqueMet, Visit,
+};
 pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, GearBasis, GearPlayed, KnownOrStale, NotModelled, Threat,
     ThreatAssessment, ThreatLevel,
@@ -52,9 +57,9 @@ pub use view_model::{
     WayOutRow, WaysOutList,
 };
 pub use visible_state::{
-    Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,
-    RECENT_MESSAGES, Religion, Sighting, SquareLight, Stats, Status, VisibleMonster, VisibleState,
-    Wielding,
+    Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, MapSnapshot, Place,
+    Position, RECENT_MESSAGES, Religion, Sighting, SquareLight, Stats, Status, VisibleMonster,
+    VisibleState, Wielding,
 };
 pub use ways_out::{
     Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, ReadOn, Usable, WayOut, WaysOut,

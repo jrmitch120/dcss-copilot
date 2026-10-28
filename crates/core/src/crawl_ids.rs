@@ -208,6 +208,15 @@ crawl_identifiers! {
     }
 }
 
+crawl_identifiers! {
+    /// `dungeon_feature_type` identifiers.
+    dungeon_features {
+        /// Takes the player elsewhere on the level, which the map doesn't show where:
+        /// `explore_discoveries::found_feature` in `travel.cc` explores past it.
+        TRANSPORTER = "DNGN_TRANSPORTER";
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeSet;
@@ -229,7 +238,7 @@ mod tests {
     ];
 
     /// The identifiers of each kind a bundle carries.
-    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 14] {
+    fn known(bundle: &Bundle) -> [(&'static str, &'static [&'static str], BTreeSet<&str>); 15] {
         let monsters = || bundle.monsters.values();
         let attacks = || monsters().flat_map(|monster| &monster.attacks);
         let class_sub_types = |class: &str| {
@@ -335,6 +344,15 @@ mod tests {
                     .banes
                     .iter()
                     .map(|bane| bane.id.0.as_str())
+                    .collect(),
+            ),
+            (
+                "dungeon features",
+                dungeon_features::ALL,
+                bundle
+                    .features
+                    .values()
+                    .map(|feature| feature.id.0.as_str())
                     .collect(),
             ),
             (
