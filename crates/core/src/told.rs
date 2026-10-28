@@ -49,14 +49,19 @@ pub(crate) struct MutationChange<'b> {
     pub(crate) to: usize,
 }
 
-/// What a line of the game's messages tells of the character, through `bundle`. Crawl writes
-/// messages given together on one line, a space apart, so the line is read as the messages it
-/// holds, each the shortest run of whole words from where the last ended that reads as one.
+/// What a line of the game's messages tells of the character, through `bundle`.
 pub(crate) fn told<'b>(line: &str, bundle: &'b Bundle) -> Vec<Told<'b>> {
+    read_line(line, |said| one(said, bundle))
+}
+
+/// What `read` makes of each message a line of the game's messages holds. Crawl writes messages
+/// given together on one line, a space apart, so the line is read as the messages it holds, each
+/// the shortest run of whole words from where the last ended that `read` makes something of.
+pub(crate) fn read_line<T>(line: &str, mut read: impl FnMut(&str) -> Option<T>) -> Vec<T> {
     let starts: Vec<usize> = std::iter::once(0)
         .chain(line.match_indices([' ', '\n']).map(|(at, _)| at + 1))
         .collect();
-    let mut news = Vec::new();
+    let mut found = Vec::new();
     let mut from = 0;
     for &start in &starts {
         if start < from {
@@ -69,14 +74,14 @@ pub(crate) fn told<'b>(line: &str, bundle: &'b Bundle) -> Vec<Told<'b>> {
             .chain([rest.len()]);
         for end in ends {
             let said = rest.get(..end).unwrap_or_default();
-            if let Some(found) = one(said, bundle) {
-                news.push(found);
+            if let Some(read) = read(said) {
+                found.push(read);
                 from = start + end;
                 break;
             }
         }
     }
-    news
+    found
 }
 
 /// What one message tells of the character, if anything.
