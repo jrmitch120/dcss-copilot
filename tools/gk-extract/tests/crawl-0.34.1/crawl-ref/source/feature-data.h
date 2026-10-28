@@ -123,4 +123,40 @@ STONE_STAIRS_UP(I, i),
     FFT_NONE, MF_STAIR_DOWN,
 },
 
+// (trimmed for the extractor test)
+{
+    DNGN_ENTER_SHOP, "shop", "enter_shop",
+    DCHAR_ARCH, NUM_DCHAR_TYPES,
+    YELLOW, LIGHTGREY, YELLOW, YELLOW, YELLOW,
+    FFT_NOTABLE, MF_FEATURE,
+},
+
+{
+    DNGN_ENTER_LAIR, "staircase to the Lair", "enter_lair",
+    DCHAR_STAIRS_DOWN, NUM_DCHAR_TYPES,
+    COLOUR_AND_MAP(YELLOW),
+    FFT_NOTABLE, MF_STAIR_BRANCH,
+},
+
+{
+    DNGN_ENTER_BAZAAR, "gateway to a bazaar", "enter_bazaar",
+    DCHAR_ARCH, NUM_DCHAR_TYPES,
+    ETC_SHIMMER_BLUE, LIGHTGREY, ETC_SHIMMER_BLUE, ETC_SHIMMER_BLUE, ETC_SHIMMER_BLUE,
+    FFT_NOTABLE, MF_PORTAL,
+},
+
+{
+    DNGN_ALTAR_ZIN, "glowing silver altar of Zin", "altar_zin",
+    DCHAR_ALTAR, NUM_DCHAR_TYPES,
+    LIGHTGREY, DARKGREY, LIGHTGREY, LIGHTGREY, LIGHTGREY,
+    FFT_NOTABLE, MF_FEATURE,
+},
+
+{
+    DNGN_ALTAR_TROG, "sacred altar of Trog", "altar_trog",
+    DCHAR_ALTAR, NUM_DCHAR_TYPES,
+    RED, DARKGREY, RED, RED, RED,
+    FFT_NOTABLE, MF_FEATURE,
+},
+
 };

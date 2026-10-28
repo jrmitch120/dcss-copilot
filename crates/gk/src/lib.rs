@@ -136,8 +136,44 @@ pub struct Bundle {
     /// What the game says as the character's skills, spells, god's powers, mutations and banes
     /// change.
     pub character: CharacterSigns,
+    /// What the game says of the level the player is on: the items where they stand, a shop's
+    /// stock, exploring it all and monsters dying.
+    pub level: LevelSigns,
     /// Which variant of each ported crawl formula this Crawl Version uses.
     pub formulas: Formulas,
+}
+
+/// What the game says of the level the player is on, as this Crawl Version says it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LevelSigns {
+    /// As the player comes to a square one item lies on, the item: `You see here {}.`
+    /// (`item_check`).
+    pub item_here: Template,
+    /// As the player comes to a square a few items lie on: `Things that are here:`, the message
+    /// before the one naming them (`item_check`).
+    pub items_here: String,
+    /// What the message after [`LevelSigns::items_here`] names its items apart with: `; `
+    /// (`item_message`).
+    pub items_apart: String,
+    /// As the player comes to a square more items lie on than crawl names: `Items here: {}.`,
+    /// their glyphs, and `There are many items here.` (`item_check`).
+    pub items_unnamed: Vec<Template>,
+    /// As exploring finds nothing more to go to: `Done exploring.` (`explore_discoveries`).
+    pub done_exploring: String,
+    /// The tag of the menu a shop shows its stock in: `shop` (`ShopMenu`).
+    pub shop_tag: String,
+    /// The title of a shop's menu, the shop's name: `Welcome to {}! What would you like to do?`.
+    pub shop_title: Template,
+    /// Each item a shop's menu lists, after its hotkey and its mark, its price, then its name:
+    /// `{} gold   {}` (`ShopEntry::get_text`).
+    pub shop_item: Template,
+    /// The marks a shop's menu puts after an item's hotkey: `-`, or `+` for one chosen to buy
+    /// and `$` for one on the shopping list.
+    pub shop_marks: String,
+    /// As a monster dies in view, the monster as crawl names it with `the`, such as
+    /// `You kill {}!` or `{} dies!` (`monster_die`, `mon-death.cc`).
+    pub monster_died: Vec<Template>,
 }
 
 /// What the game shows as the player learns which kind an item they carry is, beyond what the
@@ -1737,6 +1773,25 @@ pub struct Feature {
     pub stairs: Option<StairDirection>,
     /// It is water, shallow or deep, which slows a player wading through it (`feat_is_water`).
     pub water: bool,
+    /// What it is to a player finding their way around the dungeon, when it is more than
+    /// terrain or a staircase.
+    pub landmark: Option<Landmark>,
+}
+
+/// A dungeon feature a player remembers a level by, beyond its staircases.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Landmark {
+    /// An altar to a god (`feat_is_altar`).
+    Altar,
+    /// A shop's entrance (`DNGN_ENTER_SHOP`).
+    Shop,
+    /// The way into a branch the dungeon leads to by stairs, such as the Lair
+    /// (`feat_is_branch_entrance`).
+    BranchEntrance,
+    /// The way into a branch it doesn't, such as a Bazaar, the Abyss or Pandemonium: the
+    /// `entry_stairs` of a branch that isn't `is_connected_branch`.
+    Portal,
 }
 
 /// What a dungeon feature is to someone walking onto it, from its `feat_defs` flags and

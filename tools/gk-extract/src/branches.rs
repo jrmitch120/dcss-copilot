@@ -17,6 +17,7 @@ const BRANCHES_END: &str = "NUM_BRANCHES";
 /// absolute depth, its flags, its three features, then its short name.
 const LEVELS_FIELD: usize = 4;
 const FLAGS_FIELD: usize = 6;
+const ENTRY_FIELD: usize = 7;
 const SHORT_NAME_FIELD: usize = 10;
 
 /// How webtiles names the place a level of a branch one level deep is (`tileweb.cc`), as crawl's
@@ -117,6 +118,30 @@ pub fn branches(
                 place: place(&id, name, levels == 1, connected, naming),
                 id: EnumId(id),
             })
+        })
+        .collect()
+}
+
+/// The feature that leads into each branch, from its `entry_stairs` in `branch_data`
+/// (`branch-data.h`), and whether the dungeon leads to the branch by stairs
+/// (`is_connected_branch`): not when its flags hold `unconnected_flag`. The Dungeon, which nothing
+/// leads into, names `NUM_FEATURES`.
+pub fn entrances(
+    branch_data: &Source,
+    unconnected_flag: &str,
+) -> Result<Vec<(String, bool)>, ExtractError> {
+    branch_data
+        .entries("branches")?
+        .iter()
+        .map(|fields| {
+            let (Some([Token::Ident(entry)]), Some(flags)) = (
+                fields.get(ENTRY_FIELD).map(Vec::as_slice),
+                fields.get(FLAGS_FIELD),
+            ) else {
+                return Err(unreadable("branch-data.h", "an entry of branches"));
+            };
+            let connected = !flags.contains(&Token::Ident(unconnected_flag.to_owned()));
+            Ok((entry.clone(), connected))
         })
         .collect()
 }

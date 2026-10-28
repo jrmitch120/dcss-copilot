@@ -53,7 +53,20 @@ enum dungeon_feature_type
 #endif
 
     // (trimmed for the extractor test)
+    DNGN_ENTER_SHOP,
+
+    // (trimmed for the extractor test)
+    DNGN_ENTER_LAIR,
+
+    // (trimmed for the extractor test)
+    DNGN_ENTER_BAZAAR,
+
+    // (trimmed for the extractor test)
     DNGN_OPEN_SEA,
+
+    // (trimmed for the extractor test)
+    DNGN_ALTAR_ZIN,
+    DNGN_ALTAR_TROG,
 
     NUM_FEATURES
 };

@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use copilot_gk::{EnumId, Feature, StairDirection, Terrain};
+use copilot_gk::{EnumId, Feature, Landmark, StairDirection, Terrain};
 
 use crate::ExtractError;
 use crate::cpp::{Source, Token};
@@ -40,6 +40,10 @@ pub struct FeatureRules {
     pub water: &'static [&'static str],
     /// The functions of `terrain.cc` that name the water.
     pub water_functions: &'static [&'static str],
+    /// A shop's entrance.
+    pub shop: &'static str,
+    /// The table of `terrain.cc` pairing each god with its altar, which `feat_altar_god` reads.
+    pub altars: &'static str,
 }
 
 /// What crawl 0.34 decides about features in code.
@@ -58,18 +62,23 @@ pub const FEATURE_RULES_0_34: FeatureRules = FeatureRules {
         "DNGN_OPEN_SEA",
     ],
     water_functions: &["feat_is_shallow_water", "feat_is_deep_water"],
+    shop: "DNGN_ENTER_SHOP",
+    altars: "_god_altars",
 };
 
 /// The file whose functions name the water.
 const TERRAIN_FILE: &str = "terrain.cc";
 
 /// Every feature `feat_defs` defines, by its value in `dungeon_feature_type`, whose enumerators
-/// are `enumeration`, with `terrain`, `terrain.cc`, to check the water against.
+/// are `enumeration`, with `terrain`, `terrain.cc`, to check the water against and read the
+/// altars from, and the feature leading into each branch, with whether the dungeon leads to it
+/// by stairs, as [`crate::branches::entrances`] reads them.
 pub fn features(
     source: &Source,
     file: &str,
     enumeration: &[(String, i64)],
     terrain: &Source,
+    entrances: &[(String, bool)],
     rules: &FeatureRules,
 ) -> Result<BTreeMap<u16, Feature>, ExtractError> {
     let values: HashMap<&str, i64> = enumeration
@@ -81,6 +90,7 @@ pub fn features(
         .iter()
         .chain(rules.not_stairs)
         .chain(rules.water)
+        .chain(std::slice::from_ref(&rules.shop))
     {
         if !values.contains_key(id) {
             return Err(ExtractError::Missing {
@@ -103,6 +113,7 @@ pub fn features(
             });
         }
     }
+    let altars = altars(terrain, rules.altars)?;
     let unreadable = |what: String| ExtractError::Unreadable {
         file: file.to_owned(),
         what,
@@ -163,6 +174,22 @@ pub fn features(
             STAIRS_DOWN => Some(StairDirection::Down),
             _ => None,
         };
+        let landmark = if altars.contains(id) {
+            Some(Landmark::Altar)
+        } else if id == rules.shop {
+            Some(Landmark::Shop)
+        } else {
+            entrances
+                .iter()
+                .find(|(entry, _)| entry == id)
+                .map(|&(_, connected)| {
+                    if connected {
+                        Landmark::BranchEntrance
+                    } else {
+                        Landmark::Portal
+                    }
+                })
+        };
         features.insert(
             crate::in_range(id, *value)?,
             Feature {
@@ -171,8 +198,30 @@ pub fn features(
                 terrain,
                 stairs,
                 water: rules.water.contains(&id.as_str()),
+                landmark,
             },
         );
     }
     Ok(features)
+}
+
+/// The altars `table` in `terrain.cc` pairs with their gods, as `{ GOD_ZIN, DNGN_ALTAR_ZIN }`.
+fn altars(terrain: &Source, table: &str) -> Result<Vec<String>, ExtractError> {
+    terrain
+        .entries(table)?
+        .iter()
+        .map(|fields| match fields.as_slice() {
+            [_, altar] => match altar.as_slice() {
+                [Token::Ident(altar)] => Ok(altar.clone()),
+                _ => Err(ExtractError::Unreadable {
+                    file: TERRAIN_FILE.to_owned(),
+                    what: format!("an entry of {table}"),
+                }),
+            },
+            _ => Err(ExtractError::Unreadable {
+                file: TERRAIN_FILE.to_owned(),
+                what: format!("an entry of {table}"),
+            }),
+        })
+        .collect()
 }

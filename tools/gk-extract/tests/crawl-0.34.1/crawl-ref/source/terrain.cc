@@ -17,3 +17,11 @@ bool feat_is_shallow_water(dungeon_feature_type feat)
            || feat == DNGN_TOXIC_BOG
            || feat == DNGN_MANGROVE;
 }
+
+// Trimmed from crawl 0.34.1 for the extractor test: the altars of the gods.
+
+static const pair<god_type, dungeon_feature_type> _god_altars[] =
+{
+    { GOD_ZIN, DNGN_ALTAR_ZIN },
+    { GOD_TROG, DNGN_ALTAR_TROG },
+};

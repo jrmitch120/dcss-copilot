@@ -11,6 +11,7 @@ mod cpp;
 mod features;
 mod gear;
 mod image;
+mod level;
 mod speed;
 mod spells;
 mod tiles;
@@ -89,6 +90,7 @@ const SERIES: &[Series] = &[Series {
     ways_out: &ways_out::WAY_OUT_RULES_0_34,
     speed: &speed::SPEED_RULES_0_34,
     character: &character::CHARACTER_RULES_0_34,
+    level: &level::LEVEL_RULES_0_34,
     // `seen_item`, as it tells the player what an item they carry is.
     kind_learned: Shown::quoted("You learned that %s %s actually %s.", "item-prop.cc"),
     kinds_hidden: &[
@@ -347,6 +349,8 @@ struct Series {
     speed: &'static speed::SpeedRules,
     /// What it says as the character changes.
     character: &'static character::CharacterRules,
+    /// What it says of the level the player is on.
+    level: &'static level::LevelRules,
     /// The message it gives when the player learns the kind of an item they carry by seeing
     /// another of its kind identified.
     kind_learned: Shown,
@@ -737,6 +741,10 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             "feature-data.h",
             &crawl.enumeration("dungeon-feature-type.h", "dungeon_feature_type")?,
             &crawl.parse("terrain.cc")?,
+            &branches::entrances(
+                &crawl.parse("branch-data.h")?,
+                series.place_naming.naming.unconnected_flag,
+            )?,
             series.features,
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
@@ -762,6 +770,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             &banes,
         )?,
         character: crawl.character(series.character, &mutations, banes)?,
+        level: crawl.level(series.level)?,
         formulas: series.formulas,
     };
     Ok(Extraction { bundle, tiles })

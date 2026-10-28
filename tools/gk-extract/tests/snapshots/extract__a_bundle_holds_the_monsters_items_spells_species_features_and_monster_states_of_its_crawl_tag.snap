@@ -2656,98 +2656,152 @@ expression: bundle
       "name": "",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "1": {
       "id": "DNGN_CLOSED_DOOR",
       "name": "closed door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "2": {
       "id": "DNGN_RUNED_DOOR",
       "name": "runed door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "3": {
       "id": "DNGN_SEALED_DOOR",
       "name": "sealed door",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "4": {
       "id": "DNGN_ROCK_WALL",
       "name": "rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "30": {
       "id": "DNGN_LAVA",
       "name": "some lava",
       "terrain": "lava",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "31": {
       "id": "DNGN_DEEP_WATER",
       "name": "some deep water",
       "terrain": "deepWater",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "32": {
       "id": "DNGN_SHALLOW_WATER",
       "name": "some shallow water",
       "terrain": "open",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "33": {
       "id": "DNGN_FLOOR",
       "name": "floor",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "34": {
       "id": "DNGN_STONE_STAIRS_DOWN_I",
       "name": "stone staircase leading down",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "35": {
       "id": "DNGN_STONE_STAIRS_UP_I",
       "name": "stone staircase leading up",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "36": {
       "id": "DNGN_EXIT_DUNGEON",
       "name": "staircase leading out of the dungeon",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "37": {
       "id": "DNGN_SEALED_STAIRS_UP",
       "name": "sealed passage leading up",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "38": {
       "id": "DNGN_SEALED_STAIRS_DOWN",
       "name": "sealed passage leading down",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
+    },
+    "42": {
+      "id": "DNGN_ENTER_SHOP",
+      "name": "shop",
+      "terrain": "open",
+      "stairs": null,
+      "water": false,
+      "landmark": "shop"
+    },
+    "43": {
+      "id": "DNGN_ENTER_LAIR",
+      "name": "staircase to the Lair",
+      "terrain": "open",
+      "stairs": "down",
+      "water": false,
+      "landmark": "branchEntrance"
+    },
+    "44": {
+      "id": "DNGN_ENTER_BAZAAR",
+      "name": "gateway to a bazaar",
+      "terrain": "open",
+      "stairs": null,
+      "water": false,
+      "landmark": "portal"
+    },
+    "46": {
+      "id": "DNGN_ALTAR_ZIN",
+      "name": "glowing silver altar of Zin",
+      "terrain": "open",
+      "stairs": null,
+      "water": false,
+      "landmark": "altar"
+    },
+    "47": {
+      "id": "DNGN_ALTAR_TROG",
+      "name": "sacred altar of Trog",
+      "terrain": "open",
+      "stairs": null,
+      "water": false,
+      "landmark": "altar"
     }
   },
   "attitudes": {
@@ -3773,6 +3827,29 @@ expression: bundle
         ],
         "lifted": "The Bane of Lethargy upon you is lifted."
       }
+    ]
+  },
+  "level": {
+    "itemHere": "You see here {}.",
+    "itemsHere": "Things that are here:",
+    "itemsApart": "; ",
+    "itemsUnnamed": [
+      "Items here: {}.",
+      "There are many items here."
+    ],
+    "doneExploring": "Done exploring.",
+    "shopTag": "shop",
+    "shopTitle": "Welcome to {}! What would you like to do?",
+    "shopItem": "{} gold   {}",
+    "shopMarks": "-+$",
+    "monsterDied": [
+      "You kill {}!",
+      "You destroy {}!",
+      "You blow up {}!",
+      "{} is killed!",
+      "{} is destroyed!",
+      "{} is blown up!",
+      "{} dies!"
     ]
   },
   "formulas": {
