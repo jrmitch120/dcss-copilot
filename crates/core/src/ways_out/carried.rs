@@ -8,7 +8,7 @@ use copilot_gk::{Bundle, EscapeAbility, Relief, Use};
 use super::{Blocker, Escape, Usable, WayOut, current};
 use crate::accumulated_state::AccumulatedState;
 use crate::crawl_ids::object_classes;
-use crate::fact_sheet::Gap;
+use crate::gaps::{self, Gap, ScreenFact};
 use crate::visible_state::VisibleState;
 
 /// What the player carries, has and knows, with the Game Knowledge that says which are Ways
@@ -88,15 +88,23 @@ impl Carried<'_> {
     /// the player's statuses or their magic, or greyed out in the menu for a reason the Advisor
     /// couldn't see. Never having read the menu is a Gap in `gaps`:
     /// abilities come from gods, species, mutations and gear alike, and crawl answers the menu
-    /// key even when there are none.
+    /// key even when there are none. So is a menu out of date, which may hide one gained since.
     pub(super) fn abilities(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
         let Some((abilities, read)) = self
             .remembered
             .and_then(|remembered| current(&remembered.abilities))
         else {
-            gaps.insert(Gap::AbilityMenu);
+            gaps.insert(Gap::Unread {
+                fact: ScreenFact::AbilityMenu,
+            });
             return Vec::new();
         };
+        if read.stale {
+            gaps.insert(Gap::Stale {
+                fact: ScreenFact::AbilityMenu,
+                turn: read.turn,
+            });
+        }
         abilities
             .iter()
             .filter_map(|ability| {
@@ -145,25 +153,14 @@ impl Carried<'_> {
     }
 
     /// The spells that are Ways Out, as the spell list last showed them, each stopped by the
-    /// player's statuses or their magic. Never having read the list is a Gap in `gaps` for a
-    /// player with magic to cast with, and so is a spell memorised since that the game didn't
-    /// name, which may be a Way Out.
+    /// player's statuses or their magic. What [`gaps::spell_list`] finds is a Gap in `gaps`: a
+    /// spell unread or memorised unnamed may be a Way Out, and failure rates out of date.
     pub(super) fn spells(&self, gaps: &mut BTreeSet<Gap>) -> Vec<WayOut> {
-        if let Some(memorised) = self
-            .remembered
-            .and_then(|remembered| remembered.spell_memorised)
-        {
-            gaps.insert(Gap::SpellMemorised {
-                turn: memorised.turn,
-            });
-        }
+        gaps.extend(gaps::spell_list(self.remembered, gaps::casts(self.visible)));
         let Some((spells, read)) = self
             .remembered
             .and_then(|remembered| current(&remembered.spells))
         else {
-            if self.visible.stats.mp_max.is_some_and(|mp| mp > 0) {
-                gaps.insert(Gap::SpellList);
-            }
             return Vec::new();
         };
         let signs = &self.bundle.ways_out;

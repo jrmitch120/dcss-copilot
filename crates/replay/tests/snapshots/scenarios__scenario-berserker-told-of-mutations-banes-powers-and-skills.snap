@@ -38,7 +38,8 @@ expression: replay
         "gear": [],
         "lighting": "plain",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -105,7 +106,13 @@ expression: replay
             "stale": false
           }
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "stale",
+            "fact": "abilityMenu",
+            "turn": 0
+          }
+        ],
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
@@ -118,7 +125,14 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "stale",
+          "fact": "abilityMenu",
+          "turn": 0
+        }
+      ]
     },
     "game": {
       "character": {
@@ -154,7 +168,37 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "~Ability menu as of turn 0",
+            "why": "An ability gained since isn't counted, and failure rates may have changed.",
+            "keys": [
+              "a"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

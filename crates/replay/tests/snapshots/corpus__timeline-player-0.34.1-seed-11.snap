@@ -28,6 +28,16 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 396,
+    "turn": 196,
+    "event": "gapPrompt",
+    "asks": [
+      "spellList",
+      "abilityMenu",
+      "mutations"
+    ]
+  },
+  {
     "envelope": 436,
     "turn": 207,
     "event": "encounterStarted"

@@ -34,7 +34,8 @@ expression: threats
       "gear": [],
       "lighting": "plain",
       "resistances": null,
-      "notModelled": []
+      "notModelled": [],
+      "gaps": []
     }
   },
   {
@@ -95,6 +96,12 @@ expression: threats
         "awareness",
         "defenceFractions",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -172,6 +179,12 @@ expression: threats
         "awareness",
         "defenceFractions",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -344,6 +357,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -510,6 +529,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -676,6 +701,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -842,6 +873,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -936,7 +973,8 @@ expression: threats
         "awareness",
         "defenceFractions",
         "carriedGear"
-      ]
+      ],
+      "gaps": []
     }
   },
   {
@@ -1097,6 +1135,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -1283,6 +1327,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -1485,6 +1535,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   },
@@ -1713,6 +1769,12 @@ expression: threats
         "otherSpells",
         "otherWands",
         "playerResistances"
+      ],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "resistances"
+        }
       ]
     }
   }

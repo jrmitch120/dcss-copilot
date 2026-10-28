@@ -13,7 +13,8 @@ use serde::Serialize;
 
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::engine::melee::BASELINE_DELAY;
-use crate::fact_sheet::{Gap, NotModelled};
+use crate::fact_sheet::NotModelled;
+use crate::gaps::Gap;
 use crate::screen::KnownAbility;
 use crate::visible_state::{Position, VisibleState};
 
@@ -376,6 +377,7 @@ impl WaysOut {
                     if pace.unseen() {
                         ways_out.not_modelled.push(NotModelled::PlayerSpeed);
                     }
+                    gaps.extend(pace.gaps(remembered));
                     ways_out.not_modelled.extend(STAIRS_NOT_MODELLED);
                     ways_out.pace = Some(pace.record());
                 }
@@ -452,8 +454,9 @@ mod tests {
 
     use super::*;
     use crate::accumulated_state::{AsOf, MutationsRead};
+    use crate::gaps::{Reader, ScreenFact};
     use crate::screen::{KnownSpell, Screen, ScreenRead, ShownMutations};
-    use crate::view_model::{Colour, Glyph, WayOutRow};
+    use crate::view_model::{Colour, Glyph, MarkedValue, WayOutRow};
     use crate::visible_state::{
         Attitude, LevelMap, MapCell, Religion, SquareLight, Stats, Status, VisibleMonster,
     };
@@ -583,7 +586,7 @@ mod tests {
     /// Advisor remembers the game in `remembered`.
     fn ability_row(visible: &VisibleState, remembered: &AccumulatedState, name: &str) -> WayOutRow {
         remembering_menu(visible, remembered)
-            .list()
+            .list(Reader::Player)
             .rows
             .into_iter()
             .find(|row| row.name == name)
@@ -747,7 +750,13 @@ mod tests {
     fn a_staircase_over_squares_in_view_is_not_marked() {
         let in_view = ways_out(&corridor(&[], 0), "Human", true);
         assert!(!over_remembered_squares(&in_view));
-        assert_eq!(in_view.list().rows[0].detail.as_deref(), Some("6 steps"));
+        assert_eq!(
+            in_view.list(Reader::Player).rows[0]
+                .detail
+                .as_ref()
+                .map(|detail| detail.text.as_str()),
+            Some("6 steps")
+        );
     }
 
     #[test]
@@ -763,7 +772,10 @@ mod tests {
                 "{species}"
             );
             assert_eq!(
-                remembered.list().rows[0].detail.as_deref(),
+                remembered.list(Reader::Player).rows[0]
+                    .detail
+                    .as_ref()
+                    .map(|detail| detail.text.as_str()),
                 Some("~6 steps · partly out of view")
             );
         }
@@ -844,19 +856,29 @@ mod tests {
         let visible = on_turn(corridor(&[], 0), 5);
         let mut remembered = read_on(&ability_menu(&[("Berserk", true)]), &visible);
         let known = ability_row(&visible, &remembered, "Berserk");
-        assert!(!known.usable);
+        assert_eq!(known.usable, Some(false));
         assert_eq!(
-            known.why_not.as_deref(),
-            Some("greyed out in the ability menu as of turn 5")
+            known.why_not,
+            Some(MarkedValue::known(
+                "greyed out in the ability menu as of turn 5".to_owned()
+            ))
         );
         let mut levelled = visible.clone();
         levelled.stats.xl = Some(2);
         remembered.update(&visible, &levelled, Some(bundle()));
         let stale = ability_row(&levelled, &remembered, "Berserk");
-        assert!(!stale.usable);
+        assert_eq!(stale.usable, Some(false));
+        let menu_out_of_date = "~Ability menu as of turn 5: open it (a) to bring it up to date.";
         assert_eq!(
-            stale.why_not.as_deref(),
-            Some("~greyed out in the ability menu as of turn 5")
+            stale.why_not,
+            Some(MarkedValue::marked(
+                "~greyed out in the ability menu as of turn 5".to_owned(),
+                [menu_out_of_date.to_owned()]
+            ))
+        );
+        assert_eq!(
+            stale.detail.and_then(|detail| detail.gap).as_deref(),
+            Some(menu_out_of_date)
         );
     }
 
@@ -867,6 +889,7 @@ mod tests {
         assert_eq!(
             ability_row(&cooling_down, &remembered, "Berserk")
                 .why_not
+                .map(|why_not| why_not.text)
                 .as_deref(),
             Some("you're -Berserk")
         );
@@ -923,5 +946,66 @@ mod tests {
             source: Screen::Spells.into(),
         });
         assert!(own_conditions(&with_a_spell, &visible));
+    }
+
+    #[test]
+    fn an_ability_menu_or_a_spell_list_out_of_date_is_a_gap() {
+        let visible = corridor(&[], 0);
+        let mut remembered = read_on(&ability_menu(&[("Berserk", false)]), &visible);
+        remembered.spells = Remembered::Known(AsOf {
+            value: vec![KnownSpell {
+                name: "Blink".to_owned(),
+                failure_percent: 10,
+                level: 2,
+            }],
+            turn: Some(1),
+            source: Screen::Spells.into(),
+        });
+        let gaps = |remembered: &AccumulatedState, visible: &VisibleState| {
+            remembering_menu(visible, remembered).gaps
+        };
+        assert_eq!(gaps(&remembered, &visible), []);
+        let mut levelled = visible.clone();
+        levelled.stats.xl = Some(2);
+        remembered.update(&visible, &levelled, Some(bundle()));
+        assert_eq!(
+            gaps(&remembered, &levelled),
+            [
+                Gap::Stale {
+                    fact: ScreenFact::SpellList,
+                    turn: Some(1)
+                },
+                Gap::Stale {
+                    fact: ScreenFact::AbilityMenu,
+                    turn: visible.turn
+                },
+                // A new level puts the mutations out of date too, which the stair race counts.
+                Gap::Stale {
+                    fact: ScreenFact::Mutations,
+                    turn: Some(1)
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn a_spectator_is_told_what_hides_a_way_out_but_not_asked_to_open_a_screen() {
+        let ways_out = ways_out(&corridor(&[], 0), "Human", true);
+        let tooltip = |reader: Reader| {
+            ways_out
+                .list(reader)
+                .rows
+                .into_iter()
+                .find(|row| row.name == "Abilities")
+                .and_then(|row| row.detail?.gap)
+        };
+        assert_eq!(
+            tooltip(Reader::Player).as_deref(),
+            Some("Open the ability menu (a) to judge your abilities.")
+        );
+        assert_eq!(
+            tooltip(Reader::Spectator).as_deref(),
+            Some("Ability menu: abilities aren't counted among the Ways Out.")
+        );
     }
 }

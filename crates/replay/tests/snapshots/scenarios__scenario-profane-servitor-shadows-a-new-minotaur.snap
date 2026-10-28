@@ -72,7 +72,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -157,7 +158,12 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -172,12 +178,27 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "skills"
+          },
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -192,12 +213,18 @@ expression: replay
           "level": "lethal",
           "alert": "Threat rose to LETHAL.",
           "line": "Profane servitor can attack before your next action.",
-          "detail": "Death 72.5% · worst hit 67 of 19 HP"
+          "detail": {
+            "text": "Death 72.5% · worst hit 67 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "lethal",
           "rule": "Last resort: fight",
-          "action": "The Advisor can't judge this fight",
+          "action": {
+            "text": "The Advisor can't judge this fight",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "ifLethal": null
         },
         "focus": {
@@ -216,7 +243,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -229,13 +259,28 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Profane servitor is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Profane servitor is beside it",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 5 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities."
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -250,7 +295,53 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": true
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": true
       }
     }
   ],
@@ -342,7 +433,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -427,7 +519,12 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -442,12 +539,27 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -462,12 +574,18 @@ expression: replay
         "level": "lethal",
         "alert": "No Way Out is left that you can use.",
         "line": "Profane servitor can attack before your next action.",
-        "detail": "Death 72.5% · worst hit 67 of 19 HP"
+        "detail": {
+          "text": "Death 72.5% · worst hit 67 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": {
         "level": "lethal",
         "rule": "Last resort: fight",
-        "action": "The Advisor can't judge this fight",
+        "action": {
+          "text": "The Advisor can't judge this fight",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "ifLethal": null
       },
       "focus": {
@@ -486,7 +604,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -499,13 +620,28 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Profane servitor is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Profane servitor is beside it",
+              "gap": null
+            }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 5 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -520,7 +656,53 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": true
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": true
     }
   }
 }

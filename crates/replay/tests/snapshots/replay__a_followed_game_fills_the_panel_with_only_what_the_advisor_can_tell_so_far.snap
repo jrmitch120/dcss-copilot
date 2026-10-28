@@ -36,5 +36,59 @@ expression: replay.view_models.last().unwrap().game
   "badge": {
     "decisionsWaiting": 0,
     "callsForPanel": false
-  }
+  },
+  "gaps": {
+    "gaps": [
+      {
+        "what": "Skills",
+        "why": "No fight can be judged without them.",
+        "keys": [
+          "m"
+        ]
+      },
+      {
+        "what": "Spell list",
+        "why": "Spells aren't counted among the Ways Out or attacks.",
+        "keys": [
+          "I"
+        ]
+      },
+      {
+        "what": "Ability menu",
+        "why": "Abilities aren't counted among the Ways Out.",
+        "keys": [
+          "a"
+        ]
+      },
+      {
+        "what": "Mutations",
+        "why": "The race to the stairs counts only the species' own mutations.",
+        "keys": [
+          "A"
+        ]
+      },
+      {
+        "what": "Resistances",
+        "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+        "keys": [
+          "%"
+        ]
+      },
+      {
+        "what": "Equipped gear",
+        "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+        "keys": [
+          "%"
+        ]
+      }
+    ],
+    "dumpFills": [
+      "skills",
+      "the spell list",
+      "mutations",
+      "resistances",
+      "equipped gear"
+    ]
+  },
+  "warning": false
 }

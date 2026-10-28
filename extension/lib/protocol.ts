@@ -3,7 +3,7 @@
 import type { Appearance, AssistanceLevel, ViewModel } from "$lib/bindings";
 
 /** The only compatibility contract with the app, which accepts this version and the previous one. */
-export const RELAY_PROTOCOL_VERSION = 4;
+export const RELAY_PROTOCOL_VERSION = 5;
 
 /** Where the app listens. */
 export const APP_URL = "ws://127.0.0.1:47821";
@@ -34,6 +34,7 @@ export type PanelCommand =
   | { kind: "set-assistance"; assistance: AssistanceLevel }
   | { kind: "answer-same-game"; same: boolean }
   | { kind: "close-join-card" }
+  | { kind: "dismiss-gap-prompt" }
   | { kind: "open-settings" };
 
 export type ExtensionFrame =

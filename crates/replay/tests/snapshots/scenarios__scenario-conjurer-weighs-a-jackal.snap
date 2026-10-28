@@ -75,7 +75,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -157,7 +158,12 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -227,7 +233,17 @@ expression: replay
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -242,7 +258,10 @@ expression: replay
           "level": "calm",
           "alert": "No Way Out is left that you can use.",
           "line": "Jackal can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 3 of 13 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -261,9 +280,15 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "line": {
+            "text": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+            "gap": null
+          },
           "others": [
-            "Melee: ~74% win, ~62% HP lost"
+            {
+              "text": "Melee: ~74% win, ~62% HP lost",
+              "gap": null
+            }
           ],
           "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
           "gaps": []
@@ -274,13 +299,28 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Jackal is in the way"
+              "detail": {
+                "text": "1 step",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Jackal is in the way",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 5 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities."
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -295,7 +335,45 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": true
       }
     }
   ],
@@ -382,7 +460,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -464,7 +543,12 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -534,7 +618,17 @@ expression: replay
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -549,7 +643,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 13 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 13 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -568,9 +665,15 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+        "line": {
+          "text": "Best plan (Magic Dart, then melee): ~98% win, ~15% HP lost",
+          "gap": null
+        },
         "others": [
-          "Melee: ~74% win, ~62% HP lost"
+          {
+            "text": "Melee: ~74% win, ~62% HP lost",
+            "gap": null
+          }
         ],
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, miscasts",
         "gaps": []
@@ -581,13 +684,28 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is in the way"
+            "detail": {
+              "text": "1 step",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Jackal is in the way",
+              "gap": null
+            }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 5 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -602,7 +720,45 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

@@ -14,6 +14,16 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 290,
+    "turn": 91,
+    "event": "gapPrompt",
+    "asks": [
+      "spellList",
+      "abilityMenu",
+      "equipped"
+    ]
+  },
+  {
     "envelope": 333,
     "turn": 103,
     "event": "encounterStarted"

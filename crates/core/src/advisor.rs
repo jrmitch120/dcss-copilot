@@ -1,6 +1,6 @@
 //! The Advisor: what it knows about the game it follows, and what it shows the player.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::sync::OnceLock;
 
 use copilot_gk::{Bundle, Library, Monster};
@@ -10,12 +10,13 @@ use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
+use crate::gaps::{self, Gap, Reader, ScreenFact};
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
-    Listing, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
+    Listing, MarkedValue, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -54,6 +55,52 @@ struct Followed {
     join_pending: bool,
     /// How far the join card has got.
     joining: Joining,
+    /// The facts the Gap prompt card asks for that are still open, while it shows: until the
+    /// player puts it away or an Encounter starts.
+    gap_prompt: Option<BTreeSet<ScreenFact>>,
+    /// The Screen Facts whose Gaps affected a moment the Advisor judged of the game since it
+    /// began following it: what the prompt card may ask for.
+    felt: BTreeSet<ScreenFact>,
+}
+
+impl Followed {
+    /// The Gap prompt card at a Settled Update where the detectors noticed `detections`, with
+    /// the facts in `open` unread or out of date, and what it asks for if it is raised: one card
+    /// a game, at the first All Clear where it `may_prompt` and an open fact's Gap has affected a
+    /// moment, asking for each such fact. What is filled drops off it, and an Encounter starting
+    /// puts it away.
+    fn prompt_for_gaps(
+        &mut self,
+        detections: &[Detection],
+        open: &BTreeSet<ScreenFact>,
+        may_prompt: bool,
+    ) -> Option<Detection> {
+        if detections.contains(&Detection::EncounterStarted) {
+            self.gap_prompt = None;
+        }
+        if let Some(asks) = &mut self.gap_prompt {
+            asks.retain(|screen_fact| open.contains(screen_fact));
+            if asks.is_empty() {
+                self.gap_prompt = None;
+            }
+        }
+        let asked_before = !self.accumulated.gaps_prompted.is_empty();
+        // Only a Gap that has made a difference is worth asking the player to fill.
+        let asks: BTreeSet<ScreenFact> = open.intersection(&self.felt).copied().collect();
+        if asked_before
+            || !may_prompt
+            || asks.is_empty()
+            || !detections.contains(&Detection::AllClear)
+        {
+            return None;
+        }
+        self.accumulated.gaps_prompted.extend(asks.iter().copied());
+        let detection = Detection::GapPrompt {
+            asks: asks.iter().copied().collect(),
+        };
+        self.gap_prompt = Some(asks);
+        Some(detection)
+    }
 }
 
 /// When the Advisor last saw a game it picks up again.
@@ -171,6 +218,14 @@ impl Advisor {
         }
     }
 
+    /// The player put the Gap prompt card away, for good: what it asked for it never asks for
+    /// again in the game.
+    pub fn dismiss_gap_prompt(&mut self) {
+        if let Some(game) = self.followed_game_mut() {
+            game.gap_prompt = None;
+        }
+    }
+
     /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
     pub fn forget(&mut self, key: &GameKey) {
         self.games.remove(key);
@@ -182,24 +237,30 @@ impl Advisor {
         self.games.retain(|key, _| Some(key) == followed.as_ref());
     }
 
-    /// Runs the detectors on the followed game's Settled Update, and keeps the Alert they raise
-    /// for the now pill.
+    /// Runs the detectors on the followed game's Settled Update, keeps the Alert they raise for
+    /// the now pill, and, at an All Clear, raises the Gap prompt card.
     fn settle(&mut self) -> Vec<Detection> {
         let Some(key) = self.followed_key() else {
             return Vec::new();
         };
         let hostile = self.hostile_in_view();
+        let open: BTreeSet<ScreenFact> = self.gaps().iter().filter_map(Gap::screen_fact).collect();
+        // The join card asks for the dump already; a player watching can't open the screens.
+        let may_prompt = self.join_card().is_none() && !self.watching();
         let fact_sheet = self.fact_sheet.get_or_init(|| self.compute_fact_sheet());
         let Some(game) = self.games.get_mut(&key) else {
             return Vec::new();
         };
-        let detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
+        let mut detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
         if let Some(alert) = detections.iter().find_map(|detection| match detection {
             Detection::Alert(alert) => Some(alert),
             _ => None,
         }) {
             game.alert = Some((alert.clone(), self.visible.turn));
         }
+        game.felt
+            .extend(fact_sheet.gaps.iter().filter_map(Gap::screen_fact));
+        detections.extend(game.prompt_for_gaps(&detections, &open, may_prompt));
         detections
     }
 
@@ -274,6 +335,14 @@ impl Advisor {
     #[must_use]
     pub fn game_view(&self, assistance: AssistanceLevel) -> Option<GameView> {
         let identity = self.identity.as_ref()?;
+        let gaps = self.gaps();
+        let alert = self.current_alert().map(|alert| alert.line.clone());
+        let warning = alert.is_some()
+            || self
+                .fact_sheet()
+                .threat
+                .level()
+                .is_some_and(|level| level > ThreatLevel::Calm);
         Some(GameView {
             character: Character {
                 name: identity.character.clone(),
@@ -282,20 +351,17 @@ impl Advisor {
                 hp_max: self.visible.stats.hp_max,
                 turn: self.visible.turn,
             },
-            now: now_pill(
-                &self.fact_sheet().threat,
-                self.current_alert().map(|alert| alert.line.clone()),
-            ),
+            now: now_pill(&self.fact_sheet().threat, alert, self.reader()),
             suggested_action: assistance
                 .suggests()
                 .then(|| self.suggested_action())
                 .flatten()
-                .map(|suggested| suggested.card()),
-            focus: self.focus(),
+                .map(|suggested| suggested.card(&self.fact_sheet().fight, self.reader())),
+            focus: self.focus(&gaps),
             fact_cards: self.fact_cards(),
             ways_out: self
                 .hostile_in_view()
-                .then(|| self.fact_sheet().ways_out.list()),
+                .then(|| self.fact_sheet().ways_out.list(self.reader())),
             run_plan: self.run_plan(),
             ask: AskBox::NeedsModel,
             live: !self.followed_game().is_some_and(|game| game.stopped),
@@ -308,35 +374,87 @@ impl Advisor {
                 calls_for_panel: self.fact_sheet().threat.level() == Some(ThreatLevel::Lethal)
                     && !self.fact_sheet().ways_out.any_trusted(),
             },
+            gaps: gaps::list(&gaps, self.reader()),
+            warning,
         })
     }
 }
 
 impl Advisor {
     /// The focus card: a small fight while anything hostile is in view, or else what is in view;
-    /// with nothing hostile in view, the join card while it shows.
-    fn focus(&self) -> FocusCard {
+    /// with nothing hostile in view, the join card while it shows, or else the Gap prompt card
+    /// asking for what is open of `gaps`, the game's.
+    fn focus(&self, gaps: &BTreeSet<Gap>) -> FocusCard {
         let monsters = self
             .visible
             .monsters
             .as_ref()
             .map(|monsters| in_view(monsters, self.game_knowledge()));
         let card = if self.hostile_in_view() {
-            self.fact_sheet().fight.card(monsters.clone())
+            self.fact_sheet()
+                .fight
+                .card(monsters.clone(), self.reader())
         } else {
-            self.join_card().map(|join| FocusCard::Join { join })
+            self.join_card()
+                .map(|join| FocusCard::Join { join })
+                .or_else(|| self.gap_prompt(gaps))
         };
         card.unwrap_or(FocusCard::InView { monsters })
+    }
+
+    /// Every Gap in what the Advisor knows of the followed game: those in what it remembers,
+    /// whatever is in view, and those that affected this moment.
+    fn gaps(&self) -> BTreeSet<Gap> {
+        let mut gaps: BTreeSet<Gap> = self.fact_sheet().gaps.iter().cloned().collect();
+        if let Some(remembered) = self.accumulated() {
+            gaps.extend(gaps::of_the_game(
+                &self.visible,
+                remembered,
+                self.game_knowledge(),
+            ));
+        }
+        gaps
     }
 
     /// The join card, while it shows: never to a player watching the game, who can't open its
     /// screens.
     fn join_card(&self) -> Option<JoinCard> {
-        if self.identity.as_ref()?.role == Some(Role::Spectating) {
+        if self.watching() {
             return None;
         }
         let game = self.followed_game()?;
         game.joining.card(game.accumulated.backfill, &self.visible)
+    }
+
+    /// Whether the player is watching someone else's game, whose screens they can't open.
+    fn watching(&self) -> bool {
+        self.identity.as_ref().and_then(|identity| identity.role) == Some(Role::Spectating)
+    }
+
+    /// Who reads what the panel says of the game's Gaps.
+    fn reader(&self) -> Reader {
+        if self.watching() {
+            Reader::Spectator
+        } else {
+            Reader::Player
+        }
+    }
+
+    /// The Gap prompt card, while it shows and any Gap it asks for is open among `gaps`, the
+    /// game's.
+    fn gap_prompt(&self, gaps: &BTreeSet<Gap>) -> Option<FocusCard> {
+        let asks = self.followed_game()?.gap_prompt.as_ref()?;
+        let open: BTreeSet<Gap> = gaps
+            .iter()
+            .filter(|gap| {
+                gap.screen_fact()
+                    .is_some_and(|screen_fact| asks.contains(&screen_fact))
+            })
+            .cloned()
+            .collect();
+        (!open.is_empty()).then(|| FocusCard::GapPrompt {
+            gaps: gaps::list(&open, Reader::Player),
+        })
     }
 
     /// The Run Plan rail: greyed out while the game's Backfill awaits the character dump.
@@ -416,15 +534,21 @@ fn fact_card(exceptional: &ExceptionalMonster, depiction: Depiction) -> FactCard
 /// Monte Carlo's sampling error is as large as the number.
 const DEATH_SHOWN_FROM_PERCENT: f64 = 0.1;
 
-/// The now pill for a moment's threat, with the `alert` raised at it.
-fn now_pill(threat: &Threat, alert: Option<String>) -> NowPill {
+/// The now pill for a moment's threat, with the `alert` raised at it, its numbers marked for
+/// `reader`.
+fn now_pill(threat: &Threat, alert: Option<String>, reader: Reader) -> NowPill {
     match threat {
         Threat::Unrated { .. } => NowPill::Unrated { alert },
         Threat::Rated(assessment) => NowPill::Rated {
             level: assessment.level,
             alert,
             line: threat_line(assessment),
-            detail: threat_detail(assessment),
+            detail: threat_detail(assessment).map(|detail| {
+                MarkedValue::marked(
+                    detail,
+                    assessment.gaps.iter().map(|gap| gap.sentence(reader)),
+                )
+            }),
         },
     }
 }

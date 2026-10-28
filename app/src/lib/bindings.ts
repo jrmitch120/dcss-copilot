@@ -20,6 +20,8 @@ export const commands = {
 	 *  it says what it read.
 	 */
 	closeJoinCard: () => typedError<null, string>(__TAURI_INVOKE("close_join_card")),
+	/**  The player put the Gap prompt card away, for good. */
+	dismissGapPrompt: () => typedError<null, string>(__TAURI_INVOKE("dismiss_gap_prompt")),
 	/**  Opens the Settings window, or brings it to the front. */
 	openSettings: () => typedError<null, string>(__TAURI_INVOKE("open_settings")),
 	/**  The settings as they are now, for a Settings window that has just loaded. */
@@ -167,11 +169,15 @@ monsters: Listing[] | null } |
 monsters: Listing[] | null; 
 /**
  *  The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
- *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
+ *  melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
+ *  the Gaps that keep it from being judged or may hide a better plan.
  */
-line: string; 
-/**  The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`. */
-others: string[]; 
+line: MarkedValue; 
+/**
+ *  The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`,
+ *  marked as `line` is.
+ */
+others: MarkedValue[]; 
 /**
  *  What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.
  *  `None` when the fight wasn't judged.
@@ -188,7 +194,14 @@ gaps: string[] } |
  */
 { card: "join"; 
 /**  What the card shows. */
-join: JoinCard };
+join: JoinCard } | 
+/**
+ *  The Gap prompt card: once a game, at its first All Clear the card can show at, it asks for
+ *  the Gaps open then, until the player puts it away or an Encounter starts.
+ */
+{ card: "gapPrompt"; 
+/**  The Gaps it asks for that are still open. */
+gaps: GapList };
 
 /**
  *  The panel for the followed game, top to bottom: header, now pill, focus card,
@@ -234,6 +247,13 @@ export type GameView = {
 	accumulatedUnreadable: string | null,
 	/**  What the Toolbar Badge shows while the panel is closed. */
 	badge: ToolbarBadge,
+	/**  Every Gap in what the Advisor knows of the game, for the Gaps chip in the header. */
+	gaps: GapList,
+	/**
+	 *  The moment warns the player: it is above CALM, or the now pill shows an Alert, as a
+	 *  Dangerous Status raises at CALM. The panel puts away what can wait, such as the Gaps list.
+	 */
+	warning: boolean,
 };
 
 /**  How many games the Advisor remembers, in Settings → History. */
@@ -246,6 +266,34 @@ games: number } |
 { state: "uncounted"; 
 /**  Why not. */
 why: string };
+
+/**
+ *  Gaps as the panel lists them, in the Gaps chip and on the Gap prompt card: each with why it
+ *  matters and the keys that fill it.
+ */
+export type GapList = {
+	/**  One row a Gap, those the same in words as one. */
+	gaps: GapRow[],
+	/**
+	 *  What the character dump (`?` then `#`) fills of them at once, each as a sentence names
+	 *  it, such as `the spell list`: none when it fills none, or the player is watching a game
+	 *  not theirs.
+	 */
+	dumpFills: string[],
+};
+
+/**  One Gap as the panel lists it. */
+export type GapRow = {
+	/**  What is missing or out of date, such as `Spell list` or `~Skills as of turn 12`. */
+	what: string,
+	/**  Why it matters, in one sentence. */
+	why: string,
+	/**
+	 *  The keys to press in the game that fill it, such as `I` then `!`: none when no screen
+	 *  does, or the player is watching a game not theirs.
+	 */
+	keys: string[],
+};
 
 /**  A character drawn in one of DCSS's colours, such as a yellow `o`. */
 export type Glyph = {
@@ -375,6 +423,21 @@ export type Listing = {
 	count: number,
 };
 
+/**
+ *  A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
+ *  with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
+ */
+export type MarkedValue = {
+	/**  The value, such as `spell · ~4% fail as of turn 12`. */
+	text: string,
+	/**
+	 *  What leaves it unknown or out of date, and how to fill it where the player can, one
+	 *  sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
+	 *  `None` while no Gap touches it.
+	 */
+	gap: string | null,
+};
+
 /**  A model the player can choose. */
 export type ModelOption = {
 	/**  The model's id. */
@@ -423,9 +486,10 @@ alert: string | null;
 line: string; 
 /**
  *  The numbers behind the level, such as the chance of death and the worst-case hit,
- *  when anything can attack.
+ *  when anything can attack, marked when they were judged around a Gap, such as
+ *  resistances unread.
  */
-detail: string | null };
+detail: MarkedValue | null };
 
 /**
  *  A game seen before that a game process picked up again on a later turn, as last seen. Nobody
@@ -499,14 +563,14 @@ export type SuggestedActionCard = {
 	rule: string,
 	/**
 	 *  What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
-	 *  ~95% win, ~20% HP lost`.
+	 *  ~95% win, ~20% HP lost`, marked when a Gap leaves its facts unknown or out of date.
 	 */
-	action: string,
+	action: MarkedValue,
 	/**
 	 *  At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
-	 *  spell · 4% fail`, or that none is left.
+	 *  spell · 4% fail`, or that none is left, marked as `action` is.
 	 */
-	ifLethal: string | null,
+	ifLethal: MarkedValue | null,
 };
 
 /**
@@ -604,14 +668,23 @@ export type ViewModelChanged = ViewModel;
 
 /**  One Way Out in the panel's list. */
 export type WayOutRow = {
-	/**  It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. */
-	usable: boolean,
+	/**
+	 *  It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. `None` for Ways Out
+	 *  a Gap hides, such as the spells of a spell list never read, drawn `?`.
+	 */
+	usable: boolean | null,
 	/**  What it is, such as `Stone staircase leading down` or `Teleportation`. */
 	name: string,
-	/**  A short fact beside the name, such as `7 steps` or `spell · 4% fail`. */
-	detail: string | null,
-	/**  Why it can't be used, when it can't, such as `Centaur is faster`. */
-	whyNot: string | null,
+	/**
+	 *  A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the
+	 *  menu or list it was read off is out of date.
+	 */
+	detail: MarkedValue | null,
+	/**
+	 *  Why it can't be used, when it can't, such as `Centaur is faster`, marked when it rests on
+	 *  a menu out of date.
+	 */
+	whyNot: MarkedValue | null,
 };
 
 /**  The Ways Out as the panel lists them: a ✓ or ✕ for each, with why not. */
@@ -626,7 +699,10 @@ export type WaysOutList = {
 	 *  can tell.
 	 */
 	ground: string | null,
-	/**  What keeps the Advisor from judging more, such as a screen to open, one sentence each. */
+	/**
+	 *  What keeps the Advisor from judging more, such as the map not yet sent, one sentence
+	 *  each: the Ways Out a Gap hides are rows of their own.
+	 */
 	gaps: string[],
 };
 

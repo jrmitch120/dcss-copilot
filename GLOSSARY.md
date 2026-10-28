@@ -86,6 +86,10 @@ _Avoid_: Database, saves, history (alone, when meaning Accumulated State)
 How current a fact the Advisor remembers is. It is Known once read from the game, Stale when something the Advisor has seen since may have changed it, and Missing until it is read. A fact goes Stale only on such an event, never from turns passing, or when the Advisor picks a game up again at a later turn than it last saw it on, as the turns between could have changed anything; every remembered fact keeps the turn it was read on and where it was read, so it is shown as of that turn, with a `~`, rather than as current. A message that tells how a fact changed, such as a skill's new level or a mutation gained, keeps it Known as of the message, unless the message doesn't fit what was read, which makes it Stale.
 _Avoid_: Fresh, expired, cached
 
+**Screen Fact**:
+A fact about the character the Advisor reads off a screen the player opens: their skills off the skills screen, their spells, and their power and range, off the spell list, their abilities off the ability menu, their mutations off the mutations screen, and their resistances and what they have equipped off the character overview. A Gap in one is unread or Stale, and filled by opening its screen; the Gap Prompt asks for Screen Facts.
+_Avoid_: Screen data, fillable
+
 **Blind Spot**:
 A change to the character the game makes without saying what changed, so the Advisor knows a fact it remembers may be wrong but can't set it right: a spell memorised, whose message doesn't name it, until the spell list is read; and the skills of a follower of a god who shifts them with piety, such as Ashenzari, which needn't stay as the skills screen showed them. The Advisor names each as a Gap.
 _Avoid_: Unknown, uncertainty
@@ -141,7 +145,7 @@ The player's AC, EV and SH as the game shows them: whole points. Crawl keeps eac
 _Avoid_: True AC, real defences
 
 **Resistances**:
-The player's resistances to fire, cold, negative energy, poison, electricity and corrosion, as the character overview (`%`) or dump last showed them, temporary ones included. The Threat Level cuts or raises the damage it plays by them, Known or Stale, and takes the player to resist nothing until they are read.
+The player's resistances to fire, cold, negative energy, poison, electricity and corrosion, as the character overview (`%`) or dump last showed them, temporary ones included. The Threat Level cuts or raises the damage it plays by them, Known or Stale, and takes the player to resist nothing until they are read rather than judge no Threat Level at all: a Gap it names, and marks on the numbers it judged so, wherever such damage counts.
 _Avoid_: Resists, rFire etc. as a name for all of them
 
 **Holiness**:
@@ -217,7 +221,7 @@ A square monsters can attack the player from at most two sides of, so they come 
 _Avoid_: Chokepoint, hallway
 
 **Gap**:
-A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it.
+A fact the Advisor needs about this game but doesn't have, or has only an out-of-date copy of. The Advisor says so rather than guessing, and tells the player which screen to open to fill it: each value the panel shows that a Gap leaves unknown or out of date is marked where it stands, with a dotted underline and a tooltip naming that screen, and the Fact Sheet lists the Gaps that affected its moment. A player watching someone else's game, who can't open its screens, is told only what is missing and why it matters.
 _Avoid_: Unknown, missing data
 
 **Candidate Action**:
@@ -283,12 +287,20 @@ The panel's stand-in on the extension's toolbar button while no Side Panel is op
 _Avoid_: Collapsed pill, notification
 
 **Focus Card**:
-The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, or what is in view.
+The one card under the Now Pill holding what deserves the player's attention now: a fight, a Decision Point, a Great Find, the join card, the Gap prompt, or what is in view.
 _Avoid_: Main card, hero card
 
 **Join Card**:
 The Focus Card for a game the Advisor joined part way through, while nothing hostile is in view: it says what the Advisor can and can't see, asks the player to press `?` then `#` for the character dump, offers `Ctrl-O` for the levels alone, and once the player opens one, says what it read off it. The player can put it away with Not now; it asks again after the app restarts while the dump is still unread. It is never shown to a player watching someone else's game.
 _Avoid_: Onboarding card, welcome card
+
+**Gaps Chip**:
+The chip in the panel's header counting every Gap in what the Advisor knows of the game, whatever is in view: opened, it lists each with why it matters and the keys that fill it, and what of them the character dump (`?` then `#`) fills at once. A player watching someone else's game is shown the Gaps but no keys, as they can't open its screens.
+_Avoid_: Missing-data badge, warnings
+
+**Gap Prompt**:
+The Focus Card that, once a game, at the first All Clear with a Gap open that has affected a moment of the game, asks the player to fill those Gaps, as the Gaps Chip lists them, dropping each as it is filled. A Gap that has never made a difference, such as unread resistances before any damage they would change, isn't asked about. It never asks again in that game, even after the app restarts: an Encounter starting puts it away, and so does the player, for good. It waits while the join card asks for the character dump, and is never shown to a player watching someone else's game.
+_Avoid_: Nag, reminder
 
 **Fact Card**:
 A card in the Focus Card singling out an Exceptional Monster while it stays in view: what makes it exceptional, and the Threat Level it makes on its own.

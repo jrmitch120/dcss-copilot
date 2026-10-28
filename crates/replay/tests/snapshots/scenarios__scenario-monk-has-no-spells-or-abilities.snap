@@ -38,7 +38,8 @@ expression: replay
         "gear": [],
         "lighting": "backlit",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -87,7 +88,12 @@ expression: replay
           "because": [],
           "mutationsRead": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ],
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
@@ -100,7 +106,13 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -136,7 +148,46 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

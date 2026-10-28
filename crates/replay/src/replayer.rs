@@ -310,6 +310,12 @@ impl Replayer {
         self.game.following.close_join_card();
     }
 
+    /// The player put the Gap prompt card away, as just after the envelopes applied so far. A
+    /// backward move forgets it, as it rebuilds the game from the start.
+    pub fn dismiss_gap_prompt(&mut self) {
+        self.game.following.dismiss_gap_prompt();
+    }
+
     /// Applies the next envelope, if any.
     pub fn step(&mut self) -> Applied {
         self.seek(self.position + 1)

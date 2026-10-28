@@ -74,7 +74,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -159,10 +160,16 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "spellList"
             },
             {
-              "gap": "spellList"
+              "gap": "unread",
+              "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -177,7 +184,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -196,7 +204,25 @@ expression: replay
             "alone": "calm"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "skills"
+          },
+          {
+            "gap": "unread",
+            "fact": "spellList"
+          },
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -211,7 +237,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 22 of 102 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 22 of 102 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -230,7 +259,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -256,14 +288,37 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 3 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities.",
-            "Open the spell list (I) to judge your spells."
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -278,7 +333,61 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Spell list",
+              "why": "Spells aren't counted among the Ways Out or attacks.",
+              "keys": [
+                "I"
+              ]
+            },
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "the spell list",
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": false
       }
     },
     {
@@ -341,7 +450,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -426,10 +536,16 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "spellList"
             },
             {
-              "gap": "spellList"
+              "gap": "unread",
+              "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -444,7 +560,8 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
@@ -463,7 +580,25 @@ expression: replay
             "alone": "calm"
           }
         ],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "skills"
+          },
+          {
+            "gap": "unread",
+            "fact": "spellList"
+          },
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -478,7 +613,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Centaur can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 22 of 93 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 22 of 93 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -497,7 +635,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -523,14 +664,37 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Centaur is beside it"
+              "detail": {
+                "text": "4 steps",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Centaur is beside it",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
+            },
+            {
+              "usable": null,
+              "name": "Spells",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the spell list (I) to judge your spells."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 3 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities.",
-            "Open the spell list (I) to judge your spells."
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -545,7 +709,61 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Spell list",
+              "why": "Spells aren't counted among the Ways Out or attacks.",
+              "keys": [
+                "I"
+              ]
+            },
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "the spell list",
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": false
       }
     }
   ],
@@ -633,7 +851,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -718,10 +937,16 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -736,7 +961,8 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
@@ -755,7 +981,25 @@ expression: replay
           "alone": "calm"
         }
       ],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -770,7 +1014,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Centaur can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 22 of 84 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 22 of 84 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -789,7 +1036,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -815,14 +1065,37 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "4 steps",
-            "whyNot": "Centaur is beside it"
+            "detail": {
+              "text": "4 steps",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Centaur is beside it",
+              "gap": null
+            }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Spells",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the spell list (I) to judge your spells."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 3 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities.",
-          "Open the spell list (I) to judge your spells."
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -837,7 +1110,61 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Spell list",
+            "why": "Spells aren't counted among the Ways Out or attacks.",
+            "keys": [
+              "I"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "the spell list",
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

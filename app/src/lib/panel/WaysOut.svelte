@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { WaysOutList } from "$lib/bindings";
+import MarkedValue from "./MarkedValue.svelte";
 
 let { waysOut }: { waysOut: WaysOutList } = $props();
 </script>
@@ -12,16 +13,21 @@ let { waysOut }: { waysOut: WaysOutList } = $props();
     <ul>
       {#each waysOut.rows as row, i (i)}
         <li>
-          <span class="mark" class:ok={row.usable} class:no={!row.usable}>
-            {row.usable ? "✓" : "✕"}
+          <span
+            class="mark"
+            class:ok={row.usable === true}
+            class:no={row.usable === false}
+            class:unknown={row.usable === null}
+          >
+            {row.usable === null ? "?" : row.usable ? "✓" : "✕"}
           </span>
           <span>
             {row.name}
             {#if row.detail}
-              <span class="muted small">{row.detail}</span>
+              <span class="muted small"><MarkedValue value={row.detail} /></span>
             {/if}
             {#if row.whyNot}
-              <span class="why small">{row.whyNot}</span>
+              <span class="why small"><MarkedValue value={row.whyNot} /></span>
             {/if}
           </span>
         </li>
@@ -67,6 +73,10 @@ li {
 
 .no {
   color: var(--danger);
+}
+
+.unknown {
+  color: var(--unrated);
 }
 
 .why {

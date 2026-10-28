@@ -131,7 +131,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -259,7 +260,12 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
+            },
+            {
+              "gap": "unread",
+              "fact": "mutations"
             }
           ],
           "notModelled": [
@@ -308,7 +314,17 @@ expression: replay
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -323,12 +339,18 @@ expression: replay
           "level": "dangerous",
           "alert": "No Way Out is left that you can use.",
           "line": "3 monsters can attack before your next action. Your best plan wins only ~75% of fights.",
-          "detail": "Death under 0.1% · worst hit 5 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 5 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": {
           "level": "dangerous",
           "rule": "Fall back to a corridor",
-          "action": "The corridor you stand in",
+          "action": {
+            "text": "The corridor you stand in",
+            "gap": null
+          },
           "ifLethal": null
         },
         "focus": {
@@ -347,7 +369,10 @@ expression: replay
               "count": 3
             }
           ],
-          "line": "Best plan (melee): ~75% win, ~63% HP lost",
+          "line": {
+            "text": "Best plan (melee): ~75% win, ~63% HP lost",
+            "gap": null
+          },
           "others": [],
           "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
           "gaps": []
@@ -358,13 +383,28 @@ expression: replay
             {
               "usable": false,
               "name": "Escape hatch in the floor",
-              "detail": "4 steps",
-              "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+              "detail": {
+                "text": "4 steps",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Jackal is in the way; Jackal is faster, and 1 more",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
             }
           ],
           "ground": "In a corridor: 2 sides open",
           "gaps": [
-            "Open the ability menu (a) to judge your abilities."
+            "Open the mutations screen (A) to judge your speed to the stairs."
           ]
         },
         "runPlan": {
@@ -379,7 +419,45 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": true
       }
     }
   ],
@@ -522,7 +600,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -650,7 +729,12 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -699,7 +783,17 @@ expression: replay
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -714,12 +808,18 @@ expression: replay
         "level": "dangerous",
         "alert": null,
         "line": "3 monsters can attack before your next action. Your best plan wins only ~64% of fights.",
-        "detail": "Death under 0.1% · worst hit 6 of 16 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 6 of 16 HP",
+          "gap": null
+        }
       },
       "suggestedAction": {
         "level": "dangerous",
         "rule": "Fall back to a corridor",
-        "action": "The corridor you stand in",
+        "action": {
+          "text": "The corridor you stand in",
+          "gap": null
+        },
         "ifLethal": null
       },
       "focus": {
@@ -738,7 +838,10 @@ expression: replay
             "count": 3
           }
         ],
-        "line": "Best plan (melee): ~64% win, ~69% HP lost",
+        "line": {
+          "text": "Best plan (melee): ~64% win, ~69% HP lost",
+          "gap": null
+        },
         "others": [],
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions",
         "gaps": []
@@ -749,13 +852,28 @@ expression: replay
           {
             "usable": false,
             "name": "Escape hatch in the floor",
-            "detail": "4 steps",
-            "whyNot": "Jackal is in the way; Jackal is faster, and 1 more"
+            "detail": {
+              "text": "4 steps",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Jackal is in the way; Jackal is faster, and 1 more",
+              "gap": null
+            }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "In a corridor: 2 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -770,7 +888,45 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": true
     }
   }
 }

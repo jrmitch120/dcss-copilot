@@ -3,13 +3,13 @@
 use copilot_gk::{Relief, StairDirection};
 
 use super::{Blocker, Escape, Ground, ReadOn, Usable, WayOut, WaysOut};
-use crate::fact_sheet::Gap;
-use crate::view_model::{WayOutRow, WaysOutList, capitalised, memorised_unnamed, out_of_date};
+use crate::gaps::{Gap, Reader, ScreenFact};
+use crate::view_model::{MarkedValue, WayOutRow, WaysOutList, capitalised};
 
 impl WaysOut {
-    /// The panel's list: the nearest usable staircase each way, or else the nearest, the nearer
-    /// of the two first, then each escape carried, ability and spell.
-    pub(crate) fn list(&self) -> WaysOutList {
+    /// The panel's list for `reader`: the nearest usable staircase each way, or else the
+    /// nearest, the nearer of the two first, then each escape carried, ability and spell.
+    pub(crate) fn list(&self, reader: Reader) -> WaysOutList {
         let shown: Vec<&WayOut> = [StairDirection::Down, StairDirection::Up]
             .into_iter()
             .filter_map(|direction| {
@@ -32,10 +32,42 @@ impl WaysOut {
             .options
             .iter()
             .filter(|way_out| !matches!(way_out.option, Escape::Stairs { .. }));
+        // A staircase's verdict leans on the player's Pace, and so on what it was judged around.
+        let pace: Vec<String> = self
+            .gaps
+            .iter()
+            .filter(|gap| {
+                matches!(
+                    gap.screen_fact(),
+                    Some(ScreenFact::Mutations | ScreenFact::Equipped)
+                )
+            })
+            .map(|gap| gap.sentence(reader))
+            .collect();
+        let (mut hidden, said): (Vec<&Gap>, Vec<&Gap>) = self
+            .gaps
+            .iter()
+            .partition(|gap| hidden_row(gap, reader).is_some());
+        // Abilities before spells, as the rows of those read are.
+        hidden.sort_by_key(|gap| {
+            !matches!(
+                gap,
+                Gap::Unread {
+                    fact: ScreenFact::AbilityMenu
+                }
+            )
+        });
         WaysOutList {
-            rows: stairs.chain(carried).map(row).collect(),
+            rows: stairs
+                .chain(carried)
+                .map(|way_out| row(way_out, &pace, reader))
+                .chain(hidden.into_iter().filter_map(|gap| hidden_row(gap, reader)))
+                .collect(),
             ground: self.ground.as_ref().map(ground),
-            gaps: self.gaps.iter().map(gap).collect(),
+            gaps: said
+                .into_iter()
+                .map(|gap| ways_out_gap(gap, reader))
+                .collect(),
         }
     }
 }
@@ -47,6 +79,31 @@ impl Escape {
         match self.named() {
             (name, Some(detail)) => format!("{name} · {detail}"),
             (name, None) => name,
+        }
+    }
+
+    /// The Way Out as one line, as [`Escape::summary`] says it, marked for `reader` when the menu
+    /// or list it was read off is out of date.
+    pub(crate) fn value(&self, reader: Reader) -> MarkedValue {
+        MarkedValue::marked(self.summary(), self.gap().map(|gap| gap.sentence(reader)))
+    }
+
+    /// The Gap it was judged around: the ability menu or spell list it was read off out of
+    /// date.
+    fn gap(&self) -> Option<Gap> {
+        match self {
+            Escape::Ability { read, .. } if read.stale => Some(Gap::Stale {
+                fact: ScreenFact::AbilityMenu,
+                turn: read.turn,
+            }),
+            Escape::Spell { read, .. } if read.stale => Some(Gap::Stale {
+                fact: ScreenFact::SpellList,
+                turn: read.turn,
+            }),
+            Escape::Stairs { .. }
+            | Escape::Item { .. }
+            | Escape::Ability { .. }
+            | Escape::Spell { .. } => None,
         }
     }
 
@@ -98,20 +155,81 @@ impl Escape {
     }
 }
 
-/// A Way Out's row.
-fn row(way_out: &WayOut) -> WayOutRow {
+/// The row for the Ways Out `gap` hides, if it hides any: the abilities of an ability menu, or
+/// the spells of a spell list, never read, and a spell memorised the game didn't name. Whether
+/// they can be used is unknown, and the row says so, marked with what fills it for `reader`.
+fn hidden_row(gap: &Gap, reader: Reader) -> Option<WayOutRow> {
+    let name = match gap {
+        Gap::Unread {
+            fact: ScreenFact::AbilityMenu,
+        } => "Abilities".to_owned(),
+        Gap::Unread {
+            fact: ScreenFact::SpellList,
+        } => "Spells".to_owned(),
+        Gap::SpellMemorised { turn: Some(turn) } => format!("A spell memorised on turn {turn}"),
+        Gap::SpellMemorised { turn: None } => "A spell memorised".to_owned(),
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::MonstersInView
+        | Gap::Map
+        | Gap::Position
+        | Gap::GameKnowledge
+        | Gap::MonsterKnowledge { .. }
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::Unread {
+            fact:
+                ScreenFact::Skills
+                | ScreenFact::SpellPower
+                | ScreenFact::Mutations
+                | ScreenFact::Resistances
+                | ScreenFact::Equipped,
+        }
+        | Gap::Stale { .. }
+        | Gap::SkillsShifting { .. } => return None,
+    };
+    Some(WayOutRow {
+        usable: None,
+        name,
+        detail: Some(MarkedValue::marked(
+            "unknown".to_owned(),
+            [ways_out_gap(gap, reader)],
+        )),
+        why_not: None,
+    })
+}
+
+/// A Way Out's row for `reader`, a staircase's marked with `pace`, what its race was judged
+/// around.
+fn row(way_out: &WayOut, pace: &[String], reader: Reader) -> WayOutRow {
     let (name, detail) = way_out.option.named();
+    let menu_gap = way_out.option.gap();
+    let marks: Vec<String> = match way_out.option {
+        Escape::Stairs { .. } => pace.to_vec(),
+        Escape::Item { .. } | Escape::Ability { .. } | Escape::Spell { .. } => {
+            menu_gap.iter().map(|gap| gap.sentence(reader)).collect()
+        }
+    };
     let (usable, why_not) = match &way_out.usable {
         Usable::Yes => (true, None),
-        Usable::No { because } => (
-            false,
-            Some(because.iter().map(blocker).collect::<Vec<_>>().join("; ")),
-        ),
+        Usable::No { because } => {
+            let why_not = because.iter().map(blocker).collect::<Vec<_>>().join("; ");
+            // Only the menu's greying out rests on what was read off it.
+            let greyed_out = because
+                .iter()
+                .any(|blocker| matches!(blocker, Blocker::GreyedOut { .. }));
+            let gap = menu_gap
+                .as_ref()
+                .filter(|_| greyed_out)
+                .map(|gap| gap.sentence(reader));
+            (false, Some(MarkedValue::marked(why_not, gap)))
+        }
     };
     WayOutRow {
-        usable,
+        usable: Some(usable),
         name,
-        detail,
+        detail: detail.map(|detail| MarkedValue::marked(detail, marks)),
         why_not,
     }
 }
@@ -230,52 +348,29 @@ fn ground(ground: &Ground) -> String {
     }
 }
 
-/// What a Gap keeps the Advisor from judging, and how to fill it where the player can.
-fn gap(gap: &Gap) -> String {
+/// What a Gap keeps the Advisor from judging of the Ways Out, for `reader`: for the player, with
+/// how to fill it where they can.
+fn ways_out_gap(gap: &Gap, reader: Reader) -> String {
+    if reader == Reader::Spectator {
+        return gap.sentence(reader);
+    }
     match gap {
-        Gap::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
-        Gap::SpellList => "Open the spell list (I) to judge your spells.".to_owned(),
         Gap::Map | Gap::MonstersInView => {
             "The stairs can't be judged until the game sends its map.".to_owned()
         }
         Gap::Position => {
             "The stairs can't be judged until the game says where you stand.".to_owned()
         }
-        Gap::GameKnowledge => {
-            "Nothing can be judged without Game Knowledge for this version.".to_owned()
-        }
-        Gap::MonsterKnowledge { monster } => format!(
-            "{} isn't in the Game Knowledge, so it isn't counted.",
-            capitalised(monster)
-        ),
-        Gap::HitPoints | Gap::Defences | Gap::Attributes => {
-            "The game hasn't sent your stats yet.".to_owned()
-        }
-        Gap::Skills => "Open the skills screen (m) to judge your attacks.".to_owned(),
-        Gap::SpellPower => {
-            "Open the spell list (I) and press ! to judge your spells' power.".to_owned()
-        }
-        Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
-        Gap::StaleSkills { turn } => format!(
-            "{}: open the skills screen (m) to bring them up to date.",
-            out_of_date("Skills", *turn)
-        ),
-        Gap::StaleSpellList { turn } => format!(
-            "{}: open it (I) to bring it up to date.",
-            out_of_date("Spell list", *turn)
-        ),
-        Gap::StaleSpellPower { turn } => format!(
-            "{}: open the spell list (I) and press ! to bring it up to date.",
-            out_of_date("Spell power", *turn)
-        ),
-        Gap::SpellMemorised { turn } => format!(
-            "{}: open the spell list (I) to judge it.",
-            memorised_unnamed(*turn)
-        ),
-        Gap::SkillsShifting { god } => {
-            format!(
-                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
-            )
-        }
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::GameKnowledge
+        | Gap::MonsterKnowledge { .. }
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::Unread { .. }
+        | Gap::Stale { .. }
+        | Gap::SpellMemorised { .. }
+        | Gap::SkillsShifting { .. } => gap.sentence(reader),
     }
 }

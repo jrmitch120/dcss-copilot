@@ -86,7 +86,7 @@ function relayHarness(options: { bufferLimitBytes?: number } = {}) {
       link.start();
       const socket = sockets.at(-1) as FakeSocket;
       socket.open();
-      socket.receive({ type: "welcome", protocol: 4 });
+      socket.receive({ type: "welcome", protocol: 5 });
       return socket;
     },
   };
@@ -99,7 +99,7 @@ describe("extension relay", () => {
     const socket = relay.sockets[0] as FakeSocket;
     socket.open();
 
-    expect(socket.sent).toEqual([{ type: "hello", protocol: 4 }]);
+    expect(socket.sent).toEqual([{ type: "hello", protocol: 5 }]);
   });
 
   it("forwards each message unchanged in an envelope once the app welcomes the browser", () => {
@@ -225,7 +225,7 @@ describe("handshake", () => {
     relay.serverSends({ msg: "player", hp: 17 });
     expect(socket.envelopes()).toEqual([]);
 
-    socket.receive({ type: "welcome", protocol: 4 });
+    socket.receive({ type: "welcome", protocol: 5 });
     expect(socket.envelopes().map(messageOf)).toEqual([
       { msg: "player", name: "Mira" },
       { msg: "player", hp: 17 },
@@ -318,7 +318,7 @@ describe("side panels", () => {
     const asking = relay.sockets[0] as FakeSocket;
     asking.open();
     asking.receive({ type: "awaiting-approval" });
-    asking.receive({ type: "welcome", protocol: 4 });
+    asking.receive({ type: "welcome", protocol: 5 });
     asking.close();
     relay.retries[0]?.();
     const refused = relay.sockets[1] as FakeSocket;

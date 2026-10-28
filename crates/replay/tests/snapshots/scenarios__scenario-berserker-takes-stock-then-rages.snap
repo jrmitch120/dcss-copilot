@@ -72,7 +72,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -223,7 +224,12 @@ expression: replay
             "because": [],
             "mutationsRead": null
           },
-          "gaps": [],
+          "gaps": [
+            {
+              "gap": "unread",
+              "fact": "mutations"
+            }
+          ],
           "notModelled": [
             "swimmingAndFlying",
             "unexploredSquares",
@@ -237,12 +243,23 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "skills"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -257,7 +274,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Jackal can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 3 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 3 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -276,7 +296,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -289,36 +312,62 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "1 step",
-              "whyNot": "Jackal is beside it"
+              "detail": {
+                "text": "1 step",
+                "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+              },
+              "whyNot": {
+                "text": "Jackal is beside it",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Teleportation",
-              "detail": "escapes after a delay",
+              "detail": {
+                "text": "escapes after a delay",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": false,
               "name": "Heal wounds",
-              "detail": "heals",
-              "whyNot": "you're at full health"
+              "detail": {
+                "text": "heals",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "you're at full health",
+                "gap": null
+              }
             },
             {
               "usable": true,
               "name": "Berserk",
-              "detail": "ability · 10% fail",
+              "detail": {
+                "text": "ability · 10% fail",
+                "gap": null
+              },
               "whyNot": null
             },
             {
               "usable": false,
               "name": "Blink",
-              "detail": "spell · 65% fail",
-              "whyNot": "needs 2 MP, you have 0"
+              "detail": {
+                "text": "spell · 65% fail",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "needs 2 MP, you have 0",
+                "gap": null
+              }
             }
           ],
           "ground": "On open ground: 5 sides open",
-          "gaps": []
+          "gaps": [
+            "Open the mutations screen (A) to judge your speed to the stairs."
+          ]
         },
         "runPlan": {
           "state": "notPlanned"
@@ -332,7 +381,46 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Mutations",
+              "why": "The race to the stairs counts only the species' own mutations.",
+              "keys": [
+                "A"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "mutations",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": false
       }
     }
   ],
@@ -402,7 +490,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -575,7 +664,12 @@ expression: replay
           ],
           "mutationsRead": null
         },
-        "gaps": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "mutations"
+          }
+        ],
         "notModelled": [
           "swimmingAndFlying",
           "unexploredSquares",
@@ -589,12 +683,23 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -609,7 +714,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Jackal can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 28 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 28 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -628,7 +736,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -641,36 +752,68 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Jackal is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Jackal is beside it",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Teleportation",
-            "detail": "escapes after a delay",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "escapes after a delay",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Heal wounds",
-            "detail": "heals",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "heals",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Berserk",
-            "detail": "ability · 10% fail",
-            "whyNot": "you're berserking"
+            "detail": {
+              "text": "ability · 10% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking",
+              "gap": null
+            }
           },
           {
             "usable": false,
             "name": "Blink",
-            "detail": "spell · 65% fail",
-            "whyNot": "you're berserking; needs 2 MP, you have 0"
+            "detail": {
+              "text": "spell · 65% fail",
+              "gap": null
+            },
+            "whyNot": {
+              "text": "you're berserking; needs 2 MP, you have 0",
+              "gap": null
+            }
           }
         ],
         "ground": "On open ground: 5 sides open",
-        "gaps": []
+        "gaps": [
+          "Open the mutations screen (A) to judge your speed to the stairs."
+        ]
       },
       "runPlan": {
         "state": "notPlanned"
@@ -684,7 +827,46 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

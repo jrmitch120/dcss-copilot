@@ -47,7 +47,24 @@ expression: by_turn
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "hitPoints"
+        },
+        {
+          "gap": "monstersInView"
+        },
+        {
+          "gap": "map"
+        },
+        {
+          "gap": "position"
+        },
+        {
+          "gap": "gameKnowledge"
+        }
+      ]
     }
   },
   {
@@ -155,6 +172,12 @@ expression: by_turn
           "awareness",
           "wornShield",
           "defenceFractions"
+        ],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "equipped"
+          }
         ]
       },
       "waysOut": {
@@ -167,10 +190,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -182,15 +207,37 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "equipped"
+        }
+      ]
     }
   },
   {
@@ -334,7 +381,8 @@ expression: by_turn
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [],
@@ -346,10 +394,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -361,15 +411,33 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        }
+      ]
     }
   },
   {
@@ -514,6 +582,13 @@ expression: by_turn
           "awareness",
           "wornShield",
           "defenceFractions"
+        ],
+        "gaps": [
+          {
+            "gap": "stale",
+            "fact": "equipped",
+            "turn": 101
+          }
         ]
       },
       "waysOut": {
@@ -526,10 +601,12 @@ expression: by_turn
         "pace": null,
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "spellList"
           },
           {
-            "gap": "spellList"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -541,15 +618,38 @@ expression: by_turn
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "wielded"
           },
           {
-            "gap": "wielded"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "wielded"
+        },
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "stale",
+          "fact": "equipped",
+          "turn": 101
+        }
+      ]
     }
   }
 ]

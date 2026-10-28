@@ -31,7 +31,7 @@ cargo run -p corpus -- fetch                  # into target/corpus, or $DCSS_COP
 cargo test --release -p copilot-replay --test corpus -- --ignored
 ```
 
-`fetch` downloads only what isn't cached already, and refuses a download whose SHA-256 isn't the pinned one. No Git LFS is involved: the files are ordinary release assets. The corpus tests are `#[ignore]`d, so `cargo test` never needs the network. They check each game replays on the Crawl Version it is tagged with, and snapshot what the detectors noticed across each, `corpus__timeline-<game>.snap`: which Encounters, All Clears, Fact Cards, Alerts and Suggested Actions came on which turn. That judges a Fact Sheet at every Settled Update of every game, so run them with `--release`.
+`fetch` downloads only what isn't cached already, and refuses a download whose SHA-256 isn't the pinned one. No Git LFS is involved: the files are ordinary release assets. The corpus tests are `#[ignore]`d, so `cargo test` never needs the network. They check each game replays on the Crawl Version it is tagged with, and snapshot what the detectors noticed across each, `corpus__timeline-<game>.snap`: which Encounters, All Clears, Fact Cards, Alerts, Suggested Actions and Gap Prompts came on which turn. That judges a Fact Sheet at every Settled Update of every game, so run them with `--release`.
 
 ### Recording a game
 

@@ -13,10 +13,11 @@ use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
 use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
-use crate::fact_sheet::{Chance, Gap, NotModelled};
+use crate::fact_sheet::{Chance, NotModelled};
+use crate::gaps::{self, Gap, Reader, ScreenFact, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
-use crate::view_model::{FocusCard, Listing, capitalised, memorised_unnamed, out_of_date};
-use crate::visible_state::{InventoryItem, Religion, SquareLight, VisibleState, Wielding};
+use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
+use crate::visible_state::{InventoryItem, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
 /// fewer (spec #24, "Engine (ADR 0003)"). A bigger fight isn't judged.
@@ -47,6 +48,21 @@ pub enum Fight {
 }
 
 impl Fight {
+    /// The Gaps that kept it from being judged, or that may hide a better plan.
+    pub(crate) fn gaps(&self) -> &[Gap] {
+        match self {
+            Self::Judged(outcome) => &outcome.gaps,
+            Self::Unjudged { gaps } => gaps,
+            Self::NoFight | Self::TooMany { .. } => &[],
+        }
+    }
+
+    /// `text`, said of this fight, marked with the Gaps that keep it from being judged or may
+    /// hide a better plan, as its card words them for `reader`.
+    pub(crate) fn marked(&self, text: String, reader: Reader) -> MarkedValue {
+        MarkedValue::marked(text, self.gaps().iter().map(|gap| fight_gap(gap, reader)))
+    }
+
     /// The best plan's outcome, when the fight was judged.
     #[must_use]
     pub fn best(&self) -> Option<&PlanOutcome> {
@@ -368,15 +384,12 @@ fn skills_out_of_date(
     remembered: Option<&AccumulatedState>,
     bundle: &Bundle,
 ) -> BTreeSet<Gap> {
-    let mut gaps = BTreeSet::new();
-    if let Some(Remembered::Stale(read)) = remembered.map(|state| &state.skills) {
-        gaps.insert(Gap::StaleSkills { turn: read.turn });
-    }
-    if let Some(Religion::God { name, .. }) = &visible.religion
-        && bundle.character.skills.shifting_gods.contains(name)
-    {
-        gaps.insert(Gap::SkillsShifting { god: name.clone() });
-    }
+    // The fight is played only once the skills are read: a Gap here is their being Stale.
+    let mut gaps: BTreeSet<Gap> = remembered
+        .and_then(|state| ScreenFact::Skills.gap(&state.skills))
+        .into_iter()
+        .collect();
+    gaps.extend(gaps::skills_shifting(visible, bundle));
     gaps
 }
 
@@ -409,7 +422,9 @@ impl<'v> Player<'v> {
         }
         let skills = remembered.and_then(|state| state.skills.read_value());
         if skills.is_none() {
-            gaps.insert(Gap::Skills);
+            gaps.insert(Gap::Unread {
+                fact: ScreenFact::Skills,
+            });
         }
         if visible.inventory.is_none() {
             gaps.insert(Gap::Inventory);
@@ -530,8 +545,7 @@ impl<'v> Player<'v> {
 
     /// An opening for each spell the player knows that the engine ports as an attack, as the
     /// spell list last showed it with its power and range, and the names of the spells it
-    /// doesn't play. Never having read the spell list, or its power and range, is a Gap in
-    /// `gaps` that may hide a better plan.
+    /// doesn't play. What [`spell_gaps`] finds is a Gap in `gaps` that may hide a better plan.
     fn spells<'b>(
         &self,
         remembered: Option<&AccumulatedState>,
@@ -540,47 +554,20 @@ impl<'v> Player<'v> {
         not_played: &mut Vec<String>,
         not_modelled: &mut BTreeSet<NotModelled>,
     ) -> Vec<(PlanOpening, Opening<'b>)> {
-        let variant = bundle.formulas.player_beam;
-        let known = remembered.and_then(|state| state.spells.read_value());
-        let Some(known) = known else {
-            // Only a player with magic to cast with may know an attack spell.
-            if self.mp_max > 0 {
-                gaps.insert(Gap::SpellList);
-            }
+        gaps.extend(spell_gaps(remembered, self.mp_max > 0, bundle));
+        let Some(known) = remembered.and_then(|state| state.spells.read_value()) else {
             return Vec::new();
         };
-        if let Some(state) = remembered {
-            if let Some(memorised) = state.spell_memorised {
-                gaps.insert(Gap::SpellMemorised {
-                    turn: memorised.turn,
-                });
-            }
-            // A list of no spells out of date hides an attack only as a spell memorised does.
-            if !known.is_empty() {
-                if let Remembered::Stale(read) = &state.spells {
-                    gaps.insert(Gap::StaleSpellList { turn: read.turn });
-                }
-                if let Remembered::Stale(read) = &state.spell_reaches {
-                    gaps.insert(Gap::StaleSpellPower { turn: read.turn });
-                }
-            }
-        }
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
         for spell in known {
-            let zap = bundle
-                .spells
-                .values()
-                .find(|known| known.name == spell.name)
-                .and_then(|known| PlayerZap::of(variant, known));
-            let Some(zap) = zap else {
+            let Some(zap) = attack_zap(spell, bundle) else {
                 not_played.push(spell.name.clone());
                 continue;
             };
             let Some(reach) =
                 reaches.and_then(|reaches| reaches.iter().find(|reach| reach.name == spell.name))
             else {
-                gaps.insert(Gap::SpellPower);
                 continue;
             };
             match spell_opening(spell, reach, zap, not_modelled) {
@@ -709,6 +696,54 @@ fn spell_opening<'b>(
     })
 }
 
+/// What keeps the Fight Outcome from playing the player's attack spells, or may hide one,
+/// whatever is in view: the spell list never read, for a player with magic to cast with
+/// (`casts`), a spell memorised the game didn't name and the list out of date, as
+/// [`gaps::spell_list`] finds them; its power and range out of date; and an attack spell the
+/// engine ports whose power and range haven't been read.
+pub(crate) fn spell_gaps(
+    remembered: Option<&AccumulatedState>,
+    casts: bool,
+    bundle: &Bundle,
+) -> BTreeSet<Gap> {
+    let mut gaps = gaps::spell_list(remembered, casts);
+    let (Some(state), Some(known)) = (
+        remembered,
+        remembered.and_then(|state| state.spells.read_value()),
+    ) else {
+        return gaps;
+    };
+    // Power out of date hides an attack only among spells known.
+    if let (false, Remembered::Stale(read)) = (known.is_empty(), &state.spell_reaches) {
+        gaps.insert(Gap::Stale {
+            fact: ScreenFact::SpellPower,
+            turn: read.turn,
+        });
+    }
+    let reaches = state.spell_reaches.read_value();
+    let unreached = |spell: &KnownSpell| {
+        !reaches.is_some_and(|reaches| reaches.iter().any(|reach| reach.name == spell.name))
+    };
+    if known
+        .iter()
+        .any(|spell| attack_zap(spell, bundle).is_some() && unreached(spell))
+    {
+        gaps.insert(Gap::Unread {
+            fact: ScreenFact::SpellPower,
+        });
+    }
+    gaps
+}
+
+/// The zap the engine plays `spell`, which the player knows, as, when it ports it as an attack.
+fn attack_zap<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<PlayerZap<'b>> {
+    bundle
+        .spells
+        .values()
+        .find(|known| known.name == spell.name)
+        .and_then(|known| PlayerZap::of(bundle.formulas.player_beam, known))
+}
+
 /// A known wand's charges, as its name shows them after it, such as `a wand of flame (12)`
 /// (`item-name.cc:1678`).
 fn charges(name: &str) -> Option<u32> {
@@ -717,16 +752,20 @@ fn charges(name: &str) -> Option<u32> {
 }
 
 impl Fight {
-    /// The focus card for this fight with `monsters` listed in view: `None` when there is no
-    /// small fight to judge, or the Advisor can't judge the moment at all, which the now pill
-    /// says.
-    pub(crate) fn card(&self, monsters: Option<Vec<Listing>>) -> Option<FocusCard> {
-        let card = |line: String, others, not_modelled, gaps: &[Gap]| FocusCard::Fight {
+    /// The focus card for this fight with `monsters` listed in view, for `reader`: `None` when
+    /// there is no small fight to judge, or the Advisor can't judge the moment at all, which the
+    /// now pill says.
+    pub(crate) fn card(&self, monsters: Option<Vec<Listing>>, reader: Reader) -> Option<FocusCard> {
+        let card = |line: String, others, not_modelled| FocusCard::Fight {
             monsters,
-            line,
+            line: self.marked(line, reader),
             others,
             not_modelled,
-            gaps: gaps.iter().map(gap).collect(),
+            gaps: self
+                .gaps()
+                .iter()
+                .map(|gap| fight_gap(gap, reader))
+                .collect(),
         };
         match self {
             Self::NoFight => None,
@@ -734,14 +773,12 @@ impl Fight {
                 format!("Too many hostiles to judge a fight: {hostiles} in view."),
                 Vec::new(),
                 None,
-                &[],
             )),
             Self::Unjudged { gaps } if !gaps.iter().any(fight_input) => None,
-            Self::Unjudged { gaps } => Some(card(
+            Self::Unjudged { .. } => Some(card(
                 "The Advisor can't judge a fight yet.".to_owned(),
                 Vec::new(),
                 None,
-                gaps,
             )),
             Self::Judged(outcome) => {
                 let hp = outcome.hp;
@@ -750,7 +787,9 @@ impl Fight {
                     || "No plan to fight with.".to_owned(),
                     |best| format!("Best plan ({}): {}", best.plan.name(), odds(best, hp)),
                 );
-                let others = plans.map(|plan| plan.summary(hp)).collect();
+                let others = plans
+                    .map(|plan| self.marked(plan.summary(hp), reader))
+                    .collect();
                 let words: Vec<&str> = outcome
                     .not_modelled
                     .iter()
@@ -761,7 +800,7 @@ impl Fight {
                     not_modelled
                         .push_str(&format!(". Not played: {}", outcome.not_played.join(", ")));
                 }
-                Some(card(line, others, Some(not_modelled), &outcome.gaps))
+                Some(card(line, others, Some(not_modelled)))
             }
         }
     }
@@ -772,7 +811,11 @@ impl Fight {
 fn fight_input(gap: &Gap) -> bool {
     matches!(
         gap,
-        Gap::Skills | Gap::SpellPower | Gap::Inventory | Gap::Wielded | Gap::Attributes
+        Gap::Unread {
+            fact: ScreenFact::Skills | ScreenFact::SpellPower
+        } | Gap::Inventory
+            | Gap::Wielded
+            | Gap::Attributes
     )
 }
 
@@ -837,50 +880,46 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
     }
 }
 
-/// What a Gap keeps the Advisor from judging of a fight, and how to fill it where the player can.
-fn gap(gap: &Gap) -> String {
+/// What a Gap keeps the Advisor from judging of a fight, for `reader`: for the player, with how
+/// to fill it where they can.
+fn fight_gap(gap: &Gap, reader: Reader) -> String {
+    if reader == Reader::Spectator {
+        return gap.sentence(reader);
+    }
     match gap {
-        Gap::Skills => "Open the skills screen (m) to judge a fight.".to_owned(),
-        Gap::SpellList => "Open the spell list (I) to count your attack spells.".to_owned(),
-        Gap::SpellPower => {
-            "Open the spell list (I) and press ! to count your attack spells.".to_owned()
-        }
-        Gap::Inventory | Gap::Wielded => "The game hasn't sent your inventory yet.".to_owned(),
-        Gap::HitPoints | Gap::Defences | Gap::Attributes => {
-            "The game hasn't sent your stats yet.".to_owned()
-        }
+        Gap::Unread {
+            fact: fact @ ScreenFact::Skills,
+        } => gaps::open_to(*fact, "to judge a fight."),
+        Gap::Unread {
+            fact: fact @ (ScreenFact::SpellList | ScreenFact::SpellPower),
+        } => gaps::open_to(*fact, "to count your attack spells."),
         Gap::Map | Gap::MonstersInView | Gap::Position => {
             "The game hasn't sent its map yet.".to_owned()
-        }
-        Gap::GameKnowledge => {
-            "Nothing can be judged without Game Knowledge for this version.".to_owned()
         }
         Gap::MonsterKnowledge { monster } => format!(
             "{} isn't in the Game Knowledge, so the fight can't be judged.",
             capitalised(monster)
         ),
-        Gap::AbilityMenu => "Open the ability menu (a) to judge your abilities.".to_owned(),
-        Gap::StaleSkills { turn } => format!(
-            "{}: open the skills screen (m) to bring them up to date.",
-            out_of_date("Skills", *turn)
-        ),
-        Gap::StaleSpellList { turn } => format!(
-            "{}: open it (I) to bring it up to date.",
-            out_of_date("Spell list", *turn)
-        ),
-        Gap::StaleSpellPower { turn } => format!(
-            "{}: open the spell list (I) and press ! to bring it up to date.",
-            out_of_date("Spell power", *turn)
-        ),
         Gap::SpellMemorised { turn } => format!(
-            "{}: open the spell list (I) to count it.",
-            memorised_unnamed(*turn)
+            "{}: {} to count it.",
+            memorised_unnamed(*turn),
+            ScreenFact::SpellList.how_to_open(false)
         ),
-        Gap::SkillsShifting { god } => {
-            format!(
-                "Your skills may differ from the skills screen's: {god} shifts them with your piety."
-            )
+        Gap::HitPoints
+        | Gap::Defences
+        | Gap::GameKnowledge
+        | Gap::Unread {
+            fact:
+                ScreenFact::AbilityMenu
+                | ScreenFact::Mutations
+                | ScreenFact::Resistances
+                | ScreenFact::Equipped,
         }
+        | Gap::Inventory
+        | Gap::Wielded
+        | Gap::Attributes
+        | Gap::Stale { .. }
+        | Gap::SkillsShifting { .. } => gap.sentence(reader),
     }
 }
 
@@ -1199,7 +1238,9 @@ mod tests {
         assert_eq!(
             sheet.fight,
             Fight::Unjudged {
-                gaps: vec![Gap::Skills]
+                gaps: vec![Gap::Unread {
+                    fact: ScreenFact::Skills
+                }]
             }
         );
     }
@@ -1211,12 +1252,19 @@ mod tests {
         unread.spells = None;
         assert_eq!(
             judged(&unread.against(&[("jackal", 2)])).gaps,
-            [Gap::SpellList]
+            [Gap::Unread {
+                fact: ScreenFact::SpellList
+            }]
         );
         let mut powerless = fighter().casting(10, &[("Magic Dart", 0, 1)], &[]);
         powerless.powers = None;
         let sheet = powerless.against(&[("jackal", 2)]);
-        assert_eq!(judged(&sheet).gaps, [Gap::SpellPower]);
+        assert_eq!(
+            judged(&sheet).gaps,
+            [Gap::Unread {
+                fact: ScreenFact::SpellPower
+            }]
+        );
         assert!(
             judged(&sheet)
                 .plans
@@ -1232,7 +1280,8 @@ mod tests {
             .carrying('c', "a wand of flame", 1, "OBJ_WANDS", "WAND_FLAME")
             .against(&[("jackal", 2)]);
         assert_eq!(judged(&sheet).not_played, ["Blink", "wand of flame"]);
-        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None) else {
+        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None, Reader::Player)
+        else {
             panic!("no fight card");
         };
         assert!(
@@ -1250,13 +1299,30 @@ mod tests {
     }
 
     #[test]
+    fn a_spectator_is_told_what_keeps_a_fight_unjudged_but_not_asked_to_open_a_screen() {
+        let mut player = fighter();
+        player.skills = None;
+        let sheet = player.against(&[("jackal", 2)]);
+        let Some(FocusCard::Fight { line, gaps, .. }) = sheet.fight.card(None, Reader::Spectator)
+        else {
+            panic!("no fight card");
+        };
+        let said = "Skills: no fight can be judged without them.";
+        assert_eq!(line.gap.as_deref(), Some(said));
+        assert_eq!(gaps, [said]);
+    }
+
+    #[test]
     fn too_many_hostiles_are_said_on_the_card() {
         let sheet =
             fighter().against(&[("jackal", 2), ("jackal", 3), ("jackal", 4), ("jackal", 5)]);
-        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None) else {
+        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None, Reader::Player) else {
             panic!("no fight card");
         };
-        assert_eq!(line, "Too many hostiles to judge a fight: 4 in view.");
+        assert_eq!(
+            line,
+            MarkedValue::known("Too many hostiles to judge a fight: 4 in view.".to_owned())
+        );
     }
 
     #[test]
@@ -1264,10 +1330,11 @@ mod tests {
         let sheet = dart_thrower(20);
         let Some(FocusCard::Fight {
             line, not_modelled, ..
-        }) = sheet.fight.card(None)
+        }) = sheet.fight.card(None, Reader::Player)
         else {
             panic!("no fight card");
         };
+        let line = line.text;
         assert!(
             line.starts_with("Best plan (Magic Dart, then melee): ~"),
             "{line}"

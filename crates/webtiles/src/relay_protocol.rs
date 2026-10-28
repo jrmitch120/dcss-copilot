@@ -9,7 +9,7 @@ use crate::Envelope;
 
 /// The only compatibility contract between the extension and the app. Bump it whenever a frame
 /// changes shape; the app also accepts the previous version.
-pub const RELAY_PROTOCOL_VERSION: u32 = 4;
+pub const RELAY_PROTOCOL_VERSION: u32 = 5;
 
 /// The port the app listens on for the extension, on 127.0.0.1 only.
 pub const RELAY_PORT: u16 = 47_821;
@@ -74,6 +74,8 @@ pub enum PanelCommand {
     /// The player put the join card away: "Not now" while it asks for the character dump, "OK"
     /// once it says what it read. Since protocol 4.
     CloseJoinCard,
+    /// The player put the Gap prompt card away, for good. Since protocol 5.
+    DismissGapPrompt,
     /// Open the app's Settings window.
     OpenSettings,
 }

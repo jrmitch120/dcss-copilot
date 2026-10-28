@@ -72,7 +72,8 @@ expression: replay
             "paths",
             "awareness",
             "defenceFractions"
-          ]
+          ],
+          "gaps": []
         },
         "waysOut": {
           "options": [
@@ -265,7 +266,8 @@ expression: replay
           },
           "gaps": [
             {
-              "gap": "abilityMenu"
+              "gap": "unread",
+              "fact": "abilityMenu"
             }
           ],
           "notModelled": [
@@ -279,12 +281,23 @@ expression: replay
           "state": "unjudged",
           "gaps": [
             {
-              "gap": "skills"
+              "gap": "unread",
+              "fact": "skills"
             }
           ]
         },
         "exceptional": [],
-        "dangerousStatuses": []
+        "dangerousStatuses": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "skills"
+          },
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          }
+        ]
       },
       "game": {
         "character": {
@@ -299,7 +312,10 @@ expression: replay
           "level": "calm",
           "alert": null,
           "line": "Goblin can attack before your next action.",
-          "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+          "detail": {
+            "text": "Death under 0.1% · worst hit 4 of 19 HP",
+            "gap": null
+          }
         },
         "suggestedAction": null,
         "focus": {
@@ -318,7 +334,10 @@ expression: replay
               "count": 1
             }
           ],
-          "line": "The Advisor can't judge a fight yet.",
+          "line": {
+            "text": "The Advisor can't judge a fight yet.",
+            "gap": "Open the skills screen (m) to judge a fight."
+          },
           "others": [],
           "notModelled": null,
           "gaps": [
@@ -331,14 +350,27 @@ expression: replay
             {
               "usable": false,
               "name": "Stone staircase leading down",
-              "detail": "4 steps",
-              "whyNot": "Goblin can get there first"
+              "detail": {
+                "text": "4 steps",
+                "gap": null
+              },
+              "whyNot": {
+                "text": "Goblin can get there first",
+                "gap": null
+              }
+            },
+            {
+              "usable": null,
+              "name": "Abilities",
+              "detail": {
+                "text": "unknown",
+                "gap": "Open the ability menu (a) to judge your abilities."
+              },
+              "whyNot": null
             }
           ],
           "ground": "On open ground: 3 sides open · a corridor 4 steps away",
-          "gaps": [
-            "Open the ability menu (a) to judge your abilities."
-          ]
+          "gaps": []
         },
         "runPlan": {
           "state": "notPlanned"
@@ -352,7 +384,45 @@ expression: replay
         "badge": {
           "decisionsWaiting": 0,
           "callsForPanel": false
-        }
+        },
+        "gaps": {
+          "gaps": [
+            {
+              "what": "Skills",
+              "why": "No fight can be judged without them.",
+              "keys": [
+                "m"
+              ]
+            },
+            {
+              "what": "Ability menu",
+              "why": "Abilities aren't counted among the Ways Out.",
+              "keys": [
+                "a"
+              ]
+            },
+            {
+              "what": "Resistances",
+              "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+              "keys": [
+                "%"
+              ]
+            },
+            {
+              "what": "Equipped gear",
+              "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+              "keys": [
+                "%"
+              ]
+            }
+          ],
+          "dumpFills": [
+            "skills",
+            "resistances",
+            "equipped gear"
+          ]
+        },
+        "warning": false
       }
     }
   ],
@@ -422,7 +492,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -535,7 +606,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -549,12 +621,23 @@ expression: replay
         "state": "unjudged",
         "gaps": [
           {
-            "gap": "skills"
+            "gap": "unread",
+            "fact": "skills"
           }
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "skills"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -569,7 +652,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Goblin can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 4 of 19 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 4 of 19 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -588,7 +674,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "The Advisor can't judge a fight yet.",
+        "line": {
+          "text": "The Advisor can't judge a fight yet.",
+          "gap": "Open the skills screen (m) to judge a fight."
+        },
         "others": [],
         "notModelled": null,
         "gaps": [
@@ -601,14 +690,24 @@ expression: replay
           {
             "usable": true,
             "name": "Stone staircase leading down",
-            "detail": "4 steps",
+            "detail": {
+              "text": "4 steps",
+              "gap": null
+            },
+            "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
             "whyNot": null
           }
         ],
         "ground": "On open ground: 3 sides open · a corridor 4 steps away",
-        "gaps": [
-          "Open the ability menu (a) to judge your abilities."
-        ]
+        "gaps": []
       },
       "runPlan": {
         "state": "notPlanned"
@@ -622,7 +721,45 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Skills",
+            "why": "No fight can be judged without them.",
+            "keys": [
+              "m"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "skills",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

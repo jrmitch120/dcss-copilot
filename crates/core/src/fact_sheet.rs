@@ -19,6 +19,7 @@ use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
+use crate::gaps::{Gap, ScreenFact};
 use crate::screen::Resistances;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
@@ -57,6 +58,9 @@ pub struct FactSheet {
     /// The statuses on the player that put them in danger, in the order [`DangerousStatus`]
     /// lists them.
     pub dangerous_statuses: Vec<DangerousStatus>,
+    /// The Gaps that affected this moment: what kept the Threat Level, the Fight Outcome or the
+    /// Ways Out from being judged, or was played around, as its own part names it.
+    pub gaps: Vec<Gap>,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -110,6 +114,10 @@ pub struct ThreatAssessment {
     pub resistances: Option<ResistancesApplied>,
     /// What the judgement leaves out, so the numbers are read for what they are.
     pub not_modelled: Vec<NotModelled>,
+    /// The Gaps it was judged around: the player's resistances unread, and played as resisting
+    /// nothing, or out of date, for damage they would change; and what they wear, unread or out
+    /// of date, while their shield or a halo of their own is unknown.
+    pub gaps: Vec<Gap>,
 }
 
 impl Threat {
@@ -119,6 +127,14 @@ impl Threat {
         match self {
             Self::Rated(assessment) => Some(assessment.level),
             Self::Unrated { .. } => None,
+        }
+    }
+
+    /// The Gaps that kept it from being judged, or that it was judged around.
+    fn gaps(&self) -> &[Gap] {
+        match self {
+            Self::Rated(assessment) => &assessment.gaps,
+            Self::Unrated { gaps } => gaps,
         }
     }
 }
@@ -485,76 +501,6 @@ const ALWAYS_NOT_MODELLED: [NotModelled; 4] = [
     NotModelled::Awareness,
 ];
 
-/// A fact the Advisor needs about this moment but doesn't have.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[serde(tag = "gap", rename_all = "camelCase", rename_all_fields = "camelCase")]
-pub enum Gap {
-    /// The player's hit points haven't been reported.
-    HitPoints,
-    /// The player's AC, EV or SH haven't been reported.
-    Defences,
-    /// The game hasn't sent its map, so the monsters in view aren't known.
-    MonstersInView,
-    /// The game hasn't sent its map, so the level's paths aren't known.
-    Map,
-    /// Where the player stands hasn't been reported.
-    Position,
-    /// There is no Game Knowledge for the game's Crawl Version, so monsters can't be judged.
-    GameKnowledge,
-    /// A monster in view isn't in the Game Knowledge for the game's Crawl Version.
-    MonsterKnowledge {
-        /// The monster, as the game names it.
-        monster: String,
-    },
-    /// The player hasn't opened the ability menu (`a`), so which of their abilities are Ways Out
-    /// isn't known.
-    AbilityMenu,
-    /// The player hasn't opened the spell list (`I`), so which of their spells are Ways Out, and
-    /// how often they fail, isn't known.
-    SpellList,
-    /// The player hasn't opened the skills screen (`m`), so their attacks can't be played out.
-    Skills,
-    /// The player hasn't switched the spell list to its power and range (`I`, then `!`), so their
-    /// attack spells can't be played out.
-    SpellPower,
-    /// The game hasn't sent the inventory.
-    Inventory,
-    /// The game hasn't said what the player holds.
-    Wielded,
-    /// The player's Strength, Dexterity or magic points haven't been reported.
-    Attributes,
-    /// The skills were read on `turn`, and something seen since may have changed them: they
-    /// are played all the same.
-    StaleSkills {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The spell list was read on `turn`, and something seen since may have changed which
-    /// spells the player knows or how often they fail: it is played all the same.
-    StaleSpellList {
-        /// The game's turn when it was read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The spells' power and range were read on `turn`, and something seen since may have
-    /// changed them: they are played all the same.
-    StaleSpellPower {
-        /// The game's turn when they were read, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The player memorised a spell the game's message didn't name, a Blind Spot until the
-    /// spell list (`I`) is read.
-    SpellMemorised {
-        /// The game's turn when they did, if it had reported one.
-        turn: Option<u32>,
-    },
-    /// The player follows a god who shifts their skills from their base levels with piety,
-    /// without a message, a Blind Spot: they may differ from what the skills screen showed.
-    SkillsShifting {
-        /// The god, as the game names them, such as `Ashenzari`.
-        god: String,
-    },
-}
-
 impl FactSheet {
     /// What the engine makes of `visible`, what the Advisor remembers of the game and the
     /// character's `species`, as the game names it, with `knowledge` for the game's Crawl Version
@@ -570,12 +516,21 @@ impl FactSheet {
         let exceptional = exceptional::in_view(visible, knowledge, threat.level(), |alone| {
             judge(alone, remembered, species, knowledge).0.level()
         });
+        let ways_out = WaysOut::compute(visible, remembered, species, knowledge);
+        let gaps: BTreeSet<Gap> = threat
+            .gaps()
+            .iter()
+            .chain(fight.gaps())
+            .chain(&ways_out.gaps)
+            .cloned()
+            .collect();
         Self {
             threat,
-            ways_out: WaysOut::compute(visible, remembered, species, knowledge),
+            ways_out,
             fight,
             exceptional,
             dangerous_statuses: dangerous_status::on_the_player(visible, knowledge),
+            gaps: gaps.into_iter().collect(),
         }
     }
 }
@@ -708,6 +663,7 @@ fn threat<'a>(
                 .map(|(lighting, _)| lighting),
             resistances: None,
             not_modelled: Vec::new(),
+            gaps: Vec::new(),
         }));
         return Assessed {
             threat,
@@ -719,8 +675,11 @@ fn threat<'a>(
     let formulas = bundle.formulas;
     let worn_shield = remembered.and_then(|state| state.worn_shield.known().copied());
     let mut not_modelled = ALWAYS_NOT_MODELLED.to_vec();
+    // What the judgement is made around, unread or out of date.
+    let mut gaps: BTreeSet<Gap> = BTreeSet::new();
     if sh > 0 && worn_shield.is_none() {
         not_modelled.push(NotModelled::WornShield);
+        gaps.extend(ScreenFact::Equipped.gap_in(remembered, |state| &state.worn_shield));
     }
     if hostile
         .iter()
@@ -742,6 +701,9 @@ fn threat<'a>(
     }
     let (lighting, own_halo) =
         lighting(visible, remembered, &bundle.lighting).unwrap_or((Lighting::Plain, None));
+    if own_halo.is_some() {
+        gaps.extend(ScreenFact::Equipped.gap_in(remembered, |state| &state.equipped));
+    }
     not_modelled.extend(own_halo);
     let defences = DisplayedDefences { ac, ev, sh };
     if defences.any_hides_a_fraction() {
@@ -859,6 +821,10 @@ fn threat<'a>(
     if resists.unsettled(needs) {
         not_modelled.push(NotModelled::PlayerResistances);
     }
+    // The resistances count only for damage they would change.
+    if needs.any() {
+        gaps.extend(ScreenFact::Resistances.gap_in(remembered, |state| &state.resistances));
+    }
     if attackers.iter().any(|attacker| {
         let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
             reach.casts > reach.strikes || spell.zap.explodes
@@ -899,6 +865,7 @@ fn threat<'a>(
         lighting: Some(lighting),
         resistances: resists.applied,
         not_modelled,
+        gaps: gaps.into_iter().collect(),
     }));
     Assessed {
         threat,
@@ -1343,6 +1310,28 @@ mod tests {
             (applied.state, applied.turn),
             (KnownOrStale::Known, Some(40))
         );
+    }
+
+    #[test]
+    fn resistances_unread_or_out_of_date_are_a_gap_only_for_damage_they_would_change() {
+        let gaps = |name: &str, remembered: Option<&AccumulatedState>| {
+            rated(&facing(name, 2), remembered, Some("Human")).gaps
+        };
+        assert_eq!(
+            gaps("fire giant", None),
+            [Gap::Unread {
+                fact: ScreenFact::Resistances
+            }]
+        );
+        assert_eq!(
+            gaps("fire giant", Some(&read_with_fire(0, true))),
+            [Gap::Stale {
+                fact: ScreenFact::Resistances,
+                turn: Some(40)
+            }]
+        );
+        assert_eq!(gaps("fire giant", Some(&read_with_fire(0, false))), []);
+        assert_eq!(gaps("ogre", None), []);
     }
 
     #[test]

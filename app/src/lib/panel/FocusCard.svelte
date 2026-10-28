@@ -1,8 +1,10 @@
 <script lang="ts">
 import type { Appearance, FactCard, FocusCard, Listing } from "$lib/bindings";
 import type { PanelActions } from "./actions";
+import GapPrompt from "./GapPrompt.svelte";
 import JoinCard from "./JoinCard.svelte";
 import ListingRow from "./ListingRow.svelte";
+import MarkedValue from "./MarkedValue.svelte";
 import Tile from "./Tile.svelte";
 
 let {
@@ -60,9 +62,9 @@ let {
     {@render facts()}
     <div class="lbl">Fight <em>computed</em></div>
     {@render inView(focus.monsters)}
-    <p class="line">{focus.line}</p>
+    <p class="line"><MarkedValue value={focus.line} /></p>
     {#each focus.others as other, i (i)}
-      <p class="muted small">{other}</p>
+      <p class="muted small"><MarkedValue value={other} /></p>
     {/each}
     {#if focus.notModelled}
       <p class="muted small not-modelled">{focus.notModelled}</p>
@@ -73,6 +75,8 @@ let {
   </section>
 {:else if focus.card === "join"}
   <JoinCard join={focus.join} {actions} />
+{:else if focus.card === "gapPrompt"}
+  <GapPrompt gaps={focus.gaps} {actions} />
 {/if}
 
 <style>

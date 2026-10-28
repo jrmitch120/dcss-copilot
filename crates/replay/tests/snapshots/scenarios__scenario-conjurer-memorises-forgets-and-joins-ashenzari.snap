@@ -83,7 +83,8 @@ expression: replay
           "paths",
           "awareness",
           "defenceFractions"
-        ]
+        ],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -168,7 +169,12 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
+          },
+          {
+            "gap": "unread",
+            "fact": "mutations"
           }
         ],
         "notModelled": [
@@ -206,7 +212,8 @@ expression: replay
         ],
         "gaps": [
           {
-            "gap": "staleSpellPower",
+            "gap": "stale",
+            "fact": "spellPower",
             "turn": 0
           },
           {
@@ -228,7 +235,26 @@ expression: replay
         ]
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        },
+        {
+          "gap": "unread",
+          "fact": "mutations"
+        },
+        {
+          "gap": "stale",
+          "fact": "spellPower",
+          "turn": 0
+        },
+        {
+          "gap": "skillsShifting",
+          "god": "Ashenzari"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -243,7 +269,10 @@ expression: replay
         "level": "calm",
         "alert": null,
         "line": "Rat can attack before your next action.",
-        "detail": "Death under 0.1% · worst hit 3 of 16 HP"
+        "detail": {
+          "text": "Death under 0.1% · worst hit 3 of 16 HP",
+          "gap": null
+        }
       },
       "suggestedAction": null,
       "focus": {
@@ -262,7 +291,10 @@ expression: replay
             "count": 1
           }
         ],
-        "line": "Best plan (melee): ~100% win, ~13% HP lost",
+        "line": {
+          "text": "Best plan (melee): ~100% win, ~13% HP lost",
+          "gap": "~Spell power as of turn 0: open the spell list (I) and press ! to bring it up to date. Your skills may differ from the skills screen's: Ashenzari shifts them with your piety."
+        },
         "others": [],
         "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions. Not played: Searing Ray",
         "gaps": [
@@ -276,13 +308,28 @@ expression: replay
           {
             "usable": false,
             "name": "Stone staircase leading down",
-            "detail": "1 step",
-            "whyNot": "Rat is beside it"
+            "detail": {
+              "text": "1 step",
+              "gap": "Open the mutations screen (A) to judge your speed to the stairs."
+            },
+            "whyNot": {
+              "text": "Rat is beside it",
+              "gap": null
+            }
+          },
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
           }
         ],
         "ground": "On open ground: 5 sides open",
         "gaps": [
-          "Open the ability menu (a) to judge your abilities."
+          "Open the mutations screen (A) to judge your speed to the stairs."
         ]
       },
       "runPlan": {
@@ -297,7 +344,58 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "~Spell power as of turn 0",
+            "why": "Fights play it as it was.",
+            "keys": [
+              "I",
+              "!"
+            ]
+          },
+          {
+            "what": "Skills",
+            "why": "Ashenzari shifts them with piety, so they may differ from the skills screen's.",
+            "keys": []
+          }
+        ],
+        "dumpFills": [
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": false
     }
   }
 }

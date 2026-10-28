@@ -144,6 +144,37 @@ pub struct GameView {
     pub accumulated_unreadable: Option<String>,
     /// What the Toolbar Badge shows while the panel is closed.
     pub badge: ToolbarBadge,
+    /// Every Gap in what the Advisor knows of the game, for the Gaps chip in the header.
+    pub gaps: GapList,
+    /// The moment warns the player: it is above CALM, or the now pill shows an Alert, as a
+    /// Dangerous Status raises at CALM. The panel puts away what can wait, such as the Gaps list.
+    pub warning: bool,
+}
+
+/// Gaps as the panel lists them, in the Gaps chip and on the Gap prompt card: each with why it
+/// matters and the keys that fill it.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GapList {
+    /// One row a Gap, those the same in words as one.
+    pub gaps: Vec<GapRow>,
+    /// What the character dump (`?` then `#`) fills of them at once, each as a sentence names
+    /// it, such as `the spell list`: none when it fills none, or the player is watching a game
+    /// not theirs.
+    pub dump_fills: Vec<String>,
+}
+
+/// One Gap as the panel lists it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GapRow {
+    /// What is missing or out of date, such as `Spell list` or `~Skills as of turn 12`.
+    pub what: String,
+    /// Why it matters, in one sentence.
+    pub why: String,
+    /// The keys to press in the game that fill it, such as `I` then `!`: none when no screen
+    /// does, or the player is watching a game not theirs.
+    pub keys: Vec<String>,
 }
 
 /// A game seen before that a game process picked up again on a later turn, as last seen. Nobody
@@ -181,8 +212,39 @@ pub struct WaysOutList {
     /// The ground the player stands on, such as `In a corridor: 2 sides open`, once the Advisor
     /// can tell.
     pub ground: Option<String>,
-    /// What keeps the Advisor from judging more, such as a screen to open, one sentence each.
+    /// What keeps the Advisor from judging more, such as the map not yet sent, one sentence
+    /// each: the Ways Out a Gap hides are rows of their own.
     pub gaps: Vec<String>,
+}
+
+/// A value the panel shows, marked in place when a Gap leaves it unknown or out of date: drawn
+/// with a dotted underline, and a tooltip saying what leaves it so and which screen fills it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct MarkedValue {
+    /// The value, such as `spell · ~4% fail as of turn 12`.
+    pub text: String,
+    /// What leaves it unknown or out of date, and how to fill it where the player can, one
+    /// sentence a Gap, such as `~Spell list as of turn 12: open it (I) to bring it up to date.`:
+    /// `None` while no Gap touches it.
+    pub gap: Option<String>,
+}
+
+impl MarkedValue {
+    /// `text`, which no Gap touches.
+    pub(crate) fn known(text: String) -> Self {
+        Self { text, gap: None }
+    }
+
+    /// `text`, marked with the `gaps` that leave it unknown or out of date, one sentence each:
+    /// unmarked when there are none.
+    pub(crate) fn marked(text: String, gaps: impl IntoIterator<Item = String>) -> Self {
+        let gaps: Vec<String> = gaps.into_iter().collect();
+        Self {
+            text,
+            gap: (!gaps.is_empty()).then(|| gaps.join(" ")),
+        }
+    }
 }
 
 /// `text` with its first letter capitalised, as a name starts a line in the panel.
@@ -193,36 +255,21 @@ pub(crate) fn capitalised(text: &str) -> String {
     })
 }
 
-/// What was read of `what` on `turn` and may have changed since, such as `~Skills as of turn
-/// 12`: `~` before it, as for any value out of date.
-pub(crate) fn out_of_date(what: &str, turn: Option<u32>) -> String {
-    match turn {
-        Some(turn) => format!("~{what} as of turn {turn}"),
-        None => format!("~{what} as last read"),
-    }
-}
-
-/// When the player memorised a spell the game didn't name, as a sentence starts, such as `You
-/// memorised a spell on turn 14 that the game didn't name`.
-pub(crate) fn memorised_unnamed(turn: Option<u32>) -> String {
-    match turn {
-        Some(turn) => format!("You memorised a spell on turn {turn} that the game didn't name"),
-        None => "You memorised a spell that the game didn't name".to_owned(),
-    }
-}
-
 /// One Way Out in the panel's list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WayOutRow {
-    /// It can be used now, as far as the Advisor can tell: drawn ✓, else ✕.
-    pub usable: bool,
+    /// It can be used now, as far as the Advisor can tell: drawn ✓, else ✕. `None` for Ways Out
+    /// a Gap hides, such as the spells of a spell list never read, drawn `?`.
+    pub usable: Option<bool>,
     /// What it is, such as `Stone staircase leading down` or `Teleportation`.
     pub name: String,
-    /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`.
-    pub detail: Option<String>,
-    /// Why it can't be used, when it can't, such as `Centaur is faster`.
-    pub why_not: Option<String>,
+    /// A short fact beside the name, such as `7 steps` or `spell · 4% fail`, marked when the
+    /// menu or list it was read off is out of date.
+    pub detail: Option<MarkedValue>,
+    /// Why it can't be used, when it can't, such as `Centaur is faster`, marked when it rests on
+    /// a menu out of date.
+    pub why_not: Option<MarkedValue>,
 }
 
 /// The character in the game being followed. A stat is `None` until the game reports it.
@@ -264,8 +311,9 @@ pub enum NowPill {
         /// One sentence about this moment, such as which monsters can attack.
         line: String,
         /// The numbers behind the level, such as the chance of death and the worst-case hit,
-        /// when anything can attack.
-        detail: Option<String>,
+        /// when anything can attack, marked when they were judged around a Gap, such as
+        /// resistances unread.
+        detail: Option<MarkedValue>,
     },
 }
 
@@ -280,11 +328,11 @@ pub struct SuggestedActionCard {
     /// The rule that picked it, such as `Leave by stairs`.
     pub rule: String,
     /// What it picked, in one line, such as `Stone staircase leading down · 4 steps` or `Melee:
-    /// ~95% win, ~20% HP lost`.
-    pub action: String,
+    /// ~95% win, ~20% HP lost`, marked when a Gap leaves its facts unknown or out of date.
+    pub action: MarkedValue,
     /// At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
-    /// spell · 4% fail`, or that none is left.
-    pub if_lethal: Option<String>,
+    /// spell · 4% fail`, or that none is left, marked as `action` is.
+    pub if_lethal: Option<MarkedValue>,
 }
 
 /// The card under the now pill: what deserves the player's attention now.
@@ -307,10 +355,12 @@ pub enum FocusCard {
         /// The monsters in view, as [`FocusCard::InView`] lists them.
         monsters: Option<Vec<Listing>>,
         /// The fight in one line: the best Attack Plan's odds, such as `Best plan (Fireball, then
-        /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet.
-        line: String,
-        /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`.
-        others: Vec<String>,
+        /// melee): ~80% win, ~45% HP lost`, or that the Advisor can't judge it yet, marked with
+        /// the Gaps that keep it from being judged or may hide a better plan.
+        line: MarkedValue,
+        /// The other plans, best first, one line each, such as `Melee: ~60% win, ~70% HP lost`,
+        /// marked as `line` is.
+        others: Vec<MarkedValue>,
         /// What the fight leaves out, as one line, such as `Not modelled: summons, allies, hexes`.
         /// `None` when the fight wasn't judged.
         not_modelled: Option<String>,
@@ -323,6 +373,12 @@ pub enum FocusCard {
     Join {
         /// What the card shows.
         join: JoinCard,
+    },
+    /// The Gap prompt card: once a game, at its first All Clear the card can show at, it asks for
+    /// the Gaps open then, until the player puts it away or an Encounter starts.
+    GapPrompt {
+        /// The Gaps it asks for that are still open.
+        gaps: GapList,
     },
 }
 

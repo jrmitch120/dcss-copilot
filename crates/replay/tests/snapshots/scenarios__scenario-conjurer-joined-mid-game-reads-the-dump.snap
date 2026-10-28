@@ -38,7 +38,8 @@ expression: replay
         "gear": [],
         "lighting": "plain",
         "resistances": null,
-        "notModelled": []
+        "notModelled": [],
+        "gaps": []
       },
       "waysOut": {
         "options": [
@@ -187,7 +188,8 @@ expression: replay
         },
         "gaps": [
           {
-            "gap": "abilityMenu"
+            "gap": "unread",
+            "fact": "abilityMenu"
           }
         ],
         "notModelled": [
@@ -202,7 +204,13 @@ expression: replay
         "state": "noFight"
       },
       "exceptional": [],
-      "dangerousStatuses": []
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        }
+      ]
     },
     "game": {
       "character": {
@@ -247,7 +255,28 @@ expression: replay
       "badge": {
         "decisionsWaiting": 0,
         "callsForPanel": false
-      }
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Spell power",
+            "why": "Attack spells aren't played in a fight.",
+            "keys": [
+              "I",
+              "!"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          }
+        ],
+        "dumpFills": []
+      },
+      "warning": false
     }
   }
 }

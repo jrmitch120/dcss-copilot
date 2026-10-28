@@ -12,6 +12,7 @@ mod exceptional;
 mod fact_sheet;
 mod fight_outcome;
 mod game_source;
+mod gaps;
 mod join_card;
 mod known_games;
 mod screen;
@@ -32,11 +33,12 @@ pub use detectors::{Alert, AlertCause, AlertKind, Detection};
 pub use engine::oracle;
 pub use exceptional::{Exceptional, ExceptionalMonster};
 pub use fact_sheet::{
-    ActingMonster, Chance, FactSheet, Gap, GearBasis, GearPlayed, KnownOrStale, NotModelled,
-    Threat, ThreatAssessment, ThreatLevel,
+    ActingMonster, Chance, FactSheet, GearBasis, GearPlayed, KnownOrStale, NotModelled, Threat,
+    ThreatAssessment, ThreatLevel,
 };
 pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
+pub use gaps::{Gap, ScreenFact};
 pub use known_games::{CharacterKey, GameKey, Identification, KnownGame, KnownGames};
 pub use screen::{
     BranchFound, DungeonOverview, KnownAbility, KnownSpell, Resistance, Resistances, Screen,
@@ -45,8 +47,9 @@ pub use screen::{
 pub use suggested_action::SuggestionRule;
 pub use view_model::{
     Appearance, AskBox, AssistanceLevel, Character, ChecklistRow, Colour, Connection, Depiction,
-    FactCard, FocusCard, GameView, Glyph, JoinCard, Listing, NowPill, PickedUp, RunPlanRail,
-    SuggestedActionCard, TileName, ToolbarBadge, UnreadPart, ViewModel, WayOutRow, WaysOutList,
+    FactCard, FocusCard, GameView, GapList, GapRow, Glyph, JoinCard, Listing, MarkedValue, NowPill,
+    PickedUp, RunPlanRail, SuggestedActionCard, TileName, ToolbarBadge, UnreadPart, ViewModel,
+    WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, Place, Position,

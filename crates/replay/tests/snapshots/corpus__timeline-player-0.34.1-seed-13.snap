@@ -58,6 +58,14 @@ expression: detections
     "event": "allClear"
   },
   {
+    "envelope": 560,
+    "turn": 98,
+    "event": "gapPrompt",
+    "asks": [
+      "abilityMenu"
+    ]
+  },
+  {
     "envelope": 564,
     "turn": 99,
     "event": "encounterStarted"

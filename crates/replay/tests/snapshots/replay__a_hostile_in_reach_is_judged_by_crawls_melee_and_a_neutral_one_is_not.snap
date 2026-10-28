@@ -52,7 +52,8 @@ expression: replayer.advisor().fact_sheet()
       "paths",
       "awareness",
       "defenceFractions"
-    ]
+    ],
+    "gaps": []
   },
   "waysOut": {
     "options": [
@@ -104,10 +105,16 @@ expression: replayer.advisor().fact_sheet()
     },
     "gaps": [
       {
-        "gap": "abilityMenu"
+        "gap": "unread",
+        "fact": "spellList"
       },
       {
-        "gap": "spellList"
+        "gap": "unread",
+        "fact": "abilityMenu"
+      },
+      {
+        "gap": "unread",
+        "fact": "mutations"
       }
     ],
     "notModelled": [
@@ -122,10 +129,29 @@ expression: replayer.advisor().fact_sheet()
     "state": "unjudged",
     "gaps": [
       {
-        "gap": "skills"
+        "gap": "unread",
+        "fact": "skills"
       }
     ]
   },
   "exceptional": [],
-  "dangerousStatuses": []
+  "dangerousStatuses": [],
+  "gaps": [
+    {
+      "gap": "unread",
+      "fact": "skills"
+    },
+    {
+      "gap": "unread",
+      "fact": "spellList"
+    },
+    {
+      "gap": "unread",
+      "fact": "abilityMenu"
+    },
+    {
+      "gap": "unread",
+      "fact": "mutations"
+    }
+  ]
 }

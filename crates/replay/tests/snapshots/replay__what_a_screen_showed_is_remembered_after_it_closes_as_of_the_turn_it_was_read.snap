@@ -70,6 +70,7 @@ expression: replayer.advisor().accumulated()
     "joinedOn": 1234
   },
   "spellMemorised": null,
+  "gapsPrompted": [],
   "carriedGear": {},
   "uniquesGear": {}
 }

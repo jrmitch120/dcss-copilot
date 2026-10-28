@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::dangerous_status::DangerousStatus;
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, ThreatLevel};
+use crate::gaps::ScreenFact;
 use crate::suggested_action::{SuggestedAction, SuggestionRule};
 use crate::view_model::capitalised;
 use crate::visible_state::VisibleState;
@@ -36,6 +37,13 @@ pub enum Detection {
     FactCard(ExceptionalMonster),
     /// A Tactical Alert.
     Alert(Alert),
+    /// At the game's first All Clear it could show at, the panel's Gap prompt card asked the
+    /// player to fill the Gaps in these facts: once a game. The Advisor raises it rather than the
+    /// detectors, as it asks of what the Advisor remembers.
+    GapPrompt {
+        /// What it asked for.
+        asks: Vec<ScreenFact>,
+    },
     /// The rules picked a new Suggested Action this Encounter, which the panel shows from now
     /// on, at DANGEROUS and LETHAL moments.
     SuggestedAction {
@@ -370,7 +378,7 @@ impl Detectors {
             {
                 detections.push(Detection::SuggestedAction {
                     rule: suggested.rule(),
-                    line: suggested.line(),
+                    line: suggested.line(&fact_sheet.fight),
                 });
             }
             encounter.suggested = Some(suggested);

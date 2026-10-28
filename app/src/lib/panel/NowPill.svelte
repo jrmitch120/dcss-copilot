@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { NowPill } from "$lib/bindings";
+import MarkedValue from "./MarkedValue.svelte";
 import { nowLabel, nowLine, threatTone } from "./tone";
 
 let { now }: { now: NowPill } = $props();
@@ -17,7 +18,7 @@ let tone = $derived(threatTone(now));
     {#if now.state === "unrated"}
       <small>No Threat Level is shown until it can be computed.</small>
     {:else if now.detail}
-      <small>{now.detail}</small>
+      <small><MarkedValue value={now.detail} /></small>
     {/if}
   </div>
 </div>
