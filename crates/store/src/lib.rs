@@ -4,8 +4,9 @@
 //! A game's row holds its Game Key, what was last seen of it and its Accumulated State as JSON.
 //! Each save appends a row to the Change Log for each of its facts that changed, so the log
 //! tells what the Advisor knew of a game at any moment. A collection that grows large, such as
-//! the levels explored, is logged entry by entry, so a change to one level logs only that level. The log is never rewritten: SQLite
-//! refuses any update to it, and its rows go only with their game.
+//! the levels explored, is logged entry by entry, so a change to one level logs only that level.
+//! The log is never rewritten: SQLite refuses any update to it, and its rows go only with their
+//! game.
 
 use std::collections::HashMap;
 use std::path::Path;

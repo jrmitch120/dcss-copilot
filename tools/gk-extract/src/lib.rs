@@ -712,6 +712,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
     let species = yaml::species(&crawl.source, crawl.tag_major)?;
     let mutations = crawl.mutations()?;
     let banes = crawl.banes(series.character)?;
+    let branch_data = crawl.parse("branch-data.h")?;
     let bundle = Bundle {
         crawl: CrawlSource {
             tag: release.tag.clone(),
@@ -741,10 +742,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             "feature-data.h",
             &crawl.enumeration("dungeon-feature-type.h", "dungeon_feature_type")?,
             &crawl.parse("terrain.cc")?,
-            &branches::entrances(
-                &crawl.parse("branch-data.h")?,
-                series.place_naming.naming.unconnected_flag,
-            )?,
+            &branches::entrances(&branch_data, series.place_naming.naming.unconnected_flag)?,
             series.features,
         )?,
         attitudes: crawl.values("mon-attitude-type.h", "mon_attitude_type", "")?,
@@ -752,7 +750,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
         mouse_modes: crawl.declared_values("defines.h", "mouse_mode", "MOUSE_MODE_MAX")?,
         branches: branches::branches(
             &crawl.parse("branch-type.h")?,
-            &crawl.parse("branch-data.h")?,
+            &branch_data,
             &crawl.parse("mon-pick-data.h")?,
             &monster_type,
             crawl.place_naming(series.place_naming)?,

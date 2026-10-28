@@ -71,14 +71,14 @@ const TERRAIN_FILE: &str = "terrain.cc";
 
 /// Every feature `feat_defs` defines, by its value in `dungeon_feature_type`, whose enumerators
 /// are `enumeration`, with `terrain`, `terrain.cc`, to check the water against and read the
-/// altars from, and the feature leading into each branch, with whether the dungeon leads to it
-/// by stairs, as [`crate::branches::entrances`] reads them.
+/// altars from, and the feature leading into each branch, with the Landmark it is, as
+/// [`crate::branches::entrances`] reads them.
 pub fn features(
     source: &Source,
     file: &str,
     enumeration: &[(String, i64)],
     terrain: &Source,
-    entrances: &[(String, bool)],
+    entrances: &[(String, Landmark)],
     rules: &FeatureRules,
 ) -> Result<BTreeMap<u16, Feature>, ExtractError> {
     let values: HashMap<&str, i64> = enumeration
@@ -182,13 +182,7 @@ pub fn features(
             entrances
                 .iter()
                 .find(|(entry, _)| entry == id)
-                .map(|&(_, connected)| {
-                    if connected {
-                        Landmark::BranchEntrance
-                    } else {
-                        Landmark::Portal
-                    }
-                })
+                .map(|&(_, landmark)| landmark)
         };
         features.insert(
             crate::in_range(id, *value)?,
@@ -211,13 +205,7 @@ fn altars(terrain: &Source, table: &str) -> Result<Vec<String>, ExtractError> {
         .entries(table)?
         .iter()
         .map(|fields| match fields.as_slice() {
-            [_, altar] => match altar.as_slice() {
-                [Token::Ident(altar)] => Ok(altar.clone()),
-                _ => Err(ExtractError::Unreadable {
-                    file: TERRAIN_FILE.to_owned(),
-                    what: format!("an entry of {table}"),
-                }),
-            },
+            [_, altar] if let [Token::Ident(altar)] = altar.as_slice() => Ok(altar.clone()),
             _ => Err(ExtractError::Unreadable {
                 file: TERRAIN_FILE.to_owned(),
                 what: format!("an entry of {table}"),

@@ -83,7 +83,7 @@ One stay of the player on a level, from when the Advisor first saw them there un
 _Avoid_: Trip, stay
 
 **Spotted**:
-An item seen on a level's floor or in a shop that, as far as the Advisor knows, is still there: the next time the game tells what lies on its square or in its shop without it, it is gone, whoever took it. The game names the items on a square as the player comes to it and a shop's stock as its menu opens, so a pile too big for it to name, or a square the player only sees from afar, leaves the items there as they were.
+An item seen on a level's floor or in a shop that, as far as the Advisor knows, is still there: once the player picks it up where they stand, or the next time the game tells what lies on its square or in its shop without it, it is gone, whoever took it. The game names the items on a square as the player comes to it and a shop's stock as its menu opens, so a pile too big for it to name, or a square the player only sees from afar, leaves the items there as they were.
 _Avoid_: Seen, available, on the floor (when meaning this)
 
 **Floor Cleared**:

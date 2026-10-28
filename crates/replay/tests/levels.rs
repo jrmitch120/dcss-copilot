@@ -89,18 +89,21 @@ fn an_item_crawl_names_where_the_player_stands_is_spotted_there_until_it_is_gone
             ("a +0 ring mail", ItemStatus::Spotted)
         ]
     );
-    // Picked up, it isn't named as the player comes back.
+    // Picked up where the player stands, it is gone, and the ring mail left is still there as
+    // crawl names it once the player comes back.
+    let picked_up = [
+        ("a +0 dagger", ItemStatus::Gone { turn: Some(6) }),
+        ("a +0 ring mail", ItemStatus::Spotted),
+    ];
+    step_until_said(&mut replayer, "c - a +0 dagger");
+    assert_eq!(
+        on_the_floor(level(&replayer, "Dungeon:1"), SOUTH_OF_THE_START),
+        picked_up
+    );
     step_until_said(&mut replayer, "You see here a +0 ring mail.");
-    let items = on_the_floor(level(&replayer, "Dungeon:1"), SOUTH_OF_THE_START);
-    assert!(
-        matches!(
-            items.as_slice(),
-            [
-                ("a +0 dagger", ItemStatus::Gone { turn: Some(_) }),
-                ("a +0 ring mail", ItemStatus::Spotted)
-            ]
-        ),
-        "{items:?}"
+    assert_eq!(
+        on_the_floor(level(&replayer, "Dungeon:1"), SOUTH_OF_THE_START),
+        picked_up
     );
 }
 

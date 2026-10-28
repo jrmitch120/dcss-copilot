@@ -77,7 +77,7 @@ expression: explored(&replayer)
           "seen": 5,
           "status": {
             "state": "gone",
-            "turn": 8
+            "turn": 6
           }
         },
         {

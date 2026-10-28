@@ -11,7 +11,9 @@ use crate::crawl_ids::dungeon_features;
 use crate::engine::paths::{Level, Walker};
 use crate::screen::ScreenRead;
 use crate::told::read_line;
-use crate::visible_state::{GameMessage, LevelMap, MapSnapshot, Place, Position, VisibleState};
+use crate::visible_state::{
+    GameMessage, InventoryItem, LevelMap, MapCell, MapSnapshot, Place, Position, VisibleState,
+};
 
 /// What the Advisor remembers of the levels of one game as the player explores them, and the
 /// uniques they met.
@@ -24,7 +26,8 @@ pub struct Explored {
     /// The level the player was on at the last Settled Update the Advisor saw, by its name.
     #[serde(default)]
     pub on_level: Option<String>,
-    /// Each unique the player has seen, by the name the game gives it, such as `Terence`.
+    /// Each unique the player has met, by the name Game Knowledge gives it, such as `Terence` or
+    /// `Royal Jelly`.
     #[serde(default)]
     pub uniques: BTreeMap<String, UniqueMet>,
     /// What the game's messages told of the levels since the last Settled Update, to take in at
@@ -195,7 +198,7 @@ enum News {
     },
     /// Exploring found nothing more to go to on the level.
     DoneExploring { level: String },
-    /// A unique died, by the name the game gives it.
+    /// A unique died, by the name Game Knowledge gives it.
     UniqueDied { name: String, at: OnLevel },
 }
 
@@ -206,6 +209,8 @@ struct Settled {
     position: Option<Position>,
     turn: Option<u32>,
     map: Option<LevelMap>,
+    /// What the player carried, once the game had sent it.
+    carried: Option<Vec<InventoryItem>>,
 }
 
 impl Explored {
@@ -275,7 +280,7 @@ impl Explored {
         let on_a_shop = map
             .cell(position)
             .and_then(|cell| cell.feature.as_ref())
-            .and_then(|id| feature_by_id(bundle, id))
+            .and_then(|id| bundle.feature_by_id(id))
             .is_some_and(|feature| feature.landmark == Some(Landmark::Shop));
         if !on_a_shop {
             return;
@@ -292,7 +297,7 @@ impl Explored {
             .iter()
             .map(|(name, price)| (name.clone(), offered(*price)))
             .collect();
-        record.lying(position, true, &listed, visible.turn);
+        record.listed_at(position, true, &listed, visible.turn);
     }
 
     /// Takes in what the game shows at a Settled Update, `visible`, and what its messages told
@@ -313,12 +318,11 @@ impl Explored {
         self.arrive(place, visible.turn);
         // Only a square the Advisor saw the player come to: not where they stood as it joined or
         // picked the game up again, which crawl doesn't name the items of again.
-        let arrived_at = visible.position.filter(|&position| {
-            self.settled
-                .as_ref()
-                .is_some_and(|settled| settled.level != level || settled.position != Some(position))
-        });
-        let mut told_here = false;
+        let came_to_their_square = self
+            .settled
+            .as_ref()
+            .is_some_and(|settled| settled.level != level || settled.position != visible.position);
+        let mut named_their_square = false;
         let mut done_exploring = false;
         for said in news {
             match said {
@@ -327,12 +331,13 @@ impl Explored {
                     named,
                     turn,
                 } => {
-                    told_here |= square.level == level && Some(square.position) == arrived_at;
+                    named_their_square |=
+                        square.level == level && Some(square.position) == visible.position;
                     let Some(named) = named else { continue };
                     if let Some(record) = self.levels.get_mut(&square.level) {
                         let listed: Vec<(String, Option<ShopOffer>)> =
                             named.into_iter().map(|name| (name, None)).collect();
-                        record.lying(square.position, false, &listed, turn);
+                        record.listed_at(square.position, false, &listed, turn);
                     }
                 }
                 News::DoneExploring { level: explored } => done_exploring |= explored == level,
@@ -342,26 +347,37 @@ impl Explored {
             }
         }
         if let Some(bundle) = knowledge {
-            for monster in visible.monsters.iter().flatten() {
-                let unique = monster
-                    .id
-                    .as_ref()
-                    .and_then(|id| bundle.monster_by_id(id))
-                    .is_some_and(|kind| kind.unique);
-                if unique {
-                    self.uniques.entry(monster.name.clone()).or_default().seen = Some(OnLevel {
-                        level: level.clone(),
-                        turn: visible.turn,
-                    });
-                }
+            let uniques = visible
+                .monsters
+                .iter()
+                .flatten()
+                .filter_map(|monster| bundle.monster_by_id(monster.id.as_ref()?))
+                .filter(|kind| kind.unique);
+            for unique in uniques {
+                self.uniques.entry(unique.name.clone()).or_default().seen = Some(OnLevel {
+                    level: level.clone(),
+                    turn: visible.turn,
+                });
             }
         }
+        let gained = gained(
+            self.settled
+                .as_ref()
+                .and_then(|settled| settled.carried.as_deref()),
+            visible.inventory.as_deref(),
+        );
         let record = self.record(place);
-        // Crawl names what lies on every square the player comes to: nothing named, nothing lies.
-        if let Some(position) = arrived_at
-            && !told_here
+        if let Some(position) = visible.position
+            && !named_their_square
         {
-            record.lying(position, false, &[], visible.turn);
+            if came_to_their_square {
+                // Crawl names what lies on every square the player comes to: nothing named,
+                // nothing lies there.
+                record.listed_at(position, false, &[], visible.turn);
+            } else {
+                // Nor does it name what is left as the player picks up the last of it.
+                record.taken_from(position, &gained, visible.turn);
+            }
         }
         if let Some(bundle) = knowledge {
             if let Some(map) = &visible.map {
@@ -381,6 +397,7 @@ impl Explored {
             position: visible.position,
             turn: visible.turn,
             map: visible.map.clone(),
+            carried: visible.inventory.clone(),
         });
     }
 
@@ -442,7 +459,7 @@ impl LevelRecord {
     /// Takes in what the game said lies at `position` on `turn`, in a shop if `in_shop`: each of
     /// `listed`, by its name and its shop's offer, is Spotted there, and each item seen there
     /// before that it doesn't list is Gone.
-    fn lying(
+    fn listed_at(
         &mut self,
         position: Position,
         in_shop: bool,
@@ -480,6 +497,60 @@ impl LevelRecord {
     }
 }
 
+impl LevelRecord {
+    /// Takes in that the player, standing at `position` on `turn`, came to carry the `gained`
+    /// items: each Spotted on the floor there that one of them names is Gone. An item picked up
+    /// onto a stack of its kind they carry already goes unnoticed, as the stack's name differs.
+    fn taken_from(&mut self, position: Position, gained: &[&InventoryItem], turn: Option<u32>) {
+        let taken = |item: &ItemSeen| {
+            gained
+                .iter()
+                .any(|carried| bare_name(&carried.name) == bare_name(&item.name))
+        };
+        for item in &mut self.items {
+            if item.position == position
+                && item.offered.is_none()
+                && item.status == ItemStatus::Spotted
+                && taken(item)
+            {
+                item.status = ItemStatus::Gone { turn };
+            }
+        }
+    }
+}
+
+/// An item's name without what the floor and the inventory name it with apart: the article
+/// the floor gives one item, as `a +0 dagger`, and the note the inventory gives one in use, as
+/// `+0 mace (weapon)`.
+fn bare_name(name: &str) -> &str {
+    let name = ["a ", "an ", "the "]
+        .iter()
+        .find_map(|article| name.strip_prefix(article))
+        .unwrap_or(name);
+    match name.rsplit_once(" (") {
+        Some((bare, note)) if note.ends_with(')') => bare,
+        _ => name,
+    }
+}
+
+/// The items `now` shows the player carrying that `before` didn't, by letter, name and quantity:
+/// none unless the game showed both.
+fn gained<'a>(
+    before: Option<&[InventoryItem]>,
+    now: Option<&'a [InventoryItem]>,
+) -> Vec<&'a InventoryItem> {
+    let (Some(before), Some(now)) = (before, now) else {
+        return Vec::new();
+    };
+    now.iter()
+        .filter(|item| {
+            !before.iter().any(|was| {
+                (was.letter, &was.name, was.quantity) == (item.letter, &item.name, item.quantity)
+            })
+        })
+        .collect()
+}
+
 /// What one message tells of the level the player is on.
 enum Said {
     /// The one item on the square they came to.
@@ -490,7 +561,7 @@ enum Said {
     ItemsUnnamed,
     /// Exploring found nothing more to go to.
     DoneExploring,
-    /// A unique died, by the name the game gives it.
+    /// A unique died, by the name Game Knowledge gives it.
     UniqueDied(String),
 }
 
@@ -519,32 +590,41 @@ fn level_news(said: &str, bundle: &Bundle) -> Option<Said> {
     })
 }
 
-/// The name of the unique `named` names as crawl writes one with `the`, if it names one: the
-/// unique's own name, which takes no article.
+/// The name Game Knowledge gives the unique `named` names as crawl writes one with `the`
+/// (`DESC_THE`), if it names one: most uniques' names take no article, but some take `the`, as
+/// `the Royal Jelly`.
 fn unique_named<'b>(named: &str, bundle: &'b Bundle) -> Option<&'b str> {
+    let bare = named
+        .strip_prefix("the ")
+        .or_else(|| named.strip_prefix("The "))
+        .unwrap_or(named);
     bundle
         .monsters
         .values()
         .filter(|monster| monster.unique)
-        .find(|monster| monster.name.eq_ignore_ascii_case(named))
+        .find(|monster| monster.name == named || monster.name == bare)
         .map(|monster| monster.name.as_str())
 }
 
-/// The feature with the `dungeon_feature_type` identifier `id` in `bundle`.
-fn feature_by_id<'b>(bundle: &'b Bundle, id: &EnumId) -> Option<&'b Feature> {
-    bundle.features.values().find(|feature| feature.id == *id)
-}
-
-/// The Landmarks `map` shows, its features decoded by `bundle`, top row first.
-fn landmarks(map: &LevelMap, bundle: &Bundle) -> Vec<LandmarkSeen> {
+/// Each square `map` shows with the feature `bundle` decodes there, top row first.
+fn features<'m, 'b>(
+    map: &'m LevelMap,
+    bundle: &'b Bundle,
+) -> impl Iterator<Item = (Position, &'m MapCell, &'b Feature)> {
     let by_id: HashMap<&EnumId, &Feature> = bundle
         .features
         .values()
         .map(|feature| (&feature.id, feature))
         .collect();
-    map.cells()
-        .filter_map(|(position, cell)| {
-            let feature = by_id.get(cell.feature.as_ref()?)?;
+    map.cells().filter_map(move |(position, cell)| {
+        Some((position, cell, *by_id.get(cell.feature.as_ref()?)?))
+    })
+}
+
+/// The Landmarks `map` shows, its features decoded by `bundle`, top row first.
+fn landmarks(map: &LevelMap, bundle: &Bundle) -> Vec<LandmarkSeen> {
+    features(map, bundle)
+        .filter_map(|(position, _, feature)| {
             Some(LandmarkSeen {
                 position,
                 kind: LandmarkKind::of(feature)?,
@@ -564,15 +644,10 @@ fn explored_out(visible: &VisibleState, bundle: &Bundle) -> bool {
     let (Some(map), Some(player)) = (&visible.map, visible.position) else {
         return false;
     };
-    let by_id: HashMap<&EnumId, &Feature> = bundle
-        .features
-        .values()
-        .map(|feature| (&feature.id, feature))
-        .collect();
-    let explored = map.cells().filter(|(_, cell)| !cell.mapped_only);
-    let Some(level) = Level::new(explored.filter_map(|(position, cell)| {
-        Some((position, by_id.get(cell.feature.as_ref()?)?.terrain))
-    })) else {
+    let explored = features(map, bundle).filter(|(_, cell, _)| !cell.mapped_only);
+    let Some(level) =
+        Level::new(explored.map(|(position, _, feature)| (position, feature.terrain)))
+    else {
         return false;
     };
     let walks = level.moves_from(Walker::Player { occupied: &[] }, player);
@@ -593,7 +668,7 @@ fn explored_out(visible: &VisibleState, bundle: &Bundle) -> bool {
 mod tests {
     use super::*;
     use crate::view_model::{Colour, Glyph};
-    use crate::visible_state::{MapCell, SquareLight};
+    use crate::visible_state::{InventoryItem, MapCell, SquareLight};
 
     /// The shipped 0.34.1 bundle.
     fn bundle() -> &'static Bundle {
@@ -647,7 +722,8 @@ mod tests {
         assert!(!explored_out(&["#####", "#..T#", "#####"]));
     }
 
-    /// The player on D:1 at `(1, 1)` on `turn`, the game having just said `said`.
+    /// The player on D:1 at `(1, 1)` on `turn`, carrying nothing, the game having just said
+    /// `said`.
     fn on_d1(turn: u32, said: &[&str]) -> VisibleState {
         VisibleState {
             turn: Some(turn),
@@ -662,6 +738,7 @@ mod tests {
                     turn: Some(turn),
                 })
                 .collect(),
+            inventory: Some(Vec::new()),
             ..standing_in(&["###", "#.#", "###"])
         }
     }
@@ -682,5 +759,62 @@ mod tests {
             .map(|item| (item.name.as_str(), item.status))
             .collect();
         assert_eq!(items, [("a +0 dagger", ItemStatus::Spotted)]);
+    }
+
+    /// Picking up the last item on a square, crawl names nothing more there: what the player
+    /// came to carry is gone from the floor, and what they didn't take stays.
+    #[test]
+    fn an_item_the_player_picks_up_where_they_stand_is_gone() {
+        let mut explored = Explored::default();
+        let came = on_d1(5, &[]);
+        explored.settle(&came, Some(bundle()), false);
+        let seen = on_d1(5, &["Things that are here:", "a +0 dagger; a +0 robe"]);
+        explored.hear(&seen.messages, &seen, bundle());
+        explored.settle(&seen, Some(bundle()), false);
+        let carrying = VisibleState {
+            inventory: Some(vec![InventoryItem {
+                letter: 'c',
+                name: "+0 dagger".to_owned(),
+                quantity: 1,
+                kind: None,
+                useless: false,
+            }]),
+            ..on_d1(6, &[])
+        };
+        explored.settle(&carrying, Some(bundle()), false);
+        let items: Vec<_> = explored.levels["Dungeon:1"]
+            .items
+            .iter()
+            .map(|item| (item.name.as_str(), item.status))
+            .collect();
+        assert_eq!(
+            items,
+            [
+                ("a +0 dagger", ItemStatus::Gone { turn: Some(6) }),
+                ("a +0 robe", ItemStatus::Spotted)
+            ]
+        );
+    }
+
+    /// Crawl names some uniques with `the`, as `You kill the Royal Jelly!`.
+    #[test]
+    fn a_unique_crawl_names_with_the_is_remembered_killed() {
+        for said in ["You kill the Royal Jelly!", "The Royal Jelly dies!"] {
+            let mut explored = Explored::default();
+            let died = on_d1(9, &[said]);
+            explored.hear(&died.messages, &died, bundle());
+            explored.settle(&died, Some(bundle()), false);
+            assert_eq!(
+                explored
+                    .uniques
+                    .get("Royal Jelly")
+                    .and_then(|met| met.killed.clone()),
+                Some(OnLevel {
+                    level: "Dungeon:1".to_owned(),
+                    turn: Some(9)
+                }),
+                "{said}"
+            );
+        }
     }
 }

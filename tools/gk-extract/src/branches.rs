@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use copilot_gk::{Branch, EnumId};
+use copilot_gk::{Branch, EnumId, Landmark};
 
 use crate::ExtractError;
 use crate::cpp::{Source, Token};
@@ -123,13 +123,13 @@ pub fn branches(
 }
 
 /// The feature that leads into each branch, from its `entry_stairs` in `branch_data`
-/// (`branch-data.h`), and whether the dungeon leads to the branch by stairs
-/// (`is_connected_branch`): not when its flags hold `unconnected_flag`. The Dungeon, which nothing
-/// leads into, names `NUM_FEATURES`.
+/// (`branch-data.h`), as a Landmark: a branch entrance where the dungeon leads to the branch by
+/// stairs (`is_connected_branch`), and a portal where it doesn't, as its flags hold
+/// `unconnected_flag`. The Dungeon, which nothing leads into, names `NUM_FEATURES`.
 pub fn entrances(
     branch_data: &Source,
     unconnected_flag: &str,
-) -> Result<Vec<(String, bool)>, ExtractError> {
+) -> Result<Vec<(String, Landmark)>, ExtractError> {
     branch_data
         .entries("branches")?
         .iter()
@@ -140,8 +140,12 @@ pub fn entrances(
             ) else {
                 return Err(unreadable("branch-data.h", "an entry of branches"));
             };
-            let connected = !flags.contains(&Token::Ident(unconnected_flag.to_owned()));
-            Ok((entry.clone(), connected))
+            let landmark = if flags.contains(&Token::Ident(unconnected_flag.to_owned())) {
+                Landmark::Portal
+            } else {
+                Landmark::BranchEntrance
+            };
+            Ok((entry.clone(), landmark))
         })
         .collect()
 }
