@@ -275,15 +275,40 @@ pub struct Place {
 }
 
 impl Place {
-    /// What the Advisor calls the level, which tells it apart from every other level of the
-    /// game: the branch as the game names it, and its depth, as `Dungeon:3`, or the branch alone
-    /// for one only one level deep, as `Temple`.
+    /// What the Advisor calls the level.
     #[must_use]
-    pub fn level_name(&self) -> String {
-        match self.depth {
+    pub fn level_name(&self) -> LevelName {
+        LevelName(match self.depth {
             Some(depth) => format!("{}:{depth}", self.branch),
             None => self.branch.clone(),
-        }
+        })
+    }
+}
+
+/// What the Advisor calls a level, which tells it apart from every other level of the game: the
+/// branch as the game names it, and its depth, as `Dungeon:3`, or the branch alone for one only
+/// one level deep, as `Temple`. Only a [`Place`] names one.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct LevelName(String);
+
+impl LevelName {
+    /// The name, as `Dungeon:3`.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::borrow::Borrow<str> for LevelName {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for LevelName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
     }
 }
 

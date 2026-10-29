@@ -12,7 +12,8 @@ use crate::engine::paths::{Level, Walker};
 use crate::screen::ScreenRead;
 use crate::told::read_line;
 use crate::visible_state::{
-    GameMessage, InventoryItem, LevelMap, MapCell, MapSnapshot, Place, Position, VisibleState,
+    GameMessage, InventoryItem, LevelMap, LevelName, MapCell, MapSnapshot, Place, Position,
+    VisibleState,
 };
 
 /// What the Advisor remembers of the levels of one game as the player explores them, and the
@@ -20,12 +21,12 @@ use crate::visible_state::{
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Explored {
-    /// Each level the player has been on, by its name ([`Place::level_name`]).
+    /// Each level the player has been on, by its name.
     #[serde(default)]
-    pub levels: BTreeMap<String, LevelRecord>,
+    pub levels: BTreeMap<LevelName, LevelRecord>,
     /// The level the player was on at the last Settled Update the Advisor saw, by its name.
     #[serde(default)]
-    pub on_level: Option<String>,
+    pub on_level: Option<LevelName>,
     /// Each unique the player has met, by the name Game Knowledge gives it, such as `Terence` or
     /// `Royal Jelly`.
     #[serde(default)]
@@ -173,8 +174,8 @@ pub struct UniqueMet {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OnLevel {
-    /// The level, by its name ([`Place::level_name`]).
-    pub level: String,
+    /// The level.
+    pub level: LevelName,
     /// The game's turn, if the game had reported one.
     pub turn: Option<u32>,
 }
@@ -182,7 +183,7 @@ pub struct OnLevel {
 /// A square of a level, by the level's name.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Square {
-    level: String,
+    level: LevelName,
     position: Position,
 }
 
@@ -197,7 +198,7 @@ enum News {
         turn: Option<u32>,
     },
     /// Exploring found nothing more to go to on the level.
-    DoneExploring { level: String },
+    DoneExploring { level: LevelName },
     /// A unique died, by the name Game Knowledge gives it.
     UniqueDied { name: String, at: OnLevel },
 }
@@ -205,7 +206,7 @@ enum News {
 /// Where the player stood at a Settled Update.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Settled {
-    level: String,
+    level: LevelName,
     position: Option<Position>,
     turn: Option<u32>,
     map: Option<LevelMap>,
@@ -810,7 +811,7 @@ mod tests {
                     .get("Royal Jelly")
                     .and_then(|met| met.killed.clone()),
                 Some(OnLevel {
-                    level: "Dungeon:1".to_owned(),
+                    level: on_d1(9, &[]).place.unwrap().level_name(),
                     turn: Some(9)
                 }),
                 "{said}"

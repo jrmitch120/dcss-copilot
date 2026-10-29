@@ -6,7 +6,8 @@
 #![allow(clippy::unwrap_used)]
 
 use copilot_core::{
-    Explored, ItemSeen, ItemStatus, LandmarkKind, LevelRecord, OnLevel, Position, Visit,
+    Explored, ItemSeen, ItemStatus, LandmarkKind, LevelName, LevelRecord, OnLevel, Place, Position,
+    Visit,
 };
 use copilot_gk::StairDirection;
 use copilot_replay::{Recording, Replayer};
@@ -141,9 +142,13 @@ fn a_unique_is_remembered_where_it_was_last_seen_and_killed() {
     let mut replayer = replayer();
     play_to_end(&mut replayer);
     let terence = explored(&replayer).uniques.get("Terence").unwrap();
+    let d1 = Place {
+        branch: "Dungeon".to_owned(),
+        depth: Some(1),
+    };
     let on_d1 = |turn| {
         Some(OnLevel {
-            level: "Dungeon:1".to_owned(),
+            level: d1.level_name(),
             turn: Some(turn),
         })
     };
@@ -166,7 +171,10 @@ fn each_level_keeps_its_visits_and_its_map_as_the_player_left_it() {
         }]
     );
     assert_eq!(visits("Dungeon:2").len(), 1);
-    assert_eq!(explored(&replayer).on_level.as_deref(), Some("Temple"));
+    assert_eq!(
+        explored(&replayer).on_level.as_ref().map(LevelName::as_str),
+        Some("Temple")
+    );
     let dungeon = level(&replayer, "Dungeon:1");
     let map = dungeon.map.as_ref().unwrap();
     assert!(map.rows.len() > 5, "{map:?}");

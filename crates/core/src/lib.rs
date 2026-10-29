@@ -57,9 +57,9 @@ pub use view_model::{
     WayOutRow, WaysOutList,
 };
 pub use visible_state::{
-    Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, MapCell, MapSnapshot, Place,
-    Position, RECENT_MESSAGES, Religion, Sighting, SquareLight, Stats, Status, VisibleMonster,
-    VisibleState, Wielding,
+    Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, LevelName, MapCell, MapSnapshot,
+    Place, Position, RECENT_MESSAGES, Religion, Sighting, SquareLight, Stats, Status,
+    VisibleMonster, VisibleState, Wielding,
 };
 pub use ways_out::{
     Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, ReadOn, Usable, WayOut, WaysOut,
