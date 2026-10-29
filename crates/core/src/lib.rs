@@ -3,6 +3,7 @@
 
 mod accumulated_state;
 mod advisor;
+mod candidate_action;
 mod carried_gear;
 mod crawl_ids;
 mod dangerous_status;
