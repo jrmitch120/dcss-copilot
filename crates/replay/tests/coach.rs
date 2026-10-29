@@ -165,8 +165,8 @@ fn a_tactical_call_asks_the_quick_model_for_json_capped_at_about_twice_its_word_
 
     assert_eq!(request.model, "claude-haiku-5-5");
     assert_eq!(
-        request.max_tokens, 82,
-        "25 words at ~4/3 tokens, doubled, and the JSON"
+        request.max_tokens, 116,
+        "25 words at ~2 tokens, doubled, and the JSON"
     );
     assert_eq!(
         request.system.len(),

@@ -326,7 +326,11 @@ fn tactical_prefix(crawl_version: Option<&str>) -> String {
          - Anything not listed is unknown. A value with ~ is out of date, as of the turn given; \
          \"unknown\" means the Advisor can't see it.\n\
          - Keep the Suggested Action unless the facts show another is clearly better.\n\
-         - Give the reason in at most {TACTICAL_WORDS} words, in plain sentences, without ids.\n\
+         - Give the reason in one or two short sentences, at most {TACTICAL_WORDS} words, \
+         without ids. Lead with the number in the moment that makes your pick the better one, \
+         such as the death chance, the worst hit against HP, or the odds.\n\
+         - Never give the Suggested Action or the engine's rules as a reason; say what in the \
+         moment makes the pick right.\n\
          \n\
          Answer with JSON only: {{\"pick\": \"<Candidate Action id>\", \"reason\": \"<at most \
          {TACTICAL_WORDS} words>\"}}"

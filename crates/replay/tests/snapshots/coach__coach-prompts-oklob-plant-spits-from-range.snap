@@ -10,7 +10,8 @@ Rules:
 - Quote only numbers and names that appear in the moment. Never work out new numbers.
 - Anything not listed is unknown. A value with ~ is out of date, as of the turn given; "unknown" means the Advisor can't see it.
 - Keep the Suggested Action unless the facts show another is clearly better.
-- Give the reason in at most 25 words, in plain sentences, without ids.
+- Give the reason in one or two short sentences, at most 25 words, without ids. Lead with the number in the moment that makes your pick the better one, such as the death chance, the worst hit against HP, or the odds.
+- Never give the Suggested Action or the engine's rules as a reason; say what in the moment makes the pick right.
 
 Answer with JSON only: {"pick": "<Candidate Action id>", "reason": "<at most 25 words>"}
 

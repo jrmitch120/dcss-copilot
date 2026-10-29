@@ -13,7 +13,7 @@ expression: coached_events(&replayer)
     "pick": "a1",
     "line": "Teleportation · escapes after a delay",
     "agrees": true,
-    "reason": "The ogre is 1 square away and in the way of the stairs. Read teleportation now: it escapes only after a delay."
+    "reason": "Death before your next action is 22.5% and the worst hit is 36 against 19 HP, with an ogre adjacent."
   },
   {
     "coach": "asked",
@@ -25,6 +25,6 @@ expression: coached_events(&replayer)
     "pick": "a1",
     "line": "Heal wounds · heals",
     "agrees": true,
-    "reason": "At 1 HP, the ogre's next hit kills you. Quaff heal wounds first, then read teleportation."
+    "reason": "At 1 HP the ogre's worst hit is 36, so 42.0% death before your next action is the danger; healing raises HP above a single hit more safely than teleporting away with the ogre adjacent."
   }
 ]

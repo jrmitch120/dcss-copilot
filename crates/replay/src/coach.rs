@@ -8,10 +8,10 @@ use copilot_llm::{
 };
 use serde_json::json;
 
-/// Tokens to a word of English, about: a reason of `n` words costs about `n × 4 / 3` tokens.
-const TOKENS_PER_WORD_NUMERATOR: u32 = 4;
-/// See [`TOKENS_PER_WORD_NUMERATOR`].
-const TOKENS_PER_WORD_DENOMINATOR: u32 = 3;
+/// Tokens to a word of a reason, about. A reason quotes numbers, HP and percentages, which cost
+/// more than plain English: the Quick Model's recorded answers ran about 2 (#45: 35 words in 77
+/// tokens, JSON and all), and at 4/3 one in five was cut off at `max_tokens`.
+const TOKENS_PER_WORD: u32 = 2;
 
 /// The `max_tokens` cap over what the word limit costs: about 2×, from the spec (#24, "Length").
 const CAP_OVER_WORD_LIMIT: u32 = 2;
@@ -37,8 +37,7 @@ impl CoachCall {
     /// as the one user turn, structured output, and `max_tokens` at about twice the word limit.
     #[must_use]
     pub fn new(question: &TacticalQuestion, model: &ModelChoice) -> Self {
-        let reason_tokens =
-            question.words.saturating_mul(TOKENS_PER_WORD_NUMERATOR) / TOKENS_PER_WORD_DENOMINATOR;
+        let reason_tokens = question.words.saturating_mul(TOKENS_PER_WORD);
         let mut max_tokens = reason_tokens.saturating_mul(CAP_OVER_WORD_LIMIT) + ANSWER_JSON_TOKENS;
         if model.thinking() != Thinking::Off {
             max_tokens += THINKING_TOKENS;

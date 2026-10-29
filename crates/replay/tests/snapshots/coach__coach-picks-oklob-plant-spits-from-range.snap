@@ -13,7 +13,7 @@ expression: coached_events(&replayer)
     "pick": "a1",
     "line": "Escape hatch in the floor · underfoot",
     "agrees": true,
-    "reason": "The escape hatch is underfoot, so you leave at once. The oklob plant spits acid from 3 squares away and can't follow."
+    "reason": "Escape hatch is underfoot, so you leave now; the worst hit of 34 against your 71 HP and the oklob plant's acid make staying riskier than the sub-0.1% death chance."
   },
   {
     "coach": "asked",
@@ -25,6 +25,6 @@ expression: coached_events(&replayer)
     "pick": "a1",
     "line": "Escape hatch in the floor · underfoot",
     "agrees": true,
-    "reason": "Death is 7.5% before your next action. The hatch is underfoot: take it now, before another spit lands."
+    "reason": "Death chance is 7.5% and the worst hit is 35 against 28 HP, so leaving through the escape hatch underfoot ends the threat immediately."
   }
 ]

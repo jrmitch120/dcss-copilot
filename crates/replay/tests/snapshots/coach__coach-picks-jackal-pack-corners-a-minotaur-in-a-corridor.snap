@@ -13,6 +13,6 @@ expression: coached_events(&replayer)
     "pick": "a1",
     "line": "The corridor you stand in",
     "agrees": true,
-    "reason": "Hold the corridor so only 2 jackals can reach you at once."
+    "reason": "Holding this corridor limits attackers to 2 open sides against 3 jackals, and melee's ~63% HP lost is heavy for a 19 HP Minotaur."
   }
 ]
