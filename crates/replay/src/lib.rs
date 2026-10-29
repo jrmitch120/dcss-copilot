@@ -9,7 +9,7 @@ mod recording;
 mod replayer;
 mod scenario;
 
-pub use coach::{CoachCall, tactical_answer};
+pub use coach::{CoachCall, Unanswered, tactical_answer};
 pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame};
 pub use fake_extension::{
     FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,

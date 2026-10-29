@@ -9,7 +9,7 @@ use serde::Serialize;
 use crate::candidate_action::{Candidate, CandidateAction, Candidates};
 use crate::crawl_ids::monster_types;
 use crate::detectors::shouted;
-use crate::fact_sheet::{FactSheet, KnownOrStale, ResistancesApplied, Threat, ThreatAssessment};
+use crate::fact_sheet::{FactSheet, KnownOrStale, ResistancesApplied, ThreatAssessment};
 use crate::fight_outcome::Fight;
 use crate::gaps::Reader;
 use crate::screen::Resistance;
@@ -99,7 +99,7 @@ impl TacticalMoment<'_> {
     /// The moment tail, trimmed by `trim` and what comes before it.
     fn tail(&self, trim: Trim) -> (String, Vec<&Candidate>) {
         let mut lines = vec![self.you(), self.statuses(), self.resistances()];
-        if let Threat::Rated(assessment) = &self.fact_sheet.threat {
+        if let Some(assessment) = self.fact_sheet.threat.assessment() {
             lines.push(threat_line(assessment));
             lines.extend(monsters(assessment, trim >= Trim::IdleMonsters));
         } else {
@@ -172,11 +172,11 @@ impl TacticalMoment<'_> {
 
     /// The player's resistances the Threat Level was judged with.
     fn resistances(&self) -> String {
-        let applied = match &self.fact_sheet.threat {
-            Threat::Rated(assessment) => assessment.resistances.as_ref(),
-            Threat::Unrated { .. } => None,
-        };
-        applied.map_or_else(|| "Resistances: unknown".to_owned(), resistances_line)
+        self.fact_sheet
+            .threat
+            .assessment()
+            .and_then(|assessment| assessment.resistances.as_ref())
+            .map_or_else(|| "Resistances: unknown".to_owned(), resistances_line)
     }
 
     /// The Attack Plans the Fight Outcome played out, the best first.
@@ -492,7 +492,7 @@ mod tests {
     use copilot_gk::Relief;
 
     use super::*;
-    use crate::fact_sheet::{ActingMonster, Chance, GearBasis, GearPlayed, ThreatLevel};
+    use crate::fact_sheet::{ActingMonster, Chance, GearBasis, GearPlayed, Threat, ThreatLevel};
     use crate::visible_state::Position;
     use crate::ways_out::{Blocker, Usable, WayOut, WaysOut};
 
@@ -569,13 +569,21 @@ mod tests {
 
     /// The moment tail of `fact_sheet` rendered within `tokens`.
     fn tail_within(fact_sheet: &FactSheet, tokens: usize) -> (String, usize) {
-        let visible = VisibleState::default();
+        tail_seeing(fact_sheet, &VisibleState::default(), tokens)
+    }
+
+    /// The moment tail of `fact_sheet`, with `visible` in view, rendered within `tokens`.
+    fn tail_seeing(
+        fact_sheet: &FactSheet,
+        visible: &VisibleState,
+        tokens: usize,
+    ) -> (String, usize) {
         let suggested = SuggestedAction::steady(None, fact_sheet, Some(20)).unwrap();
         let candidates = Candidates::at(fact_sheet, suggested.action());
         let moment = TacticalMoment {
             crawl_version: Some("0.34.1"),
             species: Some("Minotaur"),
-            visible: &visible,
+            visible,
             fact_sheet,
             suggested: &suggested,
             candidates: &candidates,
@@ -618,5 +626,34 @@ mod tests {
             "Trimmed to fit: hostiles that can't act folded into a count; only the first 6 \
              Candidate Actions listed; Ways Out that can't be used collapsed to one line"
         ));
+    }
+
+    #[test]
+    fn a_monster_named_for_a_player_is_named_by_its_kind() {
+        let mut fact_sheet = crowded();
+        if let Threat::Rated(assessment) = &mut fact_sheet.threat {
+            assessment.acting[0].name = "Mira's ghost".to_owned();
+            assessment.gear[0].name = "Mira's ghost".to_owned();
+        }
+        let visible = VisibleState {
+            monsters: Some(vec![crate::visible_state::VisibleMonster {
+                name: "Mira's ghost".to_owned(),
+                glyph: crate::view_model::Glyph {
+                    text: "W".to_owned(),
+                    colour: crate::view_model::Colour::White,
+                },
+                id: Some(copilot_gk::EnumId(monster_types::PLAYER_GHOST.to_owned())),
+                position: Position { x: 1, y: 0 },
+                attitude: None,
+                crawl_threat: None,
+                sighting: None,
+            }]),
+            ..VisibleState::default()
+        };
+
+        let (tail, _) = tail_seeing(&fact_sheet, &visible, usize::MAX);
+
+        assert!(!tail.contains("Mira"), "{tail}");
+        assert!(tail.contains("- player ghost · 1 square away"), "{tail}");
     }
 }

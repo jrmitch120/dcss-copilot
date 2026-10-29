@@ -1,4 +1,4 @@
-//! Grounding: what the Advisor keeps of the reason an LLM gives. Every number and every Game
+//! Grounding Checks: what the Advisor keeps of the reason an LLM gives. Every number and every Game
 //! Knowledge name it says must be in the prompt it was given (ADR 0003); a sentence that says one
 //! that isn't is dropped silently, and the pick it explains is kept. What is left is trimmed to
 //! whole sentences within the call's word limit.

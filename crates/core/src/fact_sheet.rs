@@ -123,10 +123,7 @@ pub struct ThreatAssessment {
 impl FactSheet {
     /// The player's hit points the Threat Level was judged against, when it was judged.
     pub(crate) fn threat_hp(&self) -> Option<i32> {
-        match &self.threat {
-            Threat::Rated(assessment) => Some(assessment.hp),
-            Threat::Unrated { .. } => None,
-        }
+        Some(self.threat.assessment()?.hp)
     }
 }
 
@@ -134,8 +131,14 @@ impl Threat {
     /// The Threat Level, when the Advisor judged one.
     #[must_use]
     pub fn level(&self) -> Option<ThreatLevel> {
+        Some(self.assessment()?.level)
+    }
+
+    /// The Threat Level and the numbers it was judged from, when the Advisor judged one.
+    #[must_use]
+    pub fn assessment(&self) -> Option<&ThreatAssessment> {
         match self {
-            Self::Rated(assessment) => Some(assessment.level),
+            Self::Rated(assessment) => Some(assessment),
             Self::Unrated { .. } => None,
         }
     }

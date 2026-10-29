@@ -138,10 +138,10 @@ impl Following {
         question: QuestionId,
         response: Result<LlmResponse, LlmError>,
     ) -> Happened {
-        Happened::Coached(
-            self.advisor
-                .answer_tactical(question, tactical_answer(response)),
-        )
+        Happened::Coached(self.advisor.answer_tactical(
+            question,
+            tactical_answer(response).map_err(|error| error.to_string()),
+        ))
     }
 
     /// Decodes one relayed envelope, tells the Advisor what the Game Source learned, saves what

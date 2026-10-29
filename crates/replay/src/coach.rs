@@ -75,15 +75,25 @@ fn tactical_schema() -> OutputSchema {
     }))
 }
 
-/// What the model answered a Tactical call, or why there is no answer: the call failed, or its
-/// text isn't the JSON asked for, such as an answer cut short at `max_tokens`.
+/// Why a Tactical call has no answer.
+#[derive(Debug, thiserror::Error)]
+pub enum Unanswered {
+    /// The call failed.
+    #[error(transparent)]
+    Call(#[from] LlmError),
+    /// The answer isn't the pick and reason asked for.
+    #[error("the answer isn't a pick and a reason: {0}")]
+    NotAPick(#[from] serde_json::Error),
+}
+
+/// What the model answered a Tactical call.
 ///
 /// # Errors
-/// As said, in words for the timeline.
-pub fn tactical_answer(response: Result<LlmResponse, LlmError>) -> Result<TacticalAnswer, String> {
-    let json = response
-        .and_then(|response| response.output_json())
-        .map_err(|error| error.to_string())?;
-    serde_json::from_value(json)
-        .map_err(|error| format!("the answer isn't a pick and a reason: {error}"))
+/// If the call failed, or its text isn't the JSON asked for, such as an answer cut short at
+/// `max_tokens`.
+pub fn tactical_answer(
+    response: Result<LlmResponse, LlmError>,
+) -> Result<TacticalAnswer, Unanswered> {
+    let json = response.and_then(|response| response.output_json())?;
+    Ok(serde_json::from_value(json)?)
 }
