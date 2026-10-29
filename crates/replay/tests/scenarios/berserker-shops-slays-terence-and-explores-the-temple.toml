@@ -1,4 +1,4 @@
-description = "A Minotaur Berserker set to experience level 27 with every skill at 27 in wizard mode steps south of the start of a seeded game on D:1, makes a dagger at their feet, steps back and onto it again, makes a ring mail beside it and does the same, picks up the dagger, and steps off and back; one square further south makes a shop, sets their gold to 10000, looks in, buys its first item and looks in again; creates Terence and fights him to his death; takes the stairs down to D:2, travels to the Temple and explores it until crawl says it is done"
+description = "A Minotaur Berserker set to experience level 27 with every skill at 27 in wizard mode steps south of the start of a seeded game on D:1, makes a dagger at their feet, steps back and onto it again, makes a ring mail beside it and does the same, picks up the dagger, and steps off and back; one square further south makes a shop, sets their gold to 10000, looks in, buys its first item and looks in again; creates Terence and fights him to his death; takes the stairs down to D:2, travels to the Temple, explores it until crawl says it is done, and saves the game"
 recording = "berserker-shops-slays-terence-and-explores-the-temple.dcssrec"
 crawl_version = "0.34.1"
 snapshot_turns = []
@@ -39,4 +39,6 @@ keys = [
   "&", "d", "\u001b",
   "&", "~", "T", "\u001b",
   "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b",
+  # Save the game, confirming, which ends the stream without ending the game.
+  "S", "y",
 ]

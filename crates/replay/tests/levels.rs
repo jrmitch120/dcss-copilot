@@ -13,8 +13,8 @@ use copilot_gk::StairDirection;
 use copilot_replay::{Recording, Replayer};
 
 /// A Minotaur Berserker who sees a dagger and a ring mail at their feet and takes the dagger,
-/// buys from a shop they make, kills Terence, goes down to D:2 and explores the Temple to the
-/// end.
+/// buys from a shop they make, kills Terence, goes down to D:2, explores the Temple to the end
+/// and saves the game.
 const BERSERKER: &[u8] =
     include_bytes!("scenarios/berserker-shops-slays-terence-and-explores-the-temple.dcssrec");
 
@@ -190,7 +190,9 @@ fn each_level_keeps_its_visits_and_its_map_as_the_player_left_it() {
         "{:?}",
         dungeon.landmarks
     );
-    assert!(level(&replayer, "Temple").map.is_none());
+    // The game stopped on the Temple, so its map is kept as it was then.
+    let temple = level(&replayer, "Temple").map.as_ref().unwrap();
+    assert_eq!(temple.turn, Some(96));
 }
 
 #[test]

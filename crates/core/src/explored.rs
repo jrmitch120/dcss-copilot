@@ -50,7 +50,8 @@ pub struct Explored {
 pub struct LevelRecord {
     /// Which level it is.
     pub place: Place,
-    /// Its map as the game showed it when the player last left it: `None` until they have.
+    /// Its map as the game showed it when the player last left it, or when the game's stream
+    /// last stopped with them on it: `None` until either.
     pub map: Option<MapSnapshot>,
     /// Its Landmarks, top row first, as the game last showed the level.
     pub landmarks: Vec<LandmarkSeen>,
@@ -220,6 +221,8 @@ impl Explored {
     pub(crate) fn hear(&mut self, messages: &[GameMessage], now: &VisibleState, bundle: &Bundle) {
         let signs = &bundle.level;
         let level = now.place.as_ref().map(Place::level_name);
+        // Crawl stops travel and exploring on a square it names the items of, so the player
+        // stands there as the message comes, as every one in the corpus shows.
         let square = level
             .clone()
             .zip(now.position)
@@ -409,29 +412,35 @@ impl Explored {
         if self.on_level.as_ref() == Some(&level) {
             return;
         }
+        self.keep_map();
         if let Some(left) = self.on_level.take()
-            && let Some(record) = self.levels.get_mut(&left)
+            && let Some(visit) = self
+                .levels
+                .get_mut(&left)
+                .and_then(|record| record.visits.last_mut())
         {
-            if let Some(visit) = record.visits.last_mut() {
-                visit.left = turn;
-            }
-            if let Some(settled) = self
-                .settled
-                .as_ref()
-                .filter(|settled| settled.level == left)
-                && let Some(map) = settled
-                    .map
-                    .as_ref()
-                    .and_then(|map| map.snapshot(settled.turn))
-            {
-                record.map = Some(map);
-            }
+            visit.left = turn;
         }
         self.record(place).visits.push(Visit {
             arrived: turn,
             ..Visit::default()
         });
         self.on_level = Some(level);
+    }
+
+    /// Keeps the map of the level the player was on at the last Settled Update as it was then:
+    /// as they leave it, or as the game's stream stops, after which the Advisor may not see them
+    /// leave.
+    pub(crate) fn keep_map(&mut self) {
+        let Some(settled) = &self.settled else { return };
+        if let Some(record) = self.levels.get_mut(&settled.level)
+            && let Some(map) = settled
+                .map
+                .as_ref()
+                .and_then(|map| map.snapshot(settled.turn))
+        {
+            record.map = Some(map);
+        }
     }
 
     /// The record of the level `place` names, made empty if there is none yet.

@@ -1,15 +1,14 @@
 ---
 source: crates/replay/tests/scenarios.rs
-assertion_line: 44
 expression: replay
 ---
 {
   "identity": {
     "server": "http://localhost:8080",
-    "account": "wiz159692369",
-    "character": "wiz159692369",
+    "account": "wiz237603236",
+    "character": "wiz237603236",
     "species": "Minotaur",
-    "firstSeenMs": 1793159693652,
+    "firstSeenMs": 1793237604504,
     "crawlVersion": "0.34.1",
     "wizard": true,
     "role": "playing"
@@ -182,7 +181,7 @@ expression: replay
       },
       "game": {
         "character": {
-          "name": "wiz159692369",
+          "name": "wiz237603236",
           "species": "Minotaur",
           "hp": 273,
           "hpMax": 273,
@@ -439,7 +438,7 @@ expression: replay
       },
       "game": {
         "character": {
-          "name": "wiz159692369",
+          "name": "wiz237603236",
           "species": "Minotaur",
           "hp": 273,
           "hpMax": 273,
@@ -650,7 +649,7 @@ expression: replay
     },
     "game": {
       "character": {
-        "name": "wiz159692369",
+        "name": "wiz237603236",
         "species": "Minotaur",
         "hp": 273,
         "hpMax": 273,
@@ -676,7 +675,7 @@ expression: replay
       "ask": {
         "state": "needsModel"
       },
-      "live": true,
+      "live": false,
       "pickedUp": null,
       "accumulatedUnreadable": null,
       "badge": {

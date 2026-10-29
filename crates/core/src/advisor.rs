@@ -170,6 +170,9 @@ impl Advisor {
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
+                    if game.stopped {
+                        game.accumulated.stop();
+                    }
                     if session == SessionEvent::Resynced {
                         let turn = game.turn;
                         game.picked_up_from.get_or_insert(LastSeen { turn });

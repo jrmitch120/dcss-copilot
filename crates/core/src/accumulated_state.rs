@@ -576,6 +576,12 @@ impl AccumulatedState {
         self.explored.settle(visible, knowledge, hostile_in_view);
     }
 
+    /// The game's stream stopped, or the game ended: the level the player was on keeps its map
+    /// as the Advisor last saw it.
+    pub(crate) fn stop(&mut self) {
+        self.explored.keep_map();
+    }
+
     /// The facts whose values are collections the Change Log logs entry by entry, as each grows
     /// large: each level the player has explored.
     pub const LOGGED_BY_ENTRY: &'static [&'static str] = &["levels"];
