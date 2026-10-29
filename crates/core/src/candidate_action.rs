@@ -1,11 +1,113 @@
 //! Candidate Actions: what the player could legally do right now, each with its facts from the
 //! Fact Sheet. The Advisor only ever recommends one.
 
-use crate::fact_sheet::Chance;
+use copilot_gk::Relief;
+
+use crate::fact_sheet::{Chance, FactSheet, ThreatLevel};
 use crate::fight_outcome::{Fight, PlanOutcome};
 use crate::gaps::Reader;
 use crate::view_model::{MarkedValue, capitalised};
 use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
+
+/// The Candidate Actions at a moment, best first by the engine's own rank, each with the id an
+/// LLM picks it by.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Candidates(pub(crate) Vec<Candidate>);
+
+/// A Candidate Action, listed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Candidate {
+    /// What an LLM picks it by, such as `a1`.
+    pub(crate) id: String,
+    /// What it is.
+    pub(crate) action: CandidateAction,
+    /// It is the Suggested Action.
+    pub(crate) suggested: bool,
+}
+
+impl Candidates {
+    /// What the player could do at the moment of `fact_sheet`, with `suggested`, the Suggested
+    /// Action's pick, first, then the rest in the order the rules at the moment's Threat Level
+    /// weigh them: at LETHAL the stairs, healing, escapes at once, escapes later, the rest of the
+    /// Ways Out, a corridor and fighting; at DANGEROUS fighting, a corridor, then the Ways Out in
+    /// that order. Within each, those the Advisor trusts come first, then the Fact Sheet's order:
+    /// the nearest staircase, and the Attack Plan likeliest to win.
+    pub(crate) fn at(fact_sheet: &FactSheet, suggested: &CandidateAction) -> Self {
+        let level = fact_sheet.threat.level().unwrap_or(ThreatLevel::Dangerous);
+        let ways_out = usable(&fact_sheet.ways_out).map(|way_out| {
+            (
+                way_out.trusted(),
+                CandidateAction::WayOut(way_out.option.clone()),
+            )
+        });
+        let corridor = corridor(&fact_sheet.ways_out)
+            .map(|corridor| (true, CandidateAction::Corridor(corridor)));
+        let fights: Vec<CandidateAction> = match &fact_sheet.fight {
+            Fight::Judged(outcome) => outcome
+                .plans
+                .iter()
+                .map(|plan| CandidateAction::Fight {
+                    odds: Odds::Now(plan.clone()),
+                    hp: outcome.hp,
+                })
+                .collect(),
+            // While the fight can't be judged now, the Suggested Action's fight, if it fights,
+            // is the one fight listed.
+            Fight::TooMany { .. } | Fight::Unjudged { .. }
+                if !matches!(suggested, CandidateAction::Fight { .. }) =>
+            {
+                fact_sheet
+                    .threat_hp()
+                    .map(|hp| fight_action(&fact_sheet.fight, hp))
+                    .into_iter()
+                    .collect()
+            }
+            Fight::NoFight | Fight::TooMany { .. } | Fight::Unjudged { .. } => Vec::new(),
+        };
+        let mut rest: Vec<(bool, CandidateAction)> = ways_out
+            .chain(corridor)
+            .chain(fights.into_iter().map(|fight| (true, fight)))
+            .filter(|(_, action)| !action.same_as(suggested))
+            .collect();
+        rest.sort_by_key(|(trusted, action)| (rank(level, action), !trusted));
+        Self(
+            std::iter::once((true, suggested.clone()))
+                .chain(rest)
+                .enumerate()
+                .map(|(index, (_, action))| Candidate {
+                    id: format!("a{}", index + 1),
+                    suggested: index == 0,
+                    action,
+                })
+                .collect(),
+        )
+    }
+}
+
+/// Where the rules at `level` weigh `action`, the first first.
+fn rank(level: ThreatLevel, action: &CandidateAction) -> u8 {
+    let way_out = |escape: &Escape| match escape {
+        Escape::Stairs { .. } => 0,
+        Escape::Item { effect, .. }
+        | Escape::Ability { effect, .. }
+        | Escape::Spell { effect, .. } => match effect {
+            Relief::Heals => 1,
+            Relief::Escapes => 2,
+            Relief::EscapesLater => 3,
+            Relief::Hinders | Relief::Hastens | Relief::Strengthens => 4,
+        },
+    };
+    match (level, action) {
+        (ThreatLevel::Lethal, CandidateAction::WayOut(escape)) => way_out(escape),
+        (ThreatLevel::Lethal, CandidateAction::Corridor(_)) => 5,
+        (ThreatLevel::Lethal, CandidateAction::Fight { .. }) => 6,
+        (ThreatLevel::Calm | ThreatLevel::Dangerous, CandidateAction::Fight { .. }) => 0,
+        (ThreatLevel::Calm | ThreatLevel::Dangerous, CandidateAction::Corridor(_)) => 1,
+        (ThreatLevel::Calm | ThreatLevel::Dangerous, CandidateAction::WayOut(escape)) => {
+            2 + way_out(escape)
+        }
+    }
+}
 
 /// Something the player could do right now that a rule can pick, with its facts from the Fact
 /// Sheet.
@@ -57,6 +159,22 @@ impl Odds {
 }
 
 impl CandidateAction {
+    /// Whether `other` is the same thing to do, whatever its facts now: the same staircase, item,
+    /// ability or spell, a corridor, or the same Attack Plan.
+    pub(crate) fn same_as(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::WayOut(mine), Self::WayOut(theirs)) => same_way_out(mine, theirs),
+            (Self::Corridor(_), Self::Corridor(_)) => true,
+            (Self::Fight { odds: mine, .. }, Self::Fight { odds: theirs, .. }) => {
+                match (mine.plan(), theirs.plan()) {
+                    (Some(mine), Some(theirs)) => same_plan(mine, theirs),
+                    (mine, theirs) => mine.is_none() && theirs.is_none(),
+                }
+            }
+            _ => false,
+        }
+    }
+
     /// How often its Attack Plan wins now, when it fights by one the Fight Outcome judges.
     pub(crate) fn win(&self) -> Option<Chance> {
         match self {

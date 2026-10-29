@@ -478,7 +478,7 @@ fn status_line(status: DangerousStatus) -> &'static str {
 }
 
 /// A Threat Level as the panel labels it, such as `DANGEROUS`.
-fn shouted(level: ThreatLevel) -> &'static str {
+pub(crate) fn shouted(level: ThreatLevel) -> &'static str {
     match level {
         ThreatLevel::Calm => "CALM",
         ThreatLevel::Dangerous => "DANGEROUS",

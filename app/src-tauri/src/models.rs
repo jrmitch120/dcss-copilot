@@ -6,8 +6,8 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Instant;
 
 use copilot_llm::{
-    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, Message, ModelChoice, ModelInfo, ModelSlot,
-    Provider, SidecarRecorder, Thinking, complete,
+    ApiKey, Effort, LlmError, LlmProvider, LlmRequest, LlmResponse, Message, ModelChoice,
+    ModelInfo, ModelSlot, Provider, SidecarRecorder, Thinking, complete,
 };
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -100,23 +100,42 @@ impl ModelsAndKeys {
         lock(&self.tests).insert(provider, outcome);
     }
 
+    /// Makes `request` of `provider` with the player's key for it, recording the call in
+    /// `sidecar` when a dev build is recording, and waits for the whole answer. Errors never hold
+    /// the key.
+    pub async fn ask(
+        &self,
+        provider: Provider,
+        request: LlmRequest,
+        sidecar: Option<PathBuf>,
+    ) -> Result<LlmResponse, LlmError> {
+        let Some(held) = lock(&self.keys).get(provider) else {
+            return Err(LlmError::NoKey {
+                provider: provider.name().to_owned(),
+            });
+        };
+        let live = self
+            .connected(provider, &held.key, sidecar)
+            .map_err(|error| LlmError::Sidecar(error.to_string()))?;
+        complete(live.as_ref(), request)
+            .await
+            .map_err(|error| masked_error(&held.key, error))
+    }
+
     async fn run_test(&self, provider: Provider, sidecar: Option<PathBuf>) -> KeyTest {
         let Some(held) = lock(&self.keys).get(provider) else {
             return KeyTest::Failed {
                 message: format!("There is no {} key to test.", provider.name()),
             };
         };
-        let mut live = (self.connect)(provider, held.key.clone());
-        if let Some(path) = sidecar {
-            match SidecarRecorder::create(live, &path) {
-                Ok(recorder) => live = Box::new(recorder),
-                Err(error) => {
-                    return KeyTest::Failed {
-                        message: format!("The call couldn't be recorded: {error}"),
-                    };
-                }
+        let live = match self.connected(provider, &held.key, sidecar) {
+            Ok(live) => live,
+            Err(error) => {
+                return KeyTest::Failed {
+                    message: format!("The call couldn't be recorded: {error}"),
+                };
             }
-        }
+        };
         let Some((request, model_name)) = key_test_request(provider.models()) else {
             return KeyTest::Failed {
                 message: format!("{} offers no model to test the key with.", provider.name()),
@@ -135,6 +154,49 @@ impl ModelsAndKeys {
                 message: masking(&held.key, &error.to_string()),
             },
         }
+    }
+
+    /// `provider`, called with `key`, recording each call in `sidecar` when given.
+    fn connected(
+        &self,
+        provider: Provider,
+        key: &ApiKey,
+        sidecar: Option<PathBuf>,
+    ) -> Result<Box<dyn LlmProvider>, std::io::Error> {
+        let live = (self.connect)(provider, key.clone());
+        match sidecar {
+            Some(path) => Ok(Box::new(SidecarRecorder::create(live, &path)?)),
+            None => Ok(live),
+        }
+    }
+}
+
+/// `error`, with `key` masked in any message a provider echoed it back in.
+fn masked_error(key: &ApiKey, error: LlmError) -> LlmError {
+    let mask = |message: String| masking(key, &message);
+    match error {
+        LlmError::KeyRejected { status, message } => LlmError::KeyRejected {
+            status,
+            message: mask(message),
+        },
+        LlmError::RateLimited { message } => LlmError::RateLimited {
+            message: mask(message),
+        },
+        LlmError::Unavailable { status, message } => LlmError::Unavailable {
+            status,
+            message: mask(message),
+        },
+        LlmError::BadRequest { status, message } => LlmError::BadRequest {
+            status,
+            message: mask(message),
+        },
+        LlmError::Unreachable(message) => LlmError::Unreachable(mask(message)),
+        LlmError::Malformed(message) => LlmError::Malformed(mask(message)),
+        LlmError::Sidecar(message) => LlmError::Sidecar(mask(message)),
+        error @ (LlmError::NoKey { .. }
+        | LlmError::NoUsage
+        | LlmError::Incomplete
+        | LlmError::NotRecorded { .. }) => error,
     }
 }
 

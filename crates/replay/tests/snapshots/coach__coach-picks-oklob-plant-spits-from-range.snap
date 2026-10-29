@@ -1,0 +1,30 @@
+---
+source: crates/replay/tests/coach.rs
+expression: coached_events(&replayer)
+---
+[
+  {
+    "coach": "asked",
+    "question": 1
+  },
+  {
+    "coach": "picked",
+    "question": 1,
+    "pick": "a1",
+    "line": "Escape hatch in the floor · underfoot",
+    "agrees": true,
+    "reason": "The escape hatch is underfoot, so you leave at once. The oklob plant spits acid from 3 squares away and can't follow."
+  },
+  {
+    "coach": "asked",
+    "question": 2
+  },
+  {
+    "coach": "picked",
+    "question": 2,
+    "pick": "a1",
+    "line": "Escape hatch in the floor · underfoot",
+    "agrees": true,
+    "reason": "Death is 7.5% before your next action. The hatch is underfoot: take it now, before another spit lands."
+  }
+]

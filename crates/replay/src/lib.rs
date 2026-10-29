@@ -1,6 +1,7 @@
 //! Recording format, in-process replayer, fake-extension front end, scenarios and the corpus,
 //! and the wiring of Game Source and Advisor the app and the replayer share.
 
+mod coach;
 mod corpus;
 mod fake_extension;
 mod following;
@@ -8,6 +9,7 @@ mod recording;
 mod replayer;
 mod scenario;
 
+pub use coach::{CoachCall, tactical_answer};
 pub use corpus::{CORPUS_DIR_VAR, Corpus, CorpusError, CorpusGame};
 pub use fake_extension::{
     FAKE_EXTENSION_ORIGIN, FakeExtension, FakeExtensionError, Speed, app_url,
@@ -16,7 +18,7 @@ pub use following::{Following, Happened};
 pub use recording::{
     RECORDING_EXTENSION, Recording, RecordingError, RecordingHeader, RecordingWriter,
 };
-pub use replayer::{Applied, CrawlVersionMismatch, Moment, Replayer};
+pub use replayer::{Applied, Call, CrawlVersionMismatch, Moment, Replayer};
 pub use scenario::{
     ExpectedAlert, ExpectedSuggestedAction, SCENARIO_EXTENSION, Scenario, ScenarioError,
     ScenarioReplay, Setup, Snapshot,

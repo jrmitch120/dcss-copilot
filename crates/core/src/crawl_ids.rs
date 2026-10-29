@@ -21,6 +21,10 @@ crawl_identifiers! {
         SPECTRAL_WEAPON = "MONS_SPECTRAL_WEAPON";
         ARMOUR_ECHO = "MONS_ARMOUR_ECHO";
         HAUNTED_ARMOUR = "MONS_HAUNTED_ARMOUR";
+        /// Named for a player, so a prompt names them by kind (#16): a player's ghost, and the
+        /// illusion of the player Mara makes.
+        PLAYER_GHOST = "MONS_PLAYER_GHOST";
+        PLAYER_ILLUSION = "MONS_PLAYER_ILLUSION";
     }
 }
 

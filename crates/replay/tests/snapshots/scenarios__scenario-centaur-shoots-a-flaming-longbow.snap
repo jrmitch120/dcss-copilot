@@ -262,7 +262,8 @@ expression: replay
           "ifLethal": {
             "text": "no Way Out left",
             "gap": null
-          }
+          },
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -659,7 +660,8 @@ expression: replay
           "ifLethal": {
             "text": "no Way Out left",
             "gap": null
-          }
+          },
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -1095,7 +1097,8 @@ expression: replay
         "ifLethal": {
           "text": "no Way Out left",
           "gap": null
-        }
+        },
+        "coach": null
       },
       "focus": {
         "card": "fight",

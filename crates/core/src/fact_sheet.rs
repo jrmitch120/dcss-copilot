@@ -120,6 +120,16 @@ pub struct ThreatAssessment {
     pub gaps: Vec<Gap>,
 }
 
+impl FactSheet {
+    /// The player's hit points the Threat Level was judged against, when it was judged.
+    pub(crate) fn threat_hp(&self) -> Option<i32> {
+        match &self.threat {
+            Threat::Rated(assessment) => Some(assessment.hp),
+            Threat::Unrated { .. } => None,
+        }
+    }
+}
+
 impl Threat {
     /// The Threat Level, when the Advisor judged one.
     #[must_use]

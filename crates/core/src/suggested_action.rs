@@ -81,7 +81,7 @@ impl SuggestionRule {
     }
 
     /// Its name, as the panel labels the Suggested Action it picked.
-    fn name(self) -> &'static str {
+    pub(crate) fn name(self) -> &'static str {
         match self {
             Self::LeaveByStairs => "Leave by stairs",
             Self::HealOutOfIt => "Heal out of it",
@@ -248,26 +248,17 @@ impl SuggestedAction {
     /// Whether `other` is the same rule picking the same thing, whatever its facts now: the same
     /// staircase, item, ability or spell, a corridor, or the same Attack Plan.
     pub(crate) fn same_pick(&self, other: &Self) -> bool {
-        self.rule == other.rule
-            && match (&self.action, &other.action) {
-                (CandidateAction::WayOut(mine), CandidateAction::WayOut(theirs)) => {
-                    same_way_out(mine, theirs)
-                }
-                (CandidateAction::Corridor(_), CandidateAction::Corridor(_)) => true,
-                (
-                    CandidateAction::Fight { odds: mine, .. },
-                    CandidateAction::Fight { odds: theirs, .. },
-                ) => match (mine.plan(), theirs.plan()) {
-                    (Some(mine), Some(theirs)) => same_plan(mine, theirs),
-                    (mine, theirs) => mine.is_none() && theirs.is_none(),
-                },
-                _ => false,
-            }
+        self.rule == other.rule && self.action.same_as(&other.action)
     }
 
     /// The rule that picked it.
     pub(crate) fn rule(&self) -> SuggestionRule {
         self.rule
+    }
+
+    /// What it picked.
+    pub(crate) fn action(&self) -> &CandidateAction {
+        &self.action
     }
 
     /// It in one line, as the timeline records it, as of the moment `fight` judges, such as
@@ -296,6 +287,7 @@ impl SuggestedAction {
                     |escape| escape.value(reader),
                 )
             }),
+            coach: None,
         }
     }
 }
@@ -323,16 +315,6 @@ impl CandidateAction {
             >= FIGHT_ON_HP_LEFT_PERCENT.saturating_sub(slack)
                 * u64::try_from(hp_max).unwrap_or(u64::MAX);
         wins && spares
-    }
-}
-
-impl FactSheet {
-    /// The player's hit points the Threat Level was judged against, when it was judged.
-    fn threat_hp(&self) -> Option<i32> {
-        match &self.threat {
-            Threat::Rated(assessment) => Some(assessment.hp),
-            Threat::Unrated { .. } => None,
-        }
     }
 }
 

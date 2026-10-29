@@ -749,6 +749,7 @@ dependencies = [
  "anyhow",
  "copilot-core",
  "copilot-gk",
+ "copilot-llm",
  "copilot-store",
  "copilot-webtiles",
  "futures-util",

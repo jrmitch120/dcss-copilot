@@ -1,0 +1,18 @@
+---
+source: crates/replay/tests/coach.rs
+expression: coached_events(&replayer)
+---
+[
+  {
+    "coach": "asked",
+    "question": 1
+  },
+  {
+    "coach": "picked",
+    "question": 1,
+    "pick": "a1",
+    "line": "The corridor you stand in",
+    "agrees": true,
+    "reason": "Hold the corridor so only 2 jackals can reach you at once."
+  }
+]
