@@ -9,8 +9,9 @@ use copilot_gk::Bundle;
 
 /// Game Knowledge names that are everyday English words, which a reason uses as such: `fire`, a
 /// wand, in "under fire"; `slow`, a spell, in "too slow". The entity check passes over them, as
-/// a sentence using one is far likelier plain English than an invented monster or item. Tuned on
-/// the corpus (#45).
+/// a sentence using one is far likelier plain English than an invented monster or item. Picked by
+/// hand from the bundle's names (#45); the first recorded answers needed none of them, so revisit
+/// it as answers that drop a sentence over one turn up.
 const EVERYDAY_WORDS: &[&str] = &[
     "acid", "agony", "air", "blood", "bolt", "bone", "chaos", "charm", "cold", "dark", "death",
     "decay", "dig", "earth", "faith", "fear", "fire", "flame", "fog", "frost", "giant", "gloom",
