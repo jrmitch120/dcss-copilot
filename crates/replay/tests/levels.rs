@@ -114,11 +114,14 @@ fn a_shops_stock_is_spotted_with_its_prices_and_an_item_bought_is_gone() {
     play_to_end(&mut replayer);
     let dungeon = level(&replayer, "Dungeon:1");
     let shop = Position { x: 0, y: 2 };
-    assert!(
-        dungeon
-            .landmarks
-            .iter()
-            .any(|landmark| landmark.position == shop && landmark.kind == LandmarkKind::Shop),
+    // Seen as it is made where the player stands.
+    let made = dungeon
+        .landmarks
+        .iter()
+        .find(|landmark| landmark.position == shop && landmark.kind == LandmarkKind::Shop);
+    assert_eq!(
+        made.map(|landmark| landmark.seen),
+        Some(Some(9)),
         "{:?}",
         dungeon.landmarks
     );
@@ -209,9 +212,10 @@ fn a_floor_is_cleared_once_in_a_visit_when_nothing_is_left_to_explore() {
         temple
             .landmarks
             .iter()
-            .filter(|landmark| landmark.kind == LandmarkKind::Altar)
+            .filter(|landmark| landmark.kind == LandmarkKind::Altar && landmark.seen == Some(13))
             .count(),
-        19
+        19,
+        "each altar first seen as the player arrives"
     );
     let dungeon_2 = level(&replayer, "Dungeon:2");
     assert_eq!(

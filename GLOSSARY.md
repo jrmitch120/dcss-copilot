@@ -75,7 +75,7 @@ What the Advisor remembers of one level of a game: its map as the player last le
 _Avoid_: Level memory, level cache
 
 **Landmark**:
-A feature the player remembers a level by: a staircase, an altar, a shop, a branch entrance or a portal, with where it is and what the game calls it. Game Knowledge says which features are which.
+A feature the player remembers a level by: a staircase, an altar, a shop, a branch entrance or a portal, with where it is, what the game calls it and when the Advisor first saw it there. Game Knowledge says which features are which.
 _Avoid_: Point of interest, feature (alone, which is crawl's word for every square's terrain)
 
 **Visit**:

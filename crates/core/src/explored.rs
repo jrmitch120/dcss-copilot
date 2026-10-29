@@ -71,6 +71,9 @@ pub struct LandmarkSeen {
     pub kind: LandmarkKind,
     /// What the game calls it, such as `stone staircase leading down` or `sacred altar of Trog`.
     pub name: String,
+    /// The game's turn when the Advisor first saw the game show it there, if the game had
+    /// reported one.
+    pub seen: Option<u32>,
 }
 
 /// What kind of Landmark a feature is.
@@ -385,7 +388,7 @@ impl Explored {
         }
         if let Some(bundle) = knowledge {
             if let Some(map) = &visible.map {
-                record.landmarks = landmarks(map, bundle);
+                record.landmarks = landmarks(map, bundle, &record.landmarks, visible.turn);
             }
             // Once a Visit, and judged from the map only until then, as that costs a walk.
             if let Some(visit) = record.visits.last_mut()
@@ -631,14 +634,30 @@ fn features<'m, 'b>(
     })
 }
 
-/// The Landmarks `map` shows, its features decoded by `bundle`, top row first.
-fn landmarks(map: &LevelMap, bundle: &Bundle) -> Vec<LandmarkSeen> {
+/// The Landmarks `map` shows on `turn`, its features decoded by `bundle`, top row first: each
+/// seen when it was among the `known` ones, the same feature at the same square, or else now.
+fn landmarks(
+    map: &LevelMap,
+    bundle: &Bundle,
+    known: &[LandmarkSeen],
+    turn: Option<u32>,
+) -> Vec<LandmarkSeen> {
     features(map, bundle)
         .filter_map(|(position, _, feature)| {
+            let kind = LandmarkKind::of(feature)?;
+            let seen = known
+                .iter()
+                .find(|landmark| {
+                    landmark.position == position
+                        && landmark.kind == kind
+                        && landmark.name == feature.name
+                })
+                .map_or(turn, |landmark| landmark.seen);
             Some(LandmarkSeen {
                 position,
-                kind: LandmarkKind::of(feature)?,
+                kind,
                 name: feature.name.clone(),
+                seen,
             })
         })
         .collect()

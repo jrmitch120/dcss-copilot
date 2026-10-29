@@ -42,7 +42,8 @@ expression: explored(&replayer)
             "kind": "stairs",
             "direction": "down"
           },
-          "name": "escape hatch in the floor"
+          "name": "escape hatch in the floor",
+          "seen": 0
         },
         {
           "position": {
@@ -53,7 +54,8 @@ expression: explored(&replayer)
             "kind": "stairs",
             "direction": "down"
           },
-          "name": "stone staircase leading down"
+          "name": "stone staircase leading down",
+          "seen": 0
         },
         {
           "position": {
@@ -63,7 +65,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "shop"
           },
-          "name": "shop"
+          "name": "shop",
+          "seen": 9
         }
       ],
       "items": [
@@ -261,7 +264,8 @@ expression: explored(&replayer)
             "kind": "stairs",
             "direction": "up"
           },
-          "name": "stone staircase leading up"
+          "name": "stone staircase leading up",
+          "seen": 13
         },
         {
           "position": {
@@ -272,7 +276,8 @@ expression: explored(&replayer)
             "kind": "stairs",
             "direction": "down"
           },
-          "name": "stone staircase leading down"
+          "name": "stone staircase leading down",
+          "seen": 13
         }
       ],
       "items": [],
@@ -326,7 +331,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "snail-covered altar of Cheibriados"
+          "name": "snail-covered altar of Cheibriados",
+          "seen": 13
         },
         {
           "position": {
@@ -336,7 +342,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "broken altar of Ashenzari"
+          "name": "broken altar of Ashenzari",
+          "seen": 13
         },
         {
           "position": {
@@ -346,7 +353,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "ornate altar of the Wu Jian Council"
+          "name": "ornate altar of the Wu Jian Council",
+          "seen": 13
         },
         {
           "position": {
@@ -356,7 +364,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "opulent altar of Gozag"
+          "name": "opulent altar of Gozag",
+          "seen": 13
         },
         {
           "position": {
@@ -366,7 +375,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "stormy altar of Qazlal"
+          "name": "stormy altar of Qazlal",
+          "seen": 13
         },
         {
           "position": {
@@ -376,7 +386,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "sacrificial altar of Ru"
+          "name": "sacrificial altar of Ru",
+          "seen": 13
         },
         {
           "position": {
@@ -386,7 +397,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "radiant altar of Vehumet"
+          "name": "radiant altar of Vehumet",
+          "seen": 13
         },
         {
           "position": {
@@ -396,7 +408,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "glowing silver altar of Zin"
+          "name": "glowing silver altar of Zin",
+          "seen": 13
         },
         {
           "position": {
@@ -406,7 +419,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "iron altar of Okawaru"
+          "name": "iron altar of Okawaru",
+          "seen": 13
         },
         {
           "position": {
@@ -417,7 +431,8 @@ expression: explored(&replayer)
             "kind": "stairs",
             "direction": "up"
           },
-          "name": "staircase back to the Dungeon"
+          "name": "staircase back to the Dungeon",
+          "seen": 13
         },
         {
           "position": {
@@ -427,7 +442,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "glowing golden altar of the Shining One"
+          "name": "glowing golden altar of the Shining One",
+          "seen": 13
         },
         {
           "position": {
@@ -437,7 +453,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "ancient bone altar of Kikubaaqudgha"
+          "name": "ancient bone altar of Kikubaaqudgha",
+          "seen": 13
         },
         {
           "position": {
@@ -447,7 +464,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "basalt altar of Yredelemnul"
+          "name": "basalt altar of Yredelemnul",
+          "seen": 13
         },
         {
           "position": {
@@ -457,7 +475,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "burning altar of Makhleb"
+          "name": "burning altar of Makhleb",
+          "seen": 13
         },
         {
           "position": {
@@ -467,7 +486,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "blossoming altar of Fedhas"
+          "name": "blossoming altar of Fedhas",
+          "seen": 13
         },
         {
           "position": {
@@ -477,7 +497,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "shimmering blue altar of Sif Muna"
+          "name": "shimmering blue altar of Sif Muna",
+          "seen": 13
         },
         {
           "position": {
@@ -487,7 +508,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "hazy altar of Hepliaklqana"
+          "name": "hazy altar of Hepliaklqana",
+          "seen": 13
         },
         {
           "position": {
@@ -497,7 +519,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "shadowy altar of Dithmenos"
+          "name": "shadowy altar of Dithmenos",
+          "seen": 13
         },
         {
           "position": {
@@ -507,7 +530,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "shimmering altar of Xom"
+          "name": "shimmering altar of Xom",
+          "seen": 13
         },
         {
           "position": {
@@ -517,7 +541,8 @@ expression: explored(&replayer)
           "kind": {
             "kind": "altar"
           },
-          "name": "bloodstained altar of Trog"
+          "name": "bloodstained altar of Trog",
+          "seen": 13
         }
       ],
       "items": [],
