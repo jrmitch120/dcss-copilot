@@ -71727,1477 +71727,1688 @@
       "name": "",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "1": {
       "id": "DNGN_CLOSED_DOOR",
       "name": "closed door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "2": {
       "id": "DNGN_RUNED_DOOR",
       "name": "runed door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "3": {
       "id": "DNGN_SEALED_DOOR",
       "name": "sealed door",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "4": {
       "id": "DNGN_TREE",
       "name": "tree",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "5": {
       "id": "DNGN_METAL_WALL",
       "name": "metal wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "6": {
       "id": "DNGN_CRYSTAL_WALL",
       "name": "crystal wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "7": {
       "id": "DNGN_ROCK_WALL",
       "name": "rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "8": {
       "id": "DNGN_SLIMY_WALL",
       "name": "slime covered rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "9": {
       "id": "DNGN_STONE_WALL",
       "name": "stone wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "10": {
       "id": "DNGN_PERMAROCK_WALL",
       "name": "unnaturally hard rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "11": {
       "id": "DNGN_CLEAR_ROCK_WALL",
       "name": "translucent rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "12": {
       "id": "DNGN_CLEAR_STONE_WALL",
       "name": "translucent stone wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "13": {
       "id": "DNGN_CLEAR_PERMAROCK_WALL",
       "name": "translucent unnaturally hard rock wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "14": {
       "id": "DNGN_GRATE",
       "name": "iron grate",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "15": {
       "id": "DNGN_OPEN_SEA",
       "name": "the open sea",
       "terrain": "solid",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "16": {
       "id": "DNGN_LAVA_SEA",
       "name": "the endless lava",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "17": {
       "id": "DNGN_ORCISH_IDOL",
       "name": "orcish idol",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "18": {
       "id": "DNGN_GRANITE_STATUE",
       "name": "granite statue",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "19": {
       "id": "DNGN_MALIGN_GATEWAY",
       "name": "portal to somewhere",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "30": {
       "id": "DNGN_LAVA",
       "name": "some lava",
       "terrain": "lava",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "31": {
       "id": "DNGN_DEEP_WATER",
       "name": "some deep water",
       "terrain": "deepWater",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "32": {
       "id": "DNGN_SHALLOW_WATER",
       "name": "some shallow water",
       "terrain": "open",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "33": {
       "id": "DNGN_FLOOR",
       "name": "floor",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "34": {
       "id": "DNGN_OPEN_DOOR",
       "name": "open door",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "35": {
       "id": "DNGN_TRAP_MECHANICAL",
       "name": "mechanical trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "36": {
       "id": "DNGN_TRAP_TELEPORT",
       "name": "teleport trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "37": {
       "id": "DNGN_TRAP_SHAFT",
       "name": "shaft",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "38": {
       "id": "DNGN_TRAP_WEB",
       "name": "web",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "39": {
       "id": "DNGN_UNDISCOVERED_TRAP",
       "name": "floor",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "40": {
       "id": "DNGN_ENTER_SHOP",
       "name": "shop",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "shop"
     },
     "41": {
       "id": "DNGN_ABANDONED_SHOP",
       "name": "abandoned shop",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "42": {
       "id": "DNGN_STONE_STAIRS_DOWN_I",
       "name": "stone staircase leading down",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "43": {
       "id": "DNGN_STONE_STAIRS_DOWN_II",
       "name": "stone staircase leading down",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "44": {
       "id": "DNGN_STONE_STAIRS_DOWN_III",
       "name": "stone staircase leading down",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "45": {
       "id": "DNGN_ESCAPE_HATCH_DOWN",
       "name": "escape hatch in the floor",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "46": {
       "id": "DNGN_STONE_STAIRS_UP_I",
       "name": "stone staircase leading up",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "47": {
       "id": "DNGN_STONE_STAIRS_UP_II",
       "name": "stone staircase leading up",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "48": {
       "id": "DNGN_STONE_STAIRS_UP_III",
       "name": "stone staircase leading up",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "49": {
       "id": "DNGN_ESCAPE_HATCH_UP",
       "name": "escape hatch in the ceiling",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "50": {
       "id": "DNGN_ENTER_DIS",
       "name": "gateway to the Iron City of Dis",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "51": {
       "id": "DNGN_ENTER_GEHENNA",
       "name": "gateway to the ashen valley of Gehenna",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "52": {
       "id": "DNGN_ENTER_COCYTUS",
       "name": "gateway to the freezing wastes of Cocytus",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "53": {
       "id": "DNGN_ENTER_TARTARUS",
       "name": "gateway to the decaying netherworld of Tartarus",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "54": {
       "id": "DNGN_ENTER_ABYSS",
       "name": "one-way gate to the infinite horrors of the Abyss",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "55": {
       "id": "DNGN_EXIT_ABYSS",
       "name": "gateway leading out of the Abyss",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "56": {
       "id": "DNGN_STONE_ARCH",
       "name": "empty arch of ancient stone",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "57": {
       "id": "DNGN_ENTER_PANDEMONIUM",
       "name": "one-way gate leading to the halls of Pandemonium",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "58": {
       "id": "DNGN_EXIT_PANDEMONIUM",
       "name": "gate leading out of Pandemonium",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "59": {
       "id": "DNGN_TRANSIT_PANDEMONIUM",
       "name": "gate leading to another region of Pandemonium",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "60": {
       "id": "DNGN_EXIT_DUNGEON",
       "name": "staircase leading out of the dungeon",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "61": {
       "id": "DNGN_EXIT_THROUGH_ABYSS",
       "name": "exit through the horrors of the Abyss",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "62": {
       "id": "DNGN_EXIT_HELL",
       "name": "gateway back to the Dungeon",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "63": {
       "id": "DNGN_ENTER_HELL",
       "name": "gateway to Hell",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "64": {
       "id": "DNGN_ENTER_LABYRINTH",
       "name": "labyrinth entrance",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "65": {
       "id": "DNGN_TELEPORTER",
       "name": "short-range portal",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "66": {
       "id": "DNGN_ENTER_PORTAL_VAULT",
       "name": "gate leading to a distant place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "67": {
       "id": "DNGN_EXIT_PORTAL_VAULT",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "68": {
       "id": "DNGN_EXPIRED_PORTAL",
       "name": "collapsed entrance",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "69": {
       "id": "DNGN_ENTER_DWARF",
       "name": "staircase to the Dwarven Hall",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "70": {
       "id": "DNGN_ENTER_ORC",
       "name": "staircase to the Orcish Mines",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "71": {
       "id": "DNGN_ENTER_LAIR",
       "name": "staircase to the Lair",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "72": {
       "id": "DNGN_ENTER_SLIME",
       "name": "staircase to the Slime Pits",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "73": {
       "id": "DNGN_ENTER_VAULTS",
       "name": "gate to the Vaults",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "74": {
       "id": "DNGN_ENTER_CRYPT",
       "name": "staircase to the Crypt",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "75": {
       "id": "DNGN_ENTER_BLADE",
       "name": "staircase to the Hall of Blades",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "76": {
       "id": "DNGN_ENTER_ZOT",
       "name": "gate to the Realm of Zot",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "77": {
       "id": "DNGN_ENTER_TEMPLE",
       "name": "staircase to the Ecumenical Temple",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "78": {
       "id": "DNGN_ENTER_SNAKE",
       "name": "staircase to the Snake Pit",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "79": {
       "id": "DNGN_ENTER_ELF",
       "name": "staircase to the Elven Halls",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "80": {
       "id": "DNGN_ENTER_TOMB",
       "name": "staircase to the Tomb",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "81": {
       "id": "DNGN_ENTER_SWAMP",
       "name": "staircase to the Swamp",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "82": {
       "id": "DNGN_ENTER_SHOALS",
       "name": "staircase to the Shoals",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "83": {
       "id": "DNGN_ENTER_SPIDER",
       "name": "hole to the Spider Nest",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "84": {
       "id": "DNGN_ENTER_FOREST",
       "name": "staircase to the Enchanted Forest",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "85": {
       "id": "DNGN_ENTER_DEPTHS",
       "name": "staircase to the Depths",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": "branchEntrance"
     },
     "86": {
       "id": "DNGN_EXIT_DWARF",
       "name": "staircase back to the Vaults",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "87": {
       "id": "DNGN_EXIT_ORC",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "88": {
       "id": "DNGN_EXIT_LAIR",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "89": {
       "id": "DNGN_EXIT_SLIME",
       "name": "staircase back to the Lair",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "90": {
       "id": "DNGN_EXIT_VAULTS",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "91": {
       "id": "DNGN_EXIT_CRYPT",
       "name": "staircase back to the Vaults",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "92": {
       "id": "DNGN_EXIT_BLADE",
       "name": "staircase back to the Vaults",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "93": {
       "id": "DNGN_EXIT_ZOT",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "94": {
       "id": "DNGN_EXIT_TEMPLE",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "95": {
       "id": "DNGN_EXIT_SNAKE",
       "name": "staircase back to the Lair",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "96": {
       "id": "DNGN_EXIT_ELF",
       "name": "staircase back to the Mines",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "97": {
       "id": "DNGN_EXIT_TOMB",
       "name": "staircase back to the Crypt",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "98": {
       "id": "DNGN_EXIT_SWAMP",
       "name": "staircase back to the Lair",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "99": {
       "id": "DNGN_EXIT_SHOALS",
       "name": "staircase back to the Lair",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "100": {
       "id": "DNGN_EXIT_SPIDER",
       "name": "crawl-hole back to the Lair",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "101": {
       "id": "DNGN_EXIT_FOREST",
       "name": "staircase back to the Vaults",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "102": {
       "id": "DNGN_EXIT_DEPTHS",
       "name": "staircase back to the Dungeon",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "103": {
       "id": "DNGN_ALTAR_ZIN",
       "name": "glowing silver altar of Zin",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "104": {
       "id": "DNGN_ALTAR_SHINING_ONE",
       "name": "glowing golden altar of the Shining One",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "105": {
       "id": "DNGN_ALTAR_KIKUBAAQUDGHA",
       "name": "ancient bone altar of Kikubaaqudgha",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "106": {
       "id": "DNGN_ALTAR_YREDELEMNUL",
       "name": "basalt altar of Yredelemnul",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "107": {
       "id": "DNGN_ALTAR_XOM",
       "name": "shimmering altar of Xom",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "108": {
       "id": "DNGN_ALTAR_VEHUMET",
       "name": "radiant altar of Vehumet",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "109": {
       "id": "DNGN_ALTAR_OKAWARU",
       "name": "iron altar of Okawaru",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "110": {
       "id": "DNGN_ALTAR_MAKHLEB",
       "name": "burning altar of Makhleb",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "111": {
       "id": "DNGN_ALTAR_SIF_MUNA",
       "name": "shimmering blue altar of Sif Muna",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "112": {
       "id": "DNGN_ALTAR_TROG",
       "name": "bloodstained altar of Trog",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "113": {
       "id": "DNGN_ALTAR_NEMELEX_XOBEH",
       "name": "sparkling altar of Nemelex Xobeh",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "114": {
       "id": "DNGN_ALTAR_ELYVILON",
       "name": "white marble altar of Elyvilon",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "115": {
       "id": "DNGN_ALTAR_LUGONU",
       "name": "corrupted altar of Lugonu",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "116": {
       "id": "DNGN_ALTAR_BEOGH",
       "name": "roughly hewn altar of Beogh",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "117": {
       "id": "DNGN_ALTAR_JIYVA",
       "name": "viscous altar of Jiyva",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "118": {
       "id": "DNGN_ALTAR_FEDHAS",
       "name": "blossoming altar of Fedhas",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "119": {
       "id": "DNGN_ALTAR_CHEIBRIADOS",
       "name": "snail-covered altar of Cheibriados",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "120": {
       "id": "DNGN_ALTAR_ASHENZARI",
       "name": "broken altar of Ashenzari",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "121": {
       "id": "DNGN_ALTAR_DITHMENOS",
       "name": "shadowy altar of Dithmenos",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "122": {
       "id": "DNGN_FOUNTAIN_BLUE",
       "name": "fountain of clear blue water",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "123": {
       "id": "DNGN_FOUNTAIN_SPARKLING",
       "name": "fountain of sparkling water",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "124": {
       "id": "DNGN_FOUNTAIN_BLOOD",
       "name": "fountain of blood",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "125": {
       "id": "DNGN_DRY_FOUNTAIN_BLUE",
       "name": "dry fountain",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "126": {
       "id": "DNGN_DRY_FOUNTAIN_SPARKLING",
       "name": "dry fountain",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "127": {
       "id": "DNGN_DRY_FOUNTAIN_BLOOD",
       "name": "dry fountain",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "128": {
       "id": "DNGN_DRY_FOUNTAIN",
       "name": "dry fountain",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "129": {
       "id": "DNGN_EXPLORE_HORIZON",
       "name": "explore horizon",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "130": {
       "id": "DNGN_UNKNOWN_ALTAR",
       "name": "detected altar",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "131": {
       "id": "DNGN_UNKNOWN_PORTAL",
       "name": "detected shop or portal",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "132": {
       "id": "DNGN_ABYSSAL_STAIR",
       "name": "gateway leading deeper into the Abyss",
       "terrain": "open",
       "stairs": "down",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "133": {
       "id": "DNGN_BADLY_SEALED_DOOR",
       "name": "",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "134": {
       "id": "DNGN_SEALED_STAIRS_UP",
       "name": "sealed passage leading up",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "135": {
       "id": "DNGN_SEALED_STAIRS_DOWN",
       "name": "sealed passage leading down",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "136": {
       "id": "DNGN_TRAP_ALARM",
       "name": "alarm trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "137": {
       "id": "DNGN_TRAP_ZOT",
       "name": "Zot trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "138": {
       "id": "DNGN_PASSAGE_OF_GOLUBRIA",
       "name": "passage of Golubria",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "139": {
       "id": "DNGN_ENTER_ZIGGURAT",
       "name": "one-way gateway to a ziggurat",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "140": {
       "id": "DNGN_ENTER_BAZAAR",
       "name": "gateway to a bazaar",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "141": {
       "id": "DNGN_ENTER_TROVE",
       "name": "portal to a secret trove of treasure",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "142": {
       "id": "DNGN_ENTER_SEWER",
       "name": "glowing drain",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "143": {
       "id": "DNGN_ENTER_OSSUARY",
       "name": "sand-covered staircase",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "144": {
       "id": "DNGN_ENTER_BAILEY",
       "name": "flagged portal",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "145": {
       "id": "DNGN_ENTER_ICE_CAVE",
       "name": "frozen archway",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "146": {
       "id": "DNGN_ENTER_VOLCANO",
       "name": "dark tunnel",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "147": {
       "id": "DNGN_ENTER_WIZLAB",
       "name": "magical portal",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "148": {
       "id": "DNGN_ENTER_DESOLATION",
       "name": "crumbling gateway",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "149": {
       "id": "DNGN_EXIT_ZIGGURAT",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "150": {
       "id": "DNGN_EXIT_BAZAAR",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "151": {
       "id": "DNGN_EXIT_TROVE",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "152": {
       "id": "DNGN_EXIT_SEWER",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "153": {
       "id": "DNGN_EXIT_OSSUARY",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "154": {
       "id": "DNGN_EXIT_BAILEY",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "155": {
       "id": "DNGN_EXIT_ICE_CAVE",
       "name": "ice covered gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "156": {
       "id": "DNGN_EXIT_VOLCANO",
       "name": "rocky tunnel leading out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "157": {
       "id": "DNGN_EXIT_WIZLAB",
       "name": "portal leading out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "158": {
       "id": "DNGN_EXIT_LABYRINTH",
       "name": "escape hatch in the ceiling",
       "terrain": "open",
       "stairs": "up",
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "159": {
       "id": "DNGN_EXIT_DESOLATION",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "160": {
       "id": "DNGN_ALTAR_GOZAG",
       "name": "opulent altar of Gozag",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "161": {
       "id": "DNGN_ALTAR_QAZLAL",
       "name": "stormy altar of Qazlal",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "162": {
       "id": "DNGN_ALTAR_RU",
       "name": "sacrificial altar of Ru",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "163": {
       "id": "DNGN_TRAP_SHADOW",
       "name": "shadow trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "164": {
       "id": "DNGN_TRAP_SHADOW_DORMANT",
       "name": "dormant shadow trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "165": {
       "id": "DNGN_ALTAR_ECUMENICAL",
       "name": "faded altar of an unknown god",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "166": {
       "id": "DNGN_ALTAR_PAKELLAS",
       "name": "oddly glowing altar of Pakellas",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "167": {
       "id": "DNGN_ALTAR_USKAYAW",
       "name": "hide-covered altar of Uskayaw",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "168": {
       "id": "DNGN_ALTAR_HEPLIAKLQANA",
       "name": "hazy altar of Hepliaklqana",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "169": {
       "id": "DNGN_ENDLESS_SALT",
       "name": "endless expanse of salt",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "170": {
       "id": "DNGN_ALTAR_WU_JIAN",
       "name": "ornate altar of the Wu Jian Council",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "171": {
       "id": "DNGN_TRANSPORTER",
       "name": "transporter",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "172": {
       "id": "DNGN_TRANSPORTER_LANDING",
       "name": "transporter landing site",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "173": {
       "id": "DNGN_TRAP_DISPERSAL",
       "name": "dispersal trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "174": {
       "id": "DNGN_ENTER_GAUNTLET",
       "name": "gate leading to a gauntlet",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "175": {
       "id": "DNGN_EXIT_GAUNTLET",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "176": {
       "id": "DNGN_CLOSED_CLEAR_DOOR",
       "name": "closed translucent door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "177": {
       "id": "DNGN_OPEN_CLEAR_DOOR",
       "name": "open translucent door",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "178": {
       "id": "DNGN_RUNED_CLEAR_DOOR",
       "name": "runed translucent door",
       "terrain": "closedDoor",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "179": {
       "id": "DNGN_SEALED_CLEAR_DOOR",
       "name": "sealed translucent door",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "180": {
       "id": "DNGN_TOXIC_BOG",
       "name": "a toxic bog",
       "terrain": "open",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "181": {
       "id": "DNGN_TRAP_ARCHMAGE",
       "name": "archmage's trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "182": {
       "id": "DNGN_TRAP_SPEAR",
       "name": "spear trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "183": {
       "id": "DNGN_TRAP_TYRANT",
       "name": "tyrant's trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "184": {
       "id": "DNGN_TRAP_HARLEQUIN",
       "name": "harlequin's trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "185": {
       "id": "DNGN_TRAP_BOLT",
       "name": "bolt trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "186": {
       "id": "DNGN_TRAP_NET",
       "name": "net trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "187": {
       "id": "DNGN_TRAP_PLATE",
       "name": "pressure plate",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "188": {
       "id": "DNGN_TRAP_TELEPORT_PERMANENT",
       "name": "permanent teleport trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "189": {
       "id": "DNGN_TRAVEL_TRAIL",
       "name": "travel trail",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "190": {
       "id": "DNGN_PETRIFIED_TREE",
       "name": "petrified tree",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "191": {
       "id": "DNGN_MANGROVE",
       "name": "mangrove",
       "terrain": "solid",
       "stairs": null,
-      "water": true
+      "water": true,
+      "landmark": null
     },
     "192": {
       "id": "DNGN_DEMONIC_TREE",
       "name": "demonic tree",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "193": {
       "id": "DNGN_ENTER_ARENA",
       "name": "gate leading to Okawaru's Arena",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "194": {
       "id": "DNGN_EXIT_ARENA",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "195": {
       "id": "DNGN_ALTAR_IGNIS",
       "name": "candlelit altar of Ignis",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "altar"
     },
     "196": {
       "id": "DNGN_BROKEN_DOOR",
       "name": "broken door",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "197": {
       "id": "DNGN_BROKEN_CLEAR_DOOR",
       "name": "broken translucent door",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "198": {
       "id": "DNGN_EXIT_DIS",
       "name": "gateway leading out of Dis",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "199": {
       "id": "DNGN_EXIT_GEHENNA",
       "name": "gateway leading out of Gehenna",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "200": {
       "id": "DNGN_EXIT_COCYTUS",
       "name": "gateway leading out of Cocytus",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "201": {
       "id": "DNGN_EXIT_TARTARUS",
       "name": "gateway leading out of Tartarus",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "202": {
       "id": "DNGN_RUNELIGHT",
       "name": "runelight",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "203": {
       "id": "DNGN_MUD",
       "name": "some mud",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "204": {
       "id": "DNGN_BINDING_SIGIL",
       "name": "a binding sigil",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "205": {
       "id": "DNGN_METAL_STATUE",
       "name": "metal statue",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "206": {
       "id": "DNGN_CACHE_OF_FRUIT",
       "name": "cache of fruit",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "207": {
       "id": "DNGN_CACHE_OF_MEAT",
       "name": "cache of meat",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "208": {
       "id": "DNGN_ORB_DAIS",
       "name": "the orb dais",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "209": {
       "id": "DNGN_ENTER_CRUCIBLE",
       "name": "gate leading to the Crucible of Flesh",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "210": {
       "id": "DNGN_EXIT_CRUCIBLE",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "211": {
       "id": "DNGN_FOUNTAIN_EYES",
       "name": "fountain of eyes",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "212": {
       "id": "DNGN_CACHE_OF_BAKED_GOODS",
       "name": "cache of baked goods",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "213": {
       "id": "DNGN_DECORATIVE_FLOOR",
       "name": "decorative floor",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "214": {
       "id": "DNGN_SPIKE_LAUNCHER",
       "name": "spike launcher",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "215": {
       "id": "DNGN_TRAP_DEVOURER",
       "name": "devourer's trap",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "216": {
       "id": "DNGN_ENTER_NECROPOLIS",
       "name": "phantasmal passage",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": "portal"
     },
     "217": {
       "id": "DNGN_EXIT_NECROPOLIS",
       "name": "gate leading back out of this place",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "218": {
       "id": "DNGN_FRIGID_WALL",
       "name": "frigid wall",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "219": {
       "id": "DNGN_ZOT_STATUE",
       "name": "zot statue",
       "terrain": "solid",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     },
     "220": {
       "id": "DNGN_TRAP_DISPERSAL_INACTIVE",
       "name": "dispersal trap (recharging)",
       "terrain": "open",
       "stairs": null,
-      "water": false
+      "water": false,
+      "landmark": null
     }
   },
   "attitudes": {
@@ -79060,6 +79271,29 @@
         ],
         "lifted": "The Bane of Mortality upon you is lifted."
       }
+    ]
+  },
+  "level": {
+    "itemHere": "You see here {}.",
+    "itemsHere": "Things that are here:",
+    "itemsApart": "; ",
+    "itemsUnnamed": [
+      "Items here: {}.",
+      "There are many items here."
+    ],
+    "doneExploring": "Done exploring.",
+    "shopTag": "shop",
+    "shopTitle": "Welcome to {}! What would you like to do?",
+    "shopItem": "{} gold   {}",
+    "shopMarks": "-+$",
+    "monsterDied": [
+      "You kill {}!",
+      "You destroy {}!",
+      "You blow up {}!",
+      "{} is killed!",
+      "{} is destroyed!",
+      "{} is blown up!",
+      "{} dies!"
     ]
   },
   "formulas": {

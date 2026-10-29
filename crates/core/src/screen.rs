@@ -3,6 +3,7 @@
 
 use std::collections::BTreeMap;
 
+use copilot_gk::LevelSigns;
 use serde::{Deserialize, Serialize};
 
 use crate::view_model::Colour;
@@ -746,6 +747,53 @@ fn shops_found(line: &str) -> Vec<ShopsFound> {
             _ => None,
         })
         .collect()
+}
+
+/// What a shop's menu shows: the shop's name, and each item it has for sale with its price.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ShopShown {
+    /// The shop's name, such as `Otaer's Distillery`.
+    pub(crate) name: String,
+    /// Each item, by name as the menu names it, with its price in gold.
+    pub(crate) items: Vec<(String, u32)>,
+}
+
+impl ScreenRead {
+    /// What the shop shows, when this is a shop's menu as `signs` tell it, titled with the
+    /// shop's name: each entry its hotkey, a mark, its price and the item's name, as
+    /// `a -   66 gold   a +0 chain mail`, the mark `+` for an item chosen to buy and `$` for one
+    /// on the shopping list. `None` when an entry reads otherwise.
+    #[must_use]
+    pub(crate) fn shop(&self, signs: &LevelSigns) -> Option<ShopShown> {
+        if self.screen != Screen::Other(signs.shop_tag.clone()) {
+            return None;
+        }
+        let name = signs.shop_title.names(self.title.as_deref()?.trim())?;
+        let items = self
+            .lines
+            .iter()
+            .map(|line| {
+                let mut chars = line.trim_start().chars();
+                let hotkey = chars.next()?;
+                let rest = chars.as_str().strip_prefix(' ')?;
+                let mut chars = rest.chars();
+                let mark = chars.next()?;
+                let entry = chars.as_str().strip_prefix(' ')?;
+                if !hotkey.is_ascii_alphabetic() || !signs.shop_marks.contains(mark) {
+                    return None;
+                }
+                let names = signs.shop_item.names(entry.trim())?;
+                let [price, item] = names.as_slice() else {
+                    return None;
+                };
+                Some(((*item).to_owned(), price.parse().ok()?))
+            })
+            .collect::<Option<_>>()?;
+        Some(ShopShown {
+            name: (*name.first()?).to_owned(),
+            items,
+        })
+    }
 }
 
 /// The tag crawl gives the full-view list, which the ordinary pickup menu shares

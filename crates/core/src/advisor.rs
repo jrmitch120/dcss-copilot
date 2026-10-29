@@ -170,6 +170,9 @@ impl Advisor {
                         session,
                         SessionEvent::ConnectionLost | SessionEvent::GameEnded { .. }
                     );
+                    if game.stopped {
+                        game.accumulated.stop();
+                    }
                     if session == SessionEvent::Resynced {
                         let turn = game.turn;
                         game.picked_up_from.get_or_insert(LastSeen { turn });
@@ -248,9 +251,14 @@ impl Advisor {
         // The join card asks for the dump already; a player watching can't open the screens.
         let may_prompt = self.join_card().is_none() && !self.watching();
         let fact_sheet = self.fact_sheet.get_or_init(|| self.compute_fact_sheet());
+        let knowledge = self
+            .identity
+            .as_ref()
+            .and_then(|identity| identity.knowledge(&self.knowledge));
         let Some(game) = self.games.get_mut(&key) else {
             return Vec::new();
         };
+        game.accumulated.settle(&self.visible, knowledge, hostile);
         let mut detections = game.detectors.detect(fact_sheet, &self.visible, hostile);
         if let Some(alert) = detections.iter().find_map(|detection| match detection {
             Detection::Alert(alert) => Some(alert),

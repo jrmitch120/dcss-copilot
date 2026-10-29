@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::carried_gear::{self, CarriedGear, LoneSighting, Said};
 use crate::crawl_ids::{armour_types, bane_types, object_classes};
+use crate::explored::Explored;
 use crate::gaps::ScreenFact;
 use crate::screen::{
     DungeonOverview, KnownAbility, KnownSpell, Resistances, Screen, ScreenRead, ShownMutations,
@@ -105,6 +106,9 @@ pub struct AccumulatedState {
     /// The Carried Gear of each unique the Advisor has read it for, by name, kept for the rest of
     /// the game. It goes Stale as a monster's does, and when the unique comes back into view.
     pub uniques_gear: BTreeMap<String, Remembered<CarriedGear, GearSource>>,
+    /// The levels the player has explored, and the uniques they met.
+    #[serde(flatten)]
+    pub explored: Explored,
     /// Sighting messages whose monsters the game hadn't yet shown in view: crawl sends the
     /// message before the map that shows them. Each is dropped once the game's turn moves on.
     #[serde(skip)]
@@ -383,6 +387,9 @@ impl AccumulatedState {
         if read.screen == Screen::CharacterDump {
             self.backfill = Backfill::Complete;
         }
+        if let Some(bundle) = knowledge {
+            self.explored.read_shop(read, visible, bundle);
+        }
         if let (Some(bundle), Some(monsters)) = (knowledge, read.full_view_monsters()) {
             for description in monsters {
                 let Some((name, gear)) = carried_gear::full_view(&description, bundle) else {
@@ -448,6 +455,7 @@ impl AccumulatedState {
         let Some(bundle) = knowledge else { return };
         let signs = &bundle.ways_out;
         self.notice_comings_and_goings(before, now, bundle);
+        self.explored.hear(new_messages(before, now), now, bundle);
         for message in new_messages(before, now) {
             let turn = message.turn.or(now.turn);
             for news in told(&message.text, bundle) {
@@ -547,6 +555,7 @@ impl AccumulatedState {
     /// changed any of it, so all of it goes Stale.
     pub(crate) fn pick_up(&mut self, last_turn: Option<u32>, now: &VisibleState) {
         self.carried_gear.clear();
+        self.explored.pick_up();
         let moved_on = match (last_turn, now.turn) {
             (Some(last), Some(turn)) => turn > last,
             _ => true,
@@ -555,6 +564,27 @@ impl AccumulatedState {
             self.go_stale();
         }
     }
+
+    /// Takes in a Settled Update, as `visible` shows the game, through `knowledge`: what the
+    /// player has explored, with whether a hostile is in view, as `hostile_in_view` tells.
+    pub(crate) fn settle(
+        &mut self,
+        visible: &VisibleState,
+        knowledge: Option<&Bundle>,
+        hostile_in_view: bool,
+    ) {
+        self.explored.settle(visible, knowledge, hostile_in_view);
+    }
+
+    /// The game's stream stopped, or the game ended: the level the player was on keeps its map
+    /// as the Advisor last saw it.
+    pub(crate) fn stop(&mut self) {
+        self.explored.keep_map();
+    }
+
+    /// The facts whose values are collections the Change Log logs entry by entry, as each grows
+    /// large: each level the player has explored.
+    pub const LOGGED_BY_ENTRY: &'static [&'static str] = &["levels"];
 
     /// The Advisor joined the game as `now` shows it, having seen none of it before: part way
     /// through, unless on its first turn, so it has missed what only the character dump tells.
@@ -583,6 +613,7 @@ impl AccumulatedState {
             gaps_prompted: _,
             carried_gear,
             uniques_gear,
+            explored: _,
             unplaced: _,
         } = self;
         resistances.go_stale();

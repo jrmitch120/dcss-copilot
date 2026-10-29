@@ -14,7 +14,12 @@ use crate::crawl_ids::{attitudes, monster_threats};
 /// Tile background flags that mark a cell the player can't see now, from crawl's
 /// `tile-flags.h` (`TILE_FLAG_MM_UNSEEN | TILE_FLAG_UNSEEN`). The page's `enums.js` reads the same
 /// bits; they have held since tiles came to webtiles.
-const UNSEEN: u64 = 0x0002_0000 | 0x0004_0000;
+const UNSEEN: u64 = MAPPED_ONLY | 0x0004_0000;
+
+/// The tile background flag of a cell out of view the player has never seen, which crawl shows
+/// only as magic mapping or detection drew it (`TILE_FLAG_MM_UNSEEN`, set by `tileidx_unseen_flag`
+/// in `tilepick.cc`).
+const MAPPED_ONLY: u64 = 0x0002_0000;
 
 /// The tile `halo` values that mark a square lit by a halo, and the first and last that mark one
 /// in an umbra, from crawl's `tilecell.h:10` (`HALO_RANGE`, `HALO_UMBRA_FIRST` and
@@ -244,6 +249,7 @@ impl LevelMap {
                     feature: decode(cell.feature, knowledge, Bundle::feature)
                         .map(|feature| feature.id.clone()),
                     in_view: cell.in_view(),
+                    mapped_only: cell.mapped_only(),
                     light: cell.light(),
                 };
                 Some((position(key)?, cell))
@@ -256,6 +262,12 @@ impl Cell {
     /// The player can see the cell now.
     fn in_view(&self) -> bool {
         self.tile_bg.is_some_and(|bg| bg & UNSEEN == 0)
+    }
+
+    /// The player has never seen the cell: crawl shows it only as magic mapping or detection
+    /// drew it.
+    fn mapped_only(&self) -> bool {
+        self.tile_bg.is_some_and(|bg| bg & MAPPED_ONLY != 0)
     }
 
     /// Whether a halo lights the cell or an umbra darkens it.

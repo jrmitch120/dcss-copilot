@@ -480,6 +480,7 @@ mod tests {
             },
             feature: Some(EnumId(feature.to_owned())),
             in_view: true,
+            mapped_only: false,
             light: SquareLight::Plain,
         };
         let map = LevelMap::new((0..=10).map(|x| {

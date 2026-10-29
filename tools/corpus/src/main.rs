@@ -132,17 +132,20 @@ async fn record_scenario(manifest: &Path, server: &str, game: &str) -> anyhow::R
 }
 
 /// Types each of `keys` once the game has settled from the one before, from a game just started.
+/// The game may stop after the last, as when it saves or the character dies, but not before.
 async fn type_keys(
     session: &mut Session,
     keys: &[String],
     deadline: Instant,
 ) -> anyhow::Result<()> {
     session.settle(deadline).await?;
-    for keys in keys {
-        session.input(keys).await?;
+    for (typed, key) in keys.iter().enumerate() {
+        session.input(key).await?;
+        let last = typed + 1 == keys.len();
         match session.settle(deadline).await? {
             Stopped::Settled => {}
-            Stopped::GameOver => bail!("the game ended before the keys {keys:?}"),
+            Stopped::GameOver if last => {}
+            Stopped::GameOver => bail!("the game stopped after the keys {key:?}, before the rest"),
             Stopped::Deadline => bail!("the scenario took longer than {SCENARIO_TIMEOUT:?}"),
         }
     }

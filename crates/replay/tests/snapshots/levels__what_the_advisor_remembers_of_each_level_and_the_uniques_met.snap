@@ -1,0 +1,571 @@
+---
+source: crates/replay/tests/levels.rs
+expression: explored(&replayer)
+---
+{
+  "levels": {
+    "Dungeon:1": {
+      "place": {
+        "branch": "Dungeon",
+        "depth": 1
+      },
+      "map": {
+        "turn": 13,
+        "topLeft": {
+          "x": -7,
+          "y": -7
+        },
+        "rows": [
+          "     #.",
+          "     #.",
+          "   ###.",
+          "    ...",
+          "    #..",
+          "    #.>",
+          "    #..##",
+          "######><#######",
+          ".......[.......",
+          "..##...@).##..#",
+          "...............",
+          "####......#####",
+          "  .........:",
+          " ############"
+        ]
+      },
+      "landmarks": [
+        {
+          "position": {
+            "x": -1,
+            "y": -2
+          },
+          "kind": {
+            "kind": "stairs",
+            "direction": "down"
+          },
+          "name": "escape hatch in the floor",
+          "seen": 0
+        },
+        {
+          "position": {
+            "x": -1,
+            "y": 0
+          },
+          "kind": {
+            "kind": "stairs",
+            "direction": "down"
+          },
+          "name": "stone staircase leading down",
+          "seen": 0
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "kind": {
+            "kind": "shop"
+          },
+          "name": "shop",
+          "seen": 9
+        }
+      ],
+      "items": [
+        {
+          "name": "a +0 dagger",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "offered": null,
+          "seen": 5,
+          "status": {
+            "state": "gone",
+            "turn": 6
+          }
+        },
+        {
+          "name": "a +0 ring mail",
+          "position": {
+            "x": 0,
+            "y": 1
+          },
+          "offered": null,
+          "seen": 8,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "a potion of ambrosia (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 80
+          },
+          "seen": 9,
+          "status": {
+            "state": "gone",
+            "turn": 9
+          }
+        },
+        {
+          "name": "a potion of brilliance (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 40
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "a potion of curing (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 30
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "a potion of enlightenment (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 50
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "a potion of haste (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 100
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "2 potions of heal wounds (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 160
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "a potion of heal wounds (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 80
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        },
+        {
+          "name": "2 potions of moonshine (unknown)",
+          "position": {
+            "x": 0,
+            "y": 2
+          },
+          "offered": {
+            "shop": "Otaer's Distillery",
+            "price": 20
+          },
+          "seen": 9,
+          "status": {
+            "state": "spotted"
+          }
+        }
+      ],
+      "visits": [
+        {
+          "arrived": 0,
+          "left": 13,
+          "cleared": null
+        }
+      ]
+    },
+    "Dungeon:2": {
+      "place": {
+        "branch": "Dungeon",
+        "depth": 2
+      },
+      "map": {
+        "turn": 13,
+        "topLeft": {
+          "x": -4,
+          "y": -7
+        },
+        "rows": [
+          "         )#",
+          "         .#",
+          "        ..#",
+          "       ...#",
+          "#######...#",
+          "#...!..?..#",
+          "#........S#",
+          "#...@.....#",
+          "#####.....#",
+          "     ...###",
+          "     ..>#",
+          "     ...#",
+          "     ...#",
+          "     ...#",
+          "     ####"
+        ]
+      },
+      "landmarks": [
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "kind": {
+            "kind": "stairs",
+            "direction": "up"
+          },
+          "name": "stone staircase leading up",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 3,
+            "y": 3
+          },
+          "kind": {
+            "kind": "stairs",
+            "direction": "down"
+          },
+          "name": "stone staircase leading down",
+          "seen": 13
+        }
+      ],
+      "items": [],
+      "visits": [
+        {
+          "arrived": 13,
+          "left": 13,
+          "cleared": null
+        }
+      ]
+    },
+    "Temple": {
+      "place": {
+        "branch": "Temple",
+        "depth": null
+      },
+      "map": {
+        "turn": 96,
+        "topLeft": {
+          "x": -2,
+          "y": -9
+        },
+        "rows": [
+          "     ###########",
+          "    ##...._....##",
+          "    #_........._#",
+          "   ##...........##",
+          "  ##...._...._...##",
+          " ##...............##",
+          " #_..._..©.©..._.._#",
+          "#####################",
+          "#........©ß©........#",
+          "#.@................_#",
+          "#........©ß©........#",
+          "#####################",
+          " #_..._..©.©..._.._#",
+          " ##...............##",
+          "  ##.............##",
+          "   ##..._...._..##",
+          "    #_........._#",
+          "    ##...._....##",
+          "     ###########"
+        ]
+      },
+      "landmarks": [
+        {
+          "position": {
+            "x": 8,
+            "y": -8
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "snail-covered altar of Cheibriados",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 3,
+            "y": -7
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "broken altar of Ashenzari",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 13,
+            "y": -7
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "ornate altar of the Wu Jian Council",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 6,
+            "y": -5
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "opulent altar of Gozag",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 11,
+            "y": -5
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "stormy altar of Qazlal",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": -3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "sacrificial altar of Ru",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 4,
+            "y": -3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "radiant altar of Vehumet",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 13,
+            "y": -3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "glowing silver altar of Zin",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 16,
+            "y": -3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "iron altar of Okawaru",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "kind": {
+            "kind": "stairs",
+            "direction": "up"
+          },
+          "name": "staircase back to the Dungeon",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 17,
+            "y": 0
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "glowing golden altar of the Shining One",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 0,
+            "y": 3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "ancient bone altar of Kikubaaqudgha",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 4,
+            "y": 3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "basalt altar of Yredelemnul",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 13,
+            "y": 3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "burning altar of Makhleb",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 16,
+            "y": 3
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "blossoming altar of Fedhas",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 6,
+            "y": 6
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "shimmering blue altar of Sif Muna",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 11,
+            "y": 6
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "hazy altar of Hepliaklqana",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 3,
+            "y": 7
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "shadowy altar of Dithmenos",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 13,
+            "y": 7
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "shimmering altar of Xom",
+          "seen": 13
+        },
+        {
+          "position": {
+            "x": 8,
+            "y": 8
+          },
+          "kind": {
+            "kind": "altar"
+          },
+          "name": "bloodstained altar of Trog",
+          "seen": 13
+        }
+      ],
+      "items": [],
+      "visits": [
+        {
+          "arrived": 13,
+          "left": null,
+          "cleared": 96
+        }
+      ]
+    }
+  },
+  "onLevel": "Temple",
+  "uniques": {
+    "Terence": {
+      "seen": {
+        "level": "Dungeon:1",
+        "turn": 12
+      },
+      "killed": {
+        "level": "Dungeon:1",
+        "turn": 12
+      }
+    }
+  }
+}

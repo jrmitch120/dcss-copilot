@@ -1,0 +1,44 @@
+description = "A Minotaur Berserker set to experience level 27 with every skill at 27 in wizard mode steps south of the start of a seeded game on D:1, makes a dagger at their feet, steps back and onto it again, makes a ring mail beside it and does the same, picks up the dagger, and steps off and back; one square further south makes a shop, sets their gold to 10000, looks in, buys its first item and looks in again; creates Terence and fights him to his death; takes the stairs down to D:2, travels to the Temple, explores it until crawl says it is done, and saves the game"
+recording = "berserker-shops-slays-terence-and-explores-the-temple.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MiBe.handaxe
+game_seed = 1
+"""
+keys = [
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Experience
+  # level 27 and every skill at 27, to win the fight with Terence.
+  "&", "wiz\r", "l", "27\r", "\u001b",
+  "&", "A", "27\r", "\u001b",
+  # South of the start, onto floor; make an identified dagger at their feet, which autopickup
+  # leaves, then step back north and onto it again: crawl names it.
+  "j", "\u001b",
+  "&", "%", "pre_id dagger\r", "\u001b",
+  "k", "\u001b", "j", "\u001b",
+  # Make a ring mail beside it, and step back and onto them again: crawl lists both.
+  "&", "%", "pre_id ring mail\r", "\u001b",
+  "k", "\u001b", "j", "\u001b",
+  # Pick up the dagger from the menu, then step off and back: crawl names only the ring mail.
+  ",", "a", "\r", "\u001b",
+  "k", "\u001b", "j", "\u001b",
+  # One square further south, make a shop of any kind where they stand, and set their gold.
+  "j", "\u001b",
+  "&", "\\", "*", "\u001b",
+  "&", "$", "10000\r", "\u001b",
+  # Look in, then look in again to buy the first item, confirming; and look in once more.
+  ">", "\u001b",
+  ">", "a", "\r", "y", "\u001b",
+  ">", "\u001b",
+  # Create Terence, and fight him until he dies.
+  "&", "m", "Terence\r", "\u001b",
+  "\t", "\u001b", "\t", "\u001b", "\t", "\u001b", "\t", "\u001b", "\t", "\u001b", "\t", "\u001b",
+  # Take the stairs down to D:2, then travel to the Temple and explore it until it is done.
+  "&", "d", "\u001b",
+  "&", "~", "T", "\u001b",
+  "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b", "o", "\u001b",
+  # Save the game, confirming, which ends the stream without ending the game.
+  "S", "y",
+]

@@ -81,6 +81,19 @@ pub struct LevelMap {
     cells: BTreeMap<(i32, i32), MapCell>,
 }
 
+/// A level's map as the game last showed it, kept as text: each row as the console would draw
+/// it, a space where the game shows no square.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapSnapshot {
+    /// The game's turn when it was taken, if the game had reported one.
+    pub turn: Option<u32>,
+    /// The square the first row starts on.
+    pub top_left: Position,
+    /// The rows, top first.
+    pub rows: Vec<String>,
+}
+
 /// One square of the map.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -93,6 +106,9 @@ pub struct MapCell {
     /// The player can see the square now. Otherwise the game shows it as remembered, which may
     /// be out of date.
     pub in_view: bool,
+    /// The player has never seen the square: the game shows it only as magic mapping or
+    /// detection drew it, out of view. Exploring would still go there.
+    pub mapped_only: bool,
     /// Whether a halo lights it or an umbra darkens it.
     pub light: SquareLight,
 }
@@ -133,6 +149,18 @@ impl LevelMap {
         self.cells
             .iter()
             .map(|(&(y, x), cell)| (Position { x, y }, cell))
+    }
+
+    /// The map as text, as of `turn`, to keep once the player has left the level: `None` for a
+    /// map with no squares.
+    #[must_use]
+    pub fn snapshot(&self, turn: Option<u32>) -> Option<MapSnapshot> {
+        let (top_left, _) = self.bounds()?;
+        Some(MapSnapshot {
+            turn,
+            top_left,
+            rows: self.rows(|cell| cell.glyph.text.clone()),
+        })
     }
 
     /// The top-left corner of the smallest rectangle holding every square, and its bottom-right.
@@ -237,7 +265,7 @@ pub enum Religion {
 }
 
 /// A level of the dungeon, such as `D:3`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     /// The branch, as the game names it, such as `Dungeon` or `a Bazaar`.
@@ -246,9 +274,47 @@ pub struct Place {
     pub depth: Option<u32>,
 }
 
+impl Place {
+    /// What the Advisor calls the level.
+    #[must_use]
+    pub fn level_name(&self) -> LevelName {
+        LevelName(match self.depth {
+            Some(depth) => format!("{}:{depth}", self.branch),
+            None => self.branch.clone(),
+        })
+    }
+}
+
+/// What the Advisor calls a level, which tells it apart from every other level of the game: the
+/// branch as the game names it, and its depth, as `Dungeon:3`, or the branch alone for one only
+/// one level deep, as `Temple`. Only a [`Place`] names one.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct LevelName(String);
+
+impl LevelName {
+    /// The name, as `Dungeon:3`.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::borrow::Borrow<str> for LevelName {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for LevelName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 /// A square of the current level's map. The Game Source fixes where `(0, 0)` is; `x` grows to
 /// the right and `y` grows down.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Position {
     /// Squares to the right.
     pub x: i32,

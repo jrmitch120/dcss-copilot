@@ -3,8 +3,10 @@
 //!
 //! A game's row holds its Game Key, what was last seen of it and its Accumulated State as JSON.
 //! Each save appends a row to the Change Log for each of its facts that changed, so the log
-//! tells what the Advisor knew of a game at any moment. The log is never rewritten: SQLite
-//! refuses any update to it, and its rows go only with their game.
+//! tells what the Advisor knew of a game at any moment. A collection that grows large, such as
+//! the levels explored, is logged entry by entry, so a change to one level logs only that level.
+//! The log is never rewritten: SQLite refuses any update to it, and its rows go only with their
+//! game.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -82,7 +84,8 @@ pub struct Change {
     pub received_ms: u64,
     /// The game's turn then, if it had reported one.
     pub turn: Option<u32>,
-    /// Which fact of the Accumulated State changed, by its name there, such as `resistances`.
+    /// Which fact of the Accumulated State changed, by its name there, such as `resistances`,
+    /// or an entry of one logged entry by entry, such as `levels/Dungeon:1`.
     pub fact: String,
     /// What it became, as JSON.
     pub value: Value,
@@ -211,9 +214,10 @@ impl Store {
             Some(row) => row,
             None => self.insert(game)?,
         };
-        let changed: Vec<(&String, &Value)> = facts
+        let (was, is) = (logged(&before.facts), logged(&facts));
+        let changed: Vec<(&String, &Value)> = is
             .iter()
-            .filter(|(fact, value)| before.facts.get(*fact) != Some(value))
+            .filter(|(fact, value)| was.get(*fact) != Some(value))
             .collect();
         if changed.is_empty() && (before.turn, before.ended) == (game.turn, game.ended) {
             return Ok(());
@@ -386,6 +390,28 @@ fn facts_of(accumulated: &AccumulatedState) -> Result<Map<String, Value>, StoreE
         .map_err(StoreError::Unwritable)
 }
 
+/// An Accumulated State's `facts` as the Change Log logs them: each one whole, but each entry of
+/// a collection the Accumulated State logs entry by entry as a fact of its own, named after the
+/// collection and the entry, as `levels/Dungeon:1`.
+fn logged(facts: &Map<String, Value>) -> Map<String, Value> {
+    let mut logged = Map::new();
+    for (fact, value) in facts {
+        match value {
+            Value::Object(entries)
+                if AccumulatedState::LOGGED_BY_ENTRY.contains(&fact.as_str()) =>
+            {
+                for (entry, value) in entries {
+                    logged.insert(format!("{fact}/{entry}"), value.clone());
+                }
+            }
+            _ => {
+                logged.insert(fact.clone(), value.clone());
+            }
+        }
+    }
+    logged
+}
+
 /// Appends each of the `changed` facts of `game`, saved under row `id`, to its Change Log.
 fn log(
     transaction: &Transaction<'_>,
@@ -411,8 +437,8 @@ fn log(
 #[cfg(test)]
 mod tests {
     use copilot_core::{
-        AsOf, CarriedGear, CarriedItem, GearSlot, GearSource, ItemBrand, Remembered, Resistance,
-        Resistances, Screen, Sighting, Unlisted,
+        AsOf, CarriedGear, CarriedItem, GearSlot, GearSource, ItemBrand, LevelRecord, Place,
+        Remembered, Resistance, Resistances, Screen, Sighting, Unlisted, Visit,
     };
 
     use super::*;
@@ -525,6 +551,62 @@ mod tests {
             ]
         );
         assert_eq!(changes[1].value["state"], "stale");
+    }
+
+    /// Remembering the levels named `visited`, each visited once from turn 0.
+    fn having_visited(visited: &[(&str, u32)]) -> AccumulatedState {
+        let mut remembered = AccumulatedState::default();
+        for &(branch, depth) in visited {
+            let place = Place {
+                branch: branch.to_owned(),
+                depth: Some(depth),
+            };
+            remembered.explored.levels.insert(
+                place.level_name(),
+                LevelRecord {
+                    place,
+                    map: None,
+                    landmarks: Vec::new(),
+                    items: Vec::new(),
+                    visits: vec![Visit {
+                        arrived: Some(0),
+                        ..Visit::default()
+                    }],
+                },
+            );
+        }
+        remembered
+    }
+
+    #[test]
+    fn each_level_is_logged_as_a_fact_of_its_own_as_it_changes() {
+        let mut store = Store::in_memory().unwrap();
+        let game = key(1_000);
+        let mut remembered = having_visited(&[("Dungeon", 1), ("Dungeon", 2)]);
+        store.save(&seen(&game, 2_000, 100), &remembered).unwrap();
+        if let Some(level) = remembered.explored.levels.get_mut("Dungeon:2") {
+            level.visits[0].cleared = Some(101);
+        }
+        store.save(&seen(&game, 3_000, 101), &remembered).unwrap();
+
+        let changes = store.changes(&game).unwrap();
+        let logged: Vec<_> = changes
+            .iter()
+            .map(|change| (change.turn, change.fact.as_str()))
+            .collect();
+        assert_eq!(
+            logged,
+            [
+                (Some(100), "levels/Dungeon:1"),
+                (Some(100), "levels/Dungeon:2"),
+                (Some(101), "levels/Dungeon:2")
+            ]
+        );
+        assert_eq!(changes[2].value["visits"][0]["cleared"], 101);
+        assert_eq!(
+            store.saved(&game).unwrap().map(|saved| saved.accumulated),
+            Some(remembered)
+        );
     }
 
     #[test]
