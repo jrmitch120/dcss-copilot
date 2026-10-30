@@ -265,10 +265,9 @@ impl Advisor {
     }
 
     /// Takes the Coach's `answer` to question `id`, and says what became of it: kept for the
-    /// Suggested Action card only if it answers the question in flight, neither the player has
-    /// acted nor the rules picked anew since it was asked, and it picks a Candidate Action the
-    /// question listed. Its reason keeps
-    /// only the sentences that quote nothing the question didn't say.
+    /// Suggested Action card only if it answers the question in flight, the rules haven't picked
+    /// anew since it was asked, and it picks a Candidate Action the question listed. Its reason
+    /// keeps only the sentences that quote nothing the question didn't say.
     pub fn answer_tactical(
         &mut self,
         id: QuestionId,

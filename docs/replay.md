@@ -81,7 +81,7 @@ Committed sidecars sit beside the tests that replay them, such as `crates/llm/te
 
 ### Coach's calls in a replay
 
-`Replayer::coaching(provider, model)` replays as at Coach: each Tactical Alert with a Suggested Action asks the Quick Model, through `provider`, which must answer at once, as a `SidecarReplayer` does. `calls()` gives every request made, the rendered prompt in it, and the timeline records each question asked and what became of its answer (`Happened::Coached`). Answers arrive just after the envelope that asked, unless `answering_after_ms(n)` delays them on the envelopes' clock, which is how tests see a call cancelled by a newer one and an answer dropped because the player acted first (`tests/coach.rs`).
+`Replayer::coaching(provider, model)` replays as at Coach: each Tactical Alert with a Suggested Action asks the Quick Model, through `provider`, which must answer at once, as a `SidecarReplayer` does. `calls()` gives every request made, the rendered prompt in it, and the timeline records each question asked and what became of its answer (`Happened::Coached`). Answers arrive just after the envelope that asked, unless `answering_after_ms(n)` delays them on the envelopes' clock, which is how tests see a call cancelled by a newer one and an answer dropped because the rules picked anew first, and one kept as of an earlier turn (`tests/coach.rs`).
 
 A Scenario replayed at Coach answers from the sidecar beside its Recording, such as `tests/scenarios/ogre-corners-a-minotaur-carrying-escapes.llm.jsonl`. A change to the renderer changes every prompt, so those calls are no longer recorded: record them again with your own key, then review the prompt and pick snapshots as for any other change:
 

@@ -6,7 +6,7 @@
 
 use std::path::{Path, PathBuf};
 
-use copilot_core::{AssistanceLevel, CoachLine, Coached, Dropped, SuggestedActionCard};
+use copilot_core::{AssistanceLevel, CoachLine, Coached, Dropped, QuestionId, SuggestedActionCard};
 use copilot_llm::{
     LlmProvider, LlmRequest, LlmResponse, LlmStream, ModelChoice, ModelSlot, Part, SidecarReplayer,
     StopReason, StreamEvent, Usage, sidecar_path,
@@ -39,27 +39,25 @@ fn coached(name: &str, provider: impl LlmProvider + 'static) -> Replayer {
         .coaching(provider, quick_model())
 }
 
-/// Moves `replayer` to just after the first answer to the Coach arrived.
+/// Moves `replayer` to just after the first answer to the Coach arrived. An answer arrives with
+/// the first envelope applied once it is due.
 fn just_after_the_first_answer(replayer: &mut Replayer) {
-    replayer.seek(usize::MAX);
-    let envelope = replayer
-        .timeline()
-        .iter()
-        .find(|moment| {
-            matches!(
-                moment.event,
-                Happened::Coached(Coached::Picked { .. } | Coached::Dropped { .. })
-            )
-        })
-        .unwrap()
-        .envelope;
-    replayer.seek(envelope + 1);
+    let mut position = 0;
+    while replayer.answers_delivered() == 0 {
+        position += 1;
+        replayer.seek(position);
+    }
 }
 
 /// How long the ogre scenario's answers take to arrive, on its envelopes' clock: the answer to
-/// turn 5's question is still on its way when turn 6 asks anew, and turn 6's arrives after the
-/// player acts again on turn 7.
+/// turn 5's question is still on its way when turn 6 asks anew, and turn 6's arrives on turn 7,
+/// the rules still healing. In the oklob scenario, turn 2's arrives on turn 3, the rules still
+/// falling back to the stairs.
 const SLOW_MS: u64 = 3_500;
+
+/// How long the ogre scenario's first answer takes to arrive just after the ogre's hit has the
+/// rules pick the potion in place of the scroll, still on turn 5.
+const AFTER_THE_RULES_PICK_ANEW_MS: u64 = 3_075;
 
 /// A provider that answers every call with `text`, at once.
 struct Answering(String);
@@ -193,6 +191,7 @@ fn the_coachs_pick_shows_on_the_suggested_action_card_at_coach() {
             action: card(&replayer).action,
             agrees: true,
             reason: Some("The ogre is beside you. Read it now.".to_owned()),
+            as_of_turn: None,
         })
     );
     assert_eq!(
@@ -309,25 +308,39 @@ fn an_answer_that_isnt_the_json_asked_for_is_dropped_and_the_suggested_action_st
 }
 
 #[test]
-fn an_answer_arriving_after_the_player_acted_is_dropped() {
-    let mut replayer =
-        coached(OGRE, Answering::json("a1", "Read it now.")).answering_after_ms(SLOW_MS);
+fn an_answer_arriving_after_the_rules_picked_anew_is_dropped() {
+    let mut replayer = coached(OGRE, Answering::json("a1", "Read it now."))
+        .answering_after_ms(AFTER_THE_RULES_PICK_ANEW_MS);
     replayer.seek(usize::MAX);
 
-    let events = coached_events(&replayer);
-    assert!(
-        events
-            .iter()
-            .all(|event| !matches!(event, Coached::Picked { .. })),
-        "{events:?}"
-    );
-    assert!(events.iter().any(|event| matches!(
-        event,
+    assert!(matches!(
+        coached_events(&replayer)[1],
         Coached::Dropped {
+            question: QuestionId(1),
             why: Dropped::GameMovedOn,
-            ..
         }
-    )));
+    ));
+}
+
+#[test]
+fn an_answer_arriving_turns_later_is_kept_while_the_rules_pick_holds_with_the_turn_it_was_asked_on()
+{
+    let mut replayer =
+        coached(OKLOB, Answering::json("a1", "Take the hatch.")).answering_after_ms(SLOW_MS);
+    just_after_the_first_answer(&mut replayer);
+
+    let card = card(&replayer);
+    assert_eq!(card.rule, "Fall back to stairs");
+    assert_eq!(
+        card.coach,
+        Some(CoachLine::Picked {
+            action: card.action.clone(),
+            agrees: true,
+            reason: Some("Take the hatch.".to_owned()),
+            as_of_turn: Some(2),
+        }),
+        "asked on turn 2, answered on turn 3"
+    );
 }
 
 #[test]

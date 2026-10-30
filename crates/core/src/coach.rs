@@ -1,8 +1,10 @@
 //! Coach's Tactical refinement: at a Tactical Alert with a Suggested Action, the Quick Model picks
 //! one of the Candidate Actions with a short reason, which the Suggested Action card shows beside
 //! the rules' own pick. Only the latest question is in flight: an answer to any other, or one that
-//! arrives after the player has acted or the rules picked anew, is dropped, and the Suggested
-//! Action stands alone.
+//! arrives after the rules picked anew, is dropped, and the Suggested Action stands alone. Turns
+//! passing don't move the game on (#24: nothing goes stale from turns passing): a pick holds as
+//! long as the Suggested Action it judged, marked with the turn it was asked on once that has
+//! passed.
 
 use serde::{Deserialize, Serialize};
 
@@ -53,7 +55,7 @@ pub enum Coached {
         /// Which.
         question: QuestionId,
     },
-    /// An answer was kept, and the card shows it until the player acts.
+    /// An answer was kept, and the card shows it until the rules pick anew.
     Picked {
         /// The question it answered.
         question: QuestionId,
@@ -82,8 +84,8 @@ pub enum Coached {
 pub enum Dropped {
     /// A newer question was asked while it was in flight.
     Superseded,
-    /// The player acted, the rules picked another Suggested Action, or another game is followed,
-    /// before it arrived.
+    /// The rules picked another Suggested Action, or none, or another game is followed, before it
+    /// arrived.
     GameMovedOn,
     /// It picked an id the prompt never listed.
     UnknownPick {
@@ -134,7 +136,7 @@ struct Picked {
 }
 
 /// The moment a question was asked at: the followed game, its turn, and the Suggested Action the
-/// Coach judges. The player acting, or the rules picking anew, moves the game on from it.
+/// Coach judges. The rules picking anew moves the game on from it; turns passing don't.
 #[derive(Debug, Clone)]
 pub(crate) struct Moment {
     pub(crate) game: GameKey,
@@ -143,9 +145,14 @@ pub(crate) struct Moment {
 }
 
 impl Moment {
-    /// Whether `now` is still this moment: the same game and turn, and the same pick.
+    /// Whether `now` is still this moment: the same game, and the same pick.
     fn holds_at(&self, now: &Self) -> bool {
-        self.game == now.game && self.turn == now.turn && self.suggested.same_pick(&now.suggested)
+        self.game == now.game && self.suggested.same_pick(&now.suggested)
+    }
+
+    /// The turn this moment was asked on, once `now` has passed it.
+    fn passed_by(&self, now: &Self) -> Option<u32> {
+        self.turn.filter(|_| self.turn != now.turn)
     }
 }
 
@@ -213,6 +220,7 @@ impl Lane {
                 action: listed.line.clone(),
                 agrees: listed.suggested,
                 reason: reason.clone(),
+                as_of_turn: None,
             },
         });
         Coached::Picked {
@@ -224,15 +232,19 @@ impl Lane {
         }
     }
 
-    /// What the Suggested Action card says of the Coach at `now`: its pick for this moment, or
-    /// that it is being asked.
+    /// What the Suggested Action card says of the Coach at `now`: its pick for the Suggested
+    /// Action it judged, as of the turn it was asked on, or that it is being asked.
     pub(crate) fn line(&self, now: &Moment) -> Option<CoachLine> {
         if let Some(picked) = self
             .picked
             .as_ref()
             .filter(|picked| picked.moment.holds_at(now))
         {
-            return Some(picked.line.clone());
+            let mut line = picked.line.clone();
+            if let CoachLine::Picked { as_of_turn, .. } = &mut line {
+                *as_of_turn = picked.moment.passed_by(now);
+            }
+            return Some(line);
         }
         self.in_flight
             .as_ref()

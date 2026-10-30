@@ -115,7 +115,12 @@ agrees: boolean;
  *  Why, in whole sentences within the word limit: `None` when no sentence of its reason
  *  passed the grounding checks.
  */
-reason: string | null };
+reason: string | null; 
+/**
+ *  The turn it was asked on, once the game has passed it: its reason quotes the moment
+ *  as it was then. `None` on that turn.
+ */
+asOfTurn: number | null };
 
 /**
  *  The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
@@ -588,8 +593,8 @@ export type SuggestedActionCard = {
 	 */
 	ifLethal: MarkedValue | null,
 	/**
-	 *  At Coach, what the Quick Model makes of this moment, until the player acts or the rules
-	 *  pick anew: `None` while it hasn't been asked, or its answer was dropped.
+	 *  At Coach, what the Quick Model makes of the Suggested Action, until the rules pick anew:
+	 *  `None` while it hasn't been asked, or its answer was dropped.
 	 */
 	coach: CoachLine | null,
 };
