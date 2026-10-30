@@ -1,0 +1,33 @@
+description = "A Human Ice Elementalist on turn 0 of a seeded game on D:1 opens the skills screen, then the spell list switched to its power and range, enters wizard mode and creates a hobgoblin beside them, waits a turn, creates a second hobgoblin and waits another"
+recording = "ice-elementalist-freezes-hobgoblins.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [0]
+
+[setup]
+rc = """
+combo = HuIE
+game_seed = 1
+"""
+keys = [
+  # Open the skills screen, then close it.
+  "m", "\u001b",
+  # Open the spell list, switch it to power, damage and range, then close it.
+  "I", "!", "\u001b",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command.
+  "&", "wiz\r",
+  # Create a monster by name beside them: a hobgoblin.
+  "m", "hobgoblin\r", "\u001b",
+  # Wait a turn.
+  ".", "\u001b",
+  # Create a second hobgoblin, then wait another turn.
+  "&", "m", "hobgoblin\r", "\u001b",
+  ".", "\u001b",
+]
+
+[[alerts]]
+turn = 1
+cause = "last-way-out-lost"
+
+[[suggested_actions]]
+turn = 1
+rule = "fight-carefully"
