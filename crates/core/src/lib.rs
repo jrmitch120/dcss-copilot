@@ -46,7 +46,9 @@ pub use fact_sheet::{
     ActingMonster, Chance, FactSheet, GearBasis, GearPlayed, KnownOrStale, NotModelled, Threat,
     ThreatAssessment, ThreatLevel,
 };
-pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
+pub use fight_outcome::{
+    AttackPlan, Fight, FightOutcome, NotPlayed, NotPlayedReason, PlanBase, PlanOpening, PlanOutcome,
+};
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use gaps::{Gap, ScreenFact};
 pub use known_games::{CharacterKey, GameKey, Identification, KnownGame, KnownGames};

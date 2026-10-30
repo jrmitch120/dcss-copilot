@@ -4,7 +4,7 @@ Everything the engine leaves out of the Threat Level, the Fight Outcome and the 
 
 - **What crawl does**, citing crawl 0.34.1's function as the code cites the formulas it ports.
 - **What the engine assumes** instead.
-- **Surfaced as**: the `NotModelled` variant, by the name the Fact Sheet gives it; or *accepted simplification*, where it was decided that the Fact Sheet needn't say, and why; or *harness only*, where the crawl oracle leaves it out but the Fact Sheet doesn't say so, a gap worth closing.
+- **Surfaced as**: the `NotModelled` variant, by the name the Fact Sheet gives it; or *accepted simplification*, where it was decided that the Fact Sheet needn't say, and why; or *harness only*, where the crawl oracle leaves it out but the Fact Sheet doesn't say so, a gap worth closing; or *named as not played*, where the fight card's "Not played" line names a spell of the player's the engine makes no Attack Plan of, with why.
 - **Harness**: which of the crawl oracle's harnesses leave it out, if any.
 - **Impact and cost**: how much it moves the Threat Level, the Fight Outcome or the Ways Out, and what modelling it would take.
 - **Issue**: the open issue that covers it, if there is one.
@@ -287,8 +287,8 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 
 ### Summons
 
-- **What crawl does:** a monster casts the summoning spells in its book (`_choose_spell_to_cast`), and the player casts theirs, each bringing allies into the fight.
-- **What the engine assumes:** a monster never summons, and fights instead; the player's summoning spells make no Attack Plan.
+- **What crawl does:** a monster casts the summoning spells in its book (`_choose_spell_to_cast`), and the player casts theirs, each bringing allies into the fight. Foxfire, a Fire Elementalist's first spell, summons two foxfires that seek out and burn monsters (`cast_foxfire`).
+- **What the engine assumes:** a monster never summons, and fights instead; the player's summoning spells make no Attack Plan, and Foxfire, the one summons the fight card names, is named as not played because it summons.
 - **Surfaced as:** `summons`, on every judged fight.
 - **Harness:** the player harness plays one attack at a time against one monster.
 - **Impact and cost:** either way, and large for a summoner such as an orc sorcerer or a player who summons. Summons need the summoned monsters played as monsters, and the player's allies as fighters.
@@ -343,10 +343,10 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 
 ### The player's attack extras
 
-- **What crawl does:** a weapon's other brands add damage or effects on a hit (`attack::apply_damage_brand`); auxiliary attacks such as kicks and headbutts follow a melee attack (`melee_attack::player_do_aux_attacks`); an axe cleaves; a sleeping monster is stabbed; rings and artefacts give slaying; and a shield or heavy armour slows the player's attacks (`player::attack_delay_with`).
-- **What the engine assumes:** none of these: a weapon's damage and delay with the heavy and speed brands, unarmed attacks with no claws or form.
+- **What crawl does:** a weapon's other brands add damage or effects on a hit (`attack::apply_damage_brand`); Freeze, after its damage, slows a cold-blooded monster that doesn't resist cold half the time (`monster::expose_to_element`, from `cast_freeze`); auxiliary attacks such as kicks and headbutts follow a melee attack (`melee_attack::player_do_aux_attacks`); an axe cleaves; a sleeping monster is stabbed; rings and artefacts give slaying; and a shield or heavy armour slows the player's attacks (`player::attack_delay_with`).
+- **What the engine assumes:** none of these: a weapon's damage and delay with the heavy and speed brands, unarmed attacks with no claws or form, and Freeze's damage alone.
 - **Surfaced as:** `ownAttackExtras`, on every judged fight.
-- **Harness:** the player harness gives its player none of them, and weapons a brand of none, heavy or speed.
+- **Harness:** the player harness gives its player none of them, and weapons a brand of none, heavy or speed; its Freeze cases count only the hit points Freeze takes, and the monster is restored, unslowed, after each.
 - **Impact and cost:** mostly errs low, as most of them add damage; a shield's or armour's delay errs high. Each is a port; slaying and the worn armour need the character overview read for more than it is now.
 
 ### The player's weapon
@@ -380,6 +380,22 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **Surfaced as:** `miscasts`, when a plan casts a spell.
 - **Harness:** none.
 - **Impact and cost:** errs low, for spells with a high failure rate. A port of `miscast_effect` for each school's damage.
+
+### What a cast does after its zap
+
+- **What crawl does:** some spells crawl casts as a plain zap do something more once it is fired (`_apply_post_zap_effect`): Kiss of Death drains the caster (`drain_player`), taking about a seventh of their maximum hit points, and with it any hit points past the new maximum; Sandblast takes half as long again as other actions; and Bombard stumbles the caster back from the blast half the time.
+- **What the engine assumes:** the cast is its zap alone: no drain, a standard-speed action, and the player stays where they stand.
+- **Surfaced as:** `postZapEffects`, when a plan casts Kiss of Death, Sandblast or Bombard.
+- **Harness:** the player harness fires each beam through `zappy` and `bolt::affect_monster`, not `_do_cast`, so nothing after the zap runs.
+- **Impact and cost:** errs high. Kiss of Death's drain costs a player near full health hit points with each cast, and Sandblast's longer cast gives the hostiles half an action more each time. Sandblast's delay is a constant for the plan's action time; the drain needs the player's maximum hit points to fall as the fight goes on; the stumble needs the player to move.
+
+### Attack spells with damage of their own
+
+- **What crawl does:** some of the player's starting attack spells deal damage by a path of their own rather than one zap: Scorch burns a monster near the player (`scorch_damage`), Poisonous Vapours poisons one (`poisonous_vapours_damage`), and Jinxbite is a status under which each of the player's attacks may call a sprite to bite the monster, against its willpower (`attempt_jinxbite_hit`). Soul Splinter deals no damage: it splits the monster's soul off as a wisp that fights for the player (`make_soul_wisp`).
+- **What the engine assumes:** none of them makes an Attack Plan.
+- **Surfaced as:** named as not played, with why: Scorch, Poisonous Vapours and Jinxbite because their damage isn't ported, Soul Splinter because it deals no damage.
+- **Harness:** the player harness casts none of them.
+- **Impact and cost:** errs low early on for a Fire Elementalist, an Alchemist, a Hexslinger or a Necromancer, whose first attack spell is one of these. Scorch and Poisonous Vapours are each a port of their damage dice and resistances with a harness case of their own; Jinxbite needs the willpower roll ported and played on each of the player's attacks; Soul Splinter's wisp is an ally, which waits on allies being played.
 
 ### Blasts and bolts
 

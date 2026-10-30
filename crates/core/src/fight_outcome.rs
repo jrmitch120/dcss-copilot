@@ -3,13 +3,14 @@
 
 use std::collections::BTreeSet;
 
-use copilot_gk::{Bundle, EnumId, ItemUse, MissileKind};
+use copilot_gk::{Bundle, EnumId, ItemUse, MissileKind, PlayerBeam, Spell};
 use serde::Serialize;
 
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::carried_gear::{self, ItemBrand};
 use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
+pub use crate::engine::player_attacks::NotPlayedReason;
 use crate::engine::player_attacks::{AttackSpell, Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
@@ -82,15 +83,46 @@ pub struct FightOutcome {
     /// Each plan, the best first: the likeliest to win, then the one costing the fewest hit
     /// points.
     pub plans: Vec<PlanOutcome>,
-    /// The player's spells and wands no plan uses, by name: those the engine doesn't port as
-    /// attacks, such as a hex, a summons or Blink, and those it can't play as the game shows
-    /// them, such as a wand whose charges aren't shown.
-    pub not_played: Vec<String>,
+    /// The player's spells and wands no plan uses: those the engine doesn't port as attacks,
+    /// such as a hex, a summons or Blink, and those it can't play as the game shows them, such as
+    /// a wand whose charges aren't shown.
+    pub not_played: Vec<NotPlayed>,
     /// Facts the Advisor lacks that may hide a better plan, such as the spell list unread.
     pub gaps: Vec<Gap>,
     /// What the fights leave out, so the numbers are read for what they are. The hostiles fight
     /// as the Threat Level plays them, and what it leaves out it leaves out here too.
     pub not_modelled: Vec<NotModelled>,
+}
+
+/// A spell or wand the player has that no Attack Plan uses.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NotPlayed {
+    /// Its name, such as `Blink` or `wand of flame`.
+    pub name: String,
+    /// Why, for a spell crawl casts to harm a monster in a way the engine doesn't play.
+    pub reason: Option<NotPlayedReason>,
+}
+
+impl NotPlayed {
+    /// The one named `name`, for no reason the Advisor says.
+    fn named(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            reason: None,
+        }
+    }
+
+    /// It as the card lists it, such as `Scorch (its damage isn't ported)`.
+    fn listed(&self) -> String {
+        let why = match self.reason {
+            None => return self.name.clone(),
+            Some(NotPlayedReason::OwnDamagePath) => "its damage isn't ported",
+            Some(NotPlayedReason::NoDamage) => "deals no damage",
+            Some(NotPlayedReason::Summons) => "summons",
+        };
+        format!("{} ({why})", self.name)
+    }
 }
 
 /// One Attack Plan, played out many times.
@@ -550,7 +582,7 @@ impl<'v> Player<'v> {
         remembered: Option<&AccumulatedState>,
         bundle: &'b Bundle,
         gaps: &mut BTreeSet<Gap>,
-        not_played: &mut Vec<String>,
+        not_played: &mut Vec<NotPlayed>,
         not_modelled: &mut BTreeSet<NotModelled>,
     ) -> Vec<(PlanOpening, Opening<'b>)> {
         gaps.extend(spell_gaps(remembered, self.mp_max > 0, bundle));
@@ -561,7 +593,12 @@ impl<'v> Player<'v> {
         let mut openings = Vec::new();
         for spell in known {
             let Some(attack) = attack_spell(spell, bundle) else {
-                not_played.push(spell.name.clone());
+                let reason = spell_known(spell, bundle)
+                    .and_then(|known| NotPlayedReason::of(bundle.formulas.player_beam, known));
+                not_played.push(NotPlayed {
+                    name: spell.name.clone(),
+                    reason,
+                });
                 continue;
             };
             let Some(reach) =
@@ -569,14 +606,15 @@ impl<'v> Player<'v> {
             else {
                 continue;
             };
-            match spell_opening(spell, reach, attack, not_modelled) {
+            let variant = bundle.formulas.player_beam;
+            match spell_opening(variant, spell, reach, attack, not_modelled) {
                 Some(opening) => openings.push((
                     PlanOpening::Spell {
                         name: spell.name.clone(),
                     },
                     opening,
                 )),
-                None => not_played.push(spell.name.clone()),
+                None => not_played.push(NotPlayed::named(&spell.name)),
             }
         }
         openings
@@ -588,7 +626,7 @@ impl<'v> Player<'v> {
     fn wands<'b>(
         &self,
         bundle: &'b Bundle,
-        not_played: &mut Vec<String>,
+        not_played: &mut Vec<NotPlayed>,
     ) -> Vec<(PlanOpening, Opening<'b>)> {
         let variant = bundle.formulas.player_beam;
         let wands = self.inventory.iter().filter(|item| {
@@ -618,7 +656,10 @@ impl<'v> Player<'v> {
             })();
             match opening {
                 Some(opening) => openings.push(opening),
-                None => not_played.push(carried_gear::without_article(&item.name).to_owned()),
+                None => {
+                    let name = carried_gear::without_article(&item.name);
+                    not_played.push(NotPlayed::named(name));
+                }
             }
         }
         openings
@@ -663,8 +704,9 @@ impl<'v> Player<'v> {
 /// The opening of a spell the player knows, `spell`, cast as `reach` shows it, as `attack`:
 /// `None` for one they always fail, can't cast for its range, or whose power the list doesn't
 /// show. A power shown as a percentage of the spell's cap is drawn from those it could be. Its
-/// miscasts are noted in `not_modelled`.
+/// miscasts, and what `variant` does after its zap, are noted in `not_modelled`.
 fn spell_opening<'b>(
+    variant: PlayerBeam,
     spell: &KnownSpell,
     reach: &SpellReach,
     attack: AttackSpell<'b>,
@@ -686,6 +728,9 @@ fn spell_opening<'b>(
         }
     };
     not_modelled.insert(NotModelled::Miscasts);
+    if attack.has_post_zap_effect(variant) {
+        not_modelled.insert(NotModelled::PostZapEffects);
+    }
     Some(Opening::Spell {
         spell: attack,
         power,
@@ -736,11 +781,15 @@ pub(crate) fn spell_gaps(
 
 /// `spell`, which the player knows, as the engine plays it, when it ports it as an attack.
 fn attack_spell<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<AttackSpell<'b>> {
+    spell_known(spell, bundle).and_then(|known| AttackSpell::of(bundle.formulas.player_beam, known))
+}
+
+/// `spell`, which the player knows, as Game Knowledge has it.
+fn spell_known<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<&'b Spell> {
     bundle
         .spells
         .values()
         .find(|known| known.name == spell.name)
-        .and_then(|known| AttackSpell::of(bundle.formulas.player_beam, known))
 }
 
 /// A known wand's charges, as its name shows them after it, such as `a wand of flame (12)`
@@ -796,8 +845,9 @@ impl Fight {
                     .collect();
                 let mut not_modelled = format!("Not modelled: {}", words.join(", "));
                 if !outcome.not_played.is_empty() {
-                    not_modelled
-                        .push_str(&format!(". Not played: {}", outcome.not_played.join(", ")));
+                    let listed: Vec<String> =
+                        outcome.not_played.iter().map(NotPlayed::listed).collect();
+                    not_modelled.push_str(&format!(". Not played: {}", listed.join(", ")));
                 }
                 Some(card(line, others, Some(not_modelled)))
             }
@@ -844,6 +894,7 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         NotModelled::OwnFractions => Some("skill fractions"),
         NotModelled::PlayerSpeed => Some("your speed"),
         NotModelled::Miscasts => Some("miscasts"),
+        NotModelled::PostZapEffects => Some("drain and delay after a cast"),
         NotModelled::BlastsAndBolts => Some("blast and bolt spread"),
         NotModelled::MonsterLighting => Some("halos and umbras"),
         NotModelled::MonsterArmour => Some("monsters' armour"),
@@ -1221,6 +1272,15 @@ mod tests {
             kiss.win.times > plan(&sheet, "melee").win.times + 200,
             "{kiss:?}"
         );
+        // Its drain on the caster isn't played.
+        let not_modelled = &judged(&sheet).not_modelled;
+        assert!(
+            not_modelled.contains(&NotModelled::PostZapEffects),
+            "{not_modelled:?}"
+        );
+        let darts = dart_thrower(20);
+        let darts = &judged(&darts).not_modelled;
+        assert!(!darts.contains(&NotModelled::PostZapEffects), "{darts:?}");
     }
 
     /// A trained archer with a shortbow, against a monster `distance` squares away.
@@ -1320,7 +1380,12 @@ mod tests {
             .casting(10, &[("Blink", 5, 2)], &[("Blink", 30, 0)])
             .carrying('c', "a wand of flame", 1, "OBJ_WANDS", "WAND_FLAME")
             .against(&[("jackal", 2)]);
-        assert_eq!(judged(&sheet).not_played, ["Blink", "wand of flame"]);
+        let names: Vec<&str> = judged(&sheet)
+            .not_played
+            .iter()
+            .map(|spell| spell.name.as_str())
+            .collect();
+        assert_eq!(names, ["Blink", "wand of flame"]);
         let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None, Reader::Player)
         else {
             panic!("no fight card");
@@ -1329,6 +1394,34 @@ mod tests {
             not_modelled
                 .unwrap()
                 .ends_with("Not played: Blink, wand of flame"),
+        );
+    }
+
+    #[test]
+    fn attack_spells_the_engine_doesnt_play_are_named_on_the_card_with_why() {
+        let spells = [
+            ("Scorch", 5, 1),
+            ("Poisonous Vapours", 5, 1),
+            ("Jinxbite", 5, 1),
+            ("Soul Splinter", 5, 1),
+            ("Foxfire", 5, 1),
+            ("Blink", 5, 2),
+        ];
+        let sheet = fighter()
+            .casting(10, &spells, &[])
+            .against(&[("jackal", 2)]);
+        let Some(FocusCard::Fight { not_modelled, .. }) = sheet.fight.card(None, Reader::Player)
+        else {
+            panic!("no fight card");
+        };
+        let not_modelled = not_modelled.unwrap();
+        assert!(
+            not_modelled.ends_with(
+                "Not played: Scorch (its damage isn't ported), Poisonous Vapours (its damage \
+                 isn't ported), Jinxbite (its damage isn't ported), Soul Splinter (deals no \
+                 damage), Foxfire (summons), Blink"
+            ),
+            "{not_modelled}"
         );
     }
 
