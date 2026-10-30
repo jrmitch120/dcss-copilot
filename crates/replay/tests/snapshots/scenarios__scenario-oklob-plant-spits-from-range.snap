@@ -545,7 +545,8 @@ expression: replay
             "text": "Escape hatch in the floor · underfoot",
             "gap": null
           },
-          "ifLethal": null
+          "ifLethal": null,
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -881,7 +882,8 @@ expression: replay
             "text": "Escape hatch in the floor · underfoot",
             "gap": null
           },
-          "ifLethal": null
+          "ifLethal": null,
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -1256,7 +1258,8 @@ expression: replay
           "text": "Escape hatch in the floor · underfoot",
           "gap": null
         },
-        "ifLethal": null
+        "ifLethal": null,
+        "coach": null
       },
       "focus": {
         "card": "fight",

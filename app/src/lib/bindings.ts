@@ -101,6 +101,27 @@ export type ChecklistRow = {
 	line: string,
 };
 
+/**  What the Coach says of a Tactical moment, on the Suggested Action card. */
+export type CoachLine = 
+/**  The Quick Model has been asked, and hasn't answered yet. */
+{ state: "asking" } | 
+/**  The Candidate Action it picked, and why. */
+{ state: "picked"; 
+/**  What it picked, in one line, as the card's `action` says the rules' pick. */
+action: MarkedValue; 
+/**  It picked the Suggested Action. */
+agrees: boolean; 
+/**
+ *  Why, in whole sentences within the word limit: `None` when no sentence of its reason
+ *  passed the grounding checks.
+ */
+reason: string | null; 
+/**
+ *  The turn it was asked on, once the game has passed it: its reason quotes the moment
+ *  as it was then. `None` on that turn.
+ */
+asOfTurn: number | null };
+
 /**
  *  The sixteen colours DCSS draws glyphs, statuses and menu entries in, named as crawl names
  *  them, in crawl's order.
@@ -571,6 +592,11 @@ export type SuggestedActionCard = {
 	 *  spell · 4% fail`, or that none is left, marked as `action` is.
 	 */
 	ifLethal: MarkedValue | null,
+	/**
+	 *  At Coach, what the Quick Model makes of the Suggested Action, until the rules pick anew:
+	 *  `None` while it hasn't been asked, or its answer was dropped.
+	 */
+	coach: CoachLine | null,
 };
 
 /**

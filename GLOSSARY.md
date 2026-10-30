@@ -248,8 +248,12 @@ _Avoid_: Unknown, missing data
 Something the player could legally do right now, such as attacking, fleeing to a staircase or using a Way Out, together with its facts from the Fact Sheet. The Advisor only ever recommends a Candidate Action.
 _Avoid_: Option, move, choice
 
+**Grounding Check**:
+What every answer from an LLM passes before the player sees it: each sentence may quote only numbers and Game Knowledge names its prompt said (ADR 0003), and one that quotes anything else is dropped without notice while the pick it explains is kept. What is left is trimmed to whole sentences within the call's word limit.
+_Avoid_: Validation, fact-check, filter
+
 **Suggested Action**:
-The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor among several hostiles, falling back to stairs, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, or a last-resort fight could be traded for a Way Out.
+The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor among several hostiles, falling back to stairs, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, or a last-resort fight could be traded for a Way Out. At Coach, a Tactical Alert also asks the Quick Model to pick among the Candidate Actions, with a short reason quoting only what its prompt said; its pick shows beside the Suggested Action until the rules pick anew, marked with the turn it was asked on once that has passed.
 _Avoid_: Default action, rule pick
 
 **Encounter**:

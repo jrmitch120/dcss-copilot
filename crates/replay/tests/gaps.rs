@@ -312,7 +312,7 @@ fn step_until(replayer: &mut Replayer, reached: impl Fn(&Replayer) -> bool) {
 fn noticed(replayer: &Replayer, detection: impl Fn(&Detection) -> bool) -> bool {
     replayer.detections().any(|moment| match &moment.event {
         Happened::Detected(detected) => detection(detected),
-        Happened::Source(_) => false,
+        Happened::Source(_) | Happened::Coached(_) => false,
     })
 }
 

@@ -3,7 +3,9 @@
 
 mod accumulated_state;
 mod advisor;
+mod candidate_action;
 mod carried_gear;
+mod coach;
 mod crawl_ids;
 mod dangerous_status;
 mod detectors;
@@ -14,8 +16,10 @@ mod fact_sheet;
 mod fight_outcome;
 mod game_source;
 mod gaps;
+mod grounding;
 mod join_card;
 mod known_games;
+mod prompt;
 mod screen;
 mod suggested_action;
 mod told;
@@ -29,6 +33,7 @@ pub use accumulated_state::{
 };
 pub use advisor::Advisor;
 pub use carried_gear::{CarriedGear, CarriedItem, GearSlot, ItemBrand, Unlisted, Unplayed};
+pub use coach::{Coached, Dropped, QuestionId, TacticalAnswer, TacticalQuestion};
 pub use dangerous_status::DangerousStatus;
 pub use detectors::{Alert, AlertCause, AlertKind, Detection};
 pub use engine::oracle;
@@ -45,16 +50,17 @@ pub use fight_outcome::{AttackPlan, Fight, FightOutcome, PlanBase, PlanOpening, 
 pub use game_source::{CrawlVersion, GameEnd, GameIdentity, Role, SessionEvent, SourceEvent};
 pub use gaps::{Gap, ScreenFact};
 pub use known_games::{CharacterKey, GameKey, Identification, KnownGame, KnownGames};
+pub use prompt::Prompt;
 pub use screen::{
     BranchFound, DungeonOverview, KnownAbility, KnownSpell, Resistance, Resistances, Screen,
     ScreenRead, ShopsFound, ShownMutations, Skills, SpellPower, SpellReach,
 };
 pub use suggested_action::SuggestionRule;
 pub use view_model::{
-    Appearance, AskBox, AssistanceLevel, Character, ChecklistRow, Colour, Connection, Depiction,
-    FactCard, FocusCard, GameView, GapList, GapRow, Glyph, JoinCard, Listing, MarkedValue, NowPill,
-    PickedUp, RunPlanRail, SuggestedActionCard, TileName, ToolbarBadge, UnreadPart, ViewModel,
-    WayOutRow, WaysOutList,
+    Appearance, AskBox, AssistanceLevel, Character, ChecklistRow, CoachLine, Colour, Connection,
+    Depiction, FactCard, FocusCard, GameView, GapList, GapRow, Glyph, JoinCard, Listing,
+    MarkedValue, NowPill, PickedUp, RunPlanRail, SuggestedActionCard, TileName, ToolbarBadge,
+    UnreadPart, ViewModel, WayOutRow, WaysOutList,
 };
 pub use visible_state::{
     Attitude, CrawlThreat, GameMessage, InventoryItem, LevelMap, LevelName, MapCell, MapSnapshot,

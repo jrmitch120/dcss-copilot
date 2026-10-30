@@ -6,13 +6,17 @@ use std::sync::OnceLock;
 use copilot_gk::{Bundle, Library, Monster};
 
 use crate::accumulated_state::{AccumulatedState, Backfill};
+use crate::candidate_action::Candidates;
+use crate::coach::{self, Coached, Lane, QuestionId, TacticalAnswer, TacticalQuestion};
 use crate::detectors::{Alert, Detection, Detectors};
 use crate::exceptional::{Exceptional, ExceptionalMonster};
 use crate::fact_sheet::{FactSheet, Threat, ThreatAssessment, ThreatLevel, attacks_player};
 use crate::game_source::{GameIdentity, Role, SessionEvent, SourceEvent};
 use crate::gaps::{self, Gap, Reader, ScreenFact};
+use crate::grounding::EntityNames;
 use crate::join_card::Joining;
 use crate::known_games::GameKey;
+use crate::prompt::{TACTICAL_WORDS, TacticalMoment};
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
     AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
@@ -32,6 +36,8 @@ pub struct Advisor {
     /// The Fact Sheet for this moment, computed when first asked for: playing a fight out is
     /// costly, and many events pass before anything reads it.
     fact_sheet: OnceLock<FactSheet>,
+    /// The Coach's Tactical question in flight, and the last answer it kept.
+    coach: Lane,
 }
 
 /// What the Advisor keeps of one game it has followed.
@@ -119,6 +125,7 @@ impl Advisor {
             identity: None,
             visible: VisibleState::default(),
             games: HashMap::new(),
+            coach: Lane::default(),
         }
     }
 
@@ -227,6 +234,61 @@ impl Advisor {
         if let Some(game) = self.followed_game_mut() {
             game.gap_prompt = None;
         }
+    }
+
+    /// Asks the Coach about this moment, as question `id`: what to ask the Quick Model, when the
+    /// followed game has a Suggested Action to judge. It is the question in flight from now on,
+    /// and any other's answer is dropped. Call it as the detectors raise a Tactical Alert, at
+    /// Coach.
+    pub fn ask_tactical(&mut self, id: QuestionId) -> Option<TacticalQuestion> {
+        let moment = self.moment()?;
+        let suggested = &moment.suggested;
+        let fact_sheet = self.fact_sheet();
+        let candidates = Candidates::at(fact_sheet, suggested.action());
+        let identity = self.identity.as_ref();
+        let (prompt, listed) = TacticalMoment {
+            crawl_version: identity
+                .and_then(|identity| identity.crawl_version.as_ref())
+                .map(|version| version.0.as_str()),
+            species: identity.map(|identity| identity.species.as_str()),
+            visible: &self.visible,
+            fact_sheet,
+            suggested,
+            candidates: &candidates,
+        }
+        .render();
+        let fight = fact_sheet.fight.clone();
+        Some(
+            self.coach
+                .ask(id, moment, prompt, TACTICAL_WORDS, &listed, &fight),
+        )
+    }
+
+    /// Takes the Coach's `answer` to question `id`, and says what became of it: kept for the
+    /// Suggested Action card only if it answers the question in flight, the rules haven't picked
+    /// anew since it was asked, and it picks a Candidate Action the question listed. Its reason
+    /// keeps only the sentences that quote nothing the question didn't say.
+    pub fn answer_tactical(
+        &mut self,
+        id: QuestionId,
+        answer: Result<TacticalAnswer, String>,
+    ) -> Coached {
+        let names = self
+            .game_knowledge()
+            .map(EntityNames::of)
+            .unwrap_or_default();
+        let now = self.moment();
+        self.coach.answer(id, answer, now.as_ref(), &names)
+    }
+
+    /// The moment the followed game is at, while it has a Suggested Action for the Coach to
+    /// judge.
+    fn moment(&self) -> Option<coach::Moment> {
+        Some(coach::Moment {
+            game: self.followed_key()?,
+            turn: self.visible.turn,
+            suggested: self.suggested_action()?,
+        })
     }
 
     /// Forgets what it keeps of the game `key` names, as of a game it was taken for wrongly.
@@ -364,7 +426,13 @@ impl Advisor {
                 .suggests()
                 .then(|| self.suggested_action())
                 .flatten()
-                .map(|suggested| suggested.card(&self.fact_sheet().fight, self.reader())),
+                .map(|suggested| {
+                    let mut card = suggested.card(&self.fact_sheet().fight, self.reader());
+                    if assistance.coaches() {
+                        card.coach = self.moment().and_then(|now| self.coach.line(&now));
+                    }
+                    card
+                }),
             focus: self.focus(&gaps),
             fact_cards: self.fact_cards(),
             ways_out: self

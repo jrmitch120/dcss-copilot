@@ -262,7 +262,8 @@ expression: replay
             "text": "Heal wounds · heals",
             "gap": null
           },
-          "ifLethal": null
+          "ifLethal": null,
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -660,7 +661,8 @@ expression: replay
             "text": "Heal wounds · heals",
             "gap": null
           },
-          "ifLethal": null
+          "ifLethal": null,
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -1112,7 +1114,8 @@ expression: replay
           "text": "Heal wounds · heals",
           "gap": null
         },
-        "ifLethal": null
+        "ifLethal": null,
+        "coach": null
       },
       "focus": {
         "card": "fight",

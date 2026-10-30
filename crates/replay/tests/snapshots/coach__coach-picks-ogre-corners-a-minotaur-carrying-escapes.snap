@@ -1,0 +1,30 @@
+---
+source: crates/replay/tests/coach.rs
+expression: coached_events(&replayer)
+---
+[
+  {
+    "coach": "asked",
+    "question": 1
+  },
+  {
+    "coach": "picked",
+    "question": 1,
+    "pick": "a1",
+    "line": "Teleportation · escapes after a delay",
+    "agrees": true,
+    "reason": "Death before your next action is 22.5% and the worst hit is 36 against 19 HP, with an ogre adjacent."
+  },
+  {
+    "coach": "asked",
+    "question": 2
+  },
+  {
+    "coach": "picked",
+    "question": 2,
+    "pick": "a1",
+    "line": "Heal wounds · heals",
+    "agrees": true,
+    "reason": "At 1 HP the ogre's worst hit is 36, so 42.0% death before your next action is the danger; healing raises HP above a single hit more safely than teleporting away with the ogre adjacent."
+  }
+]

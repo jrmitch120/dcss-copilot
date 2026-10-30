@@ -239,7 +239,8 @@ expression: replay
             "text": "The Advisor can't judge this fight",
             "gap": "Open the skills screen (m) to judge a fight."
           },
-          "ifLethal": null
+          "ifLethal": null,
+          "coach": null
         },
         "focus": {
           "card": "fight",
@@ -651,7 +652,8 @@ expression: replay
           "text": "The Advisor can't judge this fight",
           "gap": "Open the skills screen (m) to judge a fight."
         },
-        "ifLethal": null
+        "ifLethal": null,
+        "coach": null
       },
       "focus": {
         "card": "fight",

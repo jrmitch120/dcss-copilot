@@ -79,6 +79,16 @@ A sidecar is JSON Lines, one call per line: the request's hash, the request itse
 
 Committed sidecars sit beside the tests that replay them, such as `crates/llm/tests/sidecars/`. They never hold a key: providers keep it out of the request.
 
+### Coach's calls in a replay
+
+`Replayer::coaching(provider, model)` replays as at Coach: each Tactical Alert with a Suggested Action asks the Quick Model, through `provider`, which must answer at once, as a `SidecarReplayer` does. `calls()` gives every request made, the rendered prompt in it, and the timeline records each question asked and what became of its answer (`Happened::Coached`). Answers arrive just after the envelope that asked, unless `answering_after_ms(n)` delays them on the envelopes' clock, which is how tests see a call cancelled by a newer one and an answer dropped because the rules picked anew first, and one kept as of an earlier turn (`tests/coach.rs`).
+
+A Scenario replayed at Coach answers from the sidecar beside its Recording, such as `tests/scenarios/ogre-corners-a-minotaur-carrying-escapes.llm.jsonl`. A change to the renderer changes every prompt, so those calls are no longer recorded: record them again with your own key, then review the prompt and pick snapshots as for any other change:
+
+```sh
+ANTHROPIC_API_KEY=... cargo run -p copilot-replay --bin coach-sidecar -- crates/replay/tests/scenarios/<name>.dcssrec
+```
+
 ## Snapshots
 
 Snapshots are golden files in `tests/snapshots/`, committed and reviewed in diffs like code. A test whose output changed fails, and `insta` writes the new output beside the old as `*.snap.new`. CI never writes snapshots; it only fails.

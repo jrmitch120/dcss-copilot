@@ -5,11 +5,14 @@
 use copilot_gk::Relief;
 use serde::{Deserialize, Serialize};
 
-use crate::fact_sheet::{Chance, FactSheet, Threat, ThreatLevel};
-use crate::fight_outcome::{Fight, PlanOutcome};
+use crate::candidate_action::{
+    CandidateAction, Odds, corridor, fight_action, same_plan, same_way_out, usable,
+};
+use crate::fact_sheet::{FactSheet, Threat, ThreatLevel};
+use crate::fight_outcome::Fight;
 use crate::gaps::Reader;
-use crate::view_model::{MarkedValue, SuggestedActionCard, capitalised};
-use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
+use crate::view_model::{MarkedValue, SuggestedActionCard};
+use crate::ways_out::{Escape, WaysOut};
 
 /// Fight on at DANGEROUS only when the best Attack Plan wins at least this often, in percent. From
 /// the spec (#24, "Detectors and Suggested Action"), to be tuned on the corpus.
@@ -78,7 +81,7 @@ impl SuggestionRule {
     }
 
     /// Its name, as the panel labels the Suggested Action it picked.
-    fn name(self) -> &'static str {
+    pub(crate) fn name(self) -> &'static str {
         match self {
             Self::LeaveByStairs => "Leave by stairs",
             Self::HealOutOfIt => "Heal out of it",
@@ -101,55 +104,6 @@ pub(crate) struct SuggestedAction {
     /// At fight carefully, the Way Out the LETHAL rules would take, should the moment turn
     /// LETHAL, if there is one.
     if_lethal: Option<Escape>,
-}
-
-/// Something the player could do right now that a rule can pick, with its facts from the Fact
-/// Sheet.
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum CandidateAction {
-    /// Take a staircase, or use an item, ability or spell: one of the Ways Out.
-    WayOut(Escape),
-    /// Hold a corridor.
-    Corridor(CorridorToHold),
-    /// Fight what is in view.
-    Fight {
-        /// The Attack Plan to fight by, and how it comes out.
-        odds: Odds,
-        /// The player's hit points the fight starts from.
-        hp: i32,
-    },
-}
-
-/// The corridor a Suggested Action holds.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum CorridorToHold {
-    /// The one the player stands in.
-    StandingIn,
-    /// The nearest square of one, which the player can walk to from the open ground they stand
-    /// on.
-    Near(CorridorSquare),
-}
-
-/// The Attack Plan a fight is fought by, and how it comes out.
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum Odds {
-    /// As the Fight Outcome judges it now.
-    Now(PlanOutcome),
-    /// As the Fight Outcome last judged it, while it can't judge the fight now, such as with too
-    /// many hostiles in view.
-    LastJudged(PlanOutcome),
-    /// The Fight Outcome hasn't judged a plan to fight by.
-    Unjudged,
-}
-
-impl Odds {
-    /// The plan, whether or not its odds are current.
-    fn plan(&self) -> Option<&PlanOutcome> {
-        match self {
-            Self::Now(plan) | Self::LastJudged(plan) => Some(plan),
-            Self::Unjudged => None,
-        }
-    }
 }
 
 impl SuggestedAction {
@@ -294,26 +248,17 @@ impl SuggestedAction {
     /// Whether `other` is the same rule picking the same thing, whatever its facts now: the same
     /// staircase, item, ability or spell, a corridor, or the same Attack Plan.
     pub(crate) fn same_pick(&self, other: &Self) -> bool {
-        self.rule == other.rule
-            && match (&self.action, &other.action) {
-                (CandidateAction::WayOut(mine), CandidateAction::WayOut(theirs)) => {
-                    same_way_out(mine, theirs)
-                }
-                (CandidateAction::Corridor(_), CandidateAction::Corridor(_)) => true,
-                (
-                    CandidateAction::Fight { odds: mine, .. },
-                    CandidateAction::Fight { odds: theirs, .. },
-                ) => match (mine.plan(), theirs.plan()) {
-                    (Some(mine), Some(theirs)) => same_plan(mine, theirs),
-                    (mine, theirs) => mine.is_none() && theirs.is_none(),
-                },
-                _ => false,
-            }
+        self.rule == other.rule && self.action.same_as(&other.action)
     }
 
     /// The rule that picked it.
     pub(crate) fn rule(&self) -> SuggestionRule {
         self.rule
+    }
+
+    /// What it picked.
+    pub(crate) fn action(&self) -> &CandidateAction {
+        &self.action
     }
 
     /// It in one line, as the timeline records it, as of the moment `fight` judges, such as
@@ -335,55 +280,20 @@ impl SuggestedAction {
         SuggestedActionCard {
             level: self.rule.level(),
             rule: self.rule.name().to_owned(),
-            action: match &self.action {
-                CandidateAction::WayOut(escape) => escape.value(reader),
-                CandidateAction::Corridor(CorridorToHold::StandingIn) => {
-                    MarkedValue::known("The corridor you stand in".to_owned())
-                }
-                CandidateAction::Corridor(CorridorToHold::Near(square)) => {
-                    MarkedValue::known(match square.steps {
-                        1 => "The corridor 1 step away".to_owned(),
-                        steps => format!("The corridor {steps} steps away"),
-                    })
-                }
-                CandidateAction::Fight {
-                    odds: Odds::Now(plan),
-                    hp,
-                } => fight.marked(plan.summary(*hp), reader),
-                CandidateAction::Fight {
-                    odds: Odds::LastJudged(plan),
-                    ..
-                } => fight.marked(
-                    format!("{}: can't be judged now", capitalised(&plan.plan.name())),
-                    reader,
-                ),
-                CandidateAction::Fight {
-                    odds: Odds::Unjudged,
-                    ..
-                } => fight.marked("The Advisor can't judge this fight".to_owned(), reader),
-            },
+            action: self.action.value(fight, reader),
             if_lethal: (self.rule == SuggestionRule::FightCarefully).then(|| {
                 self.if_lethal.as_ref().map_or_else(
                     || MarkedValue::known("no Way Out left".to_owned()),
                     |escape| escape.value(reader),
                 )
             }),
+            coach: None,
         }
     }
 }
 
+/// What fight on asks of a Candidate Action, kept with the rule.
 impl CandidateAction {
-    /// How often its Attack Plan wins now, when it fights by one the Fight Outcome judges.
-    fn win(&self) -> Option<Chance> {
-        match self {
-            Self::Fight {
-                odds: Odds::Now(plan),
-                ..
-            } => Some(plan.win),
-            Self::WayOut(_) | Self::Corridor(_) | Self::Fight { .. } => None,
-        }
-    }
-
     /// Whether it fights by an Attack Plan that wins and leaves hit points to spare out of
     /// `hp_max` as fight on asks, or within `slack` points of it.
     fn fights_on(&self, hp_max: Option<i32>, slack: u64) -> bool {
@@ -405,34 +315,6 @@ impl CandidateAction {
             >= FIGHT_ON_HP_LEFT_PERCENT.saturating_sub(slack)
                 * u64::try_from(hp_max).unwrap_or(u64::MAX);
         wins && spares
-    }
-}
-
-impl FactSheet {
-    /// The player's hit points the Threat Level was judged against, when it was judged.
-    fn threat_hp(&self) -> Option<i32> {
-        match &self.threat {
-            Threat::Rated(assessment) => Some(assessment.hp),
-            Threat::Unrated { .. } => None,
-        }
-    }
-}
-
-/// Fighting by the best Attack Plan in `fight`, or unjudged from `hp`.
-fn fight_action(fight: &Fight, hp: i32) -> CandidateAction {
-    match fight {
-        Fight::Judged(outcome) => CandidateAction::Fight {
-            odds: outcome
-                .plans
-                .first()
-                .cloned()
-                .map_or(Odds::Unjudged, Odds::Now),
-            hp: outcome.hp,
-        },
-        Fight::NoFight | Fight::TooMany { .. } | Fight::Unjudged { .. } => CandidateAction::Fight {
-            odds: Odds::Unjudged,
-            hp,
-        },
     }
 }
 
@@ -488,68 +370,15 @@ fn carried(ways_out: &WaysOut, relief: Relief) -> Option<&Escape> {
         .map(|(way_out, _)| &way_out.option)
 }
 
-/// The Ways Out the player can use now.
-fn usable(ways_out: &WaysOut) -> impl Iterator<Item = &WayOut> {
-    ways_out
-        .options
-        .iter()
-        .filter(|way_out| way_out.usable == Usable::Yes)
-}
-
-/// The corridor to hold, when the player stands in one or can walk to one.
-fn corridor(ways_out: &WaysOut) -> Option<CorridorToHold> {
-    match ways_out.ground {
-        Some(Ground::Corridor { .. }) => Some(CorridorToHold::StandingIn),
-        Some(Ground::OpenGround {
-            nearest_corridor, ..
-        }) => nearest_corridor.map(CorridorToHold::Near),
-        None => None,
-    }
-}
-
-/// Whether two outcomes are of the same Attack Plan, by name: a plan's wand charges and missiles
-/// count down as it is fought, and it is still the same plan.
-fn same_plan(one: &PlanOutcome, other: &PlanOutcome) -> bool {
-    one.plan.name() == other.plan.name()
-}
-
-/// Whether two Ways Out are the same one, whatever their facts now: the same staircase, the item
-/// in the same inventory slot, or the ability or spell of the same name.
-fn same_way_out(one: &Escape, other: &Escape) -> bool {
-    match (one, other) {
-        (
-            Escape::Stairs { position: one, .. },
-            Escape::Stairs {
-                position: other, ..
-            },
-        ) => one == other,
-        (
-            Escape::Item {
-                letter: one,
-                kind_name: one_kind,
-                ..
-            },
-            Escape::Item {
-                letter: other,
-                kind_name: other_kind,
-                ..
-            },
-        ) => one == other && one_kind == other_kind,
-        (Escape::Ability { name: one, .. }, Escape::Ability { name: other, .. })
-        | (Escape::Spell { name: one, .. }, Escape::Spell { name: other, .. }) => one == other,
-        _ => false,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use copilot_gk::StairDirection;
 
     use super::*;
-    use crate::fact_sheet::ThreatAssessment;
-    use crate::fight_outcome::{AttackPlan, FightOutcome, PlanBase, PlanOpening};
+    use crate::fact_sheet::{Chance, ThreatAssessment};
+    use crate::fight_outcome::{AttackPlan, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
     use crate::visible_state::Position;
-    use crate::ways_out::ReadOn;
+    use crate::ways_out::{CorridorSquare, Ground, ReadOn, Usable, WayOut};
 
     const TRIALS: u32 = 1000;
     const HP: i32 = 50;

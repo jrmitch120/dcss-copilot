@@ -108,6 +108,12 @@ impl AssistanceLevel {
             Self::Hints | Self::Coach => true,
         }
     }
+
+    /// Whether the Quick Model is asked to judge Tactical picks.
+    #[must_use]
+    pub fn coaches(self) -> bool {
+        self == Self::Coach
+    }
 }
 
 /// The panel for the followed game, top to bottom: header, now pill, focus card,
@@ -333,6 +339,34 @@ pub struct SuggestedActionCard {
     /// At fight carefully, the Way Out to take should the moment turn LETHAL, such as `Blink ·
     /// spell · 4% fail`, or that none is left, marked as `action` is.
     pub if_lethal: Option<MarkedValue>,
+    /// At Coach, what the Quick Model makes of the Suggested Action, until the rules pick anew:
+    /// `None` while it hasn't been asked, or its answer was dropped.
+    pub coach: Option<CoachLine>,
+}
+
+/// What the Coach says of a Tactical moment, on the Suggested Action card.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Type)]
+#[serde(
+    tag = "state",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum CoachLine {
+    /// The Quick Model has been asked, and hasn't answered yet.
+    Asking,
+    /// The Candidate Action it picked, and why.
+    Picked {
+        /// What it picked, in one line, as the card's `action` says the rules' pick.
+        action: MarkedValue,
+        /// It picked the Suggested Action.
+        agrees: bool,
+        /// Why, in whole sentences within the word limit: `None` when no sentence of its reason
+        /// passed the grounding checks.
+        reason: Option<String>,
+        /// The turn it was asked on, once the game has passed it: its reason quotes the moment
+        /// as it was then. `None` on that turn.
+        as_of_turn: Option<u32>,
+    },
 }
 
 /// The card under the now pill: what deserves the player's attention now.

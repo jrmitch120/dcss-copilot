@@ -46,6 +46,12 @@ pub async fn complete(
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize)]
 #[serde(tag = "error", rename_all = "snake_case")]
 pub enum LlmError {
+    /// The player hasn't given a key for the provider.
+    #[error("there is no {provider} key: add one in Settings → Models and keys")]
+    NoKey {
+        /// The provider, by name.
+        provider: String,
+    },
     /// The provider refused the key.
     #[error("the provider rejected the key ({status}): {message}")]
     KeyRejected {

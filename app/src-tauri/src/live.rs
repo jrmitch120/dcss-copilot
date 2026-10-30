@@ -6,10 +6,10 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use copilot_core::{Appearance, AssistanceLevel, Connection, ViewModel};
+use copilot_core::{Appearance, AssistanceLevel, Connection, QuestionId, ViewModel};
 use copilot_gk::{BundleError, Library};
-use copilot_llm::{ModelChoice, ModelSlot, sidecar_path};
-use copilot_replay::{Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
+use copilot_llm::{LlmError, LlmResponse, ModelChoice, ModelSlot, sidecar_path};
+use copilot_replay::{CoachCall, Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::Envelope;
 use serde::Serialize;
@@ -140,7 +140,7 @@ impl Live {
                 (Store::in_memory(), Some(error.to_string()))
             }
         };
-        let game = match history {
+        let mut game = match history {
             Ok(store) => Following::remembering(&knowledge, store),
             Err(error) => {
                 crate::log::error(format_args!(
@@ -149,6 +149,7 @@ impl Live {
                 Following::new(&knowledge)
             }
         };
+        game.coach_with(coach(&settings));
         Self {
             app_version,
             unreadable_knowledge,
@@ -253,7 +254,10 @@ impl Live {
     /// # Errors
     /// If the choice couldn't be saved, so it lasts only until the app exits.
     pub fn set_assistance(&self, assistance: AssistanceLevel) -> Result<(), SettingsError> {
-        self.lock().settings.set_assistance(assistance)
+        let mut state = self.lock();
+        let saved = state.settings.set_assistance(assistance);
+        state.coach_as_set();
+        saved
     }
 
     /// The game history, for Settings → History.
@@ -323,7 +327,22 @@ impl Live {
     /// # Errors
     /// If the choice couldn't be saved, so it lasts only until the app exits.
     pub fn set_model(&self, slot: ModelSlot, choice: ModelChoice) -> Result<(), SettingsError> {
-        self.lock().settings.set_model(slot, choice)
+        let mut state = self.lock();
+        let saved = state.settings.set_model(slot, choice);
+        state.coach_as_set();
+        saved
+    }
+
+    /// The call to make for the Coach's latest question, if one waits: taken once. The answer to
+    /// any call made before it is dropped, so cancel one still in flight.
+    pub fn take_call(&self) -> Option<CoachCall> {
+        self.lock().game.take_call()
+    }
+
+    /// The model's `response` to the Coach's `question` arrived.
+    pub fn answer(&self, question: QuestionId, response: Result<LlmResponse, LlmError>) {
+        // What became of it reaches the panel through the view model.
+        self.lock().game.answer(question, response);
     }
 
     /// Where LLM calls are recorded while a dev build records a Recording: its LLM sidecar.
@@ -350,7 +369,20 @@ impl Live {
     }
 }
 
+/// The Quick Model the Coach asks at the player's `settings`: only at Coach.
+fn coach(settings: &Settings) -> Option<ModelChoice> {
+    settings
+        .assistance()
+        .coaches()
+        .then(|| settings.model(ModelSlot::Quick).clone())
+}
+
 impl State {
+    /// Has the Coach ask as the settings now say.
+    fn coach_as_set(&mut self) {
+        self.game.coach_with(coach(&self.settings));
+    }
+
     /// Forgets every game not played for as long as the player keeps games, if they forget any,
     /// and keeps why it couldn't for Settings → History.
     fn forget_old_games(&mut self) {
@@ -727,6 +759,60 @@ mod tests {
             restarted.model(ModelSlot::Deep),
             ModelChoice::default_for(ModelSlot::Deep)
         );
+    }
+
+    /// The ogre scenario, LETHAL at turn 5, and its LLM sidecar.
+    const OGRE: &[u8] = include_bytes!(
+        "../../../crates/replay/tests/scenarios/ogre-corners-a-minotaur-carrying-escapes.dcssrec"
+    );
+    const OGRE_SIDECAR: &[u8] = include_bytes!(
+        "../../../crates/replay/tests/scenarios/ogre-corners-a-minotaur-carrying-escapes.llm.jsonl"
+    );
+
+    /// Relays the ogre scenario to `live` until the Coach makes a call, and returns it.
+    fn relay_until_a_call(live: &Live) -> Option<CoachCall> {
+        for envelope in copilot_replay::Recording::read(OGRE).unwrap().envelopes {
+            live.handle(RelayEvent::Envelope(envelope));
+            if let Some(call) = live.take_call() {
+                return Some(call);
+            }
+        }
+        None
+    }
+
+    #[test]
+    fn at_coach_a_tactical_alert_makes_a_call_whose_answer_shows_on_the_suggested_action_card() {
+        use futures_util::FutureExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&dir.path().join("settings.json")).unwrap(),
+            Store::in_memory(),
+        );
+        live.set_assistance(AssistanceLevel::Coach).unwrap();
+
+        let call = relay_until_a_call(&live).unwrap();
+        let sidecar = copilot_llm::SidecarReplayer::read(OGRE_SIDECAR).unwrap();
+        let response = copilot_llm::complete(&sidecar, call.request)
+            .now_or_never()
+            .unwrap();
+        live.answer(call.question, response);
+
+        let card = live.view_model().game.unwrap().suggested_action.unwrap();
+        assert!(matches!(
+            card.coach,
+            Some(copilot_core::CoachLine::Picked { agrees: true, .. })
+        ));
+    }
+
+    #[test]
+    fn below_coach_nothing_is_asked() {
+        let live = live();
+        assert_eq!(live.view_model().assistance, AssistanceLevel::Hints);
+
+        assert_eq!(relay_until_a_call(&live), None);
     }
 
     #[test]

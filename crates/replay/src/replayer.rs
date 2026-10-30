@@ -7,11 +7,14 @@ use copilot_core::{
     Advisor, Appearance, AssistanceLevel, Connection, CrawlVersion, SourceEvent, ViewModel,
 };
 use copilot_gk::{BundleError, Library};
+use copilot_llm::{LlmError, LlmProvider, LlmRequest, ModelChoice, complete};
 use copilot_store::Store;
 use copilot_webtiles::{Envelope, WebtilesSource};
+use futures_util::FutureExt;
 use serde::Serialize;
 
 use crate::Recording;
+use crate::coach::CoachCall;
 use crate::following::{Following, Happened};
 
 /// Replays a Recording through the webtiles Game Source and the core, as if a browser had relayed
@@ -76,6 +79,17 @@ pub struct Moment {
     pub event: Happened,
 }
 
+/// A call the Coach made during a replay.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Call {
+    /// The envelope whose Settled Update asked it, counting from 0.
+    pub envelope: usize,
+    /// The followed game's turn just after it.
+    pub turn: Option<u32>,
+    /// What was asked.
+    pub request: LlmRequest,
+}
+
 /// The Game Source and the core, fed together, and what has happened so far.
 struct Game {
     following: Following,
@@ -83,6 +97,22 @@ struct Game {
     timeline: Vec<Moment>,
     /// How many envelopes have been applied.
     applied: usize,
+    /// Who answers the Coach's calls, if it is asked.
+    coaching: Option<Coaching>,
+}
+
+/// The Coach's calls in a replay, answered by a provider that answers at once, such as an LLM
+/// sidecar, after a latency on the envelopes' clock.
+struct Coaching {
+    provider: Box<dyn LlmProvider>,
+    /// How long after its envelope a call's answer arrives, in milliseconds.
+    latency_ms: u64,
+    /// The call in flight, and when its answer arrives.
+    in_flight: Option<(CoachCall, u64)>,
+    /// Every call made, in order.
+    calls: Vec<Call>,
+    /// How many answers have arrived.
+    delivered: usize,
 }
 
 impl Game {
@@ -91,6 +121,7 @@ impl Game {
             following,
             timeline: Vec::new(),
             applied: 0,
+            coaching: None,
         }
     }
 
@@ -100,18 +131,67 @@ impl Game {
         self.following.restart();
         self.timeline.clear();
         self.applied = 0;
+        if let Some(coaching) = &mut self.coaching {
+            coaching.in_flight = None;
+            coaching.calls.clear();
+            coaching.delivered = 0;
+        }
     }
 
     fn apply(&mut self, envelope: &Envelope) {
+        if let Some((_, arrives_ms)) = self.coaching.as_ref().and_then(|c| c.in_flight.as_ref())
+            && *arrives_ms <= envelope.ts
+        {
+            self.deliver();
+        }
         let happened = self.following.ingest(envelope);
+        self.record(happened, self.applied);
+        self.applied += 1;
+        if let Some(call) = self.following.take_call()
+            && let Some(coaching) = &mut self.coaching
+        {
+            coaching.calls.push(Call {
+                envelope: self.applied - 1,
+                turn: self.following.advisor().visible().turn,
+                request: call.request.clone(),
+            });
+            // Only one call is in flight: the one it replaces is cancelled, as the app does.
+            coaching.in_flight = Some((call, envelope.ts + coaching.latency_ms));
+            if coaching.latency_ms == 0 {
+                self.deliver();
+            }
+        }
+    }
+
+    /// Answers the call in flight, as just after the envelopes applied so far.
+    fn deliver(&mut self) {
+        let Some(coaching) = &mut self.coaching else {
+            return;
+        };
+        let Some((call, _)) = coaching.in_flight.take() else {
+            return;
+        };
+        let response = complete(coaching.provider.as_ref(), call.request)
+            .now_or_never()
+            .unwrap_or_else(|| {
+                Err(LlmError::Unreachable(
+                    "a replay's provider must answer at once".to_owned(),
+                ))
+            });
+        coaching.delivered += 1;
+        let happened = self.following.answer(call.question, response);
+        self.record(vec![happened], self.applied.saturating_sub(1));
+    }
+
+    /// Adds what `happened` at envelope `envelope` to the timeline.
+    fn record(&mut self, happened: Vec<Happened>, envelope: usize) {
         let turn = self.following.advisor().visible().turn;
         self.timeline
             .extend(happened.into_iter().map(|event| Moment {
-                envelope: self.applied,
+                envelope,
                 turn,
                 event,
             }));
-        self.applied += 1;
     }
 }
 
@@ -143,6 +223,52 @@ impl Replayer {
     pub fn with_knowledge(recording: Recording, knowledge: &Library) -> Self {
         let following = Following::new(knowledge);
         Self::following(recording, knowledge, following)
+    }
+
+    /// Asks the Coach about each Tactical Alert, as at Coach, of `model` through `provider`, which
+    /// must answer at once, such as an LLM sidecar: each answer arrives just after the envelope
+    /// whose Settled Update asked, unless [`Replayer::answering_after_ms`] says otherwise.
+    #[must_use]
+    pub fn coaching(mut self, provider: impl LlmProvider + 'static, model: ModelChoice) -> Self {
+        self.game.following.coach_with(Some(model));
+        self.game.coaching = Some(Coaching {
+            provider: Box::new(provider),
+            latency_ms: 0,
+            in_flight: None,
+            calls: Vec::new(),
+            delivered: 0,
+        });
+        self
+    }
+
+    /// Has the Coach's answers arrive `latency_ms` after the envelope that asked, on the
+    /// envelopes' clock: just before the first envelope received that long after it or later.
+    /// A call still in flight as the next is made is cancelled, and one whose answer is due after
+    /// the Recording ends never arrives.
+    #[must_use]
+    pub fn answering_after_ms(mut self, latency_ms: u64) -> Self {
+        if let Some(coaching) = &mut self.game.coaching {
+            coaching.latency_ms = latency_ms;
+        }
+        self
+    }
+
+    /// The calls the Coach made so far, in order.
+    #[must_use]
+    pub fn calls(&self) -> &[Call] {
+        self.game
+            .coaching
+            .as_ref()
+            .map_or(&[], |coaching| coaching.calls.as_slice())
+    }
+
+    /// How many of the Coach's answers have arrived so far.
+    #[must_use]
+    pub fn answers_delivered(&self) -> usize {
+        self.game
+            .coaching
+            .as_ref()
+            .map_or(0, |coaching| coaching.delivered)
     }
 
     fn following(recording: Recording, knowledge: &Library, following: Following) -> Self {

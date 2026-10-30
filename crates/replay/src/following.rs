@@ -4,13 +4,16 @@
 use std::collections::HashMap;
 
 use copilot_core::{
-    Advisor, AssistanceLevel, Detection, GameIdentity, GameKey, GameView, KnownGames, PickedUp,
-    Role, SourceEvent,
+    Advisor, AssistanceLevel, Coached, Detection, GameIdentity, GameKey, GameView, KnownGames,
+    PickedUp, QuestionId, Role, SourceEvent,
 };
 use copilot_gk::Library;
+use copilot_llm::{LlmError, LlmResponse, ModelChoice};
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::{Envelope, WebtilesSource};
 use serde::Serialize;
+
+use crate::coach::{CoachCall, tactical_answer};
 
 /// The webtiles Game Source and the Advisor it feeds, always built together from the same Game
 /// Knowledge, and the store that remembers the games they follow between runs of the app.
@@ -32,6 +35,13 @@ pub struct Following {
     /// Why what was saved of each game was unreadable, the last time it was read in this run of
     /// the app.
     unreadable: HashMap<GameKey, String>,
+    /// The Quick Model the Coach asks, while the player has Coach on.
+    coach: Option<ModelChoice>,
+    /// The call to make for the Coach's latest question, until it is taken.
+    call: Option<CoachCall>,
+    /// The questions asked so far in this run of the app, so an answer is never taken for a
+    /// later question's, even across a restart.
+    questions: u64,
 }
 
 /// What went wrong with the game history.
@@ -53,6 +63,8 @@ pub enum Happened {
     Source(SourceEvent),
     /// The Advisor's detectors noticed something at a Settled Update.
     Detected(Detection),
+    /// The Coach was asked about a Tactical Alert, or its answer kept or dropped.
+    Coached(Coached),
 }
 
 impl Following {
@@ -67,6 +79,9 @@ impl Following {
             store: None,
             trouble: None,
             unreadable: HashMap::new(),
+            coach: None,
+            call: None,
+            questions: 0,
         }
     }
 
@@ -100,6 +115,33 @@ impl Following {
         };
         self.source = WebtilesSource::knowing(self.knowledge.clone(), known);
         self.advisor = Advisor::new(self.knowledge.clone());
+        self.call = None;
+    }
+
+    /// Has the Coach ask `model` about each Tactical Alert from now on, or, with `None`, stops it
+    /// asking: the player has Coach on, or off.
+    pub fn coach_with(&mut self, model: Option<ModelChoice>) {
+        self.coach = model;
+    }
+
+    /// The call to make for the Coach's latest question, if one is waiting: taken once. A newer
+    /// question replaces one not yet taken, and the answer to one taken before it is dropped, so
+    /// the caller should cancel a call still in flight as it takes the next.
+    pub fn take_call(&mut self) -> Option<CoachCall> {
+        self.call.take()
+    }
+
+    /// Hands the Advisor the model's `response` to the Coach's `question`, and returns what
+    /// became of it.
+    pub fn answer(
+        &mut self,
+        question: QuestionId,
+        response: Result<LlmResponse, LlmError>,
+    ) -> Happened {
+        Happened::Coached(self.advisor.answer_tactical(
+            question,
+            tactical_answer(response).map_err(|error| error.to_string()),
+        ))
     }
 
     /// Decodes one relayed envelope, tells the Advisor what the Game Source learned, saves what
@@ -167,9 +209,26 @@ impl Following {
             if matches!(event, SourceEvent::ScreenRead(_) | SourceEvent::Session(_)) {
                 happened.push(Happened::Source(event));
             }
+            let alerted = detections
+                .iter()
+                .any(|detection| matches!(detection, Detection::Alert(_)));
             happened.extend(detections.into_iter().map(Happened::Detected));
+            if alerted {
+                happened.extend(self.ask_coach());
+            }
         }
         happened
+    }
+
+    /// Asks the Coach about this moment, at Coach, if the Advisor has a Suggested Action for it
+    /// to judge: the call waits to be taken.
+    fn ask_coach(&mut self) -> Option<Happened> {
+        let model = self.coach.as_ref()?;
+        let id = QuestionId(self.questions + 1);
+        let question = self.advisor.ask_tactical(id)?;
+        self.questions = id.0;
+        self.call = Some(CoachCall::new(&question, model));
+        Some(Happened::Coached(Coached::Asked { question: id }))
     }
 
     /// How many games the store remembers.

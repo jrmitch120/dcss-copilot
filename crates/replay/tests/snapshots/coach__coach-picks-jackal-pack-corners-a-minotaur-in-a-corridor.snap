@@ -1,0 +1,18 @@
+---
+source: crates/replay/tests/coach.rs
+expression: coached_events(&replayer)
+---
+[
+  {
+    "coach": "asked",
+    "question": 1
+  },
+  {
+    "coach": "picked",
+    "question": 1,
+    "pick": "a1",
+    "line": "The corridor you stand in",
+    "agrees": true,
+    "reason": "Holding this corridor limits attackers to 2 open sides against 3 jackals, and melee's ~63% HP lost is heavy for a 19 HP Minotaur."
+  }
+]

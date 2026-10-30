@@ -1,5 +1,6 @@
 //! The DCSS Copilot desktop app: wires the core to its windows, tray and keychain.
 
+mod coach;
 mod keys;
 mod lifecycle;
 mod live;
@@ -24,6 +25,7 @@ use tauri_specta::{Builder, Event, collect_commands, collect_events};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
+use crate::coach::CoachCalls;
 use crate::keys::{Keys, OsKeychain};
 use crate::lifecycle::Presence;
 use crate::live::{HistoryView, Live};
@@ -133,6 +135,7 @@ fn set_assistance(
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
 fn answer_same_game(same: bool, app: AppHandle, live: State<'_, Live>) -> Result<(), String> {
     live.answer_same_game(same);
+    app.state::<CoachCalls>().ask(&app);
     push_view_model(&app, &live);
     Ok(())
 }
@@ -396,6 +399,7 @@ pub fn run() {
                     Provider::Anthropic => Box::new(AnthropicProvider::new(key)),
                 }),
             ));
+            app.manage(CoachCalls::default());
             let approvals = app.path().app_config_dir()?.join("browsers.json");
             tauri::async_runtime::spawn(run_relay(app.handle().clone(), approvals));
             app.state::<Panels>().arrange(app.handle());
@@ -487,6 +491,7 @@ async fn run_relay(app: AppHandle, approvals: std::path::PathBuf) {
                     app.state::<Panels>().connected(browser.clone());
                 }
                 live.handle(event);
+                app.state::<CoachCalls>().ask(&app);
                 push_view_model(&app, &live);
             }
         }

@@ -1,0 +1,63 @@
+---
+source: crates/replay/tests/coach.rs
+expression: prompts(&replayer)
+---
+=== static prefix ===
+You are the Advisor beside a game of Dungeon Crawl Stone Soup 0.34.1 that the player is playing. The moment below is dangerous. The game engine has listed what the player can do now as Candidate Actions, each with an id, and its own rules have picked one: the Suggested Action.
+
+Rules:
+- Pick exactly one Candidate Action, by its id. Never suggest anything that isn't listed.
+- Quote only numbers and names that appear in the moment. Never work out new numbers.
+- Anything not listed is unknown. A value with ~ is out of date, as of the turn given; "unknown" means the Advisor can't see it.
+- Keep the Suggested Action unless the facts show another is clearly better.
+- Give the reason in one or two short sentences, at most 25 words, without ids. Lead with the number in the moment that makes your pick the better one, such as the death chance, the worst hit against HP, or the odds.
+- Never give the Suggested Action or the engine's rules as a reason; say what in the moment makes the pick right.
+
+Answer with JSON only: {"pick": "<Candidate Action id>", "reason": "<at most 25 words>"}
+
+=== moment tail, turn 5 ===
+You: Minotaur · XL 1 · on Dungeon:1 · turn 5 · HP 19/19 · MP 0/0 · AC 2 · EV 11 · SH 0
+Statuses: none
+Resistances: unknown
+Threat: LETHAL · death before your next action 22.5% · worst hit 36 of 19 HP · hostiles in view 1
+Can act before your next action:
+- ogre · 1 square away
+Attack Plans: unknown
+Ground: On open ground: 5 sides open
+Ways Out:
+✕ Stone staircase leading down · 1 step — Ogre is in the way
+✓ Teleportation · escapes after a delay
+✕ Heal wounds · heals — you're at full health
+? Abilities · unknown
+Candidate Actions:
+a1 Item · Teleportation · escapes after a delay
+a2 Fight · The Advisor can't judge this fight
+Suggested Action: a1, by the rule "Escape"
+Gaps:
+- Open the skills screen (m) to judge your attacks.
+- Open the ability menu (a) to judge your abilities.
+- Open the mutations screen (A) to judge your speed to the stairs.
+
+=== moment tail, turn 6 ===
+You: Minotaur · XL 1 · on Dungeon:1 · turn 6 · HP 1/19 · MP 0/0 · AC 2 · EV 11 · SH 0
+Statuses: none
+Resistances: unknown
+Threat: LETHAL · death before your next action 42.0% · worst hit 36 of 1 HP · hostiles in view 1
+Can act before your next action:
+- ogre · 1 square away
+Attack Plans: unknown
+Ground: On open ground: 5 sides open
+Ways Out:
+✕ Stone staircase leading down · 1 step — Ogre is in the way
+✓ Teleportation · escapes after a delay
+✓ Heal wounds · heals
+? Abilities · unknown
+Candidate Actions:
+a1 Item · Heal wounds · heals
+a2 Item · Teleportation · escapes after a delay
+a3 Fight · The Advisor can't judge this fight
+Suggested Action: a1, by the rule "Heal out of it"
+Gaps:
+- Open the skills screen (m) to judge your attacks.
+- Open the ability menu (a) to judge your abilities.
+- Open the mutations screen (A) to judge your speed to the stairs.
