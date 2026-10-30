@@ -1,9 +1,9 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
 //! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
-//! block and reach cases with 126 turn cases and its torment cases; and 24 cases of the player
-//! attacking monsters in melee, with launchers and thrown missiles and with spells' beams, and of
-//! the hit points monsters are made with; and 48 players of random species, form, mutations,
+//! block and reach cases with 126 turn cases and its torment cases; and 45 cases of the player
+//! attacking monsters in melee, with launchers and thrown missiles, with spells' beams and with
+//! Freeze, and of the hit points monsters are made with; and 48 players of random species, form, mutations,
 //! statuses, god, gear and footing, timing their actions and moves (all seed 34).
 
 // Helpers outside #[test] functions panic on a broken fixture too.
@@ -543,7 +543,7 @@ const PLAYER: &str = include_str!("fixtures/player-0.34.1.jsonl");
 #[test]
 fn the_engine_agrees_with_crawl_on_every_player_case() {
     let report = diff(PLAYER).unwrap();
-    assert_eq!(report.cases, 24);
+    assert_eq!(report.cases, 45);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -571,8 +571,8 @@ fn a_thrown_missiles_skill_read_too_low_is_caught() {
 
 #[test]
 fn a_beam_at_other_power_is_caught() {
-    // Case 6's corrosive bolt at power 40: at 80 its accuracy and dice are both greater.
-    let dump = with_changed(PLAYER, 6, |case| case["power"] = 80.into());
+    // Case 7's Lehudib's Crystal Spear at power 83: at 40 its accuracy and dice are both less.
+    let dump = with_changed(PLAYER, 7, |case| case["power"] = 40.into());
     let measures: Vec<Measure> = caught(&dump).into_iter().map(|(_, m)| m).collect();
     assert!(measures.contains(&Measure::BeamToHit), "{measures:?}");
     assert!(measures.contains(&Measure::Damage), "{measures:?}");
@@ -580,11 +580,35 @@ fn a_beam_at_other_power_is_caught() {
 
 #[test]
 fn a_wand_zapped_with_other_evocations_is_caught() {
-    let dump = with_changed(PLAYER, 10, |case| {
+    let dump = with_changed(PLAYER, 12, |case| {
         let evocations = case["evocations"].as_i64().unwrap();
         case["evocations"] = (evocations + 179_200 * 4).into();
     });
-    assert_eq!(caught(&dump), [(10, Measure::WandPower)]);
+    assert_eq!(caught(&dump), [(12, Measure::WandPower)]);
+}
+
+#[test]
+fn a_kiss_of_death_on_a_monster_that_resists_negative_energy_is_caught() {
+    // Case 42's Kiss of Death on a vault warden, which it drains: a shadow imp resists it fully.
+    let dump = with_changed(PLAYER, 42, |case| case["monster"] = 314.into());
+    assert_eq!(caught(&dump), [(42, Measure::Damage)]);
+}
+
+#[test]
+fn freeze_past_its_cap_is_cast_at_its_cap() {
+    // Case 24's Freeze at power 50, which `cast_freeze` casts at 25: the same at 25, less at 10.
+    let at_cap = with_changed(PLAYER, 24, |case| case["power"] = 25.into());
+    assert_eq!(caught(&at_cap), []);
+    let below = with_changed(PLAYER, 24, |case| case["power"] = 10.into());
+    assert_eq!(caught(&below), [(24, Measure::Damage)]);
+}
+
+#[test]
+fn freeze_on_a_monster_vulnerable_to_cold_read_as_another_is_caught() {
+    // Case 14's Freeze on a fire elemental, which cold hurts half as much again: a void ooze
+    // takes it as rolled.
+    let dump = with_changed(PLAYER, 14, |case| case["monster"] = 658.into());
+    assert_eq!(caught(&dump), [(14, Measure::Damage)]);
 }
 
 #[test]

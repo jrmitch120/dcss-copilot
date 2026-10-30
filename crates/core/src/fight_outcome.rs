@@ -691,7 +691,7 @@ fn spell_opening<'b>(
         power,
         cost: i32::try_from(spell.level).ok()?,
         failure_percent,
-        range: reach.range?,
+        range: attack.reach(reach.range?),
     })
 }
 
@@ -1179,6 +1179,48 @@ mod tests {
         // Without magic it is melee from the first action, rolled on other dice.
         assert!(no_magic.abs_diff(melee) < 80, "{no_magic} against {melee}");
         assert!(magic > no_magic + 200, "{magic} against {no_magic}");
+    }
+
+    /// A novice who knows Freeze, cast at power 20 with the range the spell list shows, `range`,
+    /// against a hobgoblin `distance` squares away.
+    fn freezer(range: i32, distance: i32) -> FactSheet {
+        Player::new(15)
+            .skilled(&[("Fighting", 10)])
+            .casting(10, &[("Freeze", 5, 1)], &[("Freeze", 20, range)])
+            .against(&[("hobgoblin", distance)])
+    }
+
+    #[test]
+    fn freeze_opens_a_plan_that_beats_melee_once_the_monster_walks_up() {
+        let sheet = freezer(1, 3);
+        let freeze = plan(&sheet, "Freeze, then melee");
+        assert!(
+            freeze.win.times > plan(&sheet, "melee").win.times + 200,
+            "{freeze:?}"
+        );
+        assert_eq!(judged(&sheet).plans[0].plan.name(), "Freeze, then melee");
+    }
+
+    #[test]
+    fn freeze_reaches_only_a_monster_beside_the_player_whatever_range_the_list_shows() {
+        // The same rolls, so a Freeze that reached farther would win sooner or cost less.
+        let shown_far = freezer(4, 3);
+        assert_eq!(
+            plan(&shown_far, "Freeze, then melee"),
+            plan(&freezer(1, 3), "Freeze, then melee")
+        );
+    }
+
+    #[test]
+    fn kiss_of_death_opens_a_plan() {
+        let sheet = Player::new(15)
+            .casting(10, &[("Kiss of Death", 5, 1)], &[("Kiss of Death", 20, 1)])
+            .against(&[("hobgoblin", 3)]);
+        let kiss = plan(&sheet, "Kiss of Death, then melee");
+        assert!(
+            kiss.win.times > plan(&sheet, "melee").win.times + 200,
+            "{kiss:?}"
+        );
     }
 
     /// A trained archer with a shortbow, against a monster `distance` squares away.

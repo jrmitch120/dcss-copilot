@@ -3,7 +3,7 @@
  * monsters, and prints what came out, one JSON object per line, for `crawl-oracle` to diff
  * against the engine's port of the player's attacks.
  *
- * Four kinds of case take turns:
+ * Five kinds of case take turns:
  *
  * - melee: a human player of random Strength, Dexterity and skills, unarmed or wielding a random
  *   melee weapon with a random enchantment and a brand of none, heavy or speed, attacks a random
@@ -21,6 +21,10 @@
  *   random Evocations skill (wand_power).
  * - hp: the hit points crawl gives a random kind of monster as it is made, many times
  *   (hit_points, as define_monster calls it for a kind it gives no hit points of its own).
+ * - freeze: Freeze, at a random power up to twice its cap, cast at a random monster beside the
+ *   player many times by crawl's own cast_freeze, which deals the zap's damage straight to it,
+ *   unaimed and past its armour: the hit points it lost. The monster is drawn resisting cold,
+ *   vulnerable to it or neither, a third of the time each.
  *
  * The monster has no items and no statuses, is awake, and is of a kind whose AC and EV are its
  * kind's own: not a draconian of a job, which adds its colour's, a derived undead, which takes
@@ -46,11 +50,12 @@
 #include "evoke.h"
 #include "melee-attack.h"
 #include "ranged-attack.h"
+#include "spl-damage.h"
 #include "spl-util.h"
 #include "spl-zap.h"
 
-// The kinds of case, which take turns: melee, shot, beam and hp.
-static const int KINDS = 4;
+// The kinds of case, which take turns: melee, shot, beam, hp and freeze.
+static const int KINDS = 5;
 
 // The scale skills are printed at: every scale crawl reads a skill at divides it.
 static const int SKILL_SCALE = 179200;
@@ -383,6 +388,43 @@ static void _hp_case(int index, int trials)
     }
 }
 
+// A random monster beside the player, as _random_target draws one, whose cold resistance has the
+// sign `sign`: resisting cold for 1, vulnerable to it for -1, neither for 0.
+static monster *_target_resisting_cold(int sign)
+{
+    while (true)
+    {
+        monster *mon = _random_target(1);
+        const int res = mon->res_cold();
+        if ((res > 0) - (res < 0) == sign)
+            return mon;
+        _remove(*mon);
+    }
+}
+
+static void _freeze_case(int index, int trials)
+{
+    const int power = random2(2 * spell_power_cap(SPELL_FREEZE) + 1);
+    monster *mon = _target_resisting_cold(random2(3) - 1);
+
+    map<int, int> damage;
+    for (int t = 0; t < trials; ++t)
+    {
+        const int before = mon->hit_points;
+        cast_freeze(power, mon, false);
+        ++damage[before - mon->hit_points];
+        _restore(*mon);
+    }
+
+    printf("{\"case\":%d,\"kind\":\"player-freeze\",\"spell\":%d,\"spell_name\":\"%s\","
+           "\"power\":%d,\"monster\":%d,\"name\":\"%s\",\"res_cold\":%d,\"trials\":%d,"
+           "\"damage\":%s}\n",
+           index, SPELL_FREEZE, spell_title(SPELL_FREEZE), power, mon->type,
+           mon->name(DESC_PLAIN, true).c_str(), mon->res_cold(), trials,
+           _histogram(damage).c_str());
+    _remove(*mon);
+}
+
 int main(int argc, char *argv[])
 {
     const oracle_run run = _read_run(argc, argv, true);
@@ -403,7 +445,8 @@ int main(int argc, char *argv[])
         case 0: _melee_case(i, run.trials); break;
         case 1: _shot_case(i, run.trials); break;
         case 2: _beam_case(i, run.trials, zaps); break;
-        default: _hp_case(i, run.trials); break;
+        case 3: _hp_case(i, run.trials); break;
+        default: _freeze_case(i, run.trials); break;
         }
     }
     return 0;
