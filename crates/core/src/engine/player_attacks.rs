@@ -103,6 +103,54 @@ impl<'a> PlayerZap<'a> {
     pub(crate) fn accuracy(self, power: i32) -> Option<i32> {
         spells::accuracy(self.to_hit, power)
     }
+
+    /// Whether it strikes more than its target: an explosion, or a beam that passes through
+    /// what it hits.
+    pub(crate) fn blasts_or_pierces(self) -> bool {
+        self.zap.explodes || self.zap.pierces
+    }
+}
+
+/// A spell the player knows that the engine plays as an attack, by the way crawl casts it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AttackSpell<'a> {
+    /// Fired as one zap, as a wand of it would be.
+    Zap(PlayerZap<'a>),
+}
+
+impl<'a> AttackSpell<'a> {
+    /// `spell` as the player casts it, if `variant` ports it as an attack.
+    pub(crate) fn of(variant: PlayerBeam, spell: &'a Spell) -> Option<Self> {
+        PlayerZap::of(variant, spell).map(Self::Zap)
+    }
+
+    /// The most power it takes, past which it grows no stronger: `spell_power_cap`.
+    pub(crate) fn power_cap(self) -> Option<i32> {
+        match self {
+            Self::Zap(zap) => zap.power_cap(),
+        }
+    }
+
+    /// Whether it strikes more than its target: an explosion, or a beam that passes through
+    /// what it hits.
+    pub(crate) fn blasts_or_pierces(self) -> bool {
+        match self {
+            Self::Zap(zap) => zap.blasts_or_pierces(),
+        }
+    }
+}
+
+/// The player casting `spell` at `power` at a monster, as `variant` plays it.
+pub(crate) fn cast(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    spell: AttackSpell<'_>,
+    power: i32,
+    defence: Defence,
+) -> Blow {
+    match spell {
+        AttackSpell::Zap(zap) => fire(variant, rng, beam(variant, zap, power), defence),
+    }
 }
 
 /// One of the player's skills at the level the skills screen shows, in tenths.

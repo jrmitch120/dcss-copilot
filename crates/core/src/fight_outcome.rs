@@ -10,7 +10,7 @@ use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::carried_gear::{self, ItemBrand};
 use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
-use crate::engine::player_attacks::{Defence, Heft, PlayerZap, Skill};
+use crate::engine::player_attacks::{AttackSpell, Defence, Heft, PlayerZap, Skill};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
@@ -370,9 +370,8 @@ fn foes_in_light(visible: &VisibleState, foes: &[Attacker<'_>]) -> bool {
 /// strike more than its target.
 fn opening_blasts_or_pierces(opening: &Opening<'_>) -> bool {
     match opening {
-        Opening::Spell { zap, .. } | Opening::Wand { zap, .. } => {
-            zap.zap.explodes || zap.zap.pierces
-        }
+        Opening::Spell { spell, .. } => spell.blasts_or_pierces(),
+        Opening::Wand { zap, .. } => zap.blasts_or_pierces(),
         Opening::Thrown { id, .. } => id.0 == missile_types::JAVELIN,
     }
 }
@@ -561,7 +560,7 @@ impl<'v> Player<'v> {
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
         for spell in known {
-            let Some(zap) = attack_zap(spell, bundle) else {
+            let Some(attack) = attack_spell(spell, bundle) else {
                 not_played.push(spell.name.clone());
                 continue;
             };
@@ -570,7 +569,7 @@ impl<'v> Player<'v> {
             else {
                 continue;
             };
-            match spell_opening(spell, reach, zap, not_modelled) {
+            match spell_opening(spell, reach, attack, not_modelled) {
                 Some(opening) => openings.push((
                     PlanOpening::Spell {
                         name: spell.name.clone(),
@@ -661,14 +660,14 @@ impl<'v> Player<'v> {
     }
 }
 
-/// The opening of a spell the player knows, `spell`, cast as `reach` shows it, firing `zap`:
+/// The opening of a spell the player knows, `spell`, cast as `reach` shows it, as `attack`:
 /// `None` for one they always fail, can't cast for its range, or whose power the list doesn't
 /// show. A power shown as a percentage of the spell's cap is drawn from those it could be. Its
 /// miscasts are noted in `not_modelled`.
 fn spell_opening<'b>(
     spell: &KnownSpell,
     reach: &SpellReach,
-    zap: PlayerZap<'b>,
+    attack: AttackSpell<'b>,
     not_modelled: &mut BTreeSet<NotModelled>,
 ) -> Option<Opening<'b>> {
     let failure_percent = i32::try_from(spell.failure_percent).ok()?;
@@ -678,7 +677,7 @@ fn spell_opening<'b>(
     let power = match reach.power? {
         SpellPower::Exact(power) => Power::Exact(power),
         SpellPower::PercentOfCap(percent) => {
-            let cap = zap.power_cap()?;
+            let cap = attack.power_cap()?;
             let percent = i32::try_from(percent).ok()?;
             // `spell_power_percent` (`spl-cast.cc:3299`) rounds `power * 100 / cap` down.
             let least = (percent * cap + 99) / 100;
@@ -688,7 +687,7 @@ fn spell_opening<'b>(
     };
     not_modelled.insert(NotModelled::Miscasts);
     Some(Opening::Spell {
-        zap,
+        spell: attack,
         power,
         cost: i32::try_from(spell.level).ok()?,
         failure_percent,
@@ -726,7 +725,7 @@ pub(crate) fn spell_gaps(
     };
     if known
         .iter()
-        .any(|spell| attack_zap(spell, bundle).is_some() && unreached(spell))
+        .any(|spell| attack_spell(spell, bundle).is_some() && unreached(spell))
     {
         gaps.insert(Gap::Unread {
             fact: ScreenFact::SpellPower,
@@ -735,13 +734,13 @@ pub(crate) fn spell_gaps(
     gaps
 }
 
-/// The zap the engine plays `spell`, which the player knows, as, when it ports it as an attack.
-fn attack_zap<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<PlayerZap<'b>> {
+/// `spell`, which the player knows, as the engine plays it, when it ports it as an attack.
+fn attack_spell<'b>(spell: &KnownSpell, bundle: &'b Bundle) -> Option<AttackSpell<'b>> {
     bundle
         .spells
         .values()
         .find(|known| known.name == spell.name)
-        .and_then(|known| PlayerZap::of(bundle.formulas.player_beam, known))
+        .and_then(|known| AttackSpell::of(bundle.formulas.player_beam, known))
 }
 
 /// A known wand's charges, as its name shows them after it, such as `a wand of flame (12)`
