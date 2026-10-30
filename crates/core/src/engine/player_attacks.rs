@@ -139,6 +139,27 @@ impl<'a> PlayerZap<'a> {
     pub(crate) fn blasts_or_pierces(self) -> bool {
         self.zap.explodes || self.zap.pierces
     }
+
+    /// Whether `variant`, casting it as a spell, does more once its zap is fired than the engine
+    /// plays, such as Kiss of Death draining the caster.
+    fn has_post_zap_effect(self, variant: PlayerBeam) -> bool {
+        let post_zap_effects = match variant {
+            PlayerBeam::Crawl034 => POST_ZAP_EFFECTS_0_34,
+        };
+        post_zap_effects.contains(&self.spell.id.0.as_str())
+    }
+}
+
+/// The player firing `zap` at `power` at a monster that defends as `defence`, as `variant` plays
+/// it, from a spell or a wand.
+pub(crate) fn zapped(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    zap: PlayerZap<'_>,
+    power: i32,
+    defence: Defence,
+) -> Blow {
+    fire(variant, rng, beam(variant, zap, power), defence)
 }
 
 /// Freeze, as crawl 0.34's `cast_freeze` (`spl-damage.cc:865`) casts it: its zap's damage dealt
@@ -146,8 +167,7 @@ impl<'a> PlayerZap<'a> {
 /// the monster's resistance to cold.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Freeze<'a> {
-    /// The spell.
-    pub(crate) spell: &'a Spell,
+    spell: &'a Spell,
     damage: ZapDamage,
     resist: MonsterBeamResist,
 }
@@ -168,6 +188,11 @@ impl<'a> Freeze<'a> {
             damage: zap.player_damage?,
             resist: resists::monster_beam(variant, &zap.flavour)?,
         })
+    }
+
+    /// The most power the spell list shows it cast with: `spell_power_cap`.
+    fn power_cap(self) -> Option<i32> {
+        self.spell.range.map(|range| range.power_cap)
     }
 
     /// The hit points it takes from a monster that defends as `defence`, cast at `power`.
@@ -205,7 +230,7 @@ impl<'a> AttackSpell<'a> {
     pub(crate) fn power_cap(self) -> Option<i32> {
         match self {
             Self::Zap(zap) => zap.power_cap(),
-            Self::Freeze(freeze) => freeze.spell.range.map(|range| range.power_cap),
+            Self::Freeze(freeze) => freeze.power_cap(),
         }
     }
 
@@ -221,11 +246,8 @@ impl<'a> AttackSpell<'a> {
     /// Whether `variant` does more for it, once its zap is fired, than the engine plays, such as
     /// Kiss of Death draining the caster.
     pub(crate) fn has_post_zap_effect(self, variant: PlayerBeam) -> bool {
-        let post_zap_effects = match variant {
-            PlayerBeam::Crawl034 => POST_ZAP_EFFECTS_0_34,
-        };
         match self {
-            Self::Zap(zap) => post_zap_effects.contains(&zap.spell.id.0.as_str()),
+            Self::Zap(zap) => zap.has_post_zap_effect(variant),
             Self::Freeze(_) => false,
         }
     }
@@ -249,7 +271,7 @@ pub(crate) fn cast(
     defence: Defence,
 ) -> Blow {
     match spell {
-        AttackSpell::Zap(zap) => fire(variant, rng, beam(variant, zap, power), defence),
+        AttackSpell::Zap(zap) => zapped(variant, rng, zap, power, defence),
         AttackSpell::Freeze(freeze) => Blow {
             to_hit: AUTOMATIC_HIT,
             hits: true,

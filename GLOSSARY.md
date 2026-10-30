@@ -196,6 +196,10 @@ _Avoid_: Darkvision, see in the dark
 What the Threat Level's simulation, the Fight Outcome or the judging of Ways Out leaves out at a moment, listed on the Fact Sheet so its numbers are read for what they are: a monster's spells it doesn't play out, the ways crawl moves a monster otherwise than walking straight at the player, such as a tentacle moving with its parent, Possible Gear played in place of Carried Gear it hasn't read, statuses, the player's resistances, the player's own speed and the like. The Advisor names what it leaves out rather than leaving it to be assumed. The Not Modelled ledger (`docs/not-modelled.md`) lists everything the engine leaves out, whether or not the Fact Sheet names it, as the backlog of what to model next.
 _Avoid_: Unsupported, ignored, edge cases
 
+**Not Played**:
+A spell the player knows or a wand they carry that no Attack Plan uses, named on the Fight Outcome: one the engine doesn't play as an attack, such as a hex or Blink, or can't play as the game shows it, such as a wand whose charges aren't shown. A spell crawl casts to harm a monster in a way the engine doesn't play says why: its damage isn't ported, as Scorch's isn't, it deals no damage, as Soul Splinter doesn't, or it summons, as Foxfire does.
+_Avoid_: Unsupported spells, skipped
+
 **Out of Depth**:
 A monster at least three levels shallower than the shallowest level crawl makes its kind on at random in the branch the player is in. A kind crawl doesn't make at random in that branch, such as a unique, is never Out of Depth.
 _Avoid_: OOD

@@ -591,10 +591,11 @@ impl<'v> Player<'v> {
         };
         let reaches = remembered.and_then(|state| state.spell_reaches.read_value());
         let mut openings = Vec::new();
+        let variant = bundle.formulas.player_beam;
         for spell in known {
-            let Some(attack) = attack_spell(spell, bundle) else {
-                let reason = spell_known(spell, bundle)
-                    .and_then(|known| NotPlayedReason::of(bundle.formulas.player_beam, known));
+            let known = spell_known(spell, bundle);
+            let Some(attack) = known.and_then(|known| AttackSpell::of(variant, known)) else {
+                let reason = known.and_then(|known| NotPlayedReason::of(variant, known));
                 not_played.push(NotPlayed {
                     name: spell.name.clone(),
                     reason,
@@ -606,7 +607,6 @@ impl<'v> Player<'v> {
             else {
                 continue;
             };
-            let variant = bundle.formulas.player_beam;
             match spell_opening(variant, spell, reach, attack, not_modelled) {
                 Some(opening) => openings.push((
                     PlanOpening::Spell {
@@ -894,7 +894,7 @@ fn fight_words(variant: NotModelled) -> Option<&'static str> {
         NotModelled::OwnFractions => Some("skill fractions"),
         NotModelled::PlayerSpeed => Some("your speed"),
         NotModelled::Miscasts => Some("miscasts"),
-        NotModelled::PostZapEffects => Some("drain and delay after a cast"),
+        NotModelled::PostZapEffects => Some("drain, delay or stumble after a cast"),
         NotModelled::BlastsAndBolts => Some("blast and bolt spread"),
         NotModelled::MonsterLighting => Some("halos and umbras"),
         NotModelled::MonsterArmour => Some("monsters' armour"),

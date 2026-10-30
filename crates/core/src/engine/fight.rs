@@ -400,8 +400,8 @@ impl<'f, 'a> Side<'f, 'a> {
                     return None;
                 }
                 *charges -= 1;
-                let beam = player_attacks::beam(variant, *zap, self.power);
-                hostile.hp -= player_attacks::fire(variant, rng, beam, hostile.defence).damage;
+                let blow = player_attacks::zapped(variant, rng, *zap, self.power, hostile.defence);
+                hostile.hp -= blow.damage;
                 Some(BASELINE_DELAY)
             }
             Opening::Thrown {
