@@ -356,15 +356,15 @@ pub enum CoachLine {
     Asking,
     /// The Candidate Action it picked, and why.
     Picked {
-        /// What it picked, in one line, as the card's `action` says the rules' pick.
+        /// What it picked, in one line as of now, as the card's `action` says the rules' pick.
         action: MarkedValue,
         /// It picked the Suggested Action.
         agrees: bool,
         /// Why, in whole sentences within the word limit: `None` when no sentence of its reason
         /// passed the grounding checks.
         reason: Option<String>,
-        /// The turn it was asked on, once the game has passed it: its reason quotes the moment
-        /// as it was then. `None` on that turn.
+        /// The turn it was asked on, once the game has passed it: the pick, and the numbers its
+        /// reason quotes, are of the moment as it was then. `None` on that turn.
         as_of_turn: Option<u32>,
     },
 }

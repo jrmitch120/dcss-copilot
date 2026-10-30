@@ -45,7 +45,11 @@ fn just_after_the_first_answer(replayer: &mut Replayer) {
     let mut position = 0;
     while replayer.answers_delivered() == 0 {
         position += 1;
-        replayer.seek(position);
+        let applied = replayer.seek(position);
+        assert!(
+            !applied.envelopes.is_empty(),
+            "no answer arrived before the Recording ended"
+        );
     }
 }
 

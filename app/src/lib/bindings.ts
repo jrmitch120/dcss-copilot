@@ -107,7 +107,7 @@ export type CoachLine =
 { state: "asking" } | 
 /**  The Candidate Action it picked, and why. */
 { state: "picked"; 
-/**  What it picked, in one line, as the card's `action` says the rules' pick. */
+/**  What it picked, in one line as of now, as the card's `action` says the rules' pick. */
 action: MarkedValue; 
 /**  It picked the Suggested Action. */
 agrees: boolean; 
@@ -117,8 +117,8 @@ agrees: boolean;
  */
 reason: string | null; 
 /**
- *  The turn it was asked on, once the game has passed it: its reason quotes the moment
- *  as it was then. `None` on that turn.
+ *  The turn it was asked on, once the game has passed it: the pick, and the numbers its
+ *  reason quotes, are of the moment as it was then. `None` on that turn.
  */
 asOfTurn: number | null };
 

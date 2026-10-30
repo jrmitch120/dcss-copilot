@@ -371,6 +371,18 @@ fn carried(ways_out: &WaysOut, relief: Relief) -> Option<&Escape> {
 }
 
 #[cfg(test)]
+impl SuggestedAction {
+    /// `action` as `rule` picks it, for the tests of what judges it.
+    pub(crate) fn of(rule: SuggestionRule, action: CandidateAction) -> Self {
+        Self {
+            rule,
+            action,
+            if_lethal: None,
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use copilot_gk::StairDirection;
 

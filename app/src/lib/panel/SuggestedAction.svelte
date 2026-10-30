@@ -15,7 +15,15 @@ let { suggested }: { suggested: SuggestedActionCard } = $props();
   {/if}
   {#if suggested.coach}
     <div class="coach">
-      <div class="lbl">Coach <em>LLM</em></div>
+      <div class="lbl">
+        Coach
+        <em
+          >LLM
+          {#if suggested.coach.state === "picked" && suggested.coach.asOfTurn !== null}
+            · as of turn {suggested.coach.asOfTurn}
+          {/if}</em
+        >
+      </div>
       {#if suggested.coach.state === "asking"}
         <p class="muted small">Weighing the options…</p>
       {:else}
@@ -25,12 +33,7 @@ let { suggested }: { suggested: SuggestedActionCard } = $props();
           <p class="pick">Instead: <MarkedValue value={suggested.coach.action} /></p>
         {/if}
         {#if suggested.coach.reason}
-          <p class="reason">
-            {suggested.coach.reason}
-            {#if suggested.coach.asOfTurn !== null}
-              <span class="muted">· as of turn {suggested.coach.asOfTurn}</span>
-            {/if}
-          </p>
+          <p class="reason">{suggested.coach.reason}</p>
         {/if}
       {/if}
     </div>

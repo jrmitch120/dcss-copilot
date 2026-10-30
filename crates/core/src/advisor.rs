@@ -19,8 +19,8 @@ use crate::known_games::GameKey;
 use crate::prompt::{TACTICAL_WORDS, TacticalMoment};
 use crate::suggested_action::SuggestedAction;
 use crate::view_model::{
-    AskBox, AssistanceLevel, Character, Depiction, FactCard, FocusCard, GameView, JoinCard,
-    Listing, MarkedValue, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
+    AskBox, AssistanceLevel, Character, CoachLine, Depiction, FactCard, FocusCard, GameView,
+    JoinCard, Listing, MarkedValue, NowPill, RunPlanRail, TileName, ToolbarBadge, capitalised,
 };
 use crate::visible_state::{VisibleMonster, VisibleState};
 
@@ -281,6 +281,21 @@ impl Advisor {
         self.coach.answer(id, answer, now.as_ref(), &names)
     }
 
+    /// What the Suggested Action card says of the Coach now. A pick it made is shown with its
+    /// action as the player could take it now, and not once they can't.
+    fn coach_line(&self) -> Option<CoachLine> {
+        let now = self.moment()?;
+        let fact_sheet = self.fact_sheet();
+        let candidates = Candidates::at(fact_sheet, now.suggested.action());
+        self.coach.line(&now, |picked| {
+            candidates
+                .0
+                .iter()
+                .find(|candidate| candidate.action.same_as(picked))
+                .map(|candidate| candidate.action.value(&fact_sheet.fight, self.reader()))
+        })
+    }
+
     /// The moment the followed game is at, while it has a Suggested Action for the Coach to
     /// judge.
     fn moment(&self) -> Option<coach::Moment> {
@@ -429,7 +444,7 @@ impl Advisor {
                 .map(|suggested| {
                     let mut card = suggested.card(&self.fact_sheet().fight, self.reader());
                     if assistance.coaches() {
-                        card.coach = self.moment().and_then(|now| self.coach.line(&now));
+                        card.coach = self.coach_line();
                     }
                     card
                 }),
