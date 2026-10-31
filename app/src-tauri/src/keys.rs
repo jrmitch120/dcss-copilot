@@ -79,8 +79,9 @@ impl Keychain for OsKeychain {
     }
 }
 
-/// The file a player with no keychain may opt in to, holding keys unencrypted. Only their user can
-/// read it, and it is gone once it holds no key.
+/// The file a player with no keychain may opt in to, holding keys unencrypted, and gone once it
+/// holds no key. Only their user can read it: its mode is 0600 on Unix, and on Windows it sits in
+/// their own profile, whose permissions it inherits.
 #[derive(Debug, Clone)]
 pub struct KeyFile {
     path: PathBuf,
@@ -257,17 +258,23 @@ impl Keys {
                     provider.name()
                 )),
             }
-            if let Some(key) = in_file
-                .get(provider.id())
-                .filter(|_| !players.contains_key(&provider))
-            {
-                players.insert(
-                    provider,
-                    HeldKey {
-                        key: ApiKey::new(key),
-                        source: KeySource::File,
-                    },
-                );
+            match in_file.get(provider.id()) {
+                // A key the keychain holds needs no plaintext copy on the disk.
+                Some(_) if players.contains_key(&provider) => {
+                    if let Err(error) = file.forget(provider) {
+                        crate::log::error(format_args!("keys: {error}"));
+                    }
+                }
+                Some(key) => {
+                    players.insert(
+                        provider,
+                        HeldKey {
+                            key: ApiKey::new(key),
+                            source: KeySource::File,
+                        },
+                    );
+                }
+                None => {}
             }
             if let Some(key) = environment(variable)
                 .map(|key| ApiKey::new(&key))

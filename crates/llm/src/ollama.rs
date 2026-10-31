@@ -5,17 +5,17 @@
 
 use serde_json::{Value, json};
 
-use crate::openai::{turn_text, wire_tool};
+use crate::chat::{self, turn_text, wire_tool};
 use crate::provider::{LlmError, LlmProvider, LlmStream};
-use crate::request::{LlmRequest, Message, OutputSchema, Part, Role, Thinking};
+use crate::request::{LlmRequest, Message, OutputSchema, Part, Thinking};
 use crate::response::{LlmResponse, StopReason, StreamEvent, Usage};
-use crate::stream::{self, Frames, api_error, said};
+use crate::stream::{self, Frames, api_error, error_message};
 
 /// The context each call asks for: room for the static prefix, the largest moment tail and the
 /// ask box's tool results (#24, Tail budgets; `round2.html` on `prototype/setup-settings`).
 const NUM_CTX: u32 = 16_384;
 
-/// Calls the Ollama at a local address. It takes no key.
+/// Calls the Ollama at an address. It takes no key.
 #[derive(Debug, Clone)]
 pub struct OllamaProvider {
     http: reqwest::Client,
@@ -37,7 +37,7 @@ impl OllamaProvider {
     /// # Errors
     /// If it can't be reached, refuses, or answers with something else.
     pub async fn models(&self) -> Result<Vec<String>, LlmError> {
-        let listed = stream::listing(self.http.get(format!("{}/api/tags", self.url))).await?;
+        let listed = stream::get_json(self.http.get(format!("{}/api/tags", self.url))).await?;
         let models = listed["models"]
             .as_array()
             .ok_or_else(|| LlmError::Malformed("Ollama listed no models".to_owned()))?;
@@ -64,7 +64,16 @@ fn wire_request(request: &LlmRequest) -> Value {
     let mut body = json!({
         "model": request.model,
         "stream": true,
-        "messages": wire_messages(request),
+        "messages": chat::wire_messages(
+            request,
+            |id, content| json!({
+                "role": "tool",
+                "tool_name": tool_called(&request.messages, id),
+                "tool_call_id": id,
+                "content": content,
+            }),
+            wire_assistant_turn,
+        ),
         "think": request.thinking != Thinking::Off,
         "options": { "num_ctx": NUM_CTX, "num_predict": request.max_tokens },
     });
@@ -75,48 +84,6 @@ fn wire_request(request: &LlmRequest) -> Value {
         body["format"] = schema.clone();
     }
     body
-}
-
-fn wire_messages(request: &LlmRequest) -> Vec<Value> {
-    let mut messages = Vec::new();
-    if !request.system.is_empty() {
-        let system: Vec<&str> = request
-            .system
-            .iter()
-            .map(|block| block.text.as_str())
-            .collect();
-        messages.push(json!({ "role": "system", "content": system.join("\n\n") }));
-    }
-    for message in &request.messages {
-        match message.role {
-            Role::User => push_user_turn(&mut messages, message, &request.messages),
-            Role::Assistant => messages.push(wire_assistant_turn(message)),
-        }
-    }
-    messages
-}
-
-/// A turn from the Advisor's side, its tool results first and each a message of its own.
-fn push_user_turn(messages: &mut Vec<Value>, turn: &Message, conversation: &[Message]) {
-    for part in &turn.content {
-        if let Part::ToolResult {
-            tool_use_id,
-            content,
-            ..
-        } = part
-        {
-            messages.push(json!({
-                "role": "tool",
-                "tool_name": tool_called(conversation, tool_use_id),
-                "tool_call_id": tool_use_id,
-                "content": content,
-            }));
-        }
-    }
-    let text = turn_text(turn);
-    if !text.is_empty() {
-        messages.push(json!({ "role": "user", "content": text }));
-    }
 }
 
 /// The name of the tool the call `id` called, which Ollama wants beside its result.
@@ -187,7 +154,7 @@ impl stream::Answer for Answer {
     fn apply(&mut self, data: &str) -> Result<Vec<StreamEvent>, LlmError> {
         let line: Value =
             serde_json::from_str(data).map_err(|error| LlmError::Malformed(error.to_string()))?;
-        if let Some(message) = said(&line["error"]) {
+        if let Some(message) = error_message(&line["error"]) {
             return Err(api_error(500, message));
         }
         let message = &line["message"];

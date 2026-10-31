@@ -14,7 +14,7 @@ use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 
 use copilot_core::{Appearance, AssistanceLevel, ViewModel};
-use copilot_llm::{Connection, ModelChoice, ModelSlot, Provider};
+use copilot_llm::{ModelChoice, ModelSlot, Provider, ProviderConnection};
 use copilot_store::Store;
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -469,8 +469,8 @@ pub fn run() {
             );
             app.manage(ModelsAndKeys::new(
                 keys,
-                Box::new(Connection::open),
-                Box::new(Connection::local_models),
+                Box::new(ProviderConnection::open),
+                Box::new(ProviderConnection::local_models),
                 &live.server_addresses(),
             ));
             app.manage(CoachCalls::default());

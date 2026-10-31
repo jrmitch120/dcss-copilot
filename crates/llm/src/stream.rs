@@ -110,15 +110,8 @@ impl<A: Answer> Call<A> {
 async fn start(
     call: reqwest::RequestBuilder,
 ) -> Result<BoxStream<'static, Result<Vec<u8>, String>>, LlmError> {
-    let response = call
-        .send()
-        .await
-        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
-    let status = response.status().as_u16();
-    if !response.status().is_success() {
-        return Err(refusal(status, response).await);
-    }
-    Ok(response
+    Ok(send(call)
+        .await?
         .bytes_stream()
         .map(|chunk| {
             chunk
@@ -132,34 +125,35 @@ async fn start(
 ///
 /// # Errors
 /// If the server can't be reached, refuses, or answers with something else.
-pub(crate) async fn listing(call: reqwest::RequestBuilder) -> Result<Value, LlmError> {
-    let response = call
-        .send()
-        .await
-        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
-    let status = response.status().as_u16();
-    if !response.status().is_success() {
-        return Err(refusal(status, response).await);
-    }
-    let body = response
+pub(crate) async fn get_json(call: reqwest::RequestBuilder) -> Result<Value, LlmError> {
+    let body = send(call)
+        .await?
         .text()
         .await
         .map_err(|error| LlmError::Unreachable(error.to_string()))?;
     serde_json::from_str(&body).map_err(|error| LlmError::Malformed(error.to_string()))
 }
 
-/// The error an unsuccessful answer with this `status` stands for.
-async fn refusal(status: u16, response: reqwest::Response) -> LlmError {
+/// Sends the request, and fails with what the API said unless it answered successfully.
+async fn send(call: reqwest::RequestBuilder) -> Result<reqwest::Response, LlmError> {
+    let response = call
+        .send()
+        .await
+        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
+    let status = response.status().as_u16();
+    if response.status().is_success() {
+        return Ok(response);
+    }
     let body = response.text().await.unwrap_or_default();
     let message = serde_json::from_str::<Value>(&body)
         .ok()
-        .and_then(|error| said(&error["error"]))
+        .and_then(|error| error_message(&error["error"]))
         .unwrap_or(body);
-    api_error(status, message)
+    Err(api_error(status, message))
 }
 
 /// What an API's `error` field says: most nest a message in it, and Ollama's is the message.
-pub(crate) fn said(error: &Value) -> Option<String> {
+pub(crate) fn error_message(error: &Value) -> Option<String> {
     error["message"]
         .as_str()
         .or_else(|| error.as_str())

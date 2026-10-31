@@ -5,6 +5,7 @@ use futures_util::future::BoxFuture;
 
 use crate::anthropic::AnthropicProvider;
 use crate::key::ApiKey;
+use crate::models::ServerAddress;
 use crate::ollama::OllamaProvider;
 use crate::openai::OpenAiCompatible;
 use crate::provider::{LlmError, LlmProvider};
@@ -12,7 +13,7 @@ use crate::provider::{LlmError, LlmProvider};
 /// One provider, with what calling it takes: a key for a cloud provider, an address for a server
 /// the player runs. A provider can't be reached without its own.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Connection {
+pub enum ProviderConnection {
     /// Anthropic, with the player's key.
     Anthropic(ApiKey),
     /// OpenAI, with the player's key.
@@ -22,16 +23,16 @@ pub enum Connection {
     /// The Ollama at an address.
     Ollama {
         /// Where it listens.
-        address: String,
+        address: ServerAddress,
     },
     /// The llama-server at an address.
     LlamaServer {
         /// Where it listens.
-        address: String,
+        address: ServerAddress,
     },
 }
 
-impl Connection {
+impl ProviderConnection {
     /// The adapter that calls this provider.
     #[must_use]
     pub fn open(self) -> Box<dyn LlmProvider> {
@@ -39,8 +40,10 @@ impl Connection {
             Self::Anthropic(key) => Box::new(AnthropicProvider::new(key)),
             Self::OpenAi(key) => Box::new(OpenAiCompatible::openai(key)),
             Self::OpenRouter(key) => Box::new(OpenAiCompatible::openrouter(key)),
-            Self::Ollama { address } => Box::new(OllamaProvider::new(&address)),
-            Self::LlamaServer { address } => Box::new(OpenAiCompatible::llama_server(&address)),
+            Self::Ollama { address } => Box::new(OllamaProvider::new(address.as_str())),
+            Self::LlamaServer { address } => {
+                Box::new(OpenAiCompatible::llama_server(address.as_str()))
+            }
         }
     }
 
@@ -53,16 +56,19 @@ impl Connection {
         }
     }
 
-    /// The models a local server says it has. A cloud provider's are listed in the app.
+    /// The models a local server says it has. A cloud provider's are listed in the app, so it says
+    /// it has none.
     ///
     /// # Errors
     /// If the server can't be reached, refuses, or answers with something else.
     pub fn local_models(self) -> BoxFuture<'static, Result<Vec<String>, LlmError>> {
         async move {
             match self {
-                Self::Ollama { address } => OllamaProvider::new(&address).models().await,
+                Self::Ollama { address } => OllamaProvider::new(address.as_str()).models().await,
                 Self::LlamaServer { address } => {
-                    OpenAiCompatible::llama_server(&address).models().await
+                    OpenAiCompatible::llama_server(address.as_str())
+                        .models()
+                        .await
                 }
                 Self::Anthropic(_) | Self::OpenAi(_) | Self::OpenRouter(_) => Ok(Vec::new()),
             }

@@ -3,11 +3,12 @@
 
 use serde_json::{Value, json};
 
+use crate::chat::{self, turn_text, wire_tool};
 use crate::key::ApiKey;
 use crate::provider::{LlmError, LlmProvider, LlmStream};
-use crate::request::{Effort, LlmRequest, Message, OutputSchema, Part, Role, Thinking};
+use crate::request::{Effort, LlmRequest, Message, OutputSchema, Part, Thinking};
 use crate::response::{LlmResponse, StopReason, StreamEvent, Usage};
-use crate::stream::{self, SseFrames, api_error, said};
+use crate::stream::{self, SseFrames, api_error, error_message};
 
 /// Where OpenAI's API lives.
 const OPENAI_URL: &str = "https://api.openai.com/v1";
@@ -75,7 +76,7 @@ impl OpenAiCompatible {
     /// # Errors
     /// If the server can't be reached, refuses, or answers with something else.
     pub async fn models(&self) -> Result<Vec<String>, LlmError> {
-        let listed = stream::listing(self.http.get(format!("{}/models", self.base_url))).await?;
+        let listed = stream::get_json(self.http.get(format!("{}/models", self.base_url))).await?;
         let models = listed["data"]
             .as_array()
             .ok_or_else(|| LlmError::Malformed("the server listed no models".to_owned()))?;
@@ -105,7 +106,7 @@ fn wire_request(preset: Preset, request: &LlmRequest) -> Value {
     let mut body = json!({
         "model": request.model,
         "stream": true,
-        "messages": wire_messages(request),
+        "messages": chat::wire_messages(request, wire_tool_result, wire_assistant_turn),
     });
     match preset {
         // OpenAI's current models refuse `max_tokens`.
@@ -116,8 +117,7 @@ fn wire_request(preset: Preset, request: &LlmRequest) -> Value {
         Preset::OpenAi | Preset::LlamaServer => {
             body["stream_options"] = json!({ "include_usage": true });
         }
-        // It always reports usage, and has deprecated asking. Requiring what the request uses keeps
-        // it from routing to a provider that would silently ignore the schema or the tools.
+        // It always reports usage; requiring what's sent stops a provider silently ignoring it.
         Preset::OpenRouter => {
             body["provider"] = json!({ "require_parameters": true });
         }
@@ -156,70 +156,8 @@ fn effort_name(effort: Effort) -> &'static str {
     }
 }
 
-pub(crate) fn wire_tool(tool: &crate::request::ToolDef) -> Value {
-    json!({
-        "type": "function",
-        "function": {
-            "name": tool.name,
-            "description": tool.description,
-            "parameters": tool.input_schema,
-        },
-    })
-}
-
-fn wire_messages(request: &LlmRequest) -> Vec<Value> {
-    let mut messages = Vec::new();
-    if !request.system.is_empty() {
-        let system: Vec<&str> = request
-            .system
-            .iter()
-            .map(|block| block.text.as_str())
-            .collect();
-        messages.push(json!({ "role": "system", "content": system.join("\n\n") }));
-    }
-    for message in &request.messages {
-        match message.role {
-            Role::User => push_user_turn(&mut messages, message),
-            Role::Assistant => messages.push(wire_assistant_turn(message)),
-        }
-    }
-    messages
-}
-
-/// The text of a turn, with its pieces set apart.
-pub(crate) fn turn_text(message: &Message) -> String {
-    let pieces: Vec<&str> = message
-        .content
-        .iter()
-        .filter_map(|part| match part {
-            Part::Text { text, .. } => Some(text.as_str()),
-            _ => None,
-        })
-        .collect();
-    pieces.join("\n\n")
-}
-
-/// A turn from the Advisor's side: its tool results come first, each a message of its own, because
-/// they must directly follow the model's turn that called the tools.
-fn push_user_turn(messages: &mut Vec<Value>, turn: &Message) {
-    for part in &turn.content {
-        if let Part::ToolResult {
-            tool_use_id,
-            content,
-            ..
-        } = part
-        {
-            messages.push(json!({
-                "role": "tool",
-                "tool_call_id": tool_use_id,
-                "content": content,
-            }));
-        }
-    }
-    let text = turn_text(turn);
-    if !text.is_empty() {
-        messages.push(json!({ "role": "user", "content": text }));
-    }
+fn wire_tool_result(tool_use_id: &str, content: &str) -> Value {
+    json!({ "role": "tool", "tool_call_id": tool_use_id, "content": content })
 }
 
 /// A turn from the model's side. Its reasoning stays behind: only Anthropic reads it back.
@@ -282,7 +220,7 @@ impl stream::Answer for Answer {
                 .as_u64()
                 .and_then(|code| u16::try_from(code).ok())
                 .unwrap_or(500);
-            return Err(api_error(status, said(error).unwrap_or_default()));
+            return Err(api_error(status, error_message(error).unwrap_or_default()));
         }
         if let Some(model) = chunk["model"].as_str() {
             model.clone_into(&mut self.model);

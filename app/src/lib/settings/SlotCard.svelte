@@ -62,6 +62,11 @@ async function choose(provider: string, model: string, thinking: ThinkingOption)
   }
 }
 
+/** The slot's thinking setting if `accepted` takes it, else `otherwise`. */
+function keptThinking(accepted: ThinkingOption[], otherwise: ThinkingOption): ThinkingOption {
+  return accepted.includes(slot.thinking) ? slot.thinking : otherwise;
+}
+
 function chooseProvider(id: string) {
   naming = false;
   if (id === slot.provider.id) {
@@ -84,14 +89,11 @@ function chooseModel(id: string) {
   naming = false;
   const model = models.find((m) => m.id === id);
   if (!model) return;
-  // Keep the thinking setting if the new model takes it.
-  const thinking = model.thinking.includes(slot.thinking) ? slot.thinking : model.suggested;
-  choose(providerId, id, thinking);
+  choose(providerId, id, keptThinking(model.thinking, model.suggested));
 }
 
 function nameModel() {
-  const thinking = option?.unlistedThinking ?? [];
-  choose(providerId, named, thinking.includes(slot.thinking) ? slot.thinking : "off");
+  choose(providerId, named, keptThinking(option?.unlistedThinking ?? [], "off"));
 }
 </script>
 

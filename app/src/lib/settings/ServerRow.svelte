@@ -52,6 +52,11 @@ async function detect() {
   {:else if server.detection.state === "unreachable"}
     <p class="small muted">Not found at this address: {server.detection.message}</p>
   {/if}
+  {#if provider.id === "ollama"}
+    <p class="tiny muted">
+      The context length is set for you: Ollama's 4k default cuts prompts off.
+    </p>
+  {/if}
   {#if error}
     <p class="small bad">{error}</p>
   {/if}

@@ -7,8 +7,9 @@
 mod support;
 
 use copilot_llm::{
-    Connection, LlmError, LlmProvider, LlmRequest, Message, OllamaProvider, OutputSchema, Part,
-    Role, StopReason, StreamEvent, SystemBlock, ToolDef, Usage, complete,
+    LlmError, LlmProvider, LlmRequest, Message, OllamaProvider, OutputSchema, Part,
+    ProviderConnection, Role, ServerAddress, StopReason, StreamEvent, SystemBlock, ToolDef, Usage,
+    complete,
 };
 use futures_util::StreamExt;
 use serde_json::json;
@@ -292,8 +293,8 @@ async fn an_ollama_that_isnt_running_is_told_apart_from_one_with_no_models() {
 #[tokio::test]
 async fn a_connection_reaches_the_server_at_its_address_without_a_key() {
     let endpoint = FakeEndpoint::start(Canned::lines(TEXT_ANSWER)).await;
-    let connection = Connection::Ollama {
-        address: endpoint.url.clone(),
+    let connection = ProviderConnection::Ollama {
+        address: ServerAddress::new(&endpoint.url).unwrap(),
     };
     assert_eq!(connection.key(), None);
 

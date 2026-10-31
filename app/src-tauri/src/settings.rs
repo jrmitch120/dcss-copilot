@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use copilot_core::{Appearance, AssistanceLevel};
-use copilot_llm::{ModelChoice, ModelSlot, Provider};
+use copilot_llm::{ModelChoice, ModelSlot, Provider, ServerAddress};
 use serde::{Deserialize, Serialize};
 
 /// The player's settings and where they are saved.
@@ -28,7 +28,7 @@ struct Saved {
     /// The providers whose environment variable the player said to use. The key stays there.
     environment_keys: Vec<Provider>,
     /// Where the player's local servers listen, for any moved from their default.
-    server_addresses: HashMap<Provider, String>,
+    server_addresses: HashMap<Provider, ServerAddress>,
 }
 
 /// How many days a game is kept after it was last played, unless the player turns forgetting
@@ -189,7 +189,7 @@ impl Settings {
 
     /// Where the player's local servers listen, for any moved from their default.
     #[must_use]
-    pub fn server_addresses(&self) -> &HashMap<Provider, String> {
+    pub fn server_addresses(&self) -> &HashMap<Provider, ServerAddress> {
         &self.saved.server_addresses
     }
 
@@ -200,7 +200,7 @@ impl Settings {
     pub fn set_server_address(
         &mut self,
         provider: Provider,
-        address: String,
+        address: ServerAddress,
     ) -> Result<(), SettingsError> {
         self.saved.server_addresses.insert(provider, address);
         self.save()

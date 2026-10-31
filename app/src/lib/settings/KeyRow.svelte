@@ -125,7 +125,7 @@ function seconds(millis: number): string {
     </form>
     {#if key.key.state === "missing"}
       <p class="tiny muted">
-        DCSS Copilot also uses {key.key.variable} if it is set in your environment.
+        DCSS Copilot offers {key.key.variable} if it is set where DCSS Copilot starts from.
       </p>
     {/if}
   {/if}

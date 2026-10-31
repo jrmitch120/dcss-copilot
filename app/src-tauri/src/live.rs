@@ -9,7 +9,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use copilot_core::{Appearance, AssistanceLevel, Connection, QuestionId, ViewModel};
 use copilot_gk::{BundleError, Library};
-use copilot_llm::{LlmError, LlmResponse, ModelChoice, ModelSlot, Provider, sidecar_path};
+use copilot_llm::{
+    LlmError, LlmResponse, ModelChoice, ModelSlot, Provider, ServerAddress, sidecar_path,
+};
 use copilot_replay::{CoachCall, Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::Envelope;
@@ -348,7 +350,7 @@ impl Live {
     }
 
     /// Where the player's local servers listen, for any moved from their default.
-    pub fn server_addresses(&self) -> HashMap<Provider, String> {
+    pub fn server_addresses(&self) -> HashMap<Provider, ServerAddress> {
         self.lock().settings.server_addresses().clone()
     }
 
@@ -359,7 +361,7 @@ impl Live {
     pub fn set_server_address(
         &self,
         provider: Provider,
-        address: String,
+        address: ServerAddress,
     ) -> Result<(), SettingsError> {
         self.lock().settings.set_server_address(provider, address)
     }
@@ -804,7 +806,8 @@ mod tests {
         );
 
         live.set_environment_keys(vec![Provider::OpenAi]).unwrap();
-        live.set_server_address(Provider::Ollama, "http://localhost:11500".to_owned())
+        let moved = ServerAddress::new("http://localhost:11500").unwrap();
+        live.set_server_address(Provider::Ollama, moved.clone())
             .unwrap();
 
         let restarted = Live::new(
@@ -816,7 +819,7 @@ mod tests {
         assert_eq!(restarted.environment_keys(), [Provider::OpenAi]);
         assert_eq!(
             restarted.server_addresses().get(&Provider::Ollama),
-            Some(&"http://localhost:11500".to_owned())
+            Some(&moved)
         );
     }
 

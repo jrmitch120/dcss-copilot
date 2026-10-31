@@ -7,8 +7,9 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Instant;
 
 use copilot_llm::{
-    Access, ApiKey, Connection, Effort, LlmError, LlmProvider, LlmRequest, LlmResponse, Message,
-    ModelChoice, ModelInfo, ModelSlot, Provider, SidecarRecorder, Thinking, complete,
+    Access, ApiKey, Effort, LlmError, LlmProvider, LlmRequest, LlmResponse, Message, ModelChoice,
+    ModelInfo, ModelSlot, Provider, ProviderConnection, ServerAddress, ServerAddressError,
+    SidecarRecorder, Thinking, complete,
 };
 use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
@@ -17,23 +18,30 @@ use specta::Type;
 use crate::keys::{KeyError, KeySource, Keys};
 
 /// Makes a live provider from a connection. The app's calls it; tests replay an LLM sidecar.
-pub type Connect = Box<dyn Fn(Connection) -> Box<dyn LlmProvider> + Send + Sync>;
+pub type Connect = Box<dyn Fn(ProviderConnection) -> Box<dyn LlmProvider> + Send + Sync>;
 
 /// Asks a local server which models it has. The app's asks it; tests answer for it.
-pub type Detect =
-    Box<dyn Fn(Connection) -> BoxFuture<'static, Result<Vec<String>, LlmError>> + Send + Sync>;
+pub type Detect = Box<
+    dyn Fn(ProviderConnection) -> BoxFuture<'static, Result<Vec<String>, LlmError>> + Send + Sync,
+>;
 
 /// The most a key test may answer with: one word is enough.
 const KEY_TEST_MAX_TOKENS: u32 = 16;
 
-/// A local server's address wasn't one the app can call.
+/// A local server couldn't be moved.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("{0} isn't an address: it starts with http:// or https://")]
-pub struct AddressError(String);
+pub enum AddressError {
+    /// The provider has no server to move.
+    #[error("{} isn't a server the player runs", .0.name())]
+    NotAServer(Provider),
+    /// The address isn't one the app can call.
+    #[error(transparent)]
+    Invalid(#[from] ServerAddressError),
+}
 
 /// One local server: where it listens, and what asking it last found.
 struct Server {
-    address: String,
+    address: ServerAddress,
     detection: Detection,
 }
 
@@ -53,18 +61,16 @@ impl ModelsAndKeys {
         keys: Keys,
         connect: Connect,
         detect: Detect,
-        addresses: &HashMap<Provider, String>,
+        addresses: &HashMap<Provider, ServerAddress>,
     ) -> Self {
         let servers = Provider::ALL
             .into_iter()
             .filter_map(|provider| {
-                let Access::Address { default } = provider.access() else {
-                    return None;
-                };
                 let server = Server {
                     address: addresses
                         .get(&provider)
-                        .map_or_else(|| default.to_owned(), Clone::clone),
+                        .cloned()
+                        .or_else(|| provider.default_address())?,
                     detection: Detection::Unchecked,
                 };
                 Some((provider, server))
@@ -109,7 +115,7 @@ impl ModelsAndKeys {
                 .filter_map(|provider| {
                     servers.get(&provider).map(|server| ServerView {
                         provider: provider_view(provider),
-                        address: server.address.clone(),
+                        address: server.address.as_str().to_owned(),
                         detection: server.detection.clone(),
                     })
                 })
@@ -158,23 +164,27 @@ impl ModelsAndKeys {
     ///
     /// # Errors
     /// If it isn't an address the app can call, or `provider` isn't a local server.
-    pub fn set_address(&self, provider: Provider, address: &str) -> Result<String, AddressError> {
-        let address = address.trim().trim_end_matches('/');
-        let Access::Address { default } = provider.access() else {
-            return Err(AddressError(address.to_owned()));
+    pub fn set_address(
+        &self,
+        provider: Provider,
+        address: &str,
+    ) -> Result<ServerAddress, AddressError> {
+        let default = provider
+            .default_address()
+            .ok_or(AddressError::NotAServer(provider))?;
+        let address = if address.trim().is_empty() {
+            default
+        } else {
+            ServerAddress::new(address)?
         };
-        let address = if address.is_empty() { default } else { address };
-        if !address.starts_with("http://") && !address.starts_with("https://") {
-            return Err(AddressError(address.to_owned()));
-        }
         lock(&self.servers).insert(
             provider,
             Server {
-                address: address.to_owned(),
+                address: address.clone(),
                 detection: Detection::Unchecked,
             },
         );
-        Ok(address.to_owned())
+        Ok(address)
     }
 
     /// Marks `provider`'s server as being asked, so the player sees it straight away.
@@ -195,7 +205,7 @@ impl ModelsAndKeys {
         // The player may have moved the server while it was being asked.
         if let Some(server) = servers
             .get_mut(&provider)
-            .filter(|server| server.address == address)
+            .filter(|server| Some(&server.address) == address.as_ref())
         {
             server.detection = match answer {
                 Ok(models) => Detection::Found { models },
@@ -282,29 +292,30 @@ impl ModelsAndKeys {
     }
 
     /// What calling `provider` takes: `None` while it wants a key the player hasn't given.
-    fn connection(&self, provider: Provider) -> Option<Connection> {
+    fn connection(&self, provider: Provider) -> Option<ProviderConnection> {
         let key = || lock(&self.keys).get(provider).map(|held| held.key);
         let address = || self.address(provider);
         match provider {
-            Provider::Anthropic => key().map(Connection::Anthropic),
-            Provider::OpenAi => key().map(Connection::OpenAi),
-            Provider::OpenRouter => key().map(Connection::OpenRouter),
-            Provider::Ollama => Some(Connection::Ollama { address: address() }),
-            Provider::LlamaServer => Some(Connection::LlamaServer { address: address() }),
+            Provider::Anthropic => key().map(ProviderConnection::Anthropic),
+            Provider::OpenAi => key().map(ProviderConnection::OpenAi),
+            Provider::OpenRouter => key().map(ProviderConnection::OpenRouter),
+            Provider::Ollama => address().map(|address| ProviderConnection::Ollama { address }),
+            Provider::LlamaServer => {
+                address().map(|address| ProviderConnection::LlamaServer { address })
+            }
         }
     }
 
-    fn address(&self, provider: Provider) -> String {
+    fn address(&self, provider: Provider) -> Option<ServerAddress> {
         lock(&self.servers)
             .get(&provider)
             .map(|server| server.address.clone())
-            .unwrap_or_default()
     }
 
     /// The live provider for `connection`, recording each call in `sidecar` when given.
     fn connected(
         &self,
-        connection: Connection,
+        connection: ProviderConnection,
         sidecar: Option<PathBuf>,
     ) -> Result<Box<dyn LlmProvider>, std::io::Error> {
         let live = (self.connect)(connection);
@@ -1157,6 +1168,26 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn a_key_the_keychain_holds_takes_any_plaintext_copy_off_the_disk_at_launch() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("keys.json");
+        let without = with_file(&MemoryKeychain::unusable(), &path);
+        without.save_key(Provider::Anthropic, KEY).unwrap();
+        without
+            .store_key_unencrypted(Provider::Anthropic, true)
+            .unwrap();
+        let keychain = MemoryKeychain::default();
+        keychain
+            .write(Provider::Anthropic, &ApiKey::new(KEY))
+            .unwrap();
+
+        let models = with_file(&keychain, &path);
+
+        assert_eq!(anthropic(&models).key, stored_in(KeyPlace::Keychain));
+        assert!(!path.exists());
+    }
+
+    #[test]
     fn a_key_in_the_keychain_cant_be_moved_to_the_file() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("keys.json");
@@ -1226,7 +1257,7 @@ pub(crate) mod tests {
 
         assert_eq!(
             answer.model,
-            r#"Ollama { address: "http://192.168.1.20:11434" }"#
+            r#"Ollama { address: ServerAddress("http://192.168.1.20:11434") }"#
         );
     }
 
@@ -1270,14 +1301,17 @@ pub(crate) mod tests {
     fn a_servers_address_must_be_callable_and_an_empty_one_is_its_default() {
         let models = local(detecting(&[]), replaying(WORKS));
 
-        assert_eq!(
+        assert!(matches!(
             models.set_address(Provider::Ollama, "localhost:11434"),
-            Err(AddressError("localhost:11434".to_owned()))
-        );
-        assert!(models.set_address(Provider::OpenAi, "http://x").is_err());
+            Err(AddressError::Invalid(_))
+        ));
         assert_eq!(
-            models.set_address(Provider::Ollama, "  "),
-            Ok("http://localhost:11434".to_owned())
+            models.set_address(Provider::OpenAi, "http://x"),
+            Err(AddressError::NotAServer(Provider::OpenAi))
+        );
+        assert_eq!(
+            models.set_address(Provider::Ollama, "  ").unwrap().as_str(),
+            "http://localhost:11434"
         );
     }
 

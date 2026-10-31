@@ -16,10 +16,10 @@ pub enum Provider {
     /// OpenRouter's chat completions: one key, many providers.
     #[serde(rename = "openrouter")]
     OpenRouter,
-    /// Ollama on this computer.
+    /// Ollama, on a server the player runs.
     #[serde(rename = "ollama")]
     Ollama,
-    /// llama.cpp's server on this computer.
+    /// llama.cpp's server, on a server the player runs.
     #[serde(rename = "llama_server")]
     LlamaServer,
 }
@@ -102,6 +102,15 @@ impl Provider {
         }
     }
 
+    /// Where this provider's server listens unless the player moved it, if it has one.
+    #[must_use]
+    pub fn default_address(self) -> Option<ServerAddress> {
+        match self.access() {
+            Access::Address { default } => Some(ServerAddress(default.to_owned())),
+            Access::Key { .. } => None,
+        }
+    }
+
     /// Whether its models run on the player's own server: a Local Model, experimental and $0.
     #[must_use]
     pub fn is_local(self) -> bool {
@@ -133,6 +142,54 @@ impl Provider {
 
     fn model(self, id: &str) -> Option<&'static ModelInfo> {
         self.models().iter().find(|model| model.id == id)
+    }
+}
+
+/// Where a server the player runs listens: always an `http` or `https` address the app can call,
+/// typed or read back from their settings.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "String", into = "String")]
+pub struct ServerAddress(String);
+
+/// An address that isn't one the app can call.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("\"{0}\" isn't an address: it starts with http:// or https://")]
+pub struct ServerAddressError(String);
+
+impl ServerAddress {
+    /// `address`, without the whitespace and trailing slash a paste often brings along.
+    ///
+    /// # Errors
+    /// If it isn't an `http` or `https` address with a host.
+    pub fn new(address: &str) -> Result<Self, ServerAddressError> {
+        let address = address.trim().trim_end_matches('/');
+        let host = address
+            .strip_prefix("http://")
+            .or_else(|| address.strip_prefix("https://"));
+        match host {
+            Some(host) if !host.is_empty() => Ok(Self(address.to_owned())),
+            _ => Err(ServerAddressError(address.to_owned())),
+        }
+    }
+
+    /// The address.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for ServerAddress {
+    type Error = ServerAddressError;
+
+    fn try_from(address: String) -> Result<Self, Self::Error> {
+        Self::new(&address)
+    }
+}
+
+impl From<ServerAddress> for String {
+    fn from(address: ServerAddress) -> Self {
+        address.0
     }
 }
 
