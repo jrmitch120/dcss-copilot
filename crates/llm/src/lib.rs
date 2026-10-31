@@ -10,6 +10,7 @@ mod provider;
 mod request;
 mod response;
 mod sidecar;
+mod stream;
 
 pub use anthropic::AnthropicProvider;
 pub use key::ApiKey;
