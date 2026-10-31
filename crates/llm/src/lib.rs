@@ -6,6 +6,8 @@
 mod anthropic;
 mod key;
 mod models;
+mod ollama;
+mod openai;
 mod provider;
 mod request;
 mod response;
@@ -15,6 +17,8 @@ mod stream;
 pub use anthropic::AnthropicProvider;
 pub use key::ApiKey;
 pub use models::{ModelChoice, ModelChoiceError, ModelInfo, ModelSlot, Provider};
+pub use ollama::OllamaProvider;
+pub use openai::OpenAiCompatible;
 pub use provider::{LlmError, LlmProvider, LlmStream, complete};
 pub use request::{
     CacheHint, Effort, LlmRequest, Message, OutputSchema, Part, Role, SystemBlock, Thinking,

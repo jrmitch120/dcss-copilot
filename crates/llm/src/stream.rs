@@ -128,8 +128,28 @@ async fn start(
         .boxed())
 }
 
+/// The JSON a server answers a `GET` with, such as its list of models.
+///
+/// # Errors
+/// If the server can't be reached, refuses, or answers with something else.
+pub(crate) async fn listing(call: reqwest::RequestBuilder) -> Result<Value, LlmError> {
+    let response = call
+        .send()
+        .await
+        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
+    let status = response.status().as_u16();
+    if !response.status().is_success() {
+        return Err(refusal(status, response).await);
+    }
+    let body = response
+        .text()
+        .await
+        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
+    serde_json::from_str(&body).map_err(|error| LlmError::Malformed(error.to_string()))
+}
+
 /// The error an unsuccessful answer with this `status` stands for.
-pub(crate) async fn refusal(status: u16, response: reqwest::Response) -> LlmError {
+async fn refusal(status: u16, response: reqwest::Response) -> LlmError {
     let body = response.text().await.unwrap_or_default();
     let message = serde_json::from_str::<Value>(&body)
         .ok()
