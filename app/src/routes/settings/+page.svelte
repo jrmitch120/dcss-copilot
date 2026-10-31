@@ -24,7 +24,8 @@ const SECTIONS: {
     icon: "✦",
     colour: "var(--info)",
     title: "Models and keys",
-    words: "quick deep model thinking provider anthropic api key keychain test replace remove",
+    words:
+      "quick deep model thinking provider anthropic openai openrouter ollama llama-server local experimental api key keychain environment unencrypted test replace remove",
   },
   {
     id: "window",

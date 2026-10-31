@@ -1,5 +1,6 @@
 //! The live game: what the relay has delivered, turned into the panel's view model.
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
@@ -8,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use copilot_core::{Appearance, AssistanceLevel, Connection, QuestionId, ViewModel};
 use copilot_gk::{BundleError, Library};
-use copilot_llm::{LlmError, LlmResponse, ModelChoice, ModelSlot, sidecar_path};
+use copilot_llm::{LlmError, LlmResponse, ModelChoice, ModelSlot, Provider, sidecar_path};
 use copilot_replay::{CoachCall, Following, RECORDING_EXTENSION, RecordingError, RecordingWriter};
 use copilot_store::{Store, StoreError};
 use copilot_webtiles::Envelope;
@@ -331,6 +332,36 @@ impl Live {
         let saved = state.settings.set_model(slot, choice);
         state.coach_as_set();
         saved
+    }
+
+    /// The providers whose environment variable the player said to use.
+    pub fn environment_keys(&self) -> Vec<Provider> {
+        self.lock().settings.environment_keys().to_vec()
+    }
+
+    /// The player changed which providers' environment variables to use.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_environment_keys(&self, providers: Vec<Provider>) -> Result<(), SettingsError> {
+        self.lock().settings.set_environment_keys(providers)
+    }
+
+    /// Where the player's local servers listen, for any moved from their default.
+    pub fn server_addresses(&self) -> HashMap<Provider, String> {
+        self.lock().settings.server_addresses().clone()
+    }
+
+    /// The player moved a local server.
+    ///
+    /// # Errors
+    /// If the choice couldn't be saved, so it lasts only until the app exits.
+    pub fn set_server_address(
+        &self,
+        provider: Provider,
+        address: String,
+    ) -> Result<(), SettingsError> {
+        self.lock().settings.set_server_address(provider, address)
     }
 
     /// The call to make for the Coach's latest question, if one waits: taken once. The answer to
@@ -759,6 +790,50 @@ mod tests {
             restarted.model(ModelSlot::Deep),
             ModelChoice::default_for(ModelSlot::Deep)
         );
+    }
+
+    #[test]
+    fn which_environment_keys_to_use_and_where_servers_listen_are_remembered_across_restarts() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let live = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
+
+        live.set_environment_keys(vec![Provider::OpenAi]).unwrap();
+        live.set_server_address(Provider::Ollama, "http://localhost:11500".to_owned())
+            .unwrap();
+
+        let restarted = Live::new(
+            "1.2.3",
+            None,
+            Settings::load(&path).unwrap(),
+            Store::in_memory(),
+        );
+        assert_eq!(restarted.environment_keys(), [Provider::OpenAi]);
+        assert_eq!(
+            restarted.server_addresses().get(&Provider::Ollama),
+            Some(&"http://localhost:11500".to_owned())
+        );
+    }
+
+    #[test]
+    fn a_settings_file_from_before_local_servers_still_loads() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(
+            &path,
+            r#"{"quickModel":{"provider":"anthropic","model":"claude-haiku-5-5","thinking":"off"}}"#,
+        )
+        .unwrap();
+
+        let settings = Settings::load(&path).unwrap();
+
+        assert!(settings.environment_keys().is_empty());
+        assert!(settings.server_addresses().is_empty());
     }
 
     /// The ogre scenario, LETHAL at turn 5, and its LLM sidecar.

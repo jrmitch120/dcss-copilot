@@ -4,6 +4,7 @@
 //! [`LlmRequest`] in, a streamed [`LlmResponse`] with its required [`Usage`] out.
 
 mod anthropic;
+mod connection;
 mod key;
 mod models;
 mod ollama;
@@ -15,8 +16,9 @@ mod sidecar;
 mod stream;
 
 pub use anthropic::AnthropicProvider;
+pub use connection::Connection;
 pub use key::ApiKey;
-pub use models::{ModelChoice, ModelChoiceError, ModelInfo, ModelSlot, Provider};
+pub use models::{Access, ModelChoice, ModelChoiceError, ModelInfo, ModelSlot, Provider};
 pub use ollama::OllamaProvider;
 pub use openai::OpenAiCompatible;
 pub use provider::{LlmError, LlmProvider, LlmStream, complete};

@@ -352,6 +352,10 @@ _Avoid_: Fast model, default model, cheap model
 The model the player has chosen for questions they explicitly ask the Advisor to think harder about.
 _Avoid_: Smart model, big model
 
+**Local Model**:
+A model running on a server the player runs themselves, Ollama or llama-server, rather than a provider's. It takes an address instead of a key, costs nothing, and is labelled experimental, because its quality is unmeasured and a slow answer is dropped once the game has moved on. Either slot can use one. The Advisor offers the models the server says it has.
+_Avoid_: Offline model, free model
+
 **Game Budget**:
 The most the player is willing to spend on LLM advice in one game. The player can top it up during a run.
 _Avoid_: Run budget, quota, cap
