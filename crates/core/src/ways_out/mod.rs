@@ -18,6 +18,11 @@ use crate::gaps::Gap;
 use crate::screen::KnownAbility;
 use crate::visible_state::{Position, VisibleState};
 
+/// The farthest a corridor can be to fall back to: no hostile that has found the player waits out
+/// a longer walk. Set when "The corridor 25 steps away" was suggested while testing #46: the
+/// corpus's corridors are 13 steps away at most but for one.
+pub(crate) const CORRIDOR_MOST_STEPS: u32 = 15;
+
 /// The time a standard move or action takes the player: `BASELINE_DELAY`.
 const STANDARD_TIME: u32 = BASELINE_DELAY.unsigned_abs();
 
@@ -658,6 +663,40 @@ mod tests {
             ground_of(&visible),
             Ground::OpenGround { open_sides: 8, .. }
         ));
+    }
+
+    #[test]
+    fn a_doorway_within_reach_is_a_corridor_to_fall_back_to() {
+        let rows = [
+            "#########",
+            "#...#####",
+            "#...@...#",
+            "#...#####",
+            "#########",
+        ];
+        let door = Position { x: 4, y: 2 };
+        let mut one_step_away = drawn(&rows, &[Position { x: 6, y: 2 }]);
+        one_step_away.position = Some(Position { x: 3, y: 2 });
+        assert_eq!(
+            ground_of(&one_step_away),
+            Ground::OpenGround {
+                open_sides: 6,
+                nearest_corridor: Some(CorridorSquare {
+                    position: door,
+                    steps: 1
+                }),
+            }
+        );
+
+        let mut hostile_gets_there_first = drawn(&rows, &[Position { x: 5, y: 2 }]);
+        hostile_gets_there_first.position = Some(Position { x: 1, y: 2 });
+        let Ground::OpenGround {
+            nearest_corridor, ..
+        } = ground_of(&hostile_gets_there_first)
+        else {
+            panic!("the player stands in the open room");
+        };
+        assert_ne!(nearest_corridor.map(|square| square.position), Some(door));
     }
 
     #[test]

@@ -149,7 +149,7 @@ expression: detections
     "turn": 1062,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 8 steps away"
+    "line": "Fall back to a corridor — The corridor 7 steps away"
   },
   {
     "envelope": 1834,

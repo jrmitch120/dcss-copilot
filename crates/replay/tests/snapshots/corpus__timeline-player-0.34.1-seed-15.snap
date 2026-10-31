@@ -1040,7 +1040,7 @@ expression: detections
     "turn": 6812,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 10474,
@@ -1107,7 +1107,7 @@ expression: detections
     "turn": 6840,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 10722,
@@ -1226,7 +1226,7 @@ expression: detections
     "turn": 7643,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 5 steps away"
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 12164,

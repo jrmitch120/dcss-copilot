@@ -135,7 +135,7 @@ expression: detections
     "turn": 200,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 4 steps away"
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 1002,
@@ -222,7 +222,7 @@ expression: detections
     "turn": 970,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 3 steps away"
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 2004,
@@ -247,7 +247,7 @@ expression: detections
     "turn": 983,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 5 steps away"
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 2119,
@@ -1137,7 +1137,7 @@ expression: detections
     "turn": 5407,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 3 steps away"
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 9169,

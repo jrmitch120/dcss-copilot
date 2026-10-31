@@ -272,7 +272,7 @@ expression: detections
     "turn": 2187,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 11 steps away"
+    "line": "Fall back to a corridor — The corridor 1 step away"
   },
   {
     "envelope": 4216,

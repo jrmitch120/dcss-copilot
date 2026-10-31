@@ -250,10 +250,10 @@ expression: replay
             "openSides": 7,
             "nearestCorridor": {
               "position": {
-                "x": -5,
+                "x": -4,
                 "y": 5
               },
-              "steps": 4
+              "steps": 3
             }
           },
           "pace": {
@@ -421,7 +421,7 @@ expression: replay
               "whyNot": null
             }
           ],
-          "ground": "On open ground: 7 sides open · a corridor 4 steps away",
+          "ground": "On open ground: 7 sides open · a corridor 3 steps away",
           "gaps": [
             "Open the mutations screen (A) to judge your speed to the stairs."
           ]
@@ -756,10 +756,10 @@ expression: replay
           "openSides": 7,
           "nearestCorridor": {
             "position": {
-              "x": -5,
+              "x": -4,
               "y": 5
             },
-            "steps": 4
+            "steps": 3
           }
         },
         "pace": {
@@ -927,7 +927,7 @@ expression: replay
             "whyNot": null
           }
         ],
-        "ground": "On open ground: 7 sides open · a corridor 4 steps away",
+        "ground": "On open ground: 7 sides open · a corridor 3 steps away",
         "gaps": [
           "Open the mutations screen (A) to judge your speed to the stairs."
         ]
