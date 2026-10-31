@@ -714,6 +714,22 @@ mod tests {
     }
 
     #[test]
+    fn a_saved_address_that_cant_be_used_goes_back_to_its_default_and_keeps_the_other_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(
+            &path,
+            r#"{"appearance":"glyphs","serverAddresses":{"ollama":"http://"}}"#,
+        )
+        .unwrap();
+
+        let settings = Settings::load(&path).unwrap();
+
+        assert_eq!(settings.appearance(), Appearance::Glyphs);
+        assert!(settings.server_addresses().is_empty());
+    }
+
+    #[test]
     fn the_players_appearance_reaches_the_panel_and_is_remembered_across_restarts() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("settings.json");

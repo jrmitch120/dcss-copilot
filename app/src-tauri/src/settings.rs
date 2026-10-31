@@ -28,7 +28,30 @@ struct Saved {
     /// The providers whose environment variable the player said to use. The key stays there.
     environment_keys: Vec<Provider>,
     /// Where the player's local servers listen, for any moved from their default.
+    #[serde(deserialize_with = "usable_addresses")]
     server_addresses: HashMap<Provider, ServerAddress>,
+}
+
+/// The saved addresses that can be used: one that can't goes back to its server's default, rather
+/// than costing the player the rest of their settings. An address may hold a password, so the log
+/// doesn't quote it.
+fn usable_addresses<'de, D: serde::Deserializer<'de>>(
+    saved: D,
+) -> Result<HashMap<Provider, ServerAddress>, D::Error> {
+    let saved = HashMap::<Provider, String>::deserialize(saved)?;
+    Ok(saved
+        .into_iter()
+        .filter_map(|(provider, address)| match ServerAddress::new(&address) {
+            Ok(address) => Some((provider, address)),
+            Err(_) => {
+                crate::log::error(format_args!(
+                    "settings: the saved {} address can't be used; using its default",
+                    provider.name()
+                ));
+                None
+            }
+        })
+        .collect())
 }
 
 /// How many days a game is kept after it was last played, unless the player turns forgetting
