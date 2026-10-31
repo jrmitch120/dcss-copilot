@@ -208,7 +208,10 @@ expression: replay
           }
         ],
         "notPlayed": [
-          "Searing Ray"
+          {
+            "name": "Searing Ray",
+            "reason": null
+          }
         ],
         "gaps": [
           {

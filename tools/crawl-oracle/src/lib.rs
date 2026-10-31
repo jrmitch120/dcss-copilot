@@ -37,6 +37,8 @@
 //! - a player beam case (`"kind":"player-beam"`): the player firing a spell's beam at a monster
 //!   many times, run through [`copilot_core::oracle::player_beam`], with the power a wand of the
 //!   spell is zapped with, against [`copilot_core::oracle::wand_power`];
+//! - a player freeze case (`"kind":"player-freeze"`): the player casting Freeze at a monster beside
+//!   them many times, run through [`copilot_core::oracle::player_freeze`];
 //! - a hit points case (`"kind":"hit-points"`): a kind of monster made many times, against
 //!   [`copilot_core::oracle::monster_hit_points`].
 //!
@@ -50,9 +52,9 @@ use std::fmt;
 
 use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
-    MeleeCase, MeleeTally, MissileCase, MoverCase, PlayerBeamCase, PlayerMeleeCase, PlayerResists,
-    PlayerShotCase, PlayerTally, SpellCase, SpellChoiceCase, SpellTally, StrikerCase, TormentCase,
-    TurnCase, WandCase, WeaponCase, ZapCase,
+    MeleeCase, MeleeTally, MissileCase, MoverCase, PlayerBeamCase, PlayerFreezeCase,
+    PlayerMeleeCase, PlayerResists, PlayerShotCase, PlayerTally, SpellCase, SpellChoiceCase,
+    SpellTally, StrikerCase, TormentCase, TurnCase, WandCase, WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -609,6 +611,10 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             Some("player-beam") => {
                 let case: PlayerBeamLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_player_beam(bundle, seed, &case)?);
+            }
+            Some("player-freeze") => {
+                let case: PlayerFreezeLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_player_freeze(bundle, seed, &case)?);
             }
             Some("speed") => {
                 let case: SpeedLine = serde_json::from_value(value).map_err(read)?;
@@ -1359,6 +1365,21 @@ struct PlayerBeamLine {
     wand_power: i32,
 }
 
+/// A player harness's Freeze case.
+#[derive(Deserialize)]
+struct PlayerFreezeLine {
+    #[serde(rename = "case")]
+    index: u64,
+    spell: u16,
+    spell_name: String,
+    power: i32,
+    monster: u16,
+    name: String,
+    res_cold: i32,
+    trials: u32,
+    damage: BTreeMap<i32, u32>,
+}
+
 /// A player harness's hit points case.
 #[derive(Deserialize)]
 struct HitPointsLine {
@@ -1533,6 +1554,34 @@ fn compare_player_beam(
         [(Measure::Damage, case.damage.clone(), engine.damage)],
     ));
     Ok(mismatches)
+}
+
+/// Every measure of a player Freeze `case` on which crawl and the engine differ.
+fn compare_player_freeze(
+    bundle: &Bundle,
+    seed: u64,
+    case: &PlayerFreezeLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let input = PlayerFreezeCase {
+        spell: case.spell,
+        power: case.power,
+        monster: case.monster,
+    };
+    let engine = oracle::player_freeze(bundle, &input, (seed, case.index), case.trials).map_err(
+        |source| DiffError::Case {
+            case: case.index,
+            source,
+        },
+    )?;
+    let who = format!(
+        "the player's {} at power {} on a {} (rCold {})",
+        case.spell_name, case.power, case.name, case.res_cold
+    );
+    Ok(differing(
+        case.index,
+        &who,
+        [(Measure::Damage, case.damage.clone(), engine)],
+    ))
 }
 
 /// Every measure of a hit points `case` on which crawl and the engine differ.

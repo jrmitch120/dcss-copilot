@@ -7,12 +7,12 @@
 //! actions takes as long as crawl makes it take, and every hostile then gains the energy that
 //! time gives it and acts.
 
-use copilot_gk::{EnumId, Formulas, MeleeWeapon, MissileWeapon, PlayerBeam, SpellRange};
+use copilot_gk::{EnumId, Formulas, MeleeWeapon, MissileWeapon, SpellRange};
 
 use super::melee::BASELINE_DELAY;
 use super::missiles::MISSILE_RANGE;
 use super::player_attacks::{
-    self, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Skill, Striker,
+    self, AttackSpell, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Skill, Striker,
 };
 use super::rng::Rng;
 use super::threat::{Attacker, Defender, Engaged};
@@ -104,7 +104,7 @@ pub(crate) enum Opening<'a> {
     /// Casting a spell, while there is the magic for it.
     Spell {
         /// The spell.
-        zap: PlayerZap<'a>,
+        spell: AttackSpell<'a>,
         /// The power it is cast with.
         power: Power,
         /// The magic points each cast costs.
@@ -288,18 +288,6 @@ fn one_fight<'a>(
     }
 }
 
-/// Fires `zap` at `power` at `hostile`, which takes what it deals.
-fn fire_at(
-    variant: PlayerBeam,
-    rng: &mut Rng,
-    zap: PlayerZap<'_>,
-    power: i32,
-    hostile: &mut Hostile<'_, '_>,
-) {
-    let beam = player_attacks::beam(variant, zap, power);
-    hostile.hp -= player_attacks::fire(variant, rng, beam, hostile.defence).damage;
-}
-
 impl<'f, 'a> Side<'f, 'a> {
     /// `fighter` as one fight plays them, with what of their skills and their spell's power the
     /// game doesn't show drawn afresh.
@@ -382,7 +370,7 @@ impl<'f, 'a> Side<'f, 'a> {
         let variant = formulas.player_beam;
         match self.opening.as_mut()? {
             Opening::Spell {
-                zap,
+                spell,
                 cost,
                 failure_percent,
                 range,
@@ -394,7 +382,9 @@ impl<'f, 'a> Side<'f, 'a> {
                 self.mp -= *cost;
                 // A failed cast spends the magic and the time all the same.
                 if !rng.x_chance_in_y(*failure_percent, 100) {
-                    fire_at(variant, rng, *zap, self.power, hostile);
+                    let blow =
+                        player_attacks::cast(variant, rng, *spell, self.power, hostile.defence);
+                    hostile.hp -= blow.damage;
                 }
                 Some(BASELINE_DELAY)
             }
@@ -410,7 +400,8 @@ impl<'f, 'a> Side<'f, 'a> {
                     return None;
                 }
                 *charges -= 1;
-                fire_at(variant, rng, *zap, self.power, hostile);
+                let blow = player_attacks::zapped(variant, rng, *zap, self.power, hostile.defence);
+                hostile.hp -= blow.damage;
                 Some(BASELINE_DELAY)
             }
             Opening::Thrown {

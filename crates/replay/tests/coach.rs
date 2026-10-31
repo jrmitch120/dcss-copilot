@@ -22,6 +22,9 @@ const OGRE: &str = "ogre-corners-a-minotaur-carrying-escapes";
 const OKLOB: &str = "oklob-plant-spits-from-range";
 /// A jackal pack on open ground: fall back to a corridor.
 const JACKALS: &str = "jackal-pack-corners-a-minotaur-in-a-corridor";
+/// DANGEROUS as a second hobgoblin joins the first beside an Ice Elementalist at turn 1: fight
+/// carefully, opening with Freeze.
+const FREEZER: &str = "ice-elementalist-freezes-hobgoblins";
 
 fn scenario(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("tests/scenarios/{name}.dcssrec"))
@@ -147,6 +150,26 @@ fn the_coach_is_asked_only_at_a_tactical_alert_with_a_suggested_action() {
 
     let turns: Vec<Option<u32>> = replayer.calls().iter().map(|call| call.turn).collect();
     assert_eq!(turns, [Some(5), Some(6)]);
+}
+
+#[test]
+fn a_freeze_plan_is_a_candidate_action_the_coach_may_pick() {
+    let mut replayer = coached(FREEZER, Answering::json("a1", "It works."));
+    replayer.seek(usize::MAX);
+
+    let prompts = prompts(&replayer);
+    let fights: Vec<&str> = prompts
+        .lines()
+        .filter(|line| line.contains(" Fight · "))
+        .collect();
+    assert!(
+        fights[0].starts_with("a1 Fight · Freeze, then melee: ~"),
+        "{prompts}"
+    );
+    assert!(
+        fights.iter().any(|line| line.contains(" Fight · Melee: ~")),
+        "{prompts}"
+    );
 }
 
 #[test]

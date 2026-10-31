@@ -12,6 +12,7 @@ use copilot_gk::{
     Torment, Undeadness,
 };
 
+use super::rng::Rng;
 use super::torment::{self, Share};
 
 use crate::crawl_ids::{beam_types, holinesses};
@@ -649,6 +650,28 @@ pub(crate) fn monster_beam_damage(
             MonsterBeamResist::Adjusted(element) => {
                 resisted(element, resistances.against(element), true, damage)
             }
+        },
+    }
+}
+
+/// The hit points a beam that `resist` adjusts takes from a monster that resists as
+/// `resistances` on top of its damage, as `mons_adjust_flavoured` (`beam.cc:1667`) applies its
+/// flavour once it hits: a negative energy beam drains a monster it doesn't fully resist, which
+/// hurts it (`monster::drain`, `monster.cc:4159`).
+pub(crate) fn monster_beam_aftermath(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    resist: MonsterBeamResist,
+    resistances: MonsterResistances,
+) -> i32 {
+    match variant {
+        PlayerBeam::Crawl034 => match resist {
+            MonsterBeamResist::Adjusted(Element::Negative)
+                if resistances.against(Element::Negative) < 3 =>
+            {
+                2 + rng.random2(3)
+            }
+            MonsterBeamResist::Unresisted | MonsterBeamResist::Adjusted(_) => 0,
         },
     }
 }

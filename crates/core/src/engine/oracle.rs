@@ -15,7 +15,9 @@ use crate::crawl_ids::monster_types;
 use super::brands::{Brand, Necromancy};
 use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
 use super::missiles::{self, Missile, Missiles, Shooter};
-use super::player_attacks::{self, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Striker};
+use super::player_attacks::{
+    self, AttackSpell, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Striker,
+};
 use super::player_move::{self, Unread};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
@@ -341,7 +343,7 @@ pub enum CaseError {
     BrandNotPorted(String),
     /// The engine doesn't port the spell as the player casts it.
     #[error("the engine doesn't port spell {0} as the player casts it")]
-    PlayerZapNotPorted(u16),
+    PlayerSpellNotPorted(u16),
     /// The spell isn't one the engine ports, or not in the monster's spellbook.
     #[error("the engine doesn't port spell {spell} as monster {monster} casts it")]
     NotPorted {
@@ -1217,8 +1219,9 @@ pub struct PlayerBeamTally {
     pub damage: BTreeMap<i32, u32>,
 }
 
-/// The `spell_type` value of every spell the engine ports when the player casts it, so a crawl
-/// harness can draw its cases from them.
+/// The `spell_type` value of every spell the engine ports when the player casts it as one zap,
+/// so a crawl harness can draw its beam cases from them. Freeze, which crawl casts otherwise, isn't
+/// among them.
 #[must_use]
 pub fn player_zaps(bundle: &Bundle) -> Vec<u16> {
     bundle
@@ -1232,7 +1235,7 @@ pub fn player_zaps(bundle: &Bundle) -> Vec<u16> {
 /// The player's zap of the spell numbered `spell`.
 fn player_zap(bundle: &Bundle, spell: u16) -> Result<PlayerZap<'_>, CaseError> {
     let known = bundle.spells.get(&spell).ok_or(CaseError::NoSpell(spell))?;
-    PlayerZap::of(bundle.formulas.player_beam, known).ok_or(CaseError::PlayerZapNotPorted(spell))
+    PlayerZap::of(bundle.formulas.player_beam, known).ok_or(CaseError::PlayerSpellNotPorted(spell))
 }
 
 /// Fires `case`'s beam `trials` times through the ported formulas, from a generator seeded with
@@ -1262,6 +1265,46 @@ pub fn player_beam(
     Ok(tally)
 }
 
+/// Freeze, cast by the player at a monster beside them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlayerFreezeCase {
+    /// The spell's `spell_type` value.
+    pub spell: u16,
+    /// The power it is cast at, which may be past what Freeze takes.
+    pub power: i32,
+    /// The monster's `monster_type` value.
+    pub monster: u16,
+}
+
+/// Casts `case`'s Freeze `trials` times through the ported formulas, from a generator seeded
+/// with `seed`: how often each amount of damage the monster took came up.
+///
+/// # Errors
+/// If the bundle lacks the monster or the spell, or the engine doesn't cast the spell as Freeze.
+pub fn player_freeze(
+    bundle: &Bundle,
+    case: &PlayerFreezeCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<BTreeMap<i32, u32>, CaseError> {
+    let variant = bundle.formulas.player_beam;
+    let known = bundle
+        .spells
+        .get(&case.spell)
+        .ok_or(CaseError::NoSpell(case.spell))?;
+    let Some(freeze @ AttackSpell::Freeze(_)) = AttackSpell::of(variant, known) else {
+        return Err(CaseError::PlayerSpellNotPorted(case.spell));
+    };
+    let defence = defence(bundle, case.monster)?;
+    let mut rng = Rng::new(seed.0, seed.1);
+    let mut tally = BTreeMap::new();
+    for _ in 0..trials {
+        let blow = player_attacks::cast(variant, &mut rng, freeze, case.power, defence);
+        *tally.entry(blow.damage).or_default() += 1;
+    }
+    Ok(tally)
+}
+
 /// The power the player zaps a wand of the spell numbered `spell` with, at Evocations of
 /// `evocations`, as `you.skill(SK_EVOCATIONS, 179200)`.
 ///
@@ -1270,7 +1313,7 @@ pub fn player_beam(
 pub fn wand_power(bundle: &Bundle, spell: u16, evocations: i32) -> Result<i32, CaseError> {
     let cap = player_zap(bundle, spell)?
         .power_cap()
-        .ok_or(CaseError::PlayerZapNotPorted(spell))?;
+        .ok_or(CaseError::PlayerSpellNotPorted(spell))?;
     Ok(player_attacks::wand_power(
         bundle.formulas.wand_power,
         DrawnSkill::exact(evocations),

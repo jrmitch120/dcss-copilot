@@ -487,6 +487,10 @@ pub enum NotModelled {
     OwnFractions,
     /// A failed cast spends its magic and its time, but its miscast does nothing.
     Miscasts,
+    /// A plan casts a spell crawl does more for once its zap is fired, such as Kiss of Death,
+    /// which drains the caster, or Sandblast, which takes longer than other actions: the cast is
+    /// its zap alone.
+    PostZapEffects,
     /// An explosion, or a beam or missile that passes through what it hits, such as Fireball or a
     /// javelin, strikes only its target.
     BlastsAndBolts,
@@ -1520,6 +1524,7 @@ mod tests {
             | NotModelled::OwnWeapon
             | NotModelled::OwnFractions
             | NotModelled::Miscasts
+            | NotModelled::PostZapEffects
             | NotModelled::BlastsAndBolts
             | NotModelled::MonsterLighting
             | NotModelled::MonsterArmour => false,
@@ -1671,6 +1676,7 @@ mod tests {
             OwnWeapon,
             OwnFractions,
             Miscasts,
+            PostZapEffects,
             BlastsAndBolts,
             MonsterLighting,
             MonsterArmour,
@@ -1710,7 +1716,8 @@ mod tests {
                 None => {
                     assert!(
                         field.starts_with("accepted simplification")
-                            || field.starts_with("harness only"),
+                            || field.starts_with("harness only")
+                            || field.starts_with("named as not played"),
                         "an entry without a variant says why: {field}"
                     );
                     None

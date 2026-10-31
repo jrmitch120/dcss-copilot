@@ -1,7 +1,7 @@
 //! Crawl's formulas for the player attacking a monster, ported closely (ADR 0002) behind the
 //! formula variants a Game Knowledge bundle names: a melee swing with a weapon or unarmed, a shot
-//! from a launcher, a thrown missile, and a beam from a spell or a wand, with how long each takes;
-//! the power a wand is zapped with; and a monster's hit points as it is made.
+//! from a launcher, a thrown missile, a beam from a spell or a wand, and Freeze, with how long each
+//! takes; the power a wand is zapped with; and a monster's hit points as it is made.
 //!
 //! Line numbers are crawl 0.34.1's (`crawl-ref/source/` at tag 0.34.1). Only the paths a plain
 //! attack takes are ported: the player has no statuses, form, mutations or slaying, wears nothing
@@ -13,6 +13,8 @@ use copilot_gk::{
     EnumId, MeleeWeapon, MissileWeapon, Monster, MonsterHitPoints, PlayerAttack, PlayerBeam, Spell,
     WandPower, Zap, ZapDamage, ZapToHit,
 };
+
+use serde::Serialize;
 
 use super::melee::{AUTOMATIC_HIT, MIN_HIT_MISS_PERCENTAGE};
 use super::resists::{self, MonsterBeamResist, MonsterResistances};
@@ -49,7 +51,35 @@ const PLAYER_ZAPS_0_34: &[&str] = &[
     "SPELL_QUICKSILVER_BOLT",
     "SPELL_STICKY_FLAME",
     "SPELL_ICEBLAST",
+    "SPELL_KISS_OF_DEATH",
 ];
+
+/// The plain zaps crawl 0.34 does more for once the zap is fired (`_apply_post_zap_effect`,
+/// `spl-cast.cc:354`): Sandblast takes half as long again, Kiss of Death drains the caster and
+/// Bombard may stumble them back.
+const POST_ZAP_EFFECTS_0_34: &[&str] = &["SPELL_SANDBLAST", "SPELL_KISS_OF_DEATH", "SPELL_BOMBARD"];
+
+/// The spell crawl 0.34's `_do_cast` casts through `cast_freeze` (`spl-cast.cc:2462`), only at
+/// a monster beside the player.
+const FREEZE_0_34: &str = "SPELL_FREEZE";
+
+/// The most power `cast_freeze` (`spl-damage.cc:867`) casts Freeze with, whatever the player's.
+const FREEZE_POWER_CAP_0_34: i32 = 25;
+
+/// The player's damaging spells crawl 0.34 casts by a path of its own the engine doesn't port:
+/// Scorch (`scorch_damage`), Poisonous Vapours (`poisonous_vapours_damage`) and Jinxbite, a status
+/// under which each of the player's attacks may call a sprite to bite the monster, against its
+/// willpower (`attempt_jinxbite_hit`).
+const OWN_DAMAGE_PATHS_0_34: &[&str] =
+    &["SPELL_SCORCH", "SPELL_POISONOUS_VAPOURS", "SPELL_JINXBITE"];
+
+/// The player's spells crawl 0.34 aims at a monster that deal it no damage: Soul Splinter, which
+/// makes its soul a wisp ally (`make_soul_wisp`).
+const NO_DAMAGE_0_34: &[&str] = &["SPELL_SOUL_SPLINTER"];
+
+/// The player's spells crawl 0.34 makes foes burn with that summon what does the burning:
+/// Foxfire, whose foxfires seek out monsters (`cast_foxfire`).
+const SUMMONS_0_34: &[&str] = &["SPELL_FOXFIRE"];
 
 /// The crossbows crawl 0.34's `is_crossbow` (`item-prop.cc:2158`) names, which skill never makes
 /// faster than a standard-speed action (`weapon_min_delay`, `fight.cc:1259`).
@@ -102,6 +132,182 @@ impl<'a> PlayerZap<'a> {
     /// Its accuracy at `power`, `None` when it never misses.
     pub(crate) fn accuracy(self, power: i32) -> Option<i32> {
         spells::accuracy(self.to_hit, power)
+    }
+
+    /// Whether it strikes more than its target: an explosion, or a beam that passes through
+    /// what it hits.
+    pub(crate) fn blasts_or_pierces(self) -> bool {
+        self.zap.explodes || self.zap.pierces
+    }
+
+    /// Whether `variant`, casting it as a spell, does more once its zap is fired than the engine
+    /// plays, such as Kiss of Death draining the caster.
+    fn has_post_zap_effect(self, variant: PlayerBeam) -> bool {
+        let post_zap_effects = match variant {
+            PlayerBeam::Crawl034 => POST_ZAP_EFFECTS_0_34,
+        };
+        post_zap_effects.contains(&self.spell.id.0.as_str())
+    }
+}
+
+/// The player firing `zap` at `power` at a monster that defends as `defence`, as `variant` plays
+/// it, from a spell or a wand.
+pub(crate) fn zapped(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    zap: PlayerZap<'_>,
+    power: i32,
+    defence: Defence,
+) -> Blow {
+    fire(variant, rng, beam(variant, zap, power), defence)
+}
+
+/// Freeze, as crawl 0.34's `cast_freeze` (`spl-damage.cc:865`) casts it: its zap's damage dealt
+/// straight to a monster beside the player, which can't miss and meets no armour, adjusted for
+/// the monster's resistance to cold.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Freeze<'a> {
+    spell: &'a Spell,
+    damage: ZapDamage,
+    resist: MonsterBeamResist,
+}
+
+impl<'a> Freeze<'a> {
+    /// `spell` as `variant` casts it, if it is Freeze: its zap's damage for the player, of a
+    /// flavour the monster resist port knows.
+    fn of(variant: PlayerBeam, spell: &'a Spell) -> Option<Self> {
+        let freeze = match variant {
+            PlayerBeam::Crawl034 => FREEZE_0_34,
+        };
+        if spell.id.0 != freeze {
+            return None;
+        }
+        let zap = spell.zap.as_ref()?;
+        Some(Self {
+            spell,
+            damage: zap.player_damage?,
+            resist: resists::monster_beam(variant, &zap.flavour)?,
+        })
+    }
+
+    /// The most power the spell list shows it cast with: `spell_power_cap`.
+    fn power_cap(self) -> Option<i32> {
+        self.spell.range.map(|range| range.power_cap)
+    }
+
+    /// The hit points it takes from a monster that defends as `defence`, cast at `power`.
+    fn strike(self, variant: PlayerBeam, rng: &mut Rng, power: i32, defence: Defence) -> i32 {
+        match variant {
+            PlayerBeam::Crawl034 => {
+                // `zappy` sets the zap's dice up at the capped power, and they are rolled as is.
+                let power = power.min(FREEZE_POWER_CAP_0_34);
+                let (dice, sides) = spells::dice(rng, self.damage, power);
+                let rolled = rng.roll_dice(dice, sides);
+                resists::monster_beam_damage(variant, self.resist, defence.resists, rolled)
+            }
+        }
+    }
+}
+
+/// A spell the player knows that the engine plays as an attack, by the way crawl casts it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AttackSpell<'a> {
+    /// Fired as one zap, as a wand of it would be.
+    Zap(PlayerZap<'a>),
+    /// Freeze, cast at a monster beside the player.
+    Freeze(Freeze<'a>),
+}
+
+impl<'a> AttackSpell<'a> {
+    /// `spell` as the player casts it, if `variant` ports it as an attack.
+    pub(crate) fn of(variant: PlayerBeam, spell: &'a Spell) -> Option<Self> {
+        PlayerZap::of(variant, spell)
+            .map(Self::Zap)
+            .or_else(|| Freeze::of(variant, spell).map(Self::Freeze))
+    }
+
+    /// The most power it takes, past which it grows no stronger: `spell_power_cap`.
+    pub(crate) fn power_cap(self) -> Option<i32> {
+        match self {
+            Self::Zap(zap) => zap.power_cap(),
+            Self::Freeze(freeze) => freeze.power_cap(),
+        }
+    }
+
+    /// How many squares it reaches, cast with the range the spell list shows, `shown`: Freeze
+    /// only a monster beside the player, as `_do_cast` (`spl-cast.cc:2454`) casts it at no other.
+    pub(crate) fn reach(self, shown: i32) -> i32 {
+        match self {
+            Self::Zap(_) => shown,
+            Self::Freeze(_) => 1,
+        }
+    }
+
+    /// Whether `variant` does more for it, once its zap is fired, than the engine plays, such as
+    /// Kiss of Death draining the caster.
+    pub(crate) fn has_post_zap_effect(self, variant: PlayerBeam) -> bool {
+        match self {
+            Self::Zap(zap) => zap.has_post_zap_effect(variant),
+            Self::Freeze(_) => false,
+        }
+    }
+
+    /// Whether it strikes more than its target: an explosion, or a beam that passes through
+    /// what it hits.
+    pub(crate) fn blasts_or_pierces(self) -> bool {
+        match self {
+            Self::Zap(zap) => zap.blasts_or_pierces(),
+            Self::Freeze(_) => false,
+        }
+    }
+}
+
+/// The player casting `spell` at `power` at a monster, as `variant` plays it.
+pub(crate) fn cast(
+    variant: PlayerBeam,
+    rng: &mut Rng,
+    spell: AttackSpell<'_>,
+    power: i32,
+    defence: Defence,
+) -> Blow {
+    match spell {
+        AttackSpell::Zap(zap) => zapped(variant, rng, zap, power, defence),
+        AttackSpell::Freeze(freeze) => Blow {
+            to_hit: AUTOMATIC_HIT,
+            hits: true,
+            damage: freeze.strike(variant, rng, power, defence),
+            broke: false,
+        },
+    }
+}
+
+/// Why the engine makes no Attack Plan of a spell the player knows, where it says: those crawl
+/// casts to harm a monster in a way the engine doesn't play.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum NotPlayedReason {
+    /// Crawl deals its damage by a path of its own the engine doesn't port, such as Scorch's.
+    OwnDamagePath,
+    /// It deals no damage, such as Soul Splinter, which makes the monster's soul an ally.
+    NoDamage,
+    /// It summons something to do its harm, such as Foxfire.
+    Summons,
+}
+
+impl NotPlayedReason {
+    /// Why `variant` plays no attack of `spell`, where it says.
+    pub(crate) fn of(variant: PlayerBeam, spell: &Spell) -> Option<Self> {
+        let (own_damage_paths, no_damage, summons) = match variant {
+            PlayerBeam::Crawl034 => (OWN_DAMAGE_PATHS_0_34, NO_DAMAGE_0_34, SUMMONS_0_34),
+        };
+        let id = spell.id.0.as_str();
+        [
+            (own_damage_paths, Self::OwnDamagePath),
+            (no_damage, Self::NoDamage),
+            (summons, Self::Summons),
+        ]
+        .into_iter()
+        .find_map(|(spells, reason)| spells.contains(&id).then_some(reason))
     }
 }
 
@@ -635,7 +841,7 @@ pub(crate) fn beam(variant: PlayerBeam, zap: PlayerZap<'_>, power: i32) -> Beam 
 /// A beam the player fires at a monster, rolled as `bolt::affect_monster` (`beam.cc:5520`) rolls
 /// it: its dice, armour and the monster's resistances (`bolt::determine_damage`, `beam.cc:4659`),
 /// then, unless it explodes and so engulfs the monster, the roll against its evasion
-/// (`_test_beam_hit`, `beam.cc:3228`).
+/// (`_test_beam_hit`, `beam.cc:3228`), and for a hit what its flavour does besides.
 pub(crate) fn fire(variant: PlayerBeam, rng: &mut Rng, beam: Beam, defence: Defence) -> Blow {
     match variant {
         PlayerBeam::Crawl034 => {
@@ -654,10 +860,12 @@ pub(crate) fn fire(variant: PlayerBeam, rng: &mut Rng, beam: Beam, defence: Defe
                     return Blow::missed(to_hit);
                 }
             }
+            let aftermath =
+                resists::monster_beam_aftermath(variant, rng, beam.resist, defence.resists);
             Blow {
                 to_hit: beam.to_hit.unwrap_or(AUTOMATIC_HIT),
                 hits: true,
-                damage,
+                damage: damage + aftermath,
                 broke: false,
             }
         }
@@ -736,6 +944,59 @@ mod tests {
                     bundle.crawl.tag
                 );
             }
+        }
+    }
+
+    #[test]
+    fn every_spell_not_played_for_a_reason_is_in_every_shipped_bundle_of_its_variant() {
+        let library = Library::shipped().unwrap();
+        for bundle in library.bundles() {
+            let variant = bundle.formulas.player_beam;
+            let lists = match variant {
+                PlayerBeam::Crawl034 => [OWN_DAMAGE_PATHS_0_34, NO_DAMAGE_0_34, SUMMONS_0_34],
+            };
+            let post_zap_effects = match variant {
+                PlayerBeam::Crawl034 => POST_ZAP_EFFECTS_0_34,
+            };
+            for &id in post_zap_effects {
+                let spell = bundle
+                    .spell_by_id(&EnumId(id.to_owned()))
+                    .unwrap_or_else(|| panic!("{} has no spell {id}", bundle.crawl.tag));
+                let attack = AttackSpell::of(variant, spell);
+                assert!(
+                    attack.is_some_and(|attack| attack.has_post_zap_effect(variant)),
+                    "{id}"
+                );
+            }
+            for &id in lists.iter().copied().flatten() {
+                let spell = bundle
+                    .spell_by_id(&EnumId(id.to_owned()))
+                    .unwrap_or_else(|| panic!("{} has no spell {id}", bundle.crawl.tag));
+                assert_eq!(AttackSpell::of(variant, spell), None, "{id}");
+                assert!(NotPlayedReason::of(variant, spell).is_some(), "{id}");
+            }
+        }
+    }
+
+    #[test]
+    fn freeze_names_a_spell_the_player_casts_as_freeze_in_every_shipped_bundle_of_its_variant() {
+        let library = Library::shipped().unwrap();
+        for bundle in library.bundles() {
+            let variant = bundle.formulas.player_beam;
+            let id = match variant {
+                PlayerBeam::Crawl034 => FREEZE_0_34,
+            };
+            let spell = bundle
+                .spell_by_id(&EnumId(id.to_owned()))
+                .unwrap_or_else(|| panic!("{} has no spell {id}", bundle.crawl.tag));
+            assert!(
+                matches!(
+                    AttackSpell::of(variant, spell),
+                    Some(AttackSpell::Freeze(_))
+                ),
+                "{} doesn't cast {id} as Freeze",
+                bundle.crawl.tag
+            );
         }
     }
 }
