@@ -258,23 +258,21 @@ impl Keys {
                     provider.name()
                 )),
             }
-            match in_file.get(provider.id()) {
-                // A key the keychain holds needs no plaintext copy on the disk.
-                Some(_) if players.contains_key(&provider) => {
+            if let Some(key) = in_file.get(provider.id()).map(|key| ApiKey::new(key)) {
+                // A key in both needs no plaintext copy. One that differs went to the file while
+                // the keychain couldn't be used, so it is the newer.
+                let in_keychain = players.get(&provider).map(|held| &held.key);
+                let source = if in_keychain.is_some_and(|held| *held == key)
+                    || (in_keychain.is_some() && keychain.write(provider, &key).is_ok())
+                {
                     if let Err(error) = file.forget(provider) {
                         crate::log::error(format_args!("keys: {error}"));
                     }
-                }
-                Some(key) => {
-                    players.insert(
-                        provider,
-                        HeldKey {
-                            key: ApiKey::new(key),
-                            source: KeySource::File,
-                        },
-                    );
-                }
-                None => {}
+                    KeySource::Keychain
+                } else {
+                    KeySource::File
+                };
+                players.insert(provider, HeldKey { key, source });
             }
             if let Some(key) = environment(variable)
                 .map(|key| ApiKey::new(&key))

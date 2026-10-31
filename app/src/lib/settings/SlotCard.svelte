@@ -75,7 +75,7 @@ function chooseProvider(id: string) {
   }
   const first = providers.find((p) => p.provider.id === id)?.models[0];
   if (first) {
-    choose(id, first.id, first.suggested);
+    choose(id, first.id, keptThinking(first.thinking, first.suggested));
   } else {
     picked = id;
   }

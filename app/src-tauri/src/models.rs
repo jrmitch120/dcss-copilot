@@ -291,7 +291,8 @@ impl ModelsAndKeys {
         }
     }
 
-    /// What calling `provider` takes: `None` while it wants a key the player hasn't given.
+    /// What calling `provider` takes: `None` while it wants a key the player hasn't given, or has
+    /// no address to call.
     fn connection(&self, provider: Provider) -> Option<ProviderConnection> {
         let key = || lock(&self.keys).get(provider).map(|held| held.key);
         let address = || self.address(provider);
@@ -1184,6 +1185,29 @@ pub(crate) mod tests {
         let models = with_file(&keychain, &path);
 
         assert_eq!(anthropic(&models).key, stored_in(KeyPlace::Keychain));
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn a_newer_key_in_the_file_replaces_an_older_one_in_the_keychain_at_launch() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("keys.json");
+        let without = with_file(&MemoryKeychain::unusable(), &path);
+        without.save_key(Provider::Anthropic, "sk-newer").unwrap();
+        without
+            .store_key_unencrypted(Provider::Anthropic, true)
+            .unwrap();
+        let keychain = MemoryKeychain::default();
+        keychain
+            .write(Provider::Anthropic, &ApiKey::new("sk-older"))
+            .unwrap();
+
+        with_file(&keychain, &path);
+
+        assert_eq!(
+            keychain.read(Provider::Anthropic).unwrap(),
+            Some(ApiKey::new("sk-newer"))
+        );
         assert!(!path.exists());
     }
 
