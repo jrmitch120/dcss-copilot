@@ -445,7 +445,7 @@ The hostiles fight as the Threat Level plays them, over as many of the player's 
 - **What the engine assumes:** monsters can cross and stand on every unexplored square, and the player walks only over explored ones.
 - **Surfaced as:** `unexploredSquares`, whenever the ground is judged.
 - **Harness:** none.
-- **Impact and cost:** errs toward caution for the player. There is nothing better to assume about squares no one has seen.
+- **Impact and cost:** errs toward caution for the player. There is nothing better to assume about squares no one has seen. Whether a doorway holds a Corridor reads the same way, and looks only at the hostiles in view: one out of view could already be coming from behind.
 
 ### Hits on the way
 

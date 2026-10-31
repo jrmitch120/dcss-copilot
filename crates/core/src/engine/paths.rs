@@ -90,6 +90,15 @@ impl Level {
         })
     }
 
+    /// The same level with nothing able to step onto `position`, such as a square the player holds.
+    pub(crate) fn with_solid(&self, position: Position) -> Self {
+        let mut level = self.clone();
+        level
+            .terrain
+            .insert((position.y, position.x), Terrain::Solid);
+        level
+    }
+
     /// The terrain at `position`, `None` for an unexplored square.
     pub(crate) fn terrain(&self, position: Position) -> Option<Terrain> {
         self.terrain.get(&(position.y, position.x)).copied()

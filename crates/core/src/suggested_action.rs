@@ -645,6 +645,30 @@ mod tests {
     }
 
     #[test]
+    fn at_dangerous_a_corridor_too_far_to_walk_to_is_not_fallen_back_to() {
+        let dangerous = |steps| {
+            with_corridor(
+                moment(
+                    ThreatLevel::Dangerous,
+                    2,
+                    vec![usable(stairs(1, 6, false))],
+                    judged(vec![plan(None, 500, 40)]),
+                ),
+                steps,
+            )
+        };
+
+        assert_eq!(
+            rule_at(&dangerous(15)),
+            Some(SuggestionRule::FallBackToACorridor)
+        );
+        assert_eq!(
+            rule_at(&dangerous(25)),
+            Some(SuggestionRule::FallBackToStairs)
+        );
+    }
+
+    #[test]
     fn at_dangerous_a_corridor_is_fallen_back_to_or_held_only_among_several_hostiles() {
         let dangerous = |hostiles| {
             with_corridor(

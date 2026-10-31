@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeSet, HashMap};
 
-use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
+use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Monster, Terrain};
 
 use super::STANDARD_TIME;
 use super::pace::Pace;
@@ -18,6 +18,12 @@ use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, Visible
 /// so they come at the player one or two at a time. A starting rule from #35, to be tuned on the
 /// corpus.
 const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
+
+/// A side of the player counts against a hostile only if it can reach it within this many moves
+/// of the first side it can reach. Farther, the player has long been holding the near side by the
+/// time it gets round. Set when a broken door on D:2 read as open ground while testing #46, to be
+/// tuned on the corpus.
+const GETS_ROUND_IN_MOVES: u32 = 10;
 
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
@@ -109,18 +115,63 @@ impl<'a> OnTheLevel<'a> {
 
     /// The squares around `position` a monster could stand on to attack: open ones, closed
     /// doors it could open, and unexplored ones, which may be either.
+    fn sides(&self, position: Position) -> impl Iterator<Item = Position> + '_ {
+        self.level.around(position).filter(|&square| {
+            matches!(
+                self.level.terrain(square),
+                None | Some(Terrain::Open | Terrain::ClosedDoor)
+            )
+        })
+    }
+
     fn open_sides(&self, position: Position) -> u32 {
-        let open = self
-            .level
-            .around(position)
-            .filter(|&square| {
-                matches!(
-                    self.level.terrain(square),
-                    None | Some(Terrain::Open | Terrain::ClosedDoor)
-                )
-            })
-            .count();
-        u32::try_from(open).unwrap_or(u32::MAX)
+        u32::try_from(self.sides(position).count()).unwrap_or(u32::MAX)
+    }
+
+    /// Whether `monster` walks while the player watches it.
+    fn walks(&self, monster: &Monster) -> bool {
+        !monster.stationary
+            && step::walks_while_watched(self.bundle.formulas.monster_step, monster.watched_step)
+    }
+
+    /// The moves of `monster`, from where it stands, over `level`.
+    fn moves_of(&self, level: &Level, monster: &Monster, from: Position) -> Moves {
+        if self.walks(monster) {
+            let walker = Walker::Monster {
+                opens_doors: monster.item_use >= ItemUse::OpenDoors,
+            };
+            level.moves_from(walker, from)
+        } else {
+            Moves::staying(from)
+        }
+    }
+
+    /// How many of the open sides around the player the hostiles in view can come at them from,
+    /// walking around them. `None` when that can't be told: a monster in view isn't known, or no
+    /// hostile that walks can reach any side, so where they stand says nothing of the ground.
+    fn sides_hostiles_reach(&self) -> Option<u32> {
+        let sides: Vec<Position> = self.sides(self.player).collect();
+        let player_in_the_way = self.level.with_solid(self.player);
+        let mut reached = BTreeSet::new();
+        let mut a_walker_reaches = false;
+        for seen in self.visible.monsters.iter().flatten() {
+            if !attacks_player(seen.attitude?) {
+                continue;
+            }
+            let monster = self.bundle.monster_by_id(seen.id.as_ref()?)?;
+            let moves = self.moves_of(&player_in_the_way, monster, seen.position);
+            let first = sides.iter().filter_map(|&side| moves.to(side)).min();
+            let Some(first) = first else { continue };
+            a_walker_reaches |= self.walks(monster);
+            reached.extend(sides.iter().copied().filter(|&side| {
+                moves
+                    .to(side)
+                    .is_some_and(|to| to <= first + GETS_ROUND_IN_MOVES)
+            }));
+        }
+        a_walker_reaches
+            .then(|| u32::try_from(reached.len()).ok())
+            .flatten()
     }
 
     /// The ground the player stands on, and on open ground the nearest corridor.
@@ -128,6 +179,14 @@ impl<'a> OnTheLevel<'a> {
         let open_sides = self.open_sides(self.player);
         if open_sides <= CORRIDOR_MOST_OPEN_SIDES {
             return Ground::Corridor { open_sides };
+        }
+        if let Some(reached) = self
+            .sides_hostiles_reach()
+            .filter(|&reached| reached <= CORRIDOR_MOST_OPEN_SIDES)
+        {
+            return Ground::Corridor {
+                open_sides: reached,
+            };
         }
         let nearest_corridor = self
             .walks
@@ -233,7 +292,6 @@ impl<'a> OnTheLevel<'a> {
     /// beside. One that steps by chance, the lurking horror, walks as if every roll let it, which
     /// errs high ([`step::walks_while_watched`]).
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
-        let variant = self.bundle.formulas.monster_step;
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
             // A monster whose side isn't decoded may be hostile: without Game Knowledge, as the
@@ -258,14 +316,7 @@ impl<'a> OnTheLevel<'a> {
             if monster.stationary {
                 continue;
             }
-            let moves = if step::walks_while_watched(variant, monster.watched_step) {
-                let walker = Walker::Monster {
-                    opens_doors: monster.item_use >= ItemUse::OpenDoors,
-                };
-                self.level.moves_from(walker, seen.position)
-            } else {
-                Moves::staying(seen.position)
-            };
+            let moves = self.moves_of(&self.level, monster, seen.position);
             chasers.push(Chaser {
                 seen,
                 speed: monster.speed,

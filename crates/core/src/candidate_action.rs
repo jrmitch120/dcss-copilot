@@ -9,6 +9,11 @@ use crate::gaps::Reader;
 use crate::view_model::{MarkedValue, capitalised};
 use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
 
+/// The farthest a corridor can be to fall back to: no hostile that has found the player waits out
+/// a longer walk. Set when "The corridor 25 steps away" was suggested while testing #46: the
+/// corpus's corridors are 13 steps away at most but for one.
+const CORRIDOR_MOST_STEPS: u32 = 15;
+
 /// The Candidate Actions at a moment, best first by the engine's own rank, each with the id an
 /// LLM picks it by.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -246,13 +251,15 @@ pub(crate) fn usable(ways_out: &WaysOut) -> impl Iterator<Item = &WayOut> {
         .filter(|way_out| way_out.usable == Usable::Yes)
 }
 
-/// The corridor to hold, when the player stands in one or can walk to one.
+/// The corridor to hold, when the player stands in one or can walk to one near enough.
 pub(crate) fn corridor(ways_out: &WaysOut) -> Option<CorridorToHold> {
     match ways_out.ground {
         Some(Ground::Corridor { .. }) => Some(CorridorToHold::StandingIn),
         Some(Ground::OpenGround {
             nearest_corridor, ..
-        }) => nearest_corridor.map(CorridorToHold::Near),
+        }) => nearest_corridor
+            .filter(|square| square.steps <= CORRIDOR_MOST_STEPS)
+            .map(CorridorToHold::Near),
         None => None,
     }
 }
