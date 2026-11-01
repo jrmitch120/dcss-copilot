@@ -40,14 +40,6 @@ const RING: [(i32, i32); 8] = [
     (-1, 0),
 ];
 
-/// How the hostiles in view can come at a square, with it held.
-struct Approach {
-    /// How many of its open sides they can come at it from.
-    sides: u32,
-    /// The fewest moves any that walks needs to reach one of them.
-    soonest: u32,
-}
-
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
     level: Level,
@@ -157,47 +149,76 @@ impl<'a> OnTheLevel<'a> {
             && step::walks_while_watched(self.bundle.formulas.monster_step, monster.watched_step)
     }
 
-    /// The moves of `monster`, from where it stands, over `level`.
-    fn moves_of(&self, level: &Level, monster: &Monster, from: Position) -> Moves {
+    /// How `monster` steps, for a walker: it opens doors if it uses at least doors.
+    fn walker(monster: &Monster) -> Walker<'static> {
+        Walker::Monster {
+            opens_doors: monster.item_use >= ItemUse::OpenDoors,
+        }
+    }
+
+    /// The moves of `monster` from where it stands.
+    fn moves_of(&self, monster: &Monster, from: Position) -> Moves {
         if self.walks(monster) {
-            let walker = Walker::Monster {
-                opens_doors: monster.item_use >= ItemUse::OpenDoors,
-            };
-            level.moves_from(walker, from)
+            self.level.moves_from(Self::walker(monster), from)
         } else {
             Moves::staying(from)
         }
     }
 
-    /// How the hostiles in view can come at `square` while it is held, walking around it. `None`
-    /// when that can't be told: a monster in view isn't known, or no hostile that walks can reach
-    /// any side, so where they stand says nothing of the ground.
-    fn approach(&self, square: Position) -> Option<Approach> {
+    /// How many of the open sides around `square` the hostiles in view can come at it from while
+    /// it is held, if few enough to make it a corridor. `None` otherwise, or when that can't be
+    /// told: a monster in view isn't known, or no hostile that walks can reach any side, so where
+    /// they stand says nothing of the ground.
+    fn sides_hostiles_reach(&self, square: Position) -> Option<u32> {
         let sides: Vec<Position> = self.sides(square).collect();
-        let held = self.level.with_solid(square);
         let mut reached = BTreeSet::new();
-        let mut soonest = None;
+        let mut a_walker_reaches = false;
         for seen in self.visible.monsters.iter().flatten() {
             if !attacks_player(seen.attitude?) {
                 continue;
             }
             let monster = self.bundle.monster_by_id(seen.id.as_ref()?)?;
-            let moves = self.moves_of(&held, monster, seen.position);
+            let moves = if self.walks(monster) {
+                self.level.moves_to_sides(
+                    Self::walker(monster),
+                    seen.position,
+                    square,
+                    &sides,
+                    GETS_ROUND_IN_MOVES,
+                )
+            } else {
+                Moves::staying(seen.position)
+            };
             let first = sides.iter().filter_map(|&side| moves.to(side)).min();
             let Some(first) = first else { continue };
-            if self.walks(monster) {
-                soonest = Some(soonest.map_or(first, |so_far: u32| so_far.min(first)));
-            }
+            a_walker_reaches |= self.walks(monster);
             reached.extend(sides.iter().copied().filter(|&side| {
                 moves
                     .to(side)
                     .is_some_and(|to| to <= first + GETS_ROUND_IN_MOVES)
             }));
+            if reached.len() > CORRIDOR_MOST_OPEN_SIDES as usize {
+                return None;
+            }
         }
-        Some(Approach {
-            sides: u32::try_from(reached.len()).ok()?,
-            soonest: soonest?,
-        })
+        a_walker_reaches
+            .then(|| u32::try_from(reached.len()).ok())
+            .flatten()
+    }
+
+    /// The moves of each hostile in view that walks, over the level as it is.
+    fn walkers_moves(&self) -> Vec<Moves> {
+        self.visible
+            .monsters
+            .iter()
+            .flatten()
+            .filter(|seen| seen.attitude.is_none_or(attacks_player))
+            .filter_map(|seen| {
+                let monster = self.bundle.monster_by_id(seen.id.as_ref()?)?;
+                self.walks(monster)
+                    .then(|| self.moves_of(monster, seen.position))
+            })
+            .collect()
     }
 
     /// Whether walls part the open squares around `square`, as they do around a doorway, so
@@ -216,9 +237,10 @@ impl<'a> OnTheLevel<'a> {
         stretches >= 2
     }
 
-    /// Whether the player, `steps` from `square`, can get there first and hold it as a corridor
-    /// against the hostiles in view, though more of its sides are open.
-    fn can_be_held(&self, square: Position, steps: u32) -> bool {
+    /// Whether the player, `steps` from `square`, can get there before any of `walkers` and hold
+    /// it as a corridor, though more of its sides are open. Asks last what takes a search per
+    /// hostile, as a crowded level has many squares to ask it of on every update.
+    fn can_be_held(&self, square: Position, steps: u32, walkers: &[Moves]) -> bool {
         steps <= CORRIDOR_MOST_STEPS
             && self.parts_its_sides(square)
             && !self
@@ -226,9 +248,10 @@ impl<'a> OnTheLevel<'a> {
                 .path_to(square)
                 .iter()
                 .any(|step| self.occupied.contains(step))
-            && self.approach(square).is_some_and(|approach| {
-                approach.sides <= CORRIDOR_MOST_OPEN_SIDES && approach.soonest + 1 >= steps
-            })
+            && walkers
+                .iter()
+                .all(|moves| moves.to(square).is_none_or(|to| to >= steps))
+            && self.sides_hostiles_reach(square).is_some()
     }
 
     /// The ground the player stands on, and on open ground the nearest corridor.
@@ -237,13 +260,8 @@ impl<'a> OnTheLevel<'a> {
         if open_sides <= CORRIDOR_MOST_OPEN_SIDES {
             return Ground::Corridor { open_sides };
         }
-        if let Some(approach) = self
-            .approach(self.player)
-            .filter(|approach| approach.sides <= CORRIDOR_MOST_OPEN_SIDES)
-        {
-            return Ground::Corridor {
-                open_sides: approach.sides,
-            };
+        if let Some(open_sides) = self.sides_hostiles_reach(self.player) {
+            return Ground::Corridor { open_sides };
         }
         let mut squares: Vec<(Position, u32)> = self
             .walks
@@ -255,11 +273,12 @@ impl<'a> OnTheLevel<'a> {
             })
             .collect();
         squares.sort_by_key(|&(_, steps)| steps);
+        let walkers = self.walkers_moves();
         let nearest_corridor = squares
             .into_iter()
             .find(|&(square, steps)| {
                 self.open_sides(square) <= CORRIDOR_MOST_OPEN_SIDES
-                    || self.can_be_held(square, steps)
+                    || self.can_be_held(square, steps, &walkers)
             })
             .map(|(position, steps)| CorridorSquare { position, steps });
         Ground::OpenGround {
@@ -380,7 +399,7 @@ impl<'a> OnTheLevel<'a> {
             if monster.stationary {
                 continue;
             }
-            let moves = self.moves_of(&self.level, monster, seen.position);
+            let moves = self.moves_of(monster, seen.position);
             chasers.push(Chaser {
                 seen,
                 speed: monster.speed,

@@ -90,15 +90,6 @@ impl Level {
         })
     }
 
-    /// The same level with nothing able to step onto `position`, such as a square the player holds.
-    pub(crate) fn with_solid(&self, position: Position) -> Self {
-        let mut level = self.clone();
-        level
-            .terrain
-            .insert((position.y, position.x), Terrain::Solid);
-        level
-    }
-
     /// The terrain at `position`, `None` for an unexplored square.
     pub(crate) fn terrain(&self, position: Position) -> Option<Terrain> {
         self.terrain.get(&(position.y, position.x)).copied()
@@ -140,6 +131,42 @@ impl Level {
     /// The cheapest path `walker` has from `from` to each square it can reach: past the fewest
     /// monsters, then in the fewest moves.
     pub(crate) fn moves_from(&self, walker: Walker<'_>, from: Position) -> Moves {
+        self.search(walker, from, None, |_, _| false)
+    }
+
+    /// The moves of `walker` from `from` to the `sides` of `held`, a square it can't step onto:
+    /// to those it reaches within `within` moves of the first, which are all it searches for.
+    pub(crate) fn moves_to_sides(
+        &self,
+        walker: Walker<'_>,
+        from: Position,
+        held: Position,
+        sides: &[Position],
+        within: u32,
+    ) -> Moves {
+        let mut first = None;
+        let mut left = sides.len();
+        self.search(walker, from, Some(held), |square, moves| {
+            if first.is_some_and(|first: u32| moves > first + within) {
+                return true;
+            }
+            if sides.contains(&square) {
+                first.get_or_insert(moves);
+                left -= 1;
+            }
+            left == 0
+        })
+    }
+
+    /// The search behind the paths: it walks around `held`, and stops when `done` says so of the
+    /// square it reaches next, cheapest first, and the moves to it.
+    fn search(
+        &self,
+        walker: Walker<'_>,
+        from: Position,
+        held: Option<Position>,
+        mut done: impl FnMut(Position, u32) -> bool,
+    ) -> Moves {
         let start = Cost { past: 0, moves: 0 };
         let mut best: BTreeMap<(i32, i32), (Cost, Position)> = BTreeMap::new();
         let mut frontier = BinaryHeap::new();
@@ -150,7 +177,13 @@ impl Level {
                 continue;
             }
             let here = Position { x, y };
+            if done(here, so_far.moves) {
+                break;
+            }
             for next in self.around(here) {
+                if Some(next) == held {
+                    continue;
+                }
                 let Some(step) = self.cost_onto(walker, next) else {
                     continue;
                 };
