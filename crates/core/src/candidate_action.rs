@@ -7,7 +7,9 @@ use crate::fact_sheet::{Chance, FactSheet, ThreatLevel};
 use crate::fight_outcome::{Fight, PlanOutcome};
 use crate::gaps::Reader;
 use crate::view_model::{MarkedValue, capitalised};
-use crate::ways_out::{CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut};
+use crate::ways_out::{
+    CORRIDOR_MOST_STEPS, CorridorSquare, Escape, Ground, Usable, WayOut, WaysOut,
+};
 
 /// The Candidate Actions at a moment, best first by the engine's own rank, each with the id an
 /// LLM picks it by.
@@ -246,13 +248,15 @@ pub(crate) fn usable(ways_out: &WaysOut) -> impl Iterator<Item = &WayOut> {
         .filter(|way_out| way_out.usable == Usable::Yes)
 }
 
-/// The corridor to hold, when the player stands in one or can walk to one.
+/// The corridor to hold, when the player stands in one or can walk to one near enough.
 pub(crate) fn corridor(ways_out: &WaysOut) -> Option<CorridorToHold> {
     match ways_out.ground {
         Some(Ground::Corridor { .. }) => Some(CorridorToHold::StandingIn),
         Some(Ground::OpenGround {
             nearest_corridor, ..
-        }) => nearest_corridor.map(CorridorToHold::Near),
+        }) => nearest_corridor
+            .filter(|square| square.steps <= CORRIDOR_MOST_STEPS)
+            .map(CorridorToHold::Near),
         None => None,
     }
 }

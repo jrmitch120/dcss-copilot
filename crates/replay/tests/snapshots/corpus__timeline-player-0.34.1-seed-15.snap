@@ -998,7 +998,7 @@ expression: detections
     "turn": 6679,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 1 step away"
+    "line": "Fall back to a corridor — The corridor you stand in"
   },
   {
     "envelope": 10195,
@@ -1040,7 +1040,7 @@ expression: detections
     "turn": 6812,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 10474,
@@ -1107,7 +1107,7 @@ expression: detections
     "turn": 6840,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 10722,
@@ -1183,8 +1183,15 @@ expression: detections
     "envelope": 11716,
     "turn": 7364,
     "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 38 steps away"
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Escape hatch in the ceiling · ~34 steps · partly out of view"
+  },
+  {
+    "envelope": 11751,
+    "turn": 7370,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~77% win, ~73% HP lost. If it turns LETHAL: Teleportation ×5 · escapes after a delay"
   },
   {
     "envelope": 11851,
@@ -1219,7 +1226,7 @@ expression: detections
     "turn": 7643,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 5 steps away"
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 12164,

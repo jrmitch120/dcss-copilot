@@ -32,14 +32,25 @@ export const commands = {
 	setForgetOldGames: (on: boolean) => typedError<null, string>(__TAURI_INVOKE("set_forget_old_games", { on })),
 	/**  The player cleared their game history. */
 	clearHistory: () => typedError<null, string>(__TAURI_INVOKE("clear_history")),
-	/**  The player chose a slot's model and how it thinks. */
-	setModel: (slot: ModelSlot, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, model, thinking })),
+	/**  The player chose a slot's provider, model and how it thinks. */
+	setModel: (slot: ModelSlot, provider: string, model: string, thinking: ThinkingOption) => typedError<null, string>(__TAURI_INVOKE("set_model", { slot, provider, model, thinking })),
 	/**  The player pasted a key for a provider. */
 	saveKey: (provider: string, key: string) => typedError<null, string>(__TAURI_INVOKE("save_key", { provider, key })),
 	/**  The player removed their key for a provider. */
 	removeKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("remove_key", { provider })),
 	/**  The player asked to test a provider's key. The outcome arrives in the settings. */
 	testKey: (provider: string) => typedError<null, string>(__TAURI_INVOKE("test_key", { provider })),
+	/**  The player said to use the key in a provider's environment variable, or to stop. */
+	useEnvironmentKey: (provider: string, on: boolean) => typedError<null, string>(__TAURI_INVOKE("use_environment_key", { provider, on })),
+	/**  The player opted in to storing a session key unencrypted, or out again. */
+	storeKeyUnencrypted: (provider: string, on: boolean) => typedError<null, string>(__TAURI_INVOKE("store_key_unencrypted", { provider, on })),
+	/**  The player moved a local server. */
+	setServerAddress: (provider: string, address: string) => typedError<null, string>(__TAURI_INVOKE("set_server_address", { provider, address })),
+	/**
+	 *  The player asked which models a local server has, or Settings did as it opened. The outcome
+	 *  arrives in the settings.
+	 */
+	detectModels: (provider: string) => typedError<null, string>(__TAURI_INVOKE("detect_models", { provider })),
 };
 
 /** Events */
@@ -158,6 +169,21 @@ export type Depiction = {
 	/**  The tile webtiles draws, when Game Knowledge names one the app ships. */
 	tile: TileName | null,
 };
+
+/**  What asking a local server for its models found. */
+export type Detection = 
+/**  Not asked since the app started, or since it moved. */
+{ state: "unchecked" } | 
+/**  It is being asked. */
+{ state: "checking" } | 
+/**  It answered. */
+{ state: "found"; 
+/**  The models it has. */
+models: string[] } | 
+/**  It didn't answer, or not with its models. */
+{ state: "unreachable"; 
+/**  What went wrong. */
+message: string };
 
 /**  A unique or Out of Depth monster in view, singled out so the player recognises it. */
 export type FactCard = {
@@ -380,16 +406,24 @@ export type KeyPlace =
 { place: "session"; 
 /**  Why the keychain can't be used. */
 reason: string } | 
-/**  In an environment variable the player set outside the app. */
+/**  In a file only the player's user can read, unencrypted, because they opted in. */
+{ place: "file" } | 
+/**  In an environment variable the player set outside the app, and said to use. */
 { place: "environment"; 
 /**  The variable. */
 variable: string };
 
 /**  Whether the app has a key for a provider. */
 export type KeyState = 
-/**  No key yet. */
+/**  No key yet, and none in the environment. */
 { state: "missing"; 
 /**  The environment variable the app would also read it from. */
+variable: string } | 
+/**  No key in use, but the environment holds one the player can say to use. */
+{ state: "offered"; 
+/**  The key's start and last four characters. */
+masked: string; 
+/**  The environment variable holding it. */
 variable: string } | 
 /**  A key, shown only masked. */
 { state: "stored"; 
@@ -484,8 +518,12 @@ export type ModelsAndKeysView = {
 	quick: SlotView,
 	/**  The Deep Model slot. */
 	deep: SlotView,
-	/**  Each provider's key. */
+	/**  What each provider offers a slot. */
+	providers: ProviderOption[],
+	/**  The key of each provider that takes one. */
 	keys: KeyView[],
+	/**  Each local server. */
+	servers: ServerView[],
 };
 
 /**  The threat label and one line at the top of the panel. */
@@ -523,12 +561,24 @@ export type PickedUp = {
 	lastSeenMs: number,
 };
 
+/**  What one provider offers a slot. */
+export type ProviderOption = {
+	/**  The provider. */
+	provider: ProviderView,
+	/**  The models to pick from: the ones the app lists and the ones a local server has. */
+	models: ModelOption[],
+	/**  The thinking a model the player names themselves may use, or `None` if they can't. */
+	unlistedThinking: ThinkingOption[] | null,
+};
+
 /**  A provider, as the Settings window names it. */
 export type ProviderView = {
 	/**  The id commands take, such as `anthropic`. */
 	id: string,
 	/**  The provider's name. */
 	name: string,
+	/**  Whether it is a Local Model's server: experimental, and $0. */
+	local: boolean,
 };
 
 /**  The Run Plan rail along the bottom of the panel. */
@@ -540,6 +590,16 @@ export type RunPlanRail =
  *  makes no Run Plan yet: the rail is greyed out.
  */
 { state: "awaitingDump" };
+
+/**  A local server, as the Settings window draws it. */
+export type ServerView = {
+	/**  The provider it serves. */
+	provider: ProviderView,
+	/**  Where it listens. */
+	address: string,
+	/**  What asking it last found. */
+	detection: Detection,
+};
 
 /**  The core pushes new settings to the Settings window. */
 export type SettingsChanged = SettingsView;
@@ -562,12 +622,10 @@ export type SlotView = {
 	slot: ModelSlot,
 	/**  The slot's provider. */
 	provider: ProviderView,
-	/**  The model's id. */
-	model: string,
+	/**  The slot's model, with the thinking it accepts. */
+	model: ModelOption,
 	/**  How it thinks. */
 	thinking: ThinkingOption,
-	/**  The models the provider offers, with the thinking each accepts. */
-	models: ModelOption[],
 };
 
 /**

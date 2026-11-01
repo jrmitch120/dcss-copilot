@@ -1,88 +1,208 @@
 ---
 source: app/src-tauri/src/models.rs
-expression: "(view.quick, view.deep)"
+expression: "(view.quick, view.deep, view.providers)"
 ---
 [
   {
     "slot": "quick",
     "provider": {
       "id": "anthropic",
-      "name": "Anthropic"
+      "name": "Anthropic",
+      "local": false
     },
-    "model": "claude-haiku-5-5",
-    "thinking": "off",
-    "models": [
-      {
-        "id": "claude-haiku-5-5",
-        "name": "Claude Haiku 5.5",
-        "thinking": [
-          "off",
-          "low",
-          "medium"
-        ],
-        "suggested": "off"
-      },
-      {
-        "id": "claude-sonnet-5-5",
-        "name": "Claude Sonnet 5.5",
-        "thinking": [
-          "low",
-          "medium",
-          "high"
-        ],
-        "suggested": "medium"
-      },
-      {
-        "id": "claude-opus-5-5",
-        "name": "Claude Opus 5.5",
-        "thinking": [
-          "low",
-          "medium",
-          "high"
-        ],
-        "suggested": "medium"
-      }
-    ]
+    "model": {
+      "id": "claude-haiku-5-5",
+      "name": "Claude Haiku 5.5",
+      "thinking": [
+        "off",
+        "low",
+        "medium"
+      ],
+      "suggested": "off"
+    },
+    "thinking": "off"
   },
   {
     "slot": "deep",
     "provider": {
       "id": "anthropic",
-      "name": "Anthropic"
+      "name": "Anthropic",
+      "local": false
     },
-    "model": "claude-sonnet-5-5",
-    "thinking": "medium",
-    "models": [
-      {
-        "id": "claude-haiku-5-5",
-        "name": "Claude Haiku 5.5",
-        "thinking": [
-          "off",
-          "low",
-          "medium"
-        ],
-        "suggested": "off"
+    "model": {
+      "id": "claude-sonnet-5-5",
+      "name": "Claude Sonnet 5.5",
+      "thinking": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "suggested": "medium"
+    },
+    "thinking": "medium"
+  },
+  [
+    {
+      "provider": {
+        "id": "anthropic",
+        "name": "Anthropic",
+        "local": false
       },
-      {
-        "id": "claude-sonnet-5-5",
-        "name": "Claude Sonnet 5.5",
-        "thinking": [
-          "low",
-          "medium",
-          "high"
-        ],
-        "suggested": "medium"
+      "models": [
+        {
+          "id": "claude-haiku-5-5",
+          "name": "Claude Haiku 5.5",
+          "thinking": [
+            "off",
+            "low",
+            "medium"
+          ],
+          "suggested": "off"
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "name": "Claude Sonnet 5.5",
+          "thinking": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        },
+        {
+          "id": "claude-opus-5-5",
+          "name": "Claude Opus 5.5",
+          "thinking": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        }
+      ],
+      "unlistedThinking": null
+    },
+    {
+      "provider": {
+        "id": "openai",
+        "name": "OpenAI",
+        "local": false
       },
-      {
-        "id": "claude-opus-5-5",
-        "name": "Claude Opus 5.5",
-        "thinking": [
-          "low",
-          "medium",
-          "high"
-        ],
-        "suggested": "medium"
-      }
-    ]
-  }
+      "models": [
+        {
+          "id": "gpt-6-luna",
+          "name": "GPT-6 Luna",
+          "thinking": [
+            "off",
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "off"
+        },
+        {
+          "id": "gpt-6.1-terra",
+          "name": "GPT-6.1 Terra",
+          "thinking": [
+            "off",
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        },
+        {
+          "id": "gpt-6.1-sol",
+          "name": "GPT-6.1 Sol",
+          "thinking": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        },
+        {
+          "id": "gpt-6-astra",
+          "name": "GPT-6 Astra",
+          "thinking": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        }
+      ],
+      "unlistedThinking": [
+        "off",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "provider": {
+        "id": "openrouter",
+        "name": "OpenRouter",
+        "local": false
+      },
+      "models": [
+        {
+          "id": "anthropic/claude-haiku-5.5",
+          "name": "Claude Haiku 5.5",
+          "thinking": [
+            "off",
+            "low",
+            "medium"
+          ],
+          "suggested": "off"
+        },
+        {
+          "id": "google/gemini-2.5-flash-lite",
+          "name": "Gemini 2.5 Flash-Lite",
+          "thinking": [
+            "off"
+          ],
+          "suggested": "off"
+        },
+        {
+          "id": "anthropic/claude-sonnet-5.5",
+          "name": "Claude Sonnet 5.5",
+          "thinking": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "suggested": "medium"
+        }
+      ],
+      "unlistedThinking": [
+        "off",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "provider": {
+        "id": "ollama",
+        "name": "Ollama",
+        "local": true
+      },
+      "models": [],
+      "unlistedThinking": [
+        "off"
+      ]
+    },
+    {
+      "provider": {
+        "id": "llama_server",
+        "name": "llama-server",
+        "local": true
+      },
+      "models": [],
+      "unlistedThinking": [
+        "off"
+      ]
+    }
+  ]
 ]

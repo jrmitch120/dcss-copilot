@@ -1,0 +1,3 @@
+{"model":"qwen3:8b","created_at":"2026-10-30T12:00:00Z","message":{"role":"assistant","content":"","thinking":"The player asks about Sigmund."},"done":false}
+{"model":"qwen3:8b","created_at":"2026-10-30T12:00:01Z","message":{"role":"assistant","content":"","tool_calls":[{"function":{"index":0,"name":"lookup","arguments":{"name":"Sigmund"}}}]},"done":false}
+{"model":"qwen3:8b","created_at":"2026-10-30T12:00:02Z","message":{"role":"assistant","content":""},"done":true,"done_reason":"stop","prompt_eval_count":1800,"eval_count":30}

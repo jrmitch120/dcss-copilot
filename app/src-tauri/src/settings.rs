@@ -1,9 +1,10 @@
 //! The player's settings, saved as JSON in the app's config directory.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use copilot_core::{Appearance, AssistanceLevel};
-use copilot_llm::{ModelChoice, ModelSlot};
+use copilot_llm::{ModelChoice, ModelSlot, Provider, ServerAddress};
 use serde::{Deserialize, Serialize};
 
 /// The player's settings and where they are saved.
@@ -24,6 +25,33 @@ struct Saved {
     deep_model: ModelChoice,
     /// How many days a game is kept after it was last played, or `None` to keep every game.
     forget_games_after_days: Option<u32>,
+    /// The providers whose environment variable the player said to use. The key stays there.
+    environment_keys: Vec<Provider>,
+    /// Where the player's local servers listen, for any moved from their default.
+    #[serde(deserialize_with = "usable_addresses")]
+    server_addresses: HashMap<Provider, ServerAddress>,
+}
+
+/// The saved addresses that can be used: one that can't goes back to its server's default, rather
+/// than costing the player the rest of their settings. An address may hold a password, so the log
+/// doesn't quote it.
+fn usable_addresses<'de, D: serde::Deserializer<'de>>(
+    saved: D,
+) -> Result<HashMap<Provider, ServerAddress>, D::Error> {
+    let saved = HashMap::<Provider, String>::deserialize(saved)?;
+    Ok(saved
+        .into_iter()
+        .filter_map(|(provider, address)| match ServerAddress::new(&address) {
+            Ok(address) => Some((provider, address)),
+            Err(_) => {
+                crate::log::error(format_args!(
+                    "settings: the saved {} address can't be used; using its default",
+                    provider.name()
+                ));
+                None
+            }
+        })
+        .collect())
 }
 
 /// How many days a game is kept after it was last played, unless the player turns forgetting
@@ -38,6 +66,8 @@ impl Default for Saved {
             quick_model: ModelChoice::default_for(ModelSlot::Quick),
             deep_model: ModelChoice::default_for(ModelSlot::Deep),
             forget_games_after_days: Some(FORGET_GAMES_AFTER_DAYS),
+            environment_keys: Vec::new(),
+            server_addresses: HashMap::new(),
         }
     }
 }
@@ -162,6 +192,40 @@ impl Settings {
     /// If the settings can't be saved. The change still applies until the app exits.
     pub fn set_forget_games_after_days(&mut self, days: Option<u32>) -> Result<(), SettingsError> {
         self.saved.forget_games_after_days = days;
+        self.save()
+    }
+
+    /// The providers whose environment variable the player said to use.
+    #[must_use]
+    pub fn environment_keys(&self) -> &[Provider] {
+        &self.saved.environment_keys
+    }
+
+    /// Changes which providers' environment variables the player said to use, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_environment_keys(&mut self, providers: Vec<Provider>) -> Result<(), SettingsError> {
+        self.saved.environment_keys = providers;
+        self.save()
+    }
+
+    /// Where the player's local servers listen, for any moved from their default.
+    #[must_use]
+    pub fn server_addresses(&self) -> &HashMap<Provider, ServerAddress> {
+        &self.saved.server_addresses
+    }
+
+    /// Changes where a local server listens, and saves it.
+    ///
+    /// # Errors
+    /// If the settings can't be saved. The change still applies until the app exits.
+    pub fn set_server_address(
+        &mut self,
+        provider: Provider,
+        address: ServerAddress,
+    ) -> Result<(), SettingsError> {
+        self.saved.server_addresses.insert(provider, address);
         self.save()
     }
 

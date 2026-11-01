@@ -3,11 +3,14 @@
 
 use std::collections::{BTreeSet, HashMap};
 
-use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Terrain};
+use copilot_gk::{Bundle, EnumId, Feature, ItemUse, Monster, Terrain};
 
 use super::STANDARD_TIME;
 use super::pace::Pace;
-use super::{Blocker, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable, WayOut};
+use super::{
+    Blocker, CORRIDOR_MOST_STEPS, CorridorSquare, Escape, Ground, InTheWay, Interceptor, Usable,
+    WayOut,
+};
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
 use crate::fact_sheet::attacks_player;
@@ -18,6 +21,24 @@ use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, Visible
 /// so they come at the player one or two at a time. A starting rule from #35, to be tuned on the
 /// corpus.
 const CORRIDOR_MOST_OPEN_SIDES: u32 = 2;
+
+/// A side of the player counts against a hostile only if it can reach it within this many moves
+/// of the first side it can reach. Farther, the player has long been holding the near side by the
+/// time it gets round. Set when a broken door on D:2 read as open ground while testing #46, to be
+/// tuned on the corpus.
+const GETS_ROUND_IN_MOVES: u32 = 10;
+
+/// The squares around a square, in order round it.
+const RING: [(i32, i32); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+];
 
 /// Where the player stands on the level, and what they know of it.
 pub(super) struct OnTheLevel<'a> {
@@ -109,18 +130,128 @@ impl<'a> OnTheLevel<'a> {
 
     /// The squares around `position` a monster could stand on to attack: open ones, closed
     /// doors it could open, and unexplored ones, which may be either.
+    fn sides(&self, position: Position) -> impl Iterator<Item = Position> + '_ {
+        self.level.around(position).filter(|&square| {
+            matches!(
+                self.level.terrain(square),
+                None | Some(Terrain::Open | Terrain::ClosedDoor)
+            )
+        })
+    }
+
     fn open_sides(&self, position: Position) -> u32 {
-        let open = self
-            .level
-            .around(position)
-            .filter(|&square| {
-                matches!(
-                    self.level.terrain(square),
-                    None | Some(Terrain::Open | Terrain::ClosedDoor)
+        u32::try_from(self.sides(position).count()).unwrap_or(u32::MAX)
+    }
+
+    /// Whether `monster` walks while the player watches it.
+    fn walks(&self, monster: &Monster) -> bool {
+        !monster.stationary
+            && step::walks_while_watched(self.bundle.formulas.monster_step, monster.watched_step)
+    }
+
+    /// How `monster` steps, for a walker: it opens doors if it uses at least doors.
+    fn walker(monster: &Monster) -> Walker<'static> {
+        Walker::Monster {
+            opens_doors: monster.item_use >= ItemUse::OpenDoors,
+        }
+    }
+
+    /// The moves of `monster` from where it stands.
+    fn moves_of(&self, monster: &Monster, from: Position) -> Moves {
+        if self.walks(monster) {
+            self.level.moves_from(Self::walker(monster), from)
+        } else {
+            Moves::staying(from)
+        }
+    }
+
+    /// How many of the open sides around `square` the hostiles in view can come at it from while
+    /// it is held, if few enough to make it a corridor. `None` otherwise, or when that can't be
+    /// told: a monster in view isn't known, or no hostile that walks can reach any side, so where
+    /// they stand says nothing of the ground.
+    fn sides_hostiles_reach(&self, square: Position) -> Option<u32> {
+        let sides: Vec<Position> = self.sides(square).collect();
+        let mut reached = BTreeSet::new();
+        let mut a_walker_reaches = false;
+        for seen in self.visible.monsters.iter().flatten() {
+            if !attacks_player(seen.attitude?) {
+                continue;
+            }
+            let monster = self.bundle.monster_by_id(seen.id.as_ref()?)?;
+            let moves = if self.walks(monster) {
+                self.level.moves_to_sides(
+                    Self::walker(monster),
+                    seen.position,
+                    square,
+                    &sides,
+                    GETS_ROUND_IN_MOVES,
                 )
+            } else {
+                Moves::staying(seen.position)
+            };
+            let first = sides.iter().filter_map(|&side| moves.to(side)).min();
+            let Some(first) = first else { continue };
+            a_walker_reaches |= self.walks(monster);
+            reached.extend(sides.iter().copied().filter(|&side| {
+                moves
+                    .to(side)
+                    .is_some_and(|to| to <= first + GETS_ROUND_IN_MOVES)
+            }));
+            if reached.len() > CORRIDOR_MOST_OPEN_SIDES as usize {
+                return None;
+            }
+        }
+        a_walker_reaches
+            .then(|| u32::try_from(reached.len()).ok())
+            .flatten()
+    }
+
+    /// The moves of each hostile in view that walks, over the level as it is.
+    fn walkers_moves(&self) -> Vec<Moves> {
+        self.visible
+            .monsters
+            .iter()
+            .flatten()
+            .filter(|seen| seen.attitude.is_none_or(attacks_player))
+            .filter_map(|seen| {
+                let monster = self.bundle.monster_by_id(seen.id.as_ref()?)?;
+                self.walks(monster)
+                    .then(|| self.moves_of(monster, seen.position))
             })
+            .collect()
+    }
+
+    /// Whether walls part the open squares around `square`, as they do around a doorway, so
+    /// holding it can keep hostiles to one side.
+    fn parts_its_sides(&self, square: Position) -> bool {
+        let sides: Vec<Position> = self.sides(square).collect();
+        let open = RING.map(|(dx, dy)| {
+            sides.contains(&Position {
+                x: square.x + dx,
+                y: square.y + dy,
+            })
+        });
+        let stretches = (0..RING.len())
+            .filter(|&at| open[at] && !open[(at + 1) % RING.len()])
             .count();
-        u32::try_from(open).unwrap_or(u32::MAX)
+        stretches >= 2
+    }
+
+    /// Whether the player, `steps` from `square`, can get there before any of `walkers` and hold
+    /// it as a corridor, though more of its sides are open. Asks last what takes a search per
+    /// hostile, as a crowded level has many squares to ask it of on every update.
+    fn can_be_held(&self, square: Position, steps: u32, walkers: &[Moves]) -> bool {
+        steps <= CORRIDOR_MOST_STEPS
+            && self.parts_its_sides(square)
+            && !self
+                .walks
+                .path_to(square)
+                .iter()
+                .any(|step| self.occupied.contains(step))
+            && walkers
+                .iter()
+                .all(|moves| moves.to(square).is_none_or(|to| to >= steps))
+            && self.sides_hostiles_reach(square).is_some()
     }
 
     /// The ground the player stands on, and on open ground the nearest corridor.
@@ -129,15 +260,26 @@ impl<'a> OnTheLevel<'a> {
         if open_sides <= CORRIDOR_MOST_OPEN_SIDES {
             return Ground::Corridor { open_sides };
         }
-        let nearest_corridor = self
+        if let Some(open_sides) = self.sides_hostiles_reach(self.player) {
+            return Ground::Corridor { open_sides };
+        }
+        let mut squares: Vec<(Position, u32)> = self
             .walks
             .reached()
             .filter(|&(square, _)| {
                 self.level.terrain(square) == Some(Terrain::Open)
+                    && square != self.player
                     && !self.occupied.contains(&square)
-                    && self.open_sides(square) <= CORRIDOR_MOST_OPEN_SIDES
             })
-            .min_by_key(|&(_, steps)| steps)
+            .collect();
+        squares.sort_by_key(|&(_, steps)| steps);
+        let walkers = self.walkers_moves();
+        let nearest_corridor = squares
+            .into_iter()
+            .find(|&(square, steps)| {
+                self.open_sides(square) <= CORRIDOR_MOST_OPEN_SIDES
+                    || self.can_be_held(square, steps, &walkers)
+            })
             .map(|(position, steps)| CorridorSquare { position, steps });
         Ground::OpenGround {
             open_sides,
@@ -233,7 +375,6 @@ impl<'a> OnTheLevel<'a> {
     /// beside. One that steps by chance, the lurking horror, walks as if every roll let it, which
     /// errs high ([`step::walks_while_watched`]).
     fn chasers(&self, gaps: &mut BTreeSet<Gap>) -> Vec<Chaser<'_>> {
-        let variant = self.bundle.formulas.monster_step;
         let mut chasers = Vec::new();
         for seen in self.visible.monsters.iter().flatten() {
             // A monster whose side isn't decoded may be hostile: without Game Knowledge, as the
@@ -258,14 +399,7 @@ impl<'a> OnTheLevel<'a> {
             if monster.stationary {
                 continue;
             }
-            let moves = if step::walks_while_watched(variant, monster.watched_step) {
-                let walker = Walker::Monster {
-                    opens_doors: monster.item_use >= ItemUse::OpenDoors,
-                };
-                self.level.moves_from(walker, seen.position)
-            } else {
-                Moves::staying(seen.position)
-            };
+            let moves = self.moves_of(monster, seen.position);
             chasers.push(Chaser {
                 seen,
                 speed: monster.speed,

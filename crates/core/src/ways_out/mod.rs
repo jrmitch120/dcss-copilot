@@ -18,6 +18,11 @@ use crate::gaps::Gap;
 use crate::screen::KnownAbility;
 use crate::visible_state::{Position, VisibleState};
 
+/// The farthest a corridor can be to fall back to: no hostile that has found the player waits out
+/// a longer walk. Set when "The corridor 25 steps away" was suggested while testing #46: the
+/// corpus's corridors are 13 steps away at most but for one.
+pub(crate) const CORRIDOR_MOST_STEPS: u32 = 15;
+
 /// The time a standard move or action takes the player: `BASELINE_DELAY`.
 const STANDARD_TIME: u32 = BASELINE_DELAY.unsigned_abs();
 
@@ -310,7 +315,8 @@ pub struct Interceptor {
 pub enum Ground {
     /// A corridor: monsters can attack them from few sides.
     Corridor {
-        /// The squares around them a monster could stand on to attack.
+        /// The squares around them a monster could stand on to attack, less any the hostiles in
+        /// view could reach only by a long way round.
         open_sides: u32,
     },
     /// Open ground: monsters can attack them from more sides.
@@ -529,6 +535,183 @@ mod tests {
             map: Some(map),
             ..VisibleState::default()
         }
+    }
+
+    /// The level drawn in `rows`, `#` for wall and `.` for floor, with the player on a broken
+    /// door at `@` and a hostile goblin on each of `goblins`.
+    fn drawn(rows: &[&str], goblins: &[Position]) -> VisibleState {
+        let mut visible = corridor(&[], 0);
+        let cell = |feature: &str| MapCell {
+            glyph: Glyph {
+                text: ".".to_owned(),
+                colour: Colour::White,
+            },
+            feature: Some(EnumId(feature.to_owned())),
+            in_view: true,
+            mapped_only: false,
+            light: SquareLight::Plain,
+        };
+        let squares = rows.iter().zip(0..).flat_map(|(row, y)| {
+            row.chars()
+                .zip(0..)
+                .map(move |(square, x)| (Position { x, y }, square))
+        });
+        let squares: Vec<(Position, char)> = squares.collect();
+        visible.position = squares
+            .iter()
+            .find(|(_, square)| *square == '@')
+            .map(|(position, _)| *position);
+        visible.map = Some(LevelMap::new(squares.iter().map(|&(position, square)| {
+            let feature = match square {
+                '#' => "DNGN_ROCK_WALL",
+                '@' => "DNGN_BROKEN_DOOR",
+                _ => "DNGN_FLOOR",
+            };
+            (position, cell(feature))
+        })));
+        let goblin = visible.monsters.take().unwrap().remove(0);
+        visible.monsters = Some(
+            goblins
+                .iter()
+                .map(|&position| VisibleMonster {
+                    position,
+                    ..goblin.clone()
+                })
+                .collect(),
+        );
+        visible
+    }
+
+    fn ground_of(visible: &VisibleState) -> Ground {
+        ways_out(visible, "Human", true).ground.unwrap()
+    }
+
+    #[test]
+    fn a_doorway_hostiles_can_only_come_at_from_one_narrow_side_is_a_corridor() {
+        let rows = [
+            "########################",
+            "#......................#",
+            "#...##################.#",
+            "#...@..................#",
+            "#...####################",
+            "########################",
+        ];
+        // The room behind the player is there by a long way round.
+        assert_eq!(
+            ground_of(&drawn(&rows, &[Position { x: 5, y: 3 }])),
+            Ground::Corridor { open_sides: 1 }
+        );
+    }
+
+    #[test]
+    fn a_doorway_is_open_ground_when_hostiles_are_on_both_sides_or_can_soon_get_round() {
+        let is_open = |visible: &VisibleState| {
+            matches!(ground_of(visible), Ground::OpenGround { open_sides: 4, .. })
+        };
+        let no_way_round = [
+            "#########",
+            "#...#####",
+            "#...@...#",
+            "#...#####",
+            "#########",
+        ];
+        assert!(is_open(&drawn(
+            &no_way_round,
+            &[Position { x: 2, y: 2 }, Position { x: 6, y: 2 }]
+        )));
+        let way_round = [
+            "#########",
+            "#.......#",
+            "#...###.#",
+            "#...@...#",
+            "#...#####",
+            "#########",
+        ];
+        assert!(is_open(&drawn(&way_round, &[Position { x: 5, y: 3 }])));
+    }
+
+    #[test]
+    fn a_doorway_between_rooms_lets_three_come_at_the_player_from_the_one_side() {
+        let rows = [
+            "#########",
+            "#...#...#",
+            "#...@...#",
+            "#...#...#",
+            "#########",
+        ];
+        assert!(matches!(
+            ground_of(&drawn(&rows, &[Position { x: 6, y: 2 }])),
+            Ground::OpenGround { open_sides: 6, .. }
+        ));
+    }
+
+    #[test]
+    fn monsters_that_cant_walk_round_the_player_dont_make_open_ground_a_corridor() {
+        let rows = [
+            "#######", "#.....#", "#.....#", "#..@..#", "#.....#", "#.....#", "#######",
+        ];
+        let mut visible = drawn(&rows, &[Position { x: 2, y: 3 }, Position { x: 4, y: 3 }]);
+        let plant = bundle()
+            .monsters
+            .values()
+            .find(|monster| monster.stationary)
+            .unwrap();
+        for monster in visible.monsters.iter_mut().flatten() {
+            monster.id = Some(plant.id.clone());
+        }
+        assert!(matches!(
+            ground_of(&visible),
+            Ground::OpenGround { open_sides: 8, .. }
+        ));
+    }
+
+    #[test]
+    fn a_doorway_within_reach_is_a_corridor_to_fall_back_to() {
+        let rows = [
+            "#########",
+            "#...#####",
+            "#...@...#",
+            "#...#####",
+            "#########",
+        ];
+        let door = Position { x: 4, y: 2 };
+        let mut one_step_away = drawn(&rows, &[Position { x: 6, y: 2 }]);
+        one_step_away.position = Some(Position { x: 3, y: 2 });
+        assert_eq!(
+            ground_of(&one_step_away),
+            Ground::OpenGround {
+                open_sides: 6,
+                nearest_corridor: Some(CorridorSquare {
+                    position: door,
+                    steps: 1
+                }),
+            }
+        );
+
+        let mut hostile_gets_there_first = drawn(&rows, &[Position { x: 5, y: 2 }]);
+        hostile_gets_there_first.position = Some(Position { x: 1, y: 2 });
+        let Ground::OpenGround {
+            nearest_corridor, ..
+        } = ground_of(&hostile_gets_there_first)
+        else {
+            panic!("the player stands in the open room");
+        };
+        assert_ne!(nearest_corridor.map(|square| square.position), Some(door));
+    }
+
+    #[test]
+    fn with_no_hostile_in_view_every_side_of_a_doorway_counts() {
+        let rows = [
+            "#########",
+            "#...#####",
+            "#...@...#",
+            "#...#####",
+            "#########",
+        ];
+        assert!(matches!(
+            ground_of(&drawn(&rows, &[])),
+            Ground::OpenGround { open_sides: 4, .. }
+        ));
     }
 
     /// What the Advisor remembers once the mutations screen showed nothing beyond the species'

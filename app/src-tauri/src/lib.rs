@@ -14,7 +14,7 @@ use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 
 use copilot_core::{Appearance, AssistanceLevel, ViewModel};
-use copilot_llm::{AnthropicProvider, ModelChoice, ModelSlot, Provider};
+use copilot_llm::{ModelChoice, ModelSlot, Provider, ProviderConnection};
 use copilot_store::Store;
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -26,7 +26,7 @@ use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
 use crate::coach::CoachCalls;
-use crate::keys::{Keys, OsKeychain};
+use crate::keys::{KeyFile, Keys, OsKeychain};
 use crate::lifecycle::Presence;
 use crate::live::{HistoryView, Live};
 use crate::models::{ModelsAndKeys, ModelsAndKeysView, ThinkingOption};
@@ -229,20 +229,20 @@ fn settings_view(app: AppHandle) -> SettingsView {
     current_settings(&app)
 }
 
-/// The player chose a slot's model and how it thinks.
+/// The player chose a slot's provider, model and how it thinks.
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
 fn set_model(
     slot: ModelSlot,
+    provider: String,
     model: String,
     thinking: ThinkingOption,
     app: AppHandle,
     live: State<'_, Live>,
 ) -> Result<(), String> {
-    let provider = live.model(slot).provider();
-    let choice =
-        ModelChoice::new(provider, &model, thinking.into()).map_err(|error| error.to_string())?;
+    let choice = ModelChoice::new(provider_named(&provider)?, &model, thinking.into())
+        .map_err(|error| error.to_string())?;
     let saved = live.set_model(slot, choice);
     push_settings(&app);
     saved.map_err(unsaved)
@@ -291,6 +291,72 @@ async fn test_key(provider: String, app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// The player said to use the key in a provider's environment variable, or to stop.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn use_environment_key(
+    provider: String,
+    on: bool,
+    app: AppHandle,
+    live: State<'_, Live>,
+    models: State<'_, ModelsAndKeys>,
+) -> Result<(), String> {
+    let accepted = models.use_environment_key(provider_named(&provider)?, on);
+    let saved = live.set_environment_keys(accepted);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player opted in to storing a session key unencrypted, or out again.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn store_key_unencrypted(
+    provider: String,
+    on: bool,
+    app: AppHandle,
+    models: State<'_, ModelsAndKeys>,
+) -> Result<(), String> {
+    let stored = models.store_key_unencrypted(provider_named(&provider)?, on);
+    push_settings(&app);
+    stored.map_err(|error| error.to_string())
+}
+
+/// The player moved a local server.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // Tauri passes command arguments by value.
+fn set_server_address(
+    provider: String,
+    address: String,
+    app: AppHandle,
+    live: State<'_, Live>,
+    models: State<'_, ModelsAndKeys>,
+) -> Result<(), String> {
+    let provider = provider_named(&provider)?;
+    let address = models
+        .set_address(provider, &address)
+        .map_err(|error| error.to_string())?;
+    let saved = live.set_server_address(provider, address);
+    push_settings(&app);
+    saved.map_err(unsaved)
+}
+
+/// The player asked which models a local server has, or Settings did as it opened. The outcome
+/// arrives in the settings.
+#[tauri::command]
+#[specta::specta]
+async fn detect_models(provider: String, app: AppHandle) -> Result<(), String> {
+    let provider = provider_named(&provider)?;
+    let models = app.state::<ModelsAndKeys>();
+    models.detecting(provider);
+    push_settings(&app);
+    models.detect_models(provider).await;
+    push_settings(&app);
+    Ok(())
+}
+
 /// What the player is told when a choice of theirs couldn't be saved.
 #[allow(clippy::needless_pass_by_value)] // Called through `map_err`.
 fn unsaved(error: settings::SettingsError) -> String {
@@ -319,7 +385,11 @@ fn specta_builder() -> Builder<tauri::Wry> {
             set_model,
             save_key,
             remove_key,
-            test_key
+            test_key,
+            use_environment_key,
+            store_key_unencrypted,
+            set_server_address,
+            detect_models
         ])
         .events(collect_events![ViewModelChanged, SettingsChanged])
 }
@@ -390,14 +460,18 @@ pub fn run() {
                 settings,
                 history,
             ));
-            let keys = Keys::load(Box::new(OsKeychain), |variable| {
-                std::env::var(variable).ok()
-            });
+            let live = app.state::<Live>();
+            let keys = Keys::load(
+                Box::new(OsKeychain),
+                KeyFile::new(&app.path().app_config_dir()?.join("unencrypted-keys.json")),
+                |variable| std::env::var(variable).ok(),
+                &live.environment_keys(),
+            );
             app.manage(ModelsAndKeys::new(
                 keys,
-                Box::new(|provider, key| match provider {
-                    Provider::Anthropic => Box::new(AnthropicProvider::new(key)),
-                }),
+                Box::new(ProviderConnection::open),
+                Box::new(ProviderConnection::local_models),
+                &live.server_addresses(),
             ));
             app.manage(CoachCalls::default());
             let approvals = app.path().app_config_dir()?.join("browsers.json");
@@ -593,7 +667,7 @@ mod tests {
     }
 
     fn failing(error: LlmError) -> Connect {
-        Box::new(move |_, _| Box::new(Failing(error.clone())))
+        Box::new(move |_| Box::new(Failing(error.clone())))
     }
 
     /// Every message the Settings window shows about `models`' Anthropic key.

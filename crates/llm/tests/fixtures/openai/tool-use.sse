@@ -1,0 +1,16 @@
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{"role":"assistant","content":"Let me look him up."},"finish_reason":null}]}
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_01","type":"function","function":{"name":"lookup","arguments":""}}]},"finish_reason":null}]}
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"name\": "}}]},"finish_reason":null}]}
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\"Sigmund\"}"}}]},"finish_reason":null}]}
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"id":"call_02","type":"function","function":{"name":"recall","arguments":""}}]},"finish_reason":null}]}
+
+data: {"id":"gen-1","object":"chat.completion.chunk","model":"anthropic/claude-haiku-5.5","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":1800,"completion_tokens":30,"total_tokens":1830,"prompt_tokens_details":{"cached_tokens":0,"cache_write_tokens":1730}}}
+
+data: [DONE]
+

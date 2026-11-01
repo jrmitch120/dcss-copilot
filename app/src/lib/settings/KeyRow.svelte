@@ -9,7 +9,7 @@ let pasted = $state("");
 let error = $state<string | null>(null);
 
 const provider = $derived(key.provider);
-const entering = $derived(key.key.state === "missing" || replacing);
+const entering = $derived(key.key.state === "missing" || key.key.state === "offered" || replacing);
 const ownKey = $derived(key.key.state === "stored" && key.key.place.place !== "environment");
 
 async function save() {
@@ -32,6 +32,17 @@ async function remove() {
   error = failure(await commands.removeKey(provider.id));
 }
 
+async function useEnvironment(on: boolean) {
+  error = failure(await commands.useEnvironmentKey(provider.id, on));
+  if (on && error === null) {
+    await test();
+  }
+}
+
+async function storeUnencrypted(on: boolean) {
+  error = failure(await commands.storeKeyUnencrypted(provider.id, on));
+}
+
 function seconds(millis: number): string {
   return `${(millis / 1000).toFixed(1)} s`;
 }
@@ -47,9 +58,16 @@ function seconds(millis: number): string {
           <span class="tiny muted">keychain</span>
         {:else if key.key.place.place === "environment"}
           <span class="tiny muted">from {key.key.place.variable} in your environment</span>
+        {:else if key.key.place.place === "file"}
+          <span class="tiny warning">stored unencrypted</span>
         {:else}
           <span class="tiny warning">this session only</span>
         {/if}
+      {:else if key.key.state === "offered"}
+        <span class="small"
+          >Found <span class="mono">{key.key.variable}</span> in your environment</span
+        >
+        <span class="mono">{key.key.masked}</span>
       {:else}
         <span class="tiny muted">no key</span>
       {/if}
@@ -64,7 +82,17 @@ function seconds(millis: number): string {
         </button>
         {#if ownKey}
           <button type="button" class="btn danger" onclick={remove}>Remove</button>
+        {:else}
+          <button type="button" class="btn" onclick={() => useEnvironment(false)}>
+            Stop using
+          </button>
         {/if}
+      </span>
+    {:else if key.key.state === "offered"}
+      <span class="actions">
+        <button type="button" class="btn primary" onclick={() => useEnvironment(true)}>
+          Use it
+        </button>
       </span>
     {/if}
   </div>
@@ -82,7 +110,9 @@ function seconds(millis: number): string {
         type="password"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Paste your {provider.name} API key"
+        placeholder={key.key.state === "offered"
+          ? "or paste a different key"
+          : `Paste your ${provider.name} API key`}
         aria-label="{provider.name} API key"
         bind:value={pasted}
       >
@@ -95,7 +125,7 @@ function seconds(millis: number): string {
     </form>
     {#if key.key.state === "missing"}
       <p class="tiny muted">
-        DCSS Copilot also uses {key.key.variable} if it is set in your environment.
+        DCSS Copilot offers {key.key.variable} if it is set where DCSS Copilot starts from.
       </p>
     {/if}
   {/if}
@@ -114,6 +144,22 @@ function seconds(millis: number): string {
     <p class="tiny warning">
       No system keychain could be used ({key.key.place.reason}), so the key is kept in memory and
       asked for again next launch.
+    </p>
+  {/if}
+  {#if key.key.state === "stored" &&
+    (key.key.place.place === "session" || key.key.place.place === "file")}
+    <label class="tiny unencrypted">
+      <input
+        type="checkbox"
+        checked={key.key.place.place === "file"}
+        onchange={(e) => storeUnencrypted(e.currentTarget.checked)}
+      >
+      Store unencrypted on this computer
+    </label>
+  {/if}
+  {#if key.key.state === "stored" && key.key.place.place === "file"}
+    <p class="tiny warning">
+      Saved to a file only your user can read. Anyone with access to your account can read the key.
     </p>
   {/if}
   {#if error}
@@ -224,5 +270,12 @@ p {
 
 .warning {
   color: var(--warning);
+}
+
+.unencrypted {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
 }
 </style>

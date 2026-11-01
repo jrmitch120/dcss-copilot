@@ -1,16 +1,13 @@
 //! The native Anthropic Messages adapter, hand-written over `reqwest`, streaming with
 //! Server-Sent Events.
 
-use std::collections::VecDeque;
-
-use futures_util::StreamExt;
-use futures_util::stream::{self, BoxStream};
 use serde_json::{Value, json};
 
 use crate::key::ApiKey;
 use crate::provider::{LlmError, LlmProvider, LlmStream};
 use crate::request::{CacheHint, Effort, LlmRequest, Message, OutputSchema, Part, Role, Thinking};
 use crate::response::{LlmResponse, StopReason, StreamEvent, Usage};
+use crate::stream::{self, SseFrames, api_error};
 
 /// Where Anthropic's API lives.
 const ANTHROPIC_URL: &str = "https://api.anthropic.com";
@@ -55,7 +52,7 @@ impl LlmProvider for AnthropicProvider {
             .header("anthropic-version", API_VERSION)
             .header("content-type", "application/json")
             .body(wire_request(&request).to_string());
-        stream::unfold(Call::Start(call), Call::next).boxed()
+        stream::answer_stream::<Answer>(call)
     }
 }
 
@@ -159,134 +156,6 @@ fn wire_part(part: &Part) -> Value {
     }
 }
 
-/// One call, from sending the request to the end of its stream.
-enum Call {
-    Start(reqwest::RequestBuilder),
-    Reading {
-        body: BoxStream<'static, Result<Vec<u8>, String>>,
-        frames: SseFrames,
-        answer: Answer,
-        ready: VecDeque<StreamEvent>,
-    },
-    Done,
-}
-
-impl Call {
-    /// The next item of the stream, and what's left of the call.
-    async fn next(mut self) -> Option<(Result<StreamEvent, LlmError>, Self)> {
-        loop {
-            match self {
-                Self::Done => return None,
-                Self::Start(call) => match start(call).await {
-                    Ok(body) => {
-                        self = Self::Reading {
-                            body,
-                            frames: SseFrames::default(),
-                            answer: Answer::default(),
-                            ready: VecDeque::new(),
-                        };
-                    }
-                    Err(error) => return Some((Err(error), Self::Done)),
-                },
-                Self::Reading {
-                    mut body,
-                    mut frames,
-                    mut answer,
-                    mut ready,
-                } => {
-                    if let Some(event) = ready.pop_front() {
-                        let rest = if matches!(event, StreamEvent::Finished(_)) {
-                            Self::Done
-                        } else {
-                            Self::Reading {
-                                body,
-                                frames,
-                                answer,
-                                ready,
-                            }
-                        };
-                        return Some((Ok(event), rest));
-                    }
-                    let chunk = match body.next().await {
-                        Some(Ok(chunk)) => chunk,
-                        Some(Err(error)) => {
-                            return Some((Err(LlmError::Unreachable(error)), Self::Done));
-                        }
-                        None => return Some((Err(LlmError::Incomplete), Self::Done)),
-                    };
-                    for data in frames.push(&chunk) {
-                        match answer.apply(&data) {
-                            Ok(events) => ready.extend(events),
-                            Err(error) => return Some((Err(error), Self::Done)),
-                        }
-                    }
-                    self = Self::Reading {
-                        body,
-                        frames,
-                        answer,
-                        ready,
-                    };
-                }
-            }
-        }
-    }
-}
-
-/// Sends the request and hands back the body of a successful answer.
-async fn start(
-    call: reqwest::RequestBuilder,
-) -> Result<BoxStream<'static, Result<Vec<u8>, String>>, LlmError> {
-    let response = call
-        .send()
-        .await
-        .map_err(|error| LlmError::Unreachable(error.to_string()))?;
-    let status = response.status().as_u16();
-    if !response.status().is_success() {
-        let body = response.text().await.unwrap_or_default();
-        let message = serde_json::from_str::<Value>(&body)
-            .ok()
-            .and_then(|error| error["error"]["message"].as_str().map(str::to_owned))
-            .unwrap_or(body);
-        return Err(api_error(status, message));
-    }
-    Ok(response
-        .bytes_stream()
-        .map(|chunk| {
-            chunk
-                .map(|bytes| bytes.to_vec())
-                .map_err(|error| error.to_string())
-        })
-        .boxed())
-}
-
-/// Splits a Server-Sent Events body into the `data` of each event, however it was chunked.
-#[derive(Default)]
-struct SseFrames {
-    pending: Vec<u8>,
-}
-
-impl SseFrames {
-    /// Takes in a chunk of the body and returns the data of every event it completed.
-    fn push(&mut self, chunk: &[u8]) -> Vec<String> {
-        self.pending
-            .extend(chunk.iter().copied().filter(|&byte| byte != b'\r'));
-        let mut data = Vec::new();
-        while let Some(end) = self.pending.windows(2).position(|pair| pair == b"\n\n") {
-            let frame: Vec<u8> = self.pending.drain(..end + 2).collect();
-            let frame = String::from_utf8_lossy(&frame);
-            let lines: Vec<&str> = frame
-                .lines()
-                .filter_map(|line| line.strip_prefix("data:"))
-                .map(str::trim_start)
-                .collect();
-            if !lines.is_empty() {
-                data.push(lines.join("\n"));
-            }
-        }
-        data
-    }
-}
-
 /// The answer as its events arrive.
 #[derive(Default)]
 struct Answer {
@@ -384,8 +253,9 @@ impl Block {
     }
 }
 
-impl Answer {
-    /// Applies one event's data and returns what the caller should see of it.
+impl stream::Answer for Answer {
+    type Frames = SseFrames;
+
     fn apply(&mut self, data: &str) -> Result<Vec<StreamEvent>, LlmError> {
         let event: Value =
             serde_json::from_str(data).map_err(|error| LlmError::Malformed(error.to_string()))?;
@@ -422,7 +292,9 @@ impl Answer {
         }
         Ok(Vec::new())
     }
+}
 
+impl Answer {
     fn read_usage(&mut self, usage: &Value) {
         if let Some(tokens) = usage["input_tokens"].as_u64() {
             self.input_tokens = Some(tokens);
@@ -459,16 +331,6 @@ impl Answer {
                 cache_write_tokens: self.cache_write_tokens,
             },
         })
-    }
-}
-
-/// An error the API answered with, by its HTTP status.
-fn api_error(status: u16, message: String) -> LlmError {
-    match status {
-        401 | 403 => LlmError::KeyRejected { status, message },
-        429 => LlmError::RateLimited { message },
-        500.. => LlmError::Unavailable { status, message },
-        _ => LlmError::BadRequest { status, message },
     }
 }
 

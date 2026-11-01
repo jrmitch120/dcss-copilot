@@ -39,6 +39,24 @@ impl Canned {
         }
     }
 
+    /// A `200` with a JSON body.
+    pub fn json(body: &str) -> Self {
+        Self {
+            status: 200,
+            content_type: "application/json",
+            body: body.to_owned(),
+        }
+    }
+
+    /// A `200` streaming JSON Lines, as Ollama does.
+    pub fn lines(body: &str) -> Self {
+        Self {
+            status: 200,
+            content_type: "application/x-ndjson",
+            body: body.to_owned(),
+        }
+    }
+
     /// An error status with a JSON body.
     pub fn error(status: u16, body: &str) -> Self {
         Self {
