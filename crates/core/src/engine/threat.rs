@@ -95,9 +95,38 @@ pub(crate) struct Attacker<'a> {
     shooter: Shooter,
     /// It fighting in melee, with the melee weapons its Carried Gear shows, if read.
     pub(crate) fighter: Fighter,
+    /// The melee weapon it may hold while its hands aren't known: by the odds crawl makes its
+    /// kind with, given what its listing rules out; none when what it holds can't be played,
+    /// such as an animated object's own item.
+    melee: Draw<Wielded>,
+    /// It holds a second melee weapon drawn from those odds, or a copy of its first.
+    second_hand: SecondHand,
     /// The farthest any spell of its book reaches, ported or not, cast with its power: as far as
     /// the player sees for one without a range or that the bundle lacks, and 0 with no book.
     book_reach: i32,
+}
+
+/// What a monster drawn a melee weapon has in its other hand: crawl gives one that wields two
+/// weapons a second by `give_weapon` (`mon-place.cc:1244`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SecondHand {
+    /// Nothing: it wields one weapon.
+    Empty,
+    /// One drawn by the same odds.
+    Drawn,
+    /// A copy of its first (`_give_weapon`, `mon-gear.cc:1454`).
+    Twin,
+}
+
+impl SecondHand {
+    /// What `monster` holds in its other hand.
+    fn of(monster: &Monster) -> Self {
+        match (monster.two_weapons, monster.gear.twin_weapons) {
+            (false, _) => Self::Empty,
+            (true, false) => Self::Drawn,
+            (true, true) => Self::Twin,
+        }
+    }
 }
 
 /// A damaging spell as a particular monster casts it.
@@ -282,6 +311,8 @@ impl<'a> Attacker<'a> {
                 draugr: monster.id.0 == monster_types::DRAUGR,
                 hands: unread_hands(monster),
             },
+            melee: possible_melee(bundle, monster),
+            second_hand: SecondHand::of(monster),
             book_reach,
         };
         attacker.shoots = attacker.possible_names();
@@ -295,6 +326,7 @@ impl<'a> Attacker<'a> {
     pub(crate) fn carrying(self, bundle: &'a Bundle, gear: &CarriedGear) -> (Self, Vec<Unplayed>) {
         let mut unplayed = Vec::new();
         let hands = carried_hands(bundle, self.monster, gear, &mut unplayed);
+        let melee = carried_melee(bundle, self.monster, gear);
         let (missiles, mut shoots) = carried_missiles(bundle, self.monster, gear, &mut unplayed);
         let (wands, unported_wand, zaps) = carried_wand(bundle, self.monster, gear, &mut unplayed);
         shoots.extend(zaps);
@@ -307,6 +339,7 @@ impl<'a> Attacker<'a> {
                 hands,
                 ..self.fighter
             },
+            melee,
             ..self
         };
         (attacker, unplayed)
@@ -325,6 +358,7 @@ impl<'a> Attacker<'a> {
                 hands,
                 ..self.fighter
             },
+            melee: Draw::none(),
             ..self
         }
     }
@@ -332,6 +366,57 @@ impl<'a> Attacker<'a> {
     /// Squares between it and the player.
     pub(crate) fn distance(&self) -> i32 {
         self.offset.distance()
+    }
+
+    /// It fighting in melee in one trial: with what its Carried Gear shows, or, while that doesn't
+    /// show what it holds, with what it draws by its kind's odds. It keeps fighting as if it
+    /// wields nothing, but makes the attacks only a weapon makes, when nothing can be drawn.
+    fn fighter_drawn(&self, rng: &mut Rng) -> Fighter {
+        let fighter = self.fighter;
+        if fighter.hands.is_some() || self.melee.is_empty() {
+            return fighter;
+        }
+        Fighter {
+            hands: Some(self.hands_drawn(rng)),
+            ..fighter
+        }
+    }
+
+    /// The hands it holds in one trial, by its kind's odds.
+    fn hands_drawn(&self, rng: &mut Rng) -> Hands {
+        let first = self.melee.draw(rng);
+        let second = match self.second_hand {
+            SecondHand::Empty => None,
+            SecondHand::Drawn => self.melee.draw(rng),
+            SecondHand::Twin => first,
+        };
+        // Whichever it is given first goes in its main hand (`monster::pickup_melee_weapon`).
+        Hands {
+            main: first.or(second),
+            off: first.and(second),
+        }
+    }
+
+    /// How far its melee reaches with the farthest-reaching weapon it may hold, read or drawn.
+    pub(crate) fn farthest_melee_reach(&self, formulas: Formulas) -> i32 {
+        let bare = melee_reach(formulas, &self.fighter, self.monster);
+        if self.fighter.hands.is_some() {
+            return bare;
+        }
+        self.melee
+            .items()
+            .map(|&main| {
+                let hands = Some(Hands {
+                    main: Some(main),
+                    off: None,
+                });
+                let fighter = Fighter {
+                    hands,
+                    ..self.fighter
+                };
+                melee_reach(formulas, &fighter, self.monster)
+            })
+            .fold(bare, i32::max)
     }
 
     /// Whether it may fight in melee with a weapon the Advisor doesn't know: its Carried Gear
@@ -394,7 +479,8 @@ impl<'a> Attacker<'a> {
             return None;
         }
         let shoots = !self.missiles.is_empty() || !self.wands.is_empty() || self.unported_wand;
-        let threat_range = melee_reach(formulas, &self.fighter, self.monster)
+        let threat_range = self
+            .farthest_melee_reach(formulas)
             .max(1)
             .max(self.book_reach)
             .max(if shoots { PLAYER_VISION } else { 0 });
@@ -409,7 +495,7 @@ impl<'a> Attacker<'a> {
         let shoots = !self.missiles.is_empty()
             && distance <= MISSILE_RANGE
             && (distance > 1 || monster.prefers_ranged);
-        let fights = distance <= melee_reach(formulas, &self.fighter, monster)
+        let fights = distance <= self.farthest_melee_reach(formulas)
             && (distance > 1 || !monster.keeps_range);
         distance >= 1
             && (fights
@@ -439,6 +525,44 @@ fn animated_object(monster: &Monster) -> bool {
 fn unread_hands(monster: &Monster) -> Option<Hands> {
     (monster.item_use < ItemUse::StartingEquipment && !animated_object(monster))
         .then(Hands::default)
+}
+
+/// The melee weapon `monster` may hold by the odds crawl makes its kind with, +0 and unbranded:
+/// none for an animated object, which fights as the item it is.
+fn possible_melee(bundle: &Bundle, monster: &Monster) -> Draw<Wielded> {
+    if animated_object(monster) {
+        return Draw::none();
+    }
+    Draw::new(&monster.gear.melee, |id| {
+        let known = bundle.melee_weapons.get(id)?;
+        Some(Wielded::of(known, 0, Brand::Plain))
+    })
+}
+
+/// The melee weapon `monster` may hold while its Carried Gear, `gear`, doesn't show its hands: its
+/// kind's odds when the listing would leave out a plain weapon in its main hand, and none when it
+/// holds something else the Game Knowledge doesn't know as a weapon.
+fn carried_melee(bundle: &Bundle, monster: &Monster, gear: &CarriedGear) -> Draw<Wielded> {
+    let names_unknown_item = gear.items.iter().any(|item| {
+        matches!(item.slot, GearSlot::Wielding | GearSlot::Carrying)
+            && !names_held_item(bundle, item)
+    });
+    if names_unknown_item || gear.unlisted != Unlisted::PlainWeaponsAndLargeRocks {
+        return Draw::none();
+    }
+    possible_melee(bundle, monster)
+}
+
+/// Whether `item`, held or carried, is a wand, or a weapon the Game Knowledge knows.
+fn names_held_item(bundle: &Bundle, item: &CarriedItem) -> bool {
+    let kind = item.kind.as_ref();
+    if kind.is_some_and(|kind| kind.class.0 == object_classes::WANDS) {
+        return true;
+    }
+    kind.and_then(|kind| kind.sub_type.as_ref())
+        .is_some_and(|id| {
+            bundle.melee_weapons.contains_key(id) || bundle.missile_weapons.contains_key(id)
+        })
 }
 
 /// The melee weapons `monster` holds as its Carried Gear, `gear`, shows them, once it has wielded
@@ -860,6 +984,8 @@ pub(crate) fn turn(
 #[derive(Debug, Clone)]
 pub(crate) struct Engaged<'r, 'a> {
     attacker: &'r Attacker<'a>,
+    /// It fighting in melee, with the weapons it holds this trial.
+    fighter: Fighter,
     /// Where it stands from the player.
     offset: Offset,
     energy: i32,
@@ -895,6 +1021,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
             + energy_gained(formulas.monster_energy, rng, speed, time);
         Self {
             attacker,
+            fighter: attacker.fighter_drawn(rng),
             offset: attacker.offset,
             energy,
             missiles: attacker.missiles.draw(rng),
@@ -1060,7 +1187,8 @@ impl<'r, 'a> Engaged<'r, 'a> {
     ) -> Turn {
         let attacker = self.attacker;
         let monster = attacker.monster;
-        let fighter = &attacker.fighter;
+        let fighter = self.fighter;
+        let fighter = &fighter;
         let reach = melee_reach(formulas, fighter, monster);
         let (missiles, wand) = (self.missiles, self.wand);
         let mut turn = Turn::default();
@@ -1855,6 +1983,85 @@ mod tests {
         let (attacker, _) =
             Attacker::new(bundle(), monster("orc"), Offset::east(1)).carrying(bundle(), &unlisted);
         assert!(attacker.weapons_unread(Formulas::CRAWL_0_34));
+        // The weapon it holds is drawn by its kind's odds.
+        assert!(!attacker.melee.is_empty());
+    }
+
+    /// The mean damage `attacker` deals a player with no defences before their next action.
+    fn mean_damage(attacker: &Attacker<'_>) -> f64 {
+        let target = Target {
+            defences: Defences::exact(0, 0, 0),
+            lighting: Lighting::Plain,
+            resists: Resists::NONE,
+        };
+        let mut rng = Rng::new(SEED.0, SEED.1);
+        let total: i32 = (0..TRIALS)
+            .map(|_| {
+                let mut blocks_left = 0;
+                turn(
+                    Formulas::CRAWL_0_34,
+                    &mut rng,
+                    attacker,
+                    target,
+                    1_000,
+                    &mut blocks_left,
+                )
+                .damage
+            })
+            .sum();
+        f64::from(total) / f64::from(TRIALS)
+    }
+
+    #[test]
+    fn a_monster_whose_weapon_isnt_read_fights_with_one_drawn_by_its_kinds_odds() {
+        let orc = monster("orc");
+        let unread = Attacker::new(bundle(), orc, Offset::east(1));
+        let unarmed = Attacker::new(bundle(), orc, Offset::east(1)).without_gear();
+        assert!(
+            mean_damage(&unread) > 2.0 * mean_damage(&unarmed),
+            "{} against {}",
+            mean_damage(&unread),
+            mean_damage(&unarmed)
+        );
+    }
+
+    #[test]
+    fn a_monster_whose_weapon_isnt_read_may_reach_with_one_its_kind_may_hold() {
+        let orc = monster("orc");
+        let formulas = Formulas::CRAWL_0_34;
+        // Tridents are among an orc's weapons.
+        let reach = Attacker::new(bundle(), orc, Offset::east(2));
+        assert_eq!(reach.farthest_melee_reach(formulas), 2);
+        // A jackal has none.
+        let jackal = Attacker::new(bundle(), monster("jackal"), Offset::east(2));
+        assert_eq!(jackal.farthest_melee_reach(formulas), 1);
+    }
+
+    #[test]
+    fn a_listing_that_shows_a_monsters_hands_leaves_nothing_to_draw() {
+        let orc = monster("orc");
+        let (spear, _) = seen(orc, 1, "Here: an orc, wielding a +0 spear");
+        assert!(spear.melee.is_empty());
+        let (bare, _) = seen(orc, 1, "Here: an orc");
+        assert!(bare.melee.is_empty());
+        assert!(!bare.weapons_unread(Formulas::CRAWL_0_34));
+    }
+
+    #[test]
+    fn a_kind_that_wields_two_weapons_draws_a_second_or_holds_a_twin() {
+        let mut rng = Rng::new(SEED.0, SEED.1);
+        let blademaster = Attacker::new(bundle(), monster("deep elf blademaster"), Offset::east(1));
+        for _ in 0..50 {
+            let hands = blademaster.hands_drawn(&mut rng);
+            assert!(hands.main.is_some());
+            assert_eq!(hands.main, hands.off);
+        }
+        let ogre = Attacker::new(bundle(), monster("two-headed ogre"), Offset::east(1));
+        let differs = (0..200).any(|_| {
+            let hands = ogre.hands_drawn(&mut rng);
+            hands.main != hands.off
+        });
+        assert!(differs);
     }
 
     #[test]

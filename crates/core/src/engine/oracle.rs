@@ -562,6 +562,10 @@ pub struct GearTally {
     pub missile: BTreeMap<Option<EnumId>, u32>,
     /// The wand it will zap.
     pub wand: BTreeMap<Option<EnumId>, u32>,
+    /// The melee weapon in its main hand.
+    pub melee: BTreeMap<Option<EnumId>, u32>,
+    /// The melee weapon in its off hand.
+    pub off: BTreeMap<Option<EnumId>, u32>,
 }
 
 /// Draws the gear of a monster of the kind numbered `monster` `trials` times, by the odds its
@@ -580,6 +584,7 @@ pub fn gear(
         .ok_or(CaseError::NoMonster(monster))?;
     let missiles = Draw::new(&known.gear.missile, Some);
     let wands = Draw::new(&known.gear.wand, Some);
+    let melee = Draw::new(&known.gear.melee, Some);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = GearTally::default();
     for _ in 0..trials {
@@ -588,6 +593,15 @@ pub fn gear(
             .entry(missiles.draw(&mut rng).cloned())
             .or_default() += 1;
         *tally.wand.entry(wands.draw(&mut rng).cloned()).or_default() += 1;
+        let first = melee.draw(&mut rng).cloned();
+        let second = match (known.two_weapons, known.gear.twin_weapons) {
+            (false, _) => None,
+            (true, false) => melee.draw(&mut rng).cloned(),
+            (true, true) => first.clone(),
+        };
+        let off = first.as_ref().and(second.as_ref()).cloned();
+        *tally.melee.entry(first.or(second)).or_default() += 1;
+        *tally.off.entry(off).or_default() += 1;
     }
     Ok(tally)
 }

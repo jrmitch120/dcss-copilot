@@ -420,7 +420,7 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 27,
+      "worstHit": 26,
       "hostilesInView": 6,
       "bestPlanWin": null,
       "acting": [

@@ -668,6 +668,7 @@ pub fn extract(crawl: &Path, release: &CrawlRelease) -> Result<Extraction, Extra
             .gear
             .missile_weapons()
             .into_iter()
+            .chain(series.gear.melee_weapons())
             .chain([gear::NO_WEAPON]),
     )?;
     crawl.require("item-prop-enum.h", &["wand_type"], series.gear.wands())?;

@@ -52,6 +52,20 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 328,
+    "turn": 154,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 328,
+    "turn": 154,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~88% win, ~33% HP lost. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 364,
     "turn": 177,
     "event": "allClear"
@@ -75,6 +89,13 @@ expression: detections
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 6 steps away"
+  },
+  {
+    "envelope": 473,
+    "turn": 218,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
     "envelope": 627,
@@ -147,18 +168,18 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1457,
-    "turn": 804,
+    "envelope": 1432,
+    "turn": 802,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 1457,
-    "turn": 804,
+    "envelope": 1432,
+    "turn": 802,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~84% win, ~57% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~45% win, ~78% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 1617,
@@ -271,17 +292,32 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 2769,
+    "turn": 2121,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2769,
+    "turn": 2121,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
+  },
+  {
+    "envelope": 2797,
+    "turn": 2123,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
     "envelope": 2960,
     "turn": 2136,
     "event": "alert",
     "cause": "hit-points-below-half",
     "line": "HP 15 of 37: below half."
-  },
-  {
-    "envelope": 2960,
-    "turn": 2136,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor you stand in"
   }
 ]

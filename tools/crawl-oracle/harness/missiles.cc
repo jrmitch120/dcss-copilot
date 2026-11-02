@@ -110,6 +110,35 @@ static void _regear(monster &mon)
     initialise_item_sets(true);
     active_monster_band = BAND_NO_BAND;
     give_item(&mon, GEAR_LEVEL, false);
+    // As `place_monster_aux` gives one that wields two weapons its second.
+    if (mons_class_wields_two_weapons(mon.type))
+        give_weapon(&mon, GEAR_LEVEL);
+}
+
+// Whether `item` is a melee weapon the bundle lists: crawl's `is_melee_weapon` counts a magical
+// staff too, which the engine doesn't play.
+static bool _melee_weapon(const item_def *item)
+{
+    return item && item->base_type == OBJ_WEAPONS && is_melee_weapon(*item);
+}
+
+// The melee weapon `mon` holds in its main hand: the first it was given, where a launcher wielded
+// has it swap one in.
+static item_def *_main_melee(const monster &mon)
+{
+    item_def *first = mon.mslot_item(MSLOT_WEAPON);
+    if (_melee_weapon(first))
+        return first;
+    item_def *second = mon.mslot_item(MSLOT_ALT_WEAPON);
+    return _melee_weapon(second) ? second : nullptr;
+}
+
+// The melee weapon `mon` holds in its other hand, once `_main_melee` is taken.
+static item_def *_off_melee(const monster &mon)
+{
+    item_def *first = mon.mslot_item(MSLOT_WEAPON);
+    item_def *second = mon.mslot_item(MSLOT_ALT_WEAPON);
+    return _melee_weapon(first) && _melee_weapon(second) ? second : nullptr;
 }
 
 // A random kind of monster placed `distance` squares east of the player, awake, hunting them,
@@ -201,31 +230,43 @@ static monster *_random_shooter(int distance, bool nets)
     }
 }
 
-// Whether a few tries at making `mon` gave it a launcher, a throwing missile or a wand.
-static bool _may_shoot_or_zap(monster &mon)
+// Whether a few tries at making `mon` gave it something `wanted` finds.
+static bool _may_be_made_with(monster &mon, bool (*wanted)(const monster &))
 {
     for (int attempt = 0; attempt < 40; ++attempt)
     {
         _regear(mon);
-        if (_missile_weapon(mon) || _liked_wand(mon))
+        if (wanted(mon))
             return true;
     }
     return false;
 }
 
-// Three gear cases in four are of a kind that may be made with something to shoot or zap: most
-// kinds never are.
+static bool _shoots_or_zaps(const monster &mon)
+{
+    return _missile_weapon(mon) || _liked_wand(mon);
+}
+
+static bool _holds_melee_weapon(const monster &mon)
+{
+    return _main_melee(mon);
+}
+
+// Two gear cases in four are of a kind that may be made with something to shoot or zap, and one
+// of a kind that may be made with a melee weapon: many kinds never are.
 static void _gear_case(int index, int trials)
 {
-    const bool armed = !one_chance_in(4);
+    const int aim = random2(4);
+    bool (*wanted)(const monster &) = aim < 2 ? _shoots_or_zaps
+                                              : aim == 2 ? _holds_melee_weapon : nullptr;
     monster *mon = _random_monster(1, _any_kind);
-    while (armed && !_may_shoot_or_zap(*mon))
+    while (wanted && !_may_be_made_with(*mon, wanted))
     {
         mon->destroy_inventory();
         _remove(*mon);
         mon = _random_monster(1, _any_kind);
     }
-    map<string, int> missile, wand;
+    map<string, int> missile, wand, melee, off;
     for (int t = 0; t < trials; ++t)
     {
         _regear(*mon);
@@ -234,11 +275,14 @@ static void _gear_case(int index, int trials)
         // The bundle says a monster is made with at most one.
         ++missile[launcher && thrown ? "both" : _item_name(_missile_weapon(*mon))];
         ++wand[_item_name(_liked_wand(*mon))];
+        ++melee[_item_name(_main_melee(*mon))];
+        ++off[_item_name(_off_melee(*mon))];
     }
     printf("{\"case\":%d,\"kind\":\"gear\",\"monster\":%d,\"name\":\"%s\",\"trials\":%d,"
-           "\"missile\":%s,\"wand\":%s}\n",
+           "\"missile\":%s,\"wand\":%s,\"melee\":%s,\"off\":%s}\n",
            index, mon->type, mon->name(DESC_PLAIN, true).c_str(), trials,
-           _tally(missile).c_str(), _tally(wand).c_str());
+           _tally(missile).c_str(), _tally(wand).c_str(), _tally(melee).c_str(),
+           _tally(off).c_str());
     mon->destroy_inventory();
     _remove(*mon);
 }

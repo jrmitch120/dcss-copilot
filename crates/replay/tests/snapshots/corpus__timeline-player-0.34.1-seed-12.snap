@@ -168,19 +168,18 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1267,
-    "turn": 1663,
+    "envelope": 1257,
+    "turn": 1661,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 1267,
-    "turn": 1663,
+    "envelope": 1257,
+    "turn": 1661,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 4 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 1471,
@@ -191,6 +190,20 @@ expression: detections
     "envelope": 1475,
     "turn": 1720,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 1475,
+    "turn": 1720,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1475,
+    "turn": 1720,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
   },
   {
     "envelope": 1572,

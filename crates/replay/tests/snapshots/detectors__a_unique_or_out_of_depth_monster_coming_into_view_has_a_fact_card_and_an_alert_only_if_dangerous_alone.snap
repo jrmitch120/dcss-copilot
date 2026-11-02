@@ -73,8 +73,15 @@ expression: detections(EXCEPTIONAL)
     "envelope": 18,
     "turn": 203,
     "event": "alert",
-    "cause": "out-of-depth",
-    "monster": "orc warrior",
-    "line": "Orc warrior, out of depth by 5 levels, alone makes this DANGEROUS."
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 18,
+    "turn": 203,
+    "event": "suggestedAction",
+    "rule": "fight",
+    "line": "Last resort: fight — The Advisor can't judge this fight"
   }
 ]

@@ -314,15 +314,29 @@ fn a_missile_damage_off_by_one_is_caught() {
 }
 
 #[test]
-fn a_kind_made_with_its_nets_less_often_than_crawl_makes_it_is_caught() {
-    // Case 15, Harold, always made with throwing nets: a tenth counted as made with nothing.
-    let dump = with_changed(MISSILES, 15, |case| {
+fn a_kind_made_with_its_launcher_less_often_than_crawl_makes_it_is_caught() {
+    // Case 10, a vault warden, made with an arbalest one time in nine: half of them counted as
+    // made with nothing.
+    let dump = with_changed(MISSILES, 10, |case| {
         let missile = case["missile"].as_object_mut().unwrap();
-        let nets = missile["1:8"].as_u64().unwrap();
-        missile.insert("1:8".to_owned(), (nets - nets / 10).into());
-        missile.insert("none".to_owned(), (nets / 10).into());
+        let arbalests = missile["0:29"].as_u64().unwrap();
+        let none = missile["none"].as_u64().unwrap();
+        missile.insert("0:29".to_owned(), (arbalests / 2).into());
+        missile.insert("none".to_owned(), (none + arbalests - arbalests / 2).into());
     });
-    assert_eq!(caught(&dump), [(15, Measure::MissileMade)]);
+    assert_eq!(caught(&dump), [(10, Measure::MissileMade)]);
+}
+
+#[test]
+fn a_kind_made_with_its_melee_weapon_less_often_than_crawl_makes_it_is_caught() {
+    // Case 25, Cerebov, always made with his great sword: a tenth counted as made with nothing.
+    let dump = with_changed(MISSILES, 25, |case| {
+        let melee = case["melee"].as_object_mut().unwrap();
+        let swords = melee["0:17"].as_u64().unwrap();
+        melee.insert("0:17".to_owned(), (swords - swords / 10).into());
+        melee.insert("none".to_owned(), (swords / 10).into());
+    });
+    assert_eq!(caught(&dump), [(25, Measure::MeleeMade)]);
 }
 
 #[test]

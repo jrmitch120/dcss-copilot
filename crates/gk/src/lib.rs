@@ -1385,7 +1385,7 @@ pub enum ItemUse {
     WeaponsArmour,
 }
 
-/// What a kind of monster may be made with to shoot, throw or zap: crawl's `give_item`
+/// What a kind of monster may be made with to fight, shoot, throw or zap: crawl's `give_item`
 /// (`mon-gear.cc`), as it gives items to a monster made on D:3 or deeper, outside the Orcish
 /// Mines and not in a band.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1397,6 +1397,12 @@ pub struct MonsterGear {
     /// The wand it is made with, from [`Bundle::wands`], when it will zap it
     /// (`monster::likes_wand`).
     pub wand: Odds,
+    /// The melee weapon it is made with, from [`Bundle::melee_weapons`], whatever else it is given.
+    /// One that wields two weapons is given it twice over, each drawn alike.
+    pub melee: Odds,
+    /// One that wields two weapons is given a copy of its first as its second
+    /// (`_give_weapon`).
+    pub twin_weapons: bool,
 }
 
 impl MonsterGear {

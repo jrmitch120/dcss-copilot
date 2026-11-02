@@ -123,7 +123,7 @@ One stretch of a monster in view, from when it comes into view until it leaves. 
 _Avoid_: Encounter (which is a stretch of danger), visit
 
 **Possible Gear**:
-What a monster of its kind may be made with to shoot, throw or zap, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read. It holds no melee weapons: a monster whose weapon hasn't been read fights as if it wields nothing.
+What a monster of its kind may be made with to fight, shoot, throw or zap, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read, drawing what it holds afresh for each trial: a monster whose melee weapon hasn't been read fights with one drawn by those odds, with the reach, accuracy and damage it brings, and what a listing rules out stays ruled out.
 _Avoid_: Kind gear, starting equipment
 
 **Game Knowledge**:

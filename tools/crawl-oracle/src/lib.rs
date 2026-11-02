@@ -134,6 +134,10 @@ pub enum Measure {
     MissileMade,
     /// Which wand a monster was made with.
     WandMade,
+    /// Which melee weapon a monster was made with, in its main hand.
+    MeleeMade,
+    /// Which melee weapon a monster was made with, in its off hand.
+    OffHandMade,
     /// The energy a monster's action took, 0 when it didn't shoot or zap.
     Energy,
     /// The delay of a monster's melee action, which its weapon's brand changes.
@@ -187,6 +191,8 @@ impl fmt::Display for Measure {
             Self::SpellChosen => "spell chosen",
             Self::MissileMade => "missile weapon made with",
             Self::WandMade => "wand made with",
+            Self::MeleeMade => "melee weapon made with",
+            Self::OffHandMade => "off-hand melee weapon made with",
             Self::Energy => "energy spent",
             Self::Delay => "melee delay",
             Self::BlockLimit => "shield block limit",
@@ -402,6 +408,8 @@ struct GearLine {
     /// By item, as `<object_class_type>:<sub_type>`, `none` or `both`.
     missile: BTreeMap<String, u32>,
     wand: BTreeMap<String, u32>,
+    melee: BTreeMap<String, u32>,
+    off: BTreeMap<String, u32>,
 }
 
 #[derive(Deserialize)]
@@ -864,6 +872,8 @@ fn compare_gear(bundle: &Bundle, seed: u64, case: &GearLine) -> Result<Vec<Misma
                 ours(engine.missile),
             ),
             (Measure::WandMade, crawl(&case.wand), ours(engine.wand)),
+            (Measure::MeleeMade, crawl(&case.melee), ours(engine.melee)),
+            (Measure::OffHandMade, crawl(&case.off), ours(engine.off)),
         ],
     ))
 }
