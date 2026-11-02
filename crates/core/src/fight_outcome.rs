@@ -1,4 +1,4 @@
-//! The Fight Outcome: for a small fight, each Attack Plan the player could fight by, played out
+//! The Fight Outcome: each Attack Plan the player could fight by, played out
 //! many times against the hostiles in view, with its chance to win and the hit points it costs.
 
 use std::collections::BTreeSet;
@@ -21,10 +21,6 @@ use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
 use crate::visible_state::{InventoryItem, Position, SquareLight, VisibleState, Wielding};
 
-/// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
-/// fewer (spec #24, "Engine (ADR 0003)"). A bigger fight isn't judged.
-const MOST_HOSTILES: usize = 3;
-
 /// Whether the Advisor judged a fight with the hostiles in view, and how it came out.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(
@@ -35,11 +31,6 @@ const MOST_HOSTILES: usize = 3;
 pub enum Fight {
     /// Nothing in view to fight.
     NoFight,
-    /// More hostiles are in view than the Fight Outcome plays out.
-    TooMany {
-        /// How many.
-        hostiles: u32,
-    },
     /// The Advisor lacks facts it needs to play the fight out.
     Unjudged {
         /// What it lacks.
@@ -55,7 +46,7 @@ impl Fight {
         match self {
             Self::Judged(outcome) => &outcome.gaps,
             Self::Unjudged { gaps } => gaps,
-            Self::NoFight | Self::TooMany { .. } => &[],
+            Self::NoFight => &[],
         }
     }
 
@@ -70,7 +61,7 @@ impl Fight {
     pub fn best(&self) -> Option<&PlanOutcome> {
         match self {
             Self::Judged(outcome) => outcome.plans.first(),
-            Self::NoFight | Self::TooMany { .. } | Self::Unjudged { .. } => None,
+            Self::NoFight | Self::Unjudged { .. } => None,
         }
     }
 }
@@ -274,11 +265,6 @@ pub(crate) fn judge<'a>(
     let (Some(bundle), false) = (bundle, foes.is_empty()) else {
         return Fight::NoFight;
     };
-    if foes.len() > MOST_HOSTILES {
-        return Fight::TooMany {
-            hostiles: u32::try_from(foes.len()).unwrap_or(u32::MAX),
-        };
-    }
     let player = match Player::read(visible, remembered) {
         Ok(player) => player,
         Err(gaps) => return Fight::Unjudged { gaps },
@@ -815,7 +801,7 @@ fn charges(name: &str) -> Option<u32> {
 
 impl Fight {
     /// The focus card for this fight with `monsters` listed in view, for `reader`: `None` when
-    /// there is no small fight to judge, or the Advisor can't judge the moment at all, which the
+    /// there is no fight to judge, or the Advisor can't judge the moment at all, which the
     /// now pill says.
     pub(crate) fn card(&self, monsters: Option<Vec<Listing>>, reader: Reader) -> Option<FocusCard> {
         let card = |line: String, others, not_modelled| FocusCard::Fight {
@@ -831,11 +817,6 @@ impl Fight {
         };
         match self {
             Self::NoFight => None,
-            Self::TooMany { hostiles } => Some(card(
-                format!("Too many hostiles to judge a fight: {hostiles} in view."),
-                Vec::new(),
-                None,
-            )),
             Self::Unjudged { gaps } if !gaps.iter().any(fight_input) => None,
             Self::Unjudged { .. } => Some(card(
                 "The Advisor can't judge a fight yet.".to_owned(),
@@ -1339,10 +1320,19 @@ mod tests {
     }
 
     #[test]
-    fn more_than_three_hostiles_are_too_many_to_judge() {
-        let sheet =
-            fighter().against(&[("jackal", 2), ("jackal", 3), ("jackal", 4), ("jackal", 5)]);
-        assert_eq!(sheet.fight, Fight::TooMany { hostiles: 4 });
+    fn a_big_fight_is_judged_as_a_small_one_is() {
+        let pack = [
+            ("jackal", 2),
+            ("jackal", 3),
+            ("jackal", 4),
+            ("jackal", 5),
+            ("jackal", 6),
+            ("jackal", 7),
+        ];
+        let few = fighter().against(&pack[..1]);
+        let many = fighter().against(&pack);
+        let (few, many) = (&judged(&few).plans[0], &judged(&many).plans[0]);
+        assert!(many.hp_lost > few.hp_lost, "{many:?} against {few:?}");
     }
 
     #[test]
@@ -1458,19 +1448,6 @@ mod tests {
         let said = "Skills: no fight can be judged without them.";
         assert_eq!(line.gap.as_deref(), Some(said));
         assert_eq!(gaps, [said]);
-    }
-
-    #[test]
-    fn too_many_hostiles_are_said_on_the_card() {
-        let sheet =
-            fighter().against(&[("jackal", 2), ("jackal", 3), ("jackal", 4), ("jackal", 5)]);
-        let Some(FocusCard::Fight { line, .. }) = sheet.fight.card(None, Reader::Player) else {
-            panic!("no fight card");
-        };
-        assert_eq!(
-            line,
-            MarkedValue::known("Too many hostiles to judge a fight: 4 in view.".to_owned())
-        );
     }
 
     #[test]

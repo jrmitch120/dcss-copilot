@@ -209,12 +209,10 @@ impl SuggestedAction {
                         hp: outcome.hp,
                     },
                     (fight @ Fight::Judged(_), None) => fight_action(fight, hp),
-                    (Fight::TooMany { .. } | Fight::Unjudged { .. }, plan) => {
-                        CandidateAction::Fight {
-                            odds: plan.cloned().map_or(Odds::Unjudged, Odds::LastJudged),
-                            hp,
-                        }
-                    }
+                    (Fight::Unjudged { .. }, plan) => CandidateAction::Fight {
+                        odds: plan.cloned().map_or(Odds::Unjudged, Odds::LastJudged),
+                        hp,
+                    },
                 }
             }
         };
@@ -858,14 +856,14 @@ mod tests {
                 judged(vec![plan(Some("Fireball"), wins, 30)]),
             )
         };
-        let too_many = moment(
+        let unjudged = moment(
             ThreatLevel::Lethal,
-            4,
+            1,
             Vec::new(),
-            Fight::TooMany { hostiles: 4 },
+            Fight::Unjudged { gaps: Vec::new() },
         );
 
-        let held = after(&judged_fight(600), &too_many);
+        let held = after(&judged_fight(600), &unjudged);
         assert_eq!(
             held.card(&Fight::NoFight, Reader::Player).action.text,
             "Fireball, then melee: can't be judged now"

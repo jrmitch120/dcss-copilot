@@ -472,7 +472,7 @@ impl Advisor {
 }
 
 impl Advisor {
-    /// The focus card: a small fight while anything hostile is in view, or else what is in view;
+    /// The focus card: a fight while anything hostile is in view, or else what is in view;
     /// with nothing hostile in view, the join card while it shows, or else the Gap prompt card
     /// asking for what is open of `gaps`, the game's.
     fn focus(&self, gaps: &BTreeSet<Gap>) -> FocusCard {

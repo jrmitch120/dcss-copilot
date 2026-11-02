@@ -131,7 +131,7 @@ expression: detections
     "turn": 1300,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — The Advisor can't judge this fight"
+    "line": "Last resort: fight — Melee: ~0% win, ~100% HP lost"
   },
   {
     "envelope": 937,

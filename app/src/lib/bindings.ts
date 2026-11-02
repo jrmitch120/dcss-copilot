@@ -210,7 +210,7 @@ export type FocusCard =
  *  monsters, which is not the same as there being none.
  */
 monsters: Listing[] | null } | 
-/**  A small fight: what is in view, and how fighting it by each Attack Plan comes out. */
+/**  A fight: what is in view, and how fighting it by each Attack Plan comes out. */
 { card: "fight"; 
 /**  The monsters in view, as [`FocusCard::InView`] lists them. */
 monsters: Listing[] | null; 

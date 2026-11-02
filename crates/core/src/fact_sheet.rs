@@ -52,7 +52,7 @@ pub struct FactSheet {
     pub threat: Threat,
     /// The player's escapes and emergency options, and the ground they stand on.
     pub ways_out: WaysOut,
-    /// Each Attack Plan played out against the hostiles in view, in a small fight.
+    /// Each Attack Plan played out against the hostiles in view.
     pub fight: Fight,
     /// The hostiles in view that are uniques or out of depth, in map order.
     pub exceptional: Vec<ExceptionalMonster>,

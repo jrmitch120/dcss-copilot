@@ -297,8 +297,8 @@ expression: detections
     "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
-    "envelope": 3524,
-    "turn": 1888,
+    "envelope": 3501,
+    "turn": 1886,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."

@@ -55,16 +55,14 @@ impl Candidates {
                 .collect(),
             // While the fight can't be judged now, the Suggested Action's fight, if it fights,
             // is the one fight listed.
-            Fight::TooMany { .. } | Fight::Unjudged { .. }
-                if !matches!(suggested, CandidateAction::Fight { .. }) =>
-            {
+            Fight::Unjudged { .. } if !matches!(suggested, CandidateAction::Fight { .. }) => {
                 fact_sheet
                     .threat_hp()
                     .map(|hp| fight_action(&fact_sheet.fight, hp))
                     .into_iter()
                     .collect()
             }
-            Fight::NoFight | Fight::TooMany { .. } | Fight::Unjudged { .. } => Vec::new(),
+            Fight::NoFight | Fight::Unjudged { .. } => Vec::new(),
         };
         let mut rest: Vec<(bool, CandidateAction)> = ways_out
             .chain(corridor)
@@ -233,7 +231,7 @@ pub(crate) fn fight_action(fight: &Fight, hp: i32) -> CandidateAction {
                 .map_or(Odds::Unjudged, Odds::Now),
             hp: outcome.hp,
         },
-        Fight::NoFight | Fight::TooMany { .. } | Fight::Unjudged { .. } => CandidateAction::Fight {
+        Fight::NoFight | Fight::Unjudged { .. } => CandidateAction::Fight {
             odds: Odds::Unjudged,
             hp,
         },

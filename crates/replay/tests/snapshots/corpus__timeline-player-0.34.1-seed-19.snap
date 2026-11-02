@@ -440,15 +440,15 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 3522,
-    "turn": 2455,
+    "envelope": 3480,
+    "turn": 2453,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 3522,
-    "turn": 2455,
+    "envelope": 3480,
+    "turn": 2453,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 5 steps away"
@@ -929,12 +929,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 9333,
-    "turn": 6807,
+    "envelope": 9189,
+    "turn": 6751,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 9189,
+    "turn": 6751,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 12 steps away"
   },
   {
     "envelope": 9333,

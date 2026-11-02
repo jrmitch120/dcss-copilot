@@ -146,8 +146,8 @@ expression: detections
     "line": "Fight on — Melee: ~97% win, ~22% HP lost"
   },
   {
-    "envelope": 873,
-    "turn": 200,
+    "envelope": 848,
+    "turn": 195,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 2 steps away"
@@ -225,19 +225,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1911,
-    "turn": 929,
+    "envelope": 1834,
+    "turn": 916,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 1911,
-    "turn": 929,
+    "envelope": 1834,
+    "turn": 916,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 9 steps away"
+    "line": "Fall back to a corridor — The corridor 10 steps away"
   },
   {
     "envelope": 1916,
@@ -1031,19 +1031,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 8099,
-    "turn": 4585,
+    "envelope": 8077,
+    "turn": 4580,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 8099,
-    "turn": 4585,
+    "envelope": 8077,
+    "turn": 4580,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 5 steps away"
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 8104,
@@ -1326,8 +1326,15 @@ expression: detections
     "line": "Fight on — Wand of flame, then melee: ~98% win, ~28% HP lost"
   },
   {
-    "envelope": 10039,
-    "turn": 6014,
+    "envelope": 10017,
+    "turn": 6009,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · 6 steps"
+  },
+  {
+    "envelope": 10034,
+    "turn": 6013,
     "event": "suggestedAction",
     "rule": "fall-back-to-stairs",
     "line": "Fall back to stairs — Stone staircase leading up · ~9 steps · partly out of view"

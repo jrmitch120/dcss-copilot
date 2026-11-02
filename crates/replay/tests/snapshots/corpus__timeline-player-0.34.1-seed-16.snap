@@ -147,6 +147,20 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 1604,
+    "turn": 818,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1604,
+    "turn": 818,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 4 steps away"
+  },
+  {
     "envelope": 1704,
     "turn": 838,
     "event": "allClear"
@@ -195,6 +209,20 @@ expression: detections
     "envelope": 2374,
     "turn": 1404,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 2628,
+    "turn": 1677,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 2628,
+    "turn": 1677,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
   },
   {
     "envelope": 2744,
@@ -376,19 +404,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 4441,
-    "turn": 3654,
+    "envelope": 4424,
+    "turn": 3653,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 4441,
-    "turn": 3654,
+    "envelope": 4424,
+    "turn": 3653,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~0% win, ~100% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 4492,
@@ -405,13 +433,6 @@ expression: detections
     "line": "HP 11 of 46: below a quarter."
   },
   {
-    "envelope": 4501,
-    "turn": 3664,
-    "event": "suggestedAction",
-    "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~78% win, ~55% HP lost. If it turns LETHAL: Heal wounds ×2 · heals"
-  },
-  {
     "envelope": 4556,
     "turn": 3672,
     "event": "allClear"
@@ -420,6 +441,21 @@ expression: detections
     "envelope": 4680,
     "turn": 3811,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 4680,
+    "turn": 3811,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4680,
+    "turn": 3811,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Melee: ~3% win, ~100% HP lost. If it turns LETHAL: Heal wounds · heals"
   },
   {
     "envelope": 4737,
@@ -432,19 +468,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 4760,
-    "turn": 3879,
+    "envelope": 4755,
+    "turn": 3878,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 4760,
-    "turn": 3879,
+    "envelope": 4755,
+    "turn": 3878,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: Heal wounds · heals"
+    "line": "Fight carefully — Melee: ~16% win, ~95% HP lost. If it turns LETHAL: Heal wounds · heals"
   },
   {
     "envelope": 4803,
@@ -471,19 +507,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 4850,
-    "turn": 3973,
+    "envelope": 4844,
+    "turn": 3972,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 4850,
-    "turn": 3973,
+    "envelope": 4844,
+    "turn": 3972,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 2 steps away"
+    "line": "Fall back to a corridor — The corridor 1 step away"
   },
   {
     "envelope": 5223,
@@ -549,11 +585,11 @@ expression: detections
     "line": "Fall back to stairs — Escape hatch in the floor · 2 steps"
   },
   {
-    "envelope": 5340,
-    "turn": 4135,
+    "envelope": 5325,
+    "turn": 4132,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~87% win, ~59% HP lost. If it turns LETHAL: Heal wounds · heals"
+    "line": "Fight carefully — Melee: ~86% win, ~60% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 5399,
@@ -581,11 +617,11 @@ expression: detections
     "line": "Fall back to stairs — Stone staircase leading down · ~6 steps · partly out of view"
   },
   {
-    "envelope": 5470,
-    "turn": 4236,
+    "envelope": 5466,
+    "turn": 4235,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 2 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 5549,

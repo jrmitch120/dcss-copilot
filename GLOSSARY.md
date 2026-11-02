@@ -225,7 +225,7 @@ A fixed way for the player to fight what is in view: open with one attack, a spe
 _Avoid_: Strategy, tactic, build
 
 **Fight Outcome**:
-Each Attack Plan played out many times against the hostiles in view, in a small fight of about three monsters or fewer: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them. A best plan likely to lose makes the moment DANGEROUS.
+Each Attack Plan played out many times against the hostiles in view, whatever their number: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them, each walking its own path round walls and other monsters. It is how the Threat Level looks past the player's next action: a best plan that wins under 90% of the time makes the moment DANGEROUS.
 _Avoid_: Fight odds, combat sim, win rate
 
 **Way Out**:
