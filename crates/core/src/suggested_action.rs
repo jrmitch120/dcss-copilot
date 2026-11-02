@@ -38,6 +38,11 @@ const FIGHT_ON_HOLDS_WITHIN_POINTS: u64 = CLEARLY_BETTER_WIN_POINTS;
 /// player away from a lone monster that follows and hits them.
 const CORRIDOR_HELPS_FROM_HOSTILES: u32 = 2;
 
+/// Fall back to stairs at DANGEROUS only when the player survives at least this share of walks, in
+/// percent, whatever the walk's length: the line a fight must clear to be fought on
+/// ([`FIGHT_ON_WIN_PERCENT`]), as the issue that set it says (#156).
+const FALL_BACK_SURVIVES_PERCENT: u64 = FIGHT_ON_WIN_PERCENT;
+
 /// The rule that picked a Suggested Action, as the timeline writes it and a Scenario's manifest
 /// names it, such as `leave-by-stairs`. At a LETHAL moment the LETHAL rules are checked in the
 /// order listed, and at a DANGEROUS one the DANGEROUS rules; an earlier rule outranks a later one,
@@ -142,7 +147,7 @@ impl SuggestedAction {
                         SuggestionRule::FallBackToACorridor,
                         CandidateAction::Corridor(corridor),
                     )
-                } else if let Some(stairs) = stairs(ways_out) {
+                } else if let Some(stairs) = stairs_to_fall_back_to(fact_sheet) {
                     picked(
                         SuggestionRule::FallBackToStairs,
                         CandidateAction::WayOut(stairs.clone()),
@@ -156,6 +161,24 @@ impl SuggestedAction {
                 },
             ),
         }
+    }
+
+    /// Whether the rules, for a player with `hp_max` hit points at most, get as far as falling
+    /// back to stairs at this moment, so the walks there need playing out.
+    pub(crate) fn weighs_the_stairs(fact_sheet: &FactSheet, hp_max: Option<i32>) -> bool {
+        let Threat::Rated(assessment) = &fact_sheet.threat else {
+            return false;
+        };
+        let fights_on = matches!(
+            fight_action(&fact_sheet.fight, assessment.hp),
+            action @ CandidateAction::Fight { .. } if action.fights_on(hp_max, 0)
+        );
+        let holds_a_corridor = corridor(&fact_sheet.ways_out).is_some()
+            && assessment.hostiles_in_view >= CORRIDOR_HELPS_FROM_HOSTILES;
+        assessment.hp > 0
+            && assessment.level == ThreatLevel::Dangerous
+            && !fights_on
+            && !holds_a_corridor
     }
 
     /// The Suggested Action at the moment of `fact_sheet`, for a player with `hp_max` hit points
@@ -223,6 +246,11 @@ impl SuggestedAction {
             }
             // It is the last resort only while no rule above it could apply.
             SuggestionRule::Fight => lethal_way_out(&fact_sheet.ways_out).is_some(),
+            // The walk there is no longer one the player would survive.
+            SuggestionRule::FallBackToStairs => match &action {
+                CandidateAction::WayOut(stairs) => !walk_survived(fact_sheet, stairs),
+                _ => false,
+            },
             _ => false,
         };
         (!gives_way).then(|| Self {
@@ -343,6 +371,32 @@ fn stairs(ways_out: &WaysOut) -> Option<&Escape> {
         .map(|(way_out, _)| &way_out.option)
 }
 
+/// The staircase to fall back to at DANGEROUS: as [`stairs`] picks, of those the player would
+/// survive the walk to.
+fn stairs_to_fall_back_to(fact_sheet: &FactSheet) -> Option<&Escape> {
+    usable(&fact_sheet.ways_out)
+        .filter_map(|way_out| match &way_out.option {
+            Escape::Stairs { steps, .. } => Some((way_out, *steps)),
+            Escape::Item { .. } | Escape::Ability { .. } | Escape::Spell { .. } => None,
+        })
+        .filter(|(way_out, _)| walk_survived(fact_sheet, &way_out.option))
+        .min_by_key(|(way_out, steps)| (!way_out.trusted(), *steps))
+        .map(|(way_out, _)| &way_out.option)
+}
+
+/// Whether the player survives enough walks to `escape`, if it is a staircase whose walk was played
+/// out at the moment of `fact_sheet`. A walk not played out stands: the rules didn't weigh it.
+fn walk_survived(fact_sheet: &FactSheet, escape: &Escape) -> bool {
+    let Escape::Stairs { position, .. } = escape else {
+        return true;
+    };
+    fact_sheet
+        .stair_walks
+        .iter()
+        .find(|walk| walk.position == *position)
+        .is_none_or(|walk| walk.survived.at_least_percent(FALL_BACK_SURVIVES_PERCENT))
+}
+
 /// The item, ability or spell to use of those the player can that bring `relief`: one trusted
 /// before one read off a Stale screen, then the least likely to fail, then the first listed.
 fn carried(ways_out: &WaysOut, relief: Relief) -> Option<&Escape> {
@@ -385,7 +439,7 @@ mod tests {
     use copilot_gk::StairDirection;
 
     use super::*;
-    use crate::fact_sheet::{Chance, ThreatAssessment};
+    use crate::fact_sheet::{Chance, StairWalk, ThreatAssessment};
     use crate::fight_outcome::{AttackPlan, FightOutcome, PlanBase, PlanOpening, PlanOutcome};
     use crate::visible_state::Position;
     use crate::ways_out::{CorridorSquare, Ground, ReadOn, Usable, WayOut};
@@ -423,6 +477,7 @@ mod tests {
                 }),
                 ..WaysOut::default()
             },
+            stair_walks: Vec::new(),
             fight,
             exceptional: Vec::new(),
             dangerous_statuses: Vec::new(),
@@ -699,6 +754,121 @@ mod tests {
             "The corridor you stand in"
         );
         assert!(held.same_pick(&picked));
+    }
+
+    /// `fact_sheet` with the walk to the staircase at `x` survived `times` of `TRIALS` times.
+    fn with_walk(mut fact_sheet: FactSheet, x: i32, times: u32) -> FactSheet {
+        fact_sheet.stair_walks.push(StairWalk {
+            position: Position { x, y: 0 },
+            survived: Chance {
+                times,
+                trials: TRIALS,
+            },
+        });
+        fact_sheet
+    }
+
+    #[test]
+    fn at_dangerous_stairs_are_fallen_back_to_only_if_the_walk_is_survived_whatever_its_length() {
+        let dangerous = |steps| {
+            moment(
+                ThreatLevel::Dangerous,
+                1,
+                vec![usable(stairs(1, steps, false))],
+                judged(vec![plan(None, 600, 30)]),
+            )
+        };
+        assert_eq!(
+            rule_at(&with_walk(dangerous(59), 1, 900)),
+            Some(SuggestionRule::FallBackToStairs)
+        );
+        assert_eq!(
+            rule_at(&with_walk(dangerous(3), 1, 899)),
+            Some(SuggestionRule::FightCarefully)
+        );
+    }
+
+    #[test]
+    fn at_dangerous_the_nearest_staircase_with_a_walk_survived_is_fallen_back_to() {
+        let dangerous = moment(
+            ThreatLevel::Dangerous,
+            1,
+            vec![usable(stairs(1, 4, false)), usable(stairs(2, 30, false))],
+            judged(vec![plan(None, 600, 30)]),
+        );
+        let walked = with_walk(with_walk(dangerous, 1, 500), 2, 950);
+        let picked = SuggestedAction::pick(&walked, Some(HP_MAX)).unwrap();
+        assert_eq!(
+            picked.card(&Fight::NoFight, Reader::Player).action.text,
+            "Stone staircase leading down · 30 steps"
+        );
+    }
+
+    #[test]
+    fn a_held_fall_back_gives_way_once_the_walk_is_no_longer_survived() {
+        let dangerous = |times| {
+            with_walk(
+                moment(
+                    ThreatLevel::Dangerous,
+                    1,
+                    vec![usable(stairs(1, 6, false))],
+                    judged(vec![plan(None, 600, 30)]),
+                ),
+                1,
+                times,
+            )
+        };
+        assert_eq!(
+            after(&dangerous(950), &dangerous(910)).rule,
+            SuggestionRule::FallBackToStairs
+        );
+        assert_eq!(
+            after(&dangerous(950), &dangerous(800)).rule,
+            SuggestionRule::FightCarefully
+        );
+    }
+
+    #[test]
+    fn leaving_by_stairs_at_lethal_takes_no_account_of_the_walk() {
+        let lethal = with_walk(
+            moment(
+                ThreatLevel::Lethal,
+                1,
+                vec![usable(stairs(1, 40, false))],
+                judged(vec![plan(None, 100, 40)]),
+            ),
+            1,
+            0,
+        );
+        assert_eq!(rule_at(&lethal), Some(SuggestionRule::LeaveByStairs));
+    }
+
+    #[test]
+    fn the_stairs_are_weighed_only_when_the_rules_get_that_far() {
+        let dangerous = |wins, hostiles| {
+            moment(
+                ThreatLevel::Dangerous,
+                hostiles,
+                vec![usable(stairs(1, 6, false))],
+                judged(vec![plan(None, wins, 20)]),
+            )
+        };
+        assert!(SuggestedAction::weighs_the_stairs(
+            &dangerous(600, 1),
+            Some(HP_MAX)
+        ));
+        // It fights on.
+        assert!(!SuggestedAction::weighs_the_stairs(
+            &dangerous(950, 1),
+            Some(HP_MAX)
+        ));
+        // It holds a corridor.
+        assert!(!SuggestedAction::weighs_the_stairs(
+            &with_corridor(dangerous(600, 2), 3),
+            Some(HP_MAX)
+        ));
+        let lethal = moment(ThreatLevel::Lethal, 1, Vec::new(), Fight::NoFight);
+        assert!(!SuggestedAction::weighs_the_stairs(&lethal, Some(HP_MAX)));
     }
 
     #[test]

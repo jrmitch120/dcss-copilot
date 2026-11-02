@@ -13,6 +13,7 @@ use super::{
 };
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
+use crate::engine::walk::WalkAction;
 use crate::fact_sheet::attacks_player;
 use crate::gaps::Gap;
 use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, VisibleState};
@@ -440,6 +441,25 @@ impl<'a> OnTheLevel<'a> {
             times.push(pace.step(self.water.contains(&square)));
         }
         times
+    }
+
+    /// The player's actions on the way to the staircase at `stairs`, at their `pace`, one for each
+    /// door opened and each step.
+    pub(super) fn walk_to(&self, stairs: Position, pace: &Pace<'_>) -> Vec<WalkAction> {
+        let mut actions = Vec::new();
+        for square in self.walks.path_to(stairs) {
+            if self.level.terrain(square) == Some(Terrain::ClosedDoor) {
+                actions.push(WalkAction {
+                    to: None,
+                    time: i32::try_from(pace.action()).unwrap_or(i32::MAX),
+                });
+            }
+            actions.push(WalkAction {
+                to: Some(square),
+                time: i32::try_from(pace.step(self.water.contains(&square))).unwrap_or(i32::MAX),
+            });
+        }
+        actions
     }
 
     /// The chasers that can stand beside the staircase at `stairs` by the time the player has

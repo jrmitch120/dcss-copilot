@@ -1340,6 +1340,13 @@ expression: detections
     "line": "Fall back to stairs — Stone staircase leading up · ~9 steps · partly out of view"
   },
   {
+    "envelope": 10057,
+    "turn": 6018,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · 6 steps"
+  },
+  {
     "envelope": 10077,
     "turn": 6022,
     "event": "alert",

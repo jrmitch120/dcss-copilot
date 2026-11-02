@@ -43,8 +43,8 @@ pub use explored::{
     UniqueMet, Visit,
 };
 pub use fact_sheet::{
-    ActingMonster, Chance, FactSheet, GearBasis, GearPlayed, KnownOrStale, NotModelled, Threat,
-    ThreatAssessment, ThreatLevel,
+    ActingMonster, Chance, FactSheet, GearBasis, GearPlayed, KnownOrStale, NotModelled, StairWalk,
+    Threat, ThreatAssessment, ThreatLevel,
 };
 pub use fight_outcome::{
     AttackPlan, Fight, FightOutcome, NotPlayed, NotPlayedReason, PlanBase, PlanOpening, PlanOutcome,

@@ -1709,6 +1709,20 @@ expression: detections
     "line": "HP 43 of 99: below half."
   },
   {
+    "envelope": 13775,
+    "turn": 8985,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of flame, then melee: ~0% win, ~100% HP lost. If it turns LETHAL: Stone staircase leading up · ~8 steps · partly out of view"
+  },
+  {
+    "envelope": 13779,
+    "turn": 8986,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · 7 steps"
+  },
+  {
     "envelope": 13790,
     "turn": 8987,
     "event": "alert",

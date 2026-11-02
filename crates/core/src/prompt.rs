@@ -561,6 +561,7 @@ mod tests {
                     .collect(),
                 ..WaysOut::default()
             },
+            stair_walks: Vec::new(),
             fight: Fight::Unjudged { gaps: Vec::new() },
             exceptional: Vec::new(),
             dangerous_statuses: Vec::new(),

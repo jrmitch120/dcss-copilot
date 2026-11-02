@@ -13,6 +13,7 @@ use serde::Serialize;
 
 use crate::accumulated_state::{AccumulatedState, Remembered};
 use crate::engine::melee::BASELINE_DELAY;
+use crate::engine::walk::WalkAction;
 use crate::fact_sheet::NotModelled;
 use crate::gaps::Gap;
 use crate::screen::KnownAbility;
@@ -353,6 +354,25 @@ impl WayOut {
         };
         self.usable == Usable::Yes && !approximate
     }
+}
+
+/// The player's actions on the way to each staircase in `stairs`, as `visible` shows the level,
+/// at their pace: none until the game has sent the level.
+pub(crate) fn walks_to(
+    stairs: &[Position],
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    species: Option<&str>,
+    knowledge: Option<&Bundle>,
+) -> Vec<(Position, Vec<WalkAction>)> {
+    let Ok(here) = level::on_the_level(visible, knowledge) else {
+        return Vec::new();
+    };
+    let pace = pace::Pace::of(visible, remembered, species, here.bundle());
+    stairs
+        .iter()
+        .map(|&position| (position, here.walk_to(position, &pace)))
+        .collect()
 }
 
 impl WaysOut {

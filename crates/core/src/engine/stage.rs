@@ -270,6 +270,20 @@ impl<'g, 'm> Stage<'g, 'm> {
         }
     }
 
+    /// The player has stepped by `step` onto the square `ground` has them on: everyone stands that
+    /// much otherwise from them.
+    pub(crate) fn player_stepped(&mut self, ground: &'g Ground<'g>, step: Offset) {
+        self.ground = ground;
+        for standing in self.standing.iter_mut().flatten() {
+            *standing = *standing + -step;
+        }
+    }
+
+    /// Whether a monster playing stands at `offset`.
+    pub(crate) fn taken_by_a_monster(&self, offset: Offset) -> bool {
+        self.standing.contains(&Some(offset))
+    }
+
     /// The monster playing at `offset`, other than the one at `place`.
     fn occupant(&self, place: usize, offset: Offset) -> Option<usize> {
         self.standing
