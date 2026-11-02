@@ -344,7 +344,7 @@ expression: detections
     "turn": 2204,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~1% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
   },
   {
     "envelope": 4235,

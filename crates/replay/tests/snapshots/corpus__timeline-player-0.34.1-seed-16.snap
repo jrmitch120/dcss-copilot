@@ -197,20 +197,6 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 2661,
-    "turn": 1683,
-    "event": "alert",
-    "cause": "last-way-out-lost",
-    "line": "No Way Out is left that you can use."
-  },
-  {
-    "envelope": 2661,
-    "turn": 1683,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 1 step away"
-  },
-  {
     "envelope": 2744,
     "turn": 1719,
     "event": "allClear"
@@ -521,22 +507,7 @@ expression: detections
     "why": {
       "is": "unique"
     },
-    "alone": "dangerous"
-  },
-  {
-    "envelope": 5233,
-    "turn": 4083,
-    "event": "alert",
-    "cause": "unique-in-view",
-    "monster": "Blorkula the orcula",
-    "line": "Blorkula the orcula, a unique, alone makes this DANGEROUS."
-  },
-  {
-    "envelope": 5233,
-    "turn": 4083,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-stairs",
-    "line": "Fall back to stairs — Escape hatch in the floor · ~8 steps · partly out of view"
+    "alone": "calm"
   },
   {
     "envelope": 5251,
@@ -578,11 +549,11 @@ expression: detections
     "line": "Fall back to stairs — Escape hatch in the floor · 2 steps"
   },
   {
-    "envelope": 5315,
-    "turn": 4130,
+    "envelope": 5340,
+    "turn": 4135,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~88% win, ~55% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~87% win, ~59% HP lost. If it turns LETHAL: Heal wounds · heals"
   },
   {
     "envelope": 5399,
@@ -682,7 +653,7 @@ expression: detections
     "turn": 4281,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~2% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~4% win, ~100% HP lost"
   },
   {
     "envelope": 5782,

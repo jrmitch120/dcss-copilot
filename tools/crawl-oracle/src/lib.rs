@@ -523,6 +523,18 @@ struct TurnLine {
     melee: BTreeMap<i32, u32>,
     casts: BTreeMap<i32, u32>,
     closed: BTreeMap<i32, u32>,
+    /// Its book is taken from it, in a path case.
+    #[serde(default)]
+    no_book: bool,
+    /// Where it stands, `[east, south]` of the player, when walls and others surround it.
+    #[serde(default)]
+    at: Option<(i32, i32)>,
+    /// The walls around, `[east, south]` of the player.
+    #[serde(default)]
+    walls: Vec<(i32, i32)>,
+    /// The other monsters, `[monster_type, east, south]`.
+    #[serde(default)]
+    others: Vec<(u16, i32, i32)>,
 }
 
 #[derive(Deserialize)]
@@ -1080,6 +1092,10 @@ fn compare_turn(bundle: &Bundle, seed: u64, case: &TurnLine) -> Result<Vec<Misma
         distance: case.distance,
         lighting: case.lighting,
         hp: case.hp,
+        no_book: case.no_book,
+        at: case.at,
+        walls: case.walls.clone(),
+        others: case.others.clone(),
     };
     let engine =
         oracle::turn(bundle, &input, (seed, case.index), case.trials).map_err(|source| {

@@ -168,13 +168,6 @@ expression: detections
     "line": "Fight carefully — Melee: ~57% win, ~58% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
-    "envelope": 1393,
-    "turn": 1171,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 2 steps away"
-  },
-  {
     "envelope": 1547,
     "turn": 1240,
     "event": "allClear"

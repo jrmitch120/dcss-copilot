@@ -869,6 +869,9 @@ pub struct Formulas {
     /// Where a monster that keeps its range steps, rather than into its foe:
     /// `_set_firing_pos` and `monster::threat_range`.
     pub firing_position: FiringPosition,
+    /// How a monster gets to its foe round walls and other monsters: `_find_best_step`,
+    /// `_find_good_alternate_move`, `_mons_can_displace` and `monster_senior`.
+    pub monster_paths: MonsterPaths,
     /// How a batty monster flits after it attacks or casts, and for how long, before it hunts
     /// its foe again: `_handle_battiness`, `set_random_target`, `_find_best_step` and
     /// `BATTY_TURNS_KEY` in `_post_monster_move`.
@@ -1052,6 +1055,14 @@ pub enum FiringPosition {
     Crawl034,
 }
 
+/// The variants of how a monster gets to its foe round walls and other monsters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterPaths {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of how a batty monster flits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BattyFlight {
@@ -1147,6 +1158,7 @@ impl Formulas {
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
         firing_position: FiringPosition::Crawl034,
+        monster_paths: MonsterPaths::Crawl034,
         batty_flight: BattyFlight::Crawl034,
         monster_clouds: MonsterClouds::Crawl034,
         torment: Torment::Crawl034,

@@ -2,7 +2,7 @@
 //! whether it can be used right now and why not, and the ground they stand on.
 
 mod carried;
-mod level;
+pub(crate) mod level;
 mod list;
 mod pace;
 

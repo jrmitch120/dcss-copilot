@@ -12,13 +12,14 @@ use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
 pub use crate::engine::player_attacks::NotPlayedReason;
 use crate::engine::player_attacks::{AttackSpell, Defence, Heft, PlayerZap, Skill};
+use crate::engine::stage::{Ground, Scene};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
 use crate::gaps::{self, Gap, Reader, ScreenFact, memorised_unnamed};
 use crate::screen::{KnownSpell, Skills, SpellPower, SpellReach};
 use crate::view_model::{FocusCard, Listing, MarkedValue, capitalised};
-use crate::visible_state::{InventoryItem, SquareLight, VisibleState, Wielding};
+use crate::visible_state::{InventoryItem, Position, SquareLight, VisibleState, Wielding};
 
 /// The most hostiles in view the Fight Outcome plays out: a small fight, about three monsters or
 /// fewer (spec #24, "Engine (ADR 0003)"). A bigger fight isn't judged.
@@ -260,16 +261,16 @@ pub(crate) fn judge<'a>(
     bundle: Option<&'a Bundle>,
     defender: Result<Option<Defender>, Vec<Gap>>,
     hostiles: Vec<Attacker<'a>>,
+    scene: Option<&Scene>,
 ) -> Fight {
     let defender = match defender {
         Ok(Some(defender)) => defender,
         Ok(None) => return Fight::NoFight,
         Err(gaps) => return Fight::Unjudged { gaps },
     };
-    let foes: Vec<Attacker<'a>> = hostiles
+    let (firewood, foes): (Vec<Attacker<'a>>, Vec<Attacker<'a>>) = hostiles
         .into_iter()
-        .filter(|attacker| !attacker.monster.firewood)
-        .collect();
+        .partition(|attacker| attacker.monster.firewood);
     let (Some(bundle), false) = (bundle, foes.is_empty()) else {
         return Fight::NoFight;
     };
@@ -329,8 +330,21 @@ pub(crate) fn judge<'a>(
         })
         .collect();
     let formulas = bundle.formulas;
+    let open_floor = Ground::open_floor();
+    let on_the_map = scene.map(|scene| {
+        let firewood: Vec<Position> = firewood
+            .iter()
+            .map(|attacker| Position {
+                x: scene.player.x + attacker.offset.x,
+                y: scene.player.y + attacker.offset.y,
+            })
+            .collect();
+        let kinds = foes.iter().map(|foe| foe.attacker.monster);
+        Ground::new(scene, scene.player, kinds, &firewood)
+    });
+    let ground = on_the_map.as_ref().unwrap_or(&open_floor);
     let plan_outcome = |opening: Option<PlanOpening>, played: Option<&Opening<'_>>| {
-        let outcome = fight::simulate(formulas, defender, &fighter, played, &foes);
+        let outcome = fight::simulate(formulas, defender, &fighter, played, &foes, ground);
         PlanOutcome {
             plan: AttackPlan {
                 opening,
@@ -984,7 +998,7 @@ mod tests {
     use crate::fact_sheet::{FactSheet, Threat, ThreatLevel};
     use crate::screen::Screen;
     use crate::view_model::{Colour, Glyph};
-    use crate::visible_state::{Attitude, Position, Stats, VisibleMonster};
+    use crate::visible_state::{Attitude, Stats, VisibleMonster};
 
     /// The shipped 0.34.1 bundle.
     fn bundle() -> &'static Bundle {

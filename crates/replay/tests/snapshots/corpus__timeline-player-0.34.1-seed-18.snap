@@ -91,13 +91,6 @@ expression: detections
     "line": "Fall back to a corridor — The corridor 6 steps away"
   },
   {
-    "envelope": 473,
-    "turn": 218,
-    "event": "alert",
-    "cause": "last-way-out-lost",
-    "line": "No Way Out is left that you can use."
-  },
-  {
     "envelope": 627,
     "turn": 261,
     "event": "allClear"
@@ -179,7 +172,7 @@ expression: detections
     "turn": 802,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~45% win, ~78% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~74% win, ~61% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 1617,
@@ -292,16 +285,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 2769,
-    "turn": 2121,
+    "envelope": 2786,
+    "turn": 2122,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 2769,
-    "turn": 2121,
+    "envelope": 2786,
+    "turn": 2122,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor you stand in"

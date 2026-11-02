@@ -28,16 +28,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 395,
-    "turn": 120,
+    "envelope": 435,
+    "turn": 125,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 395,
-    "turn": 120,
+    "envelope": 435,
+    "turn": 125,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor you stand in"

@@ -108,7 +108,7 @@ expression: detections
     "turn": 121,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~88% win, ~20% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~89% win, ~20% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 709,
@@ -157,7 +157,7 @@ expression: detections
     "turn": 227,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~90% win, ~43% HP lost"
+    "line": "Fight on — Melee: ~94% win, ~29% HP lost"
   },
   {
     "envelope": 1060,
@@ -311,11 +311,11 @@ expression: detections
     "line": "Fight on — Melee: ~99% win, ~19% HP lost"
   },
   {
-    "envelope": 2319,
-    "turn": 1065,
+    "envelope": 2315,
+    "turn": 1064,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 5 steps away"
   },
   {
     "envelope": 2364,
@@ -481,11 +481,11 @@ expression: detections
     "line": "Fall back to a corridor — The corridor 6 steps away"
   },
   {
-    "envelope": 3557,
-    "turn": 2061,
+    "envelope": 3552,
+    "turn": 2060,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~99% win, ~13% HP lost"
+    "line": "Fight on — Melee: ~92% win, ~36% HP lost"
   },
   {
     "envelope": 3687,
@@ -875,19 +875,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 6506,
-    "turn": 4085,
+    "envelope": 6515,
+    "turn": 4087,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 6506,
-    "turn": 4085,
+    "envelope": 6515,
+    "turn": 4087,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 5 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 6540,
@@ -1125,7 +1125,7 @@ expression: detections
     "turn": 5201,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~79% win, ~63% HP lost. If it turns LETHAL: Teleportation · escapes after a delay"
+    "line": "Fight carefully — Melee: ~77% win, ~63% HP lost. If it turns LETHAL: Teleportation · escapes after a delay"
   },
   {
     "envelope": 8601,
@@ -1309,7 +1309,7 @@ expression: detections
     "turn": 5994,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~82% win, ~53% HP lost. If it turns LETHAL: Teleportation ×2 · escapes after a delay"
+    "line": "Fight carefully — Wand of flame, then melee: ~84% win, ~53% HP lost. If it turns LETHAL: Teleportation ×2 · escapes after a delay"
   },
   {
     "envelope": 9939,

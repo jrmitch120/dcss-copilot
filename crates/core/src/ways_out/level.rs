@@ -58,6 +58,24 @@ pub(super) struct OnTheLevel<'a> {
     features: Vec<(Position, &'a Feature)>,
 }
 
+/// The level as `visible` shows it, read through `bundle`: `None` until the game has sent its map.
+pub(crate) fn known(visible: &VisibleState, bundle: &Bundle) -> Option<Level> {
+    let by_id: HashMap<&EnumId, &Feature> = bundle
+        .features
+        .values()
+        .map(|feature| (&feature.id, feature))
+        .collect();
+    Level::new(
+        visible
+            .map
+            .as_ref()?
+            .cells()
+            .filter_map(|(position, cell)| {
+                Some((position, by_id.get(cell.feature.as_ref()?)?.terrain))
+            }),
+    )
+}
+
 /// The level as the player knows it, or the Gaps that keep the Advisor from knowing it.
 pub(super) fn on_the_level<'a>(
     visible: &'a VisibleState,

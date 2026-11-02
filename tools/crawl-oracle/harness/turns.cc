@@ -178,13 +178,16 @@ static void _clear_statuses(monster &mon)
 
 // Takes every monster but `kept` off the map, and lets go of the player: placing some kinds
 // places others with them, such as a tentacle's segments, and a monster may grab the player.
+// The monster that stands in the way in a path case, which outlasts each play.
+static monster *in_the_way = nullptr;
+
 static void _clear_monsters(const monster *kept = nullptr)
 {
     you.stop_being_constricted(true);
     for (monster_iterator mi; mi; ++mi)
     {
         mi->stop_constricting_all(false, true);
-        if (*mi != kept)
+        if (*mi != kept && (!kept || *mi != in_the_way))
             _remove(**mi);
     }
 }
@@ -368,11 +371,16 @@ static coord_def _behind_player()
 }
 
 // Floor everywhere within sight of the player, the square behind them walled if `walled`.
+// The walls of a path case, from the player.
+static vector<coord_def> path_walls;
+
 static void _lay_terrain(bool walled)
 {
     _reset_terrain();
     if (walled)
         env.grid(_behind_player()) = DNGN_ROCK_WALL;
+    for (const coord_def &wall : path_walls)
+        env.grid(you.pos() + wall) = DNGN_ROCK_WALL;
 }
 
 // What a kind of monster that a turn case may draw is like.
@@ -605,6 +613,7 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
 {
     const coord_def start = mon->pos();
     const coord_def player = you.pos();
+    const coord_def way_start = in_the_way ? in_the_way->pos() : coord_def();
     const int hit_dice = mon->get_hit_dice();
     for (int t = 0; t < trials; ++t)
     {
@@ -614,8 +623,24 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
             you.duration[DUR_CORONA] = 1000;
         _lay_terrain(walled);
         delete_all_clouds();
+        if (in_the_way && in_the_way->pos() != way_start)
+        {
+            // Out of the way of the other, which may have pushed past it.
+            in_the_way->move_to(you.pos() + coord_def(-1, 0));
+        }
         if (mon->pos() != start)
             mon->move_to(start);
+        if (in_the_way)
+        {
+            if (in_the_way->pos() != way_start)
+                in_the_way->move_to(way_start);
+            // Awake, in the way and taking no action before the player's next.
+            _clear_statuses(*in_the_way);
+            in_the_way->behaviour = BEH_SEEK;
+            in_the_way->foe = MHITYOU;
+            in_the_way->target = you.pos();
+            in_the_way->speed_increment = 0;
+        }
         _clear_statuses(*mon);
         mon->hit_points = mon->max_hit_points;
         // A spore attack costs its attacker a hit die (melee_attack::mons_apply_attack_flavour).
@@ -624,6 +649,10 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         mon->behaviour = BEH_SEEK;
         mon->foe = MHITYOU;
         mon->target = you.pos();
+        // It keeps hunting a player a wall hides from it.
+        mon->foe_memory = 100;
+        mon->travel_path.clear();
+        mon->travel_target = MTRAV_NONE;
         // One that keeps its range finds its firing position afresh.
         mon->firing_pos.reset();
         // A batty one that flitted after it attacked hunts the player again.
@@ -656,6 +685,7 @@ static const char *_play_turns(monster *mon, const turn_kind &kind, int distance
         // One that keeps its range backs off to its firing position, and a batty one flits
         // away, as the engine plays them.
         if (grid_distance(mon->pos(), you.pos()) > distance
+            && path_walls.empty() && !in_the_way
             && !mons_class_flag(kind.type, M_MAINTAIN_RANGE)
             && !mons_class_flag(kind.type, M_BATTY))
         {
@@ -748,6 +778,109 @@ static void _turn_case(int index, int trials, const turn_rule &rule)
                _json_bool(nightvision), lighting, you.hp_max, trials,
                _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
                _histogram(tally.closed).c_str());
+        return;
+    }
+}
+
+// A kind that a path case draws: it walks, and comes for the player rather than keeping its range
+// or flitting.
+static bool _walks_up(const turn_kind &kind)
+{
+    return !kind.stationary && !mons_class_flag(kind.type, M_MAINTAIN_RANGE)
+           && !mons_class_flag(kind.type, M_BATTY) && !STEPS_FROM_BESIDE.count(kind.type)
+           && !STEPS_BY_CHANCE.count(kind.type) && kind.reach > 0
+           // It goes through walls, which the engine leaves out.
+           && !mons_class_flag(kind.type, M_BURROWS);
+}
+
+// A monster with nothing to cast comes for the player past walls and another monster, in one of
+// three layouts by turns, plays out their next action many times, and shows how far it got:
+// round a wall that hides the player, along a one-wide corridor behind another monster, or across
+// open floor with another monster straight in its way.
+static void _path_case(int index, int trials, const vector<turn_kind> &kinds)
+{
+    static const vector<monster_type> OTHERS = { MONS_GOBLIN, MONS_ORC, MONS_OGRE, MONS_ORC_WARLORD };
+    const int layout = index % 3;
+    while (true)
+    {
+        const turn_kind &kind = kinds[random2(kinds.size())];
+        if (!_walks_up(kind))
+            continue;
+        path_walls.clear();
+        in_the_way = nullptr;
+        const int distance = layout == 0 ? 3 + random2(3) : 3 + random2(4);
+        monster *mon = _place(kind.type, distance);
+        if (!mon)
+            continue;
+        mon->spells.clear();
+        // The engine plays one with nothing to strike the player with as standing where it is.
+        if (!mons_has_attacks(*mon))
+            continue;
+        const string name = mon->name(DESC_PLAIN, true);
+        const int hd = mon->get_hit_dice();
+        const int speed = mon->speed;
+        const bool nightvision = mon->nightvision();
+        _random_light();
+        const bool corona = you.duration[DUR_CORONA] > 0;
+        const char *lighting = _lighting();
+        string others = "[";
+        coord_def way;
+        if (layout == 0)
+        {
+            for (int y = -2; y <= 2; ++y)
+                path_walls.emplace_back(2, y);
+        }
+        else
+        {
+            if (layout == 1)
+            {
+                for (int x = 0; x <= LOS_DEFAULT_RANGE; ++x)
+                {
+                    path_walls.emplace_back(x, -1);
+                    path_walls.emplace_back(x, 1);
+                }
+            }
+            way = coord_def(distance - 1, 0);
+            mons_spec spec(OTHERS[random2(OTHERS.size())]);
+            in_the_way = dgn_place_monster(spec, you.pos() + way, true, true, false);
+            if (!in_the_way)
+            {
+                path_walls.clear();
+                continue;
+            }
+            in_the_way->destroy_inventory();
+            in_the_way->spells.clear();
+            others += make_stringf("[%d,%d,%d]", in_the_way->type, way.x, way.y);
+        }
+        others += "]";
+        _lay_terrain(false);
+        los_changed();
+        string walls = "[";
+        for (const coord_def &wall : path_walls)
+            walls += make_stringf("%s[%d,%d]", walls.size() > 1 ? "," : "", wall.x, wall.y);
+        walls += "]";
+
+        turn_tally tally;
+        const char *unfollowed = _play_turns(mon, kind, distance, corona, false, trials, tally);
+        in_the_way = nullptr;
+        path_walls.clear();
+        _clear_monsters();
+        _reset_terrain();
+        los_changed();
+        if (unfollowed)
+        {
+            you.set_position(coord_def(GXM / 2, GYM / 2));
+            los_changed();
+            continue;
+        }
+        printf("{\"case\":%d,\"kind\":\"turn\",\"rule\":\"path\",\"monster\":%d,\"name\":\"%s\","
+               "\"book\":%d,\"no_book\":true,\"hd\":%d,\"speed\":%d,\"distance\":%d,"
+               "\"nightvision\":%s,\"lighting\":\"%s\",\"hp\":%d,\"trials\":%d,\"melee\":%s,"
+               "\"casts\":%s,\"closed\":%s,\"at\":[%d,0],\"walls\":%s,\"others\":%s}\n",
+               index, kind.type, name.c_str(), kind.type, hd, speed, distance,
+               _json_bool(nightvision), lighting, you.hp_max, trials,
+               _histogram(tally.melee).c_str(), _histogram(tally.casts).c_str(),
+               _histogram(tally.closed).c_str(), distance, walls.c_str(), others.c_str());
         return;
     }
 }
@@ -847,6 +980,15 @@ int main(int argc, char *argv[])
             continue;
         _start_case(run, index);
         _turn_case(index, run.trials, rules[i % rules.size()]);
+    }
+    // After the turn cases, which keep their numbers: a sixth as many, each drawn by its number.
+    const int path_cases = run.cases / 6;
+    for (int i = 0; i < path_cases; ++i, ++index)
+    {
+        if (!_in_shard(run, i, 1))
+            continue;
+        _start_case(run, index);
+        _path_case(index, run.trials, kinds);
     }
     // After the turn cases, which keep their numbers; the same every run. They start with the
     // player as crawl was set up, as a turn case may leave their maximum hit points lowered.

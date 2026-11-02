@@ -425,7 +425,7 @@ expression: detections
     "turn": 2843,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~85% win, ~53% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~86% win, ~53% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 5222,

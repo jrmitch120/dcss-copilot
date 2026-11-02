@@ -15,6 +15,7 @@ use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
+use crate::engine::stage::{Ground, Scene, Stage};
 use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::exceptional::{self, ExceptionalMonster};
@@ -24,7 +25,7 @@ use crate::screen::Resistances;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
-use crate::ways_out::WaysOut;
+use crate::ways_out::{WaysOut, level};
 
 /// LETHAL from this chance of death before the player's next action, per mille: 5%. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
@@ -563,8 +564,16 @@ fn judge(
         mut threat,
         defender,
         hostiles,
+        scene,
     } = threat(visible, remembered, species, knowledge);
-    let fight = fight_outcome::judge(visible, remembered, knowledge, defender, hostiles);
+    let fight = fight_outcome::judge(
+        visible,
+        remembered,
+        knowledge,
+        defender,
+        hostiles,
+        scene.as_ref(),
+    );
     if let (Threat::Rated(assessment), Some(best)) = (&mut threat, fight.best()) {
         assessment.best_plan_win = Some(best.win);
         assessment.level = level(
@@ -592,6 +601,8 @@ struct Assessed<'a> {
     defender: Result<Option<Defender>, Vec<Gap>>,
     /// Every hostile in view, with the gear it is played with, in map order.
     hostiles: Vec<Attacker<'a>>,
+    /// What they are played on, once a hostile is in view.
+    scene: Option<Scene>,
 }
 
 impl Assessed<'_> {
@@ -602,6 +613,7 @@ impl Assessed<'_> {
             threat: Threat::Unrated { gaps: gaps.clone() },
             defender: Err(gaps),
             hostiles: Vec::new(),
+            scene: None,
         }
     }
 }
@@ -686,6 +698,7 @@ fn threat<'a>(
             threat,
             defender: Ok(None),
             hostiles: Vec::new(),
+            scene: None,
         };
     };
 
@@ -735,6 +748,19 @@ fn threat<'a>(
         resists: resists.resists,
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
+    let scene = Scene {
+        player,
+        level: level::known(visible, bundle),
+        bystanders: monsters
+            .iter()
+            .filter(|monster| {
+                !hostile
+                    .iter()
+                    .any(|(seen, _)| seen.position == monster.position)
+            })
+            .map(|monster| monster.position)
+            .collect(),
+    };
     // Each monster with the gear it is played with, and the monsters that can attack, each with
     // its row.
     let mut gear: Vec<GearPlayed> = Vec::new();
@@ -749,7 +775,7 @@ fn threat<'a>(
     let mut weapons_unread = false;
     // Whether a monster in view that can't attack has spells the simulation doesn't play out.
     let mut other_spells_out_of_reach = false;
-    for (seen, monster) in hostile {
+    for (seen, monster) in &hostile {
         let offset = Offset::between(player, seen.position);
         let distance = offset.distance();
         let attacker = Attacker::new(bundle, monster, offset);
@@ -786,9 +812,23 @@ fn threat<'a>(
             unplayed,
         });
         weapons_unread |= attacker.weapons_unread(formulas);
-        hostiles.push(attacker.clone());
+        hostiles.push(attacker);
+    }
+    let ground = Ground::new(
+        &scene,
+        player,
+        hostiles.iter().map(|attacker| attacker.monster),
+        &[],
+    );
+    let stage = Stage::new(
+        &ground,
+        hostiles
+            .iter()
+            .map(|attacker| (attacker.monster, attacker.offset)),
+    );
+    for (place, (attacker, (seen, monster))) in hostiles.iter().zip(&hostile).enumerate() {
         let its_moves = moves_not_modelled(monster);
-        if threat::can_attack(formulas, &attacker) {
+        if threat::can_attack(formulas, attacker, &stage, place) {
             moves.extend(its_moves.iter().copied());
             acting.push(ActingMonster {
                 name: seen.name.clone(),
@@ -799,18 +839,18 @@ fn threat<'a>(
                     .iter()
                     .map(|cast| cast.spell.spell.name.clone())
                     .collect(),
-                spells_not_modelled: spells_not_modelled(bundle, &attacker),
+                spells_not_modelled: spells_not_modelled(bundle, attacker),
                 moves_not_modelled: its_moves,
                 shoots: attacker.shoots.clone(),
             });
-            attackers.push(attacker);
+            attackers.push(attacker.clone());
         } else {
             moves.extend(
                 its_moves
                     .into_iter()
                     .filter(|variant| variant.strikes_from_out_of_reach()),
             );
-            other_spells_out_of_reach |= !spells_not_modelled(bundle, &attacker).is_empty();
+            other_spells_out_of_reach |= !spells_not_modelled(bundle, attacker).is_empty();
         }
     }
     not_modelled.extend(moves);
@@ -864,7 +904,7 @@ fn threat<'a>(
             worst_hit: 0,
         }
     } else {
-        threat::simulate(formulas, defender, &attackers)
+        threat::simulate(formulas, defender, &attackers, &ground)
     };
     let death = Chance {
         times: outcome.deaths,
@@ -884,10 +924,13 @@ fn threat<'a>(
         not_modelled,
         gaps: gaps.into_iter().collect(),
     }));
+    drop(stage);
+    drop(ground);
     Assessed {
         threat,
         defender: Ok(Some(defender)),
         hostiles,
+        scene: Some(scene),
     }
 }
 
