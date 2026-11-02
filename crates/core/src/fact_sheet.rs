@@ -363,10 +363,11 @@ pub enum NotModelled {
     /// Statuses on either side, such as haste, might or confusion, beyond those that backlight
     /// the player.
     Statuses,
-    /// Monsters walk straight at the player, through walls and each other, and a batty one flits
-    /// as on open floor, which errs low for one hemmed in beside the player, as in a corridor,
-    /// where it more often flits back into them. A monster's own opaque clouds hide the player
-    /// from it only along a row, column or diagonal through them.
+    /// Monsters walk their own paths, but by one line to the player and without band leaders'
+    /// say, in an order of play of their nearest first. A batty one flits as if every square
+    /// nearby could be picked, which errs low for one hemmed in beside the player, as in a
+    /// corridor, where it more often flits back into them. A monster's own opaque clouds hide the
+    /// player from it only along a row, column or diagonal through them.
     Paths,
     /// Monsters are assumed awake and hunting the player, and a batty one not already flitting
     /// away.
@@ -390,8 +391,8 @@ pub enum NotModelled {
     /// it needs the player's holiness or god, which the Advisor can't tell, as their species,
     /// statuses or god haven't been reported.
     PlayerResistances,
-    /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
-    /// crawl's casters weigh that, and often hold off up close.
+    /// Monsters are assumed to cast clouds even when they'd catch themselves; crawl's casters
+    /// weigh that, and often hold off up close. An explosion's tracer is played.
     CasterSafety,
     /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by its
     /// kind's Possible Gear, the odds crawl makes its kind with, +0 and unbranded, as the Advisor

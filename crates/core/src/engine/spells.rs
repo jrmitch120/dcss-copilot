@@ -106,9 +106,9 @@ pub(crate) enum Landing {
 ///
 /// A blinkbolt blinks its caster to the farthest square of the bolt's path it can stand on
 /// (`bolt::affect_endpoint`, `beam.cc:2700`): beside the player when something stops the bolt
-/// behind them, and past them on open floor, as the bolt pierces. The engine has no map
-/// (`NotModelled::Paths`), so it lands the caster beside the player wherever it cast from: the
-/// most dangerous landing, and the one that keeps the Threat Level erring high (#85).
+/// behind them, and past them on open floor, as the bolt pierces. The engine doesn't follow the
+/// bolt's path (`NotModelled::Paths`), so it lands the caster beside the player wherever it cast
+/// from: the most dangerous landing, and the one that keeps the Threat Level erring high (#85).
 fn landing(variant: MonsterSpellBeam, spell: &Spell) -> Landing {
     match variant {
         MonsterSpellBeam::Crawl034 if spell.id.0 == spell_types::BLINKBOLT => {

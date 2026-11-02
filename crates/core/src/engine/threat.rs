@@ -2276,6 +2276,61 @@ mod tests {
         assert!(differs);
     }
 
+    /// Whether an orc seen as `listing`, at `distance` east of the player, counts as able to
+    /// attack with `blockers` orcs standing at those offsets, on `ground`.
+    fn counts_past(listing: &str, distance: i32, blockers: &[Offset], ground: &Ground<'_>) -> bool {
+        let orc = monster("orc");
+        let (attacker, _) = seen(orc, distance, listing);
+        let stage = Stage::new(
+            ground,
+            std::iter::once((orc, attacker.offset)).chain(blockers.iter().map(|&at| (orc, at))),
+        );
+        can_attack(Formulas::CRAWL_0_34, &attacker, &stage, 0)
+    }
+
+    #[test]
+    fn an_orc_holding_a_reach_weapon_behind_an_ally_still_counts_as_able_to_attack() {
+        let ground = Ground::open_floor();
+        let in_front = [Offset::east(1)];
+        assert!(counts_past(
+            "Here: an orc, wielding a +0 spear",
+            2,
+            &in_front,
+            &ground
+        ));
+        // A plain sword reaches no farther than beside the player, and the ally holds that square
+        // in a corridor: it is the walls that keep it from stepping round.
+        let terrain = (-1..=8).flat_map(|x| {
+            (-1..=1).map(move |y| {
+                let terrain = if y == 0 {
+                    copilot_gk::Terrain::Open
+                } else {
+                    copilot_gk::Terrain::Solid
+                };
+                (crate::visible_state::Position { x, y }, terrain)
+            })
+        });
+        let scene = crate::engine::stage::Scene {
+            player: crate::visible_state::Position { x: 0, y: 0 },
+            level: crate::engine::paths::Level::new(terrain),
+            bystanders: Vec::new(),
+            experience_level: 3,
+        };
+        let corridor = Ground::new(&scene, scene.player, [monster("orc")], &[]);
+        assert!(counts_past(
+            "Here: an orc, wielding a +0 spear",
+            2,
+            &in_front,
+            &corridor
+        ));
+        assert!(!counts_past(
+            "Here: an orc, wielding a +0 short sword",
+            2,
+            &in_front,
+            &corridor
+        ));
+    }
+
     #[test]
     fn a_weapons_unknown_plus_and_brand_and_an_unported_brand_are_named_as_unplayed() {
         let orc = monster("orc");

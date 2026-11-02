@@ -1,0 +1,363 @@
+---
+source: crates/replay/tests/scenarios.rs
+expression: replay
+---
+{
+  "identity": {
+    "server": "http://localhost:8080",
+    "account": "wiz591150632",
+    "character": "wiz591150632",
+    "species": "Merfolk",
+    "firstSeenMs": 1793591247071,
+    "crawlVersion": "0.34.1",
+    "wizard": true,
+    "role": "playing"
+  },
+  "turns": [],
+  "newLevels": [],
+  "detections": [
+    {
+      "envelope": 28,
+      "turn": 26,
+      "event": "encounterStarted"
+    },
+    {
+      "envelope": 28,
+      "turn": 26,
+      "event": "alert",
+      "cause": "threat-level-rose",
+      "to": "dangerous",
+      "line": "Threat rose to DANGEROUS."
+    },
+    {
+      "envelope": 28,
+      "turn": 26,
+      "event": "suggestedAction",
+      "rule": "fall-back-to-a-corridor",
+      "line": "Fall back to a corridor — The corridor you stand in"
+    }
+  ],
+  "end": {
+    "turn": 27,
+    "place": {
+      "branch": "Dungeon",
+      "depth": 1
+    },
+    "factSheet": {
+      "threat": {
+        "state": "rated",
+        "level": "dangerous",
+        "hp": 15,
+        "death": {
+          "times": 0,
+          "trials": 10000
+        },
+        "worstHit": 9,
+        "hostilesInView": 3,
+        "bestPlanWin": {
+          "times": 1466,
+          "trials": 2000
+        },
+        "acting": [
+          {
+            "name": "orc",
+            "position": {
+              "x": 0,
+              "y": -2
+            },
+            "distance": 2,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": [
+              "boomerang"
+            ]
+          },
+          {
+            "name": "orc",
+            "position": {
+              "x": 0,
+              "y": -1
+            },
+            "distance": 1,
+            "casts": [],
+            "spellsNotModelled": [],
+            "movesNotModelled": [],
+            "shoots": [
+              "boomerang"
+            ]
+          }
+        ],
+        "gear": [
+          {
+            "name": "orc",
+            "position": {
+              "x": 0,
+              "y": -3
+            },
+            "distance": 3,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": true
+            },
+            "unplayed": []
+          },
+          {
+            "name": "orc",
+            "position": {
+              "x": 0,
+              "y": -2
+            },
+            "distance": 2,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": true
+            },
+            "unplayed": []
+          },
+          {
+            "name": "orc",
+            "position": {
+              "x": 0,
+              "y": -1
+            },
+            "distance": 1,
+            "basis": {
+              "basis": "possible",
+              "mayShoot": true
+            },
+            "unplayed": []
+          }
+        ],
+        "lighting": "plain",
+        "resistances": null,
+        "notModelled": [
+          "monsterEquipment",
+          "attackFlavours",
+          "statuses",
+          "paths",
+          "awareness",
+          "defenceFractions",
+          "carriedGear"
+        ],
+        "gaps": []
+      },
+      "waysOut": {
+        "options": [],
+        "ground": {
+          "ground": "corridor",
+          "openSides": 1
+        },
+        "pace": null,
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "spellList"
+          },
+          {
+            "gap": "unread",
+            "fact": "abilityMenu"
+          }
+        ],
+        "notModelled": [
+          "swimmingAndFlying",
+          "unexploredSquares"
+        ]
+      },
+      "fight": {
+        "state": "judged",
+        "hp": 15,
+        "plans": [
+          {
+            "plan": {
+              "opening": null,
+              "base": {
+                "with": "melee"
+              }
+            },
+            "win": {
+              "times": 1466,
+              "trials": 2000
+            },
+            "death": {
+              "times": 534,
+              "trials": 2000
+            },
+            "hpLost": 9
+          }
+        ],
+        "notPlayed": [],
+        "gaps": [
+          {
+            "gap": "unread",
+            "fact": "spellList"
+          }
+        ],
+        "notModelled": [
+          "playerSpeed",
+          "summons",
+          "allies",
+          "hexes",
+          "selfBuffs",
+          "mixingWands",
+          "movingBetweenAttacks",
+          "monsterWounds",
+          "ownAttackExtras",
+          "ownFractions",
+          "monsterArmour"
+        ]
+      },
+      "exceptional": [],
+      "dangerousStatuses": [],
+      "gaps": [
+        {
+          "gap": "unread",
+          "fact": "spellList"
+        },
+        {
+          "gap": "unread",
+          "fact": "abilityMenu"
+        }
+      ]
+    },
+    "game": {
+      "character": {
+        "name": "wiz591150632",
+        "species": "Merfolk",
+        "hp": 15,
+        "hpMax": 29,
+        "turn": 27
+      },
+      "now": {
+        "state": "rated",
+        "level": "dangerous",
+        "alert": null,
+        "line": "2 monsters can attack before your next action. Your best plan wins only ~73% of fights.",
+        "detail": {
+          "text": "Death under 0.1% · worst hit 9 of 15 HP · Gear guessed from kind: orc",
+          "gap": null
+        }
+      },
+      "suggestedAction": {
+        "level": "dangerous",
+        "rule": "Fall back to a corridor",
+        "action": {
+          "text": "The corridor you stand in",
+          "gap": null
+        },
+        "ifLethal": null,
+        "coach": null
+      },
+      "focus": {
+        "card": "fight",
+        "monsters": [
+          {
+            "depiction": {
+              "glyph": {
+                "text": "o",
+                "colour": "lightRed"
+              },
+              "tile": "mon/humanoids/orcs/orc"
+            },
+            "name": "orc",
+            "detail": null,
+            "count": 3
+          }
+        ],
+        "line": {
+          "text": "Best plan (melee): ~73% win, ~60% HP lost",
+          "gap": "Open the spell list (I) to count your attack spells."
+        },
+        "others": [],
+        "notModelled": "Not modelled: your speed, summons, allies, hexes, self-buffs, mixing wands, moving between attacks, monsters' wounds, brands, kicks and slaying, skill fractions, monsters' armour",
+        "gaps": [
+          "Open the spell list (I) to count your attack spells."
+        ]
+      },
+      "factCards": [],
+      "waysOut": {
+        "rows": [
+          {
+            "usable": null,
+            "name": "Abilities",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the ability menu (a) to judge your abilities."
+            },
+            "whyNot": null
+          },
+          {
+            "usable": null,
+            "name": "Spells",
+            "detail": {
+              "text": "unknown",
+              "gap": "Open the spell list (I) to judge your spells."
+            },
+            "whyNot": null
+          }
+        ],
+        "ground": "In a corridor: 1 side open",
+        "gaps": []
+      },
+      "runPlan": {
+        "state": "awaitingDump"
+      },
+      "ask": {
+        "state": "needsModel"
+      },
+      "live": true,
+      "pickedUp": null,
+      "accumulatedUnreadable": null,
+      "badge": {
+        "decisionsWaiting": 0,
+        "callsForPanel": false
+      },
+      "gaps": {
+        "gaps": [
+          {
+            "what": "Spell list",
+            "why": "Spells aren't counted among the Ways Out or attacks.",
+            "keys": [
+              "I"
+            ]
+          },
+          {
+            "what": "Ability menu",
+            "why": "Abilities aren't counted among the Ways Out.",
+            "keys": [
+              "a"
+            ]
+          },
+          {
+            "what": "Mutations",
+            "why": "The race to the stairs counts only the species' own mutations.",
+            "keys": [
+              "A"
+            ]
+          },
+          {
+            "what": "Resistances",
+            "why": "Monsters' fire, cold, poison and the like are played as if resisted by nothing.",
+            "keys": [
+              "%"
+            ]
+          },
+          {
+            "what": "Equipped gear",
+            "why": "A shield, a halo or armour that slows the character is taken as not worn.",
+            "keys": [
+              "%"
+            ]
+          }
+        ],
+        "dumpFills": [
+          "the spell list",
+          "mutations",
+          "resistances",
+          "equipped gear"
+        ]
+      },
+      "warning": true
+    }
+  }
+}

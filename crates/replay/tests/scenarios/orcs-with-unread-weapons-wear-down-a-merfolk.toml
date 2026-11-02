@@ -1,0 +1,39 @@
+description = "A Merfolk Berserker of level 3, walled into a one-wide corridor on D:1, has been worn down by three orcs by the time the Advisor joins the game, as at T 1525-30 of the game that raised #156. No spellcaster is left, and the Advisor has read none of their weapons, so it plays them by the odds crawl makes orcs with. The moment doesn't read CALM"
+recording = "orcs-with-unread-weapons-wear-down-a-merfolk.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = []
+
+[setup]
+rc = """
+combo = MfBe.spear
+game_seed = 1
+"""
+before_joining = [
+  # Northwest, then five squares north, into the corridor.
+  "y", "k", "k", "k", "k", "k",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Set level 3.
+  "&", "wiz\r", "l", "3\r",
+  # Wall the square south of them, so all comes from the north.
+  "&", "(", "rock wall\r", "k", ".",
+  "&", "m", "orc\r",
+  "&", "m", "orc\r",
+  "&", "m", "orc\r",
+  "\u001b",
+  # Wait while they wear the player down; Escape clears any --more--.
+  ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b",
+  ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b",
+  ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b", ".", "\u001b",
+]
+keys = [
+  # Open the skills screen, then close it, so the fight can be judged.
+  "m", "\u001b",
+  ".", "\u001b",
+]
+
+[[alerts]]
+turn = 26
+cause = "threat-level-rose"
+
+[[suggested_actions]]
+turn = 26
+rule = "fall-back-to-a-corridor"

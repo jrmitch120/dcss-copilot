@@ -19,9 +19,10 @@
 //! three actions before their next, then flits for the other two, biting again about one time in
 //! six.
 //!
-//! Where a monster stands is an [`Offset`] from the player. Any monster walks straight at the
-//! player or away, a square at a time, which changes its distance by one; only a batty monster's
-//! steps are drawn as crawl's are, as only its flight depends on the square it stands on.
+//! Where a monster stands is an [`Offset`] from the player. How it gets to them round walls and
+//! other monsters is the [`Stage`](super::stage)'s; here is what it wants from where it stands,
+//! and only a batty monster's steps are drawn as crawl's are, as only its flight depends on the
+//! square it stands on.
 
 use std::cmp::Ordering;
 use std::ops::{Add, Neg};
@@ -174,9 +175,10 @@ pub(crate) fn firing_range(variant: FiringPosition, threat_range: i32) -> i32 {
 /// steps into the player, so it fights them in melee only with a reaching attack, which it makes
 /// before it moves (`_handle_reaching`).
 ///
-/// Played as on open floor (`NotModelled::Paths`): crawl takes only squares it can stand on and
-/// see the player from, and one hemmed in, with no such square around it, may step toward a
-/// farther one and into the player to fight them.
+/// Played as straight at or away from the player (`NotModelled::Paths`), with no step if that
+/// square is taken: crawl takes only squares it can stand on and see the player from, and one
+/// hemmed in, with no such square around it, may step toward a farther one and into the player to
+/// fight them.
 pub(crate) fn toward_firing_range(variant: FiringPosition, from: Offset, range: i32) -> Offset {
     match variant {
         FiringPosition::Crawl034 => match from.distance().cmp(&range) {
@@ -200,8 +202,9 @@ const STRAIGHT_FOR: i32 = 3;
 /// which picks it afresh every action, `check_wander_target`), as [`step_toward`] steps. A step
 /// into the player is an attack on them (`handle_monster_move`, `mon-act.cc:2306`).
 ///
-/// Played as on open floor (`NotModelled::Paths`), where crawl may pick any such square: it
-/// picks only one it can stand on, and steps round what stands in its way.
+/// Drawn as on open floor (`NotModelled::Paths`), where crawl may pick any such square, and taken
+/// only if it can stand there: crawl picks only one it can stand on, and steps round what stands
+/// in its way.
 pub(crate) fn flit(variant: BattyFlight, rng: &mut Rng) -> Offset {
     match variant {
         BattyFlight::Crawl034 => {

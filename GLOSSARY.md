@@ -153,7 +153,7 @@ Everything the Advisor has computed about one moment of a Game Situation, such a
 _Avoid_: Situation, snapshot, context, prompt data
 
 **Threat Level**:
-How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit, and how likely the best Attack Plan is to win the fight in view.
+How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit, played out with each monster walking its own path and holding its fire for the allies in its way, and, looking past that action, how likely the best Attack Plan is to win the fight in view.
 _Avoid_: Danger score, threat score
 
 **Worst-Case Hit**:
@@ -257,7 +257,7 @@ What every answer from an LLM passes before the player sees it: each sentence ma
 _Avoid_: Validation, fact-check, filter
 
 **Suggested Action**:
-The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor no more than 15 steps away among several hostiles, falling back to stairs, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, or a last-resort fight could be traded for a Way Out. At Coach, a Tactical Alert also asks the Quick Model to pick among the Candidate Actions, with a short reason quoting only what its prompt said; its pick shows beside the Suggested Action until the rules pick anew or it can no longer be taken, marked with the turn it was asked on once that has passed.
+The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor no more than 15 steps away among several hostiles, falling back to stairs the player survives at least 90% of walks to, whatever the length of the walk, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, a walk to stairs is no longer one the player would survive, or a last-resort fight could be traded for a Way Out. At Coach, a Tactical Alert also asks the Quick Model to pick among the Candidate Actions, with a short reason quoting only what its prompt said; its pick shows beside the Suggested Action until the rules pick anew or it can no longer be taken, marked with the turn it was asked on once that has passed.
 _Avoid_: Default action, rule pick
 
 **Encounter**:

@@ -28,8 +28,8 @@
 //! death drake that breathes miasma from a square past its beam's range doesn't breathe from there
 //! again: it walks a square nearer first.
 //!
-//! The engine has no map (`NotModelled::Paths`), so it follows a beam's path only along a row, a
-//! column or a diagonal through the player, where the path and every line of sight run through
+//! The engine follows no beam's exact path (`NotModelled::Paths`), so it follows one only along a
+//! row, a column or a diagonal through the player, where the path and every line of sight run through
 //! the same squares. A monster that casts from anywhere else leaves no opaque cloud the engine
 //! follows, and one that stands anywhere else sees the player: both err high. So does leaving out
 //! the cloud round where the beam ends, which spreads at random beside the player. Each player
