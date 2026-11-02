@@ -29,7 +29,7 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 4,
+          "worstHit": 3,
           "hostilesInView": 7,
           "bestPlanWin": null,
           "acting": [
@@ -40,18 +40,6 @@ expression: replay
                 "y": 1
               },
               "distance": 1,
-              "casts": [],
-              "spellsNotModelled": [],
-              "movesNotModelled": [],
-              "shoots": []
-            },
-            {
-              "name": "jackal",
-              "position": {
-                "x": 2,
-                "y": 2
-              },
-              "distance": 2,
               "casts": [],
               "spellsNotModelled": [],
               "movesNotModelled": [],
@@ -325,9 +313,9 @@ expression: replay
           "state": "rated",
           "level": "calm",
           "alert": null,
-          "line": "2 monsters can attack before your next action.",
+          "line": "Jackal can attack before your next action.",
           "detail": {
-            "text": "Death under 0.1% · worst hit 4 of 19 HP",
+            "text": "Death under 0.1% · worst hit 3 of 19 HP",
             "gap": null
           }
         },
@@ -473,7 +461,7 @@ expression: replay
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 4,
+        "worstHit": 3,
         "hostilesInView": 7,
         "bestPlanWin": null,
         "acting": [
@@ -484,18 +472,6 @@ expression: replay
               "y": 1
             },
             "distance": 1,
-            "casts": [],
-            "spellsNotModelled": [],
-            "movesNotModelled": [],
-            "shoots": []
-          },
-          {
-            "name": "jackal",
-            "position": {
-              "x": 2,
-              "y": 2
-            },
-            "distance": 2,
             "casts": [],
             "spellsNotModelled": [],
             "movesNotModelled": [],
@@ -769,9 +745,9 @@ expression: replay
         "state": "rated",
         "level": "calm",
         "alert": null,
-        "line": "2 monsters can attack before your next action.",
+        "line": "Jackal can attack before your next action.",
         "detail": {
-          "text": "Death under 0.1% · worst hit 4 of 19 HP",
+          "text": "Death under 0.1% · worst hit 3 of 19 HP",
           "gap": null
         }
       },

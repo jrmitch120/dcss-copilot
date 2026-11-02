@@ -19,20 +19,21 @@ Answer with JSON only: {"pick": "<Candidate Action id>", "reason": "<at most 25 
 You: Minotaur · XL 1 · on Dungeon:1 · turn 6 · HP 19/19 · MP 0/0 · AC 2 · EV 11 · SH 0
 Statuses: none
 Resistances: unknown
-Threat: DANGEROUS · death before your next action under 0.1% · worst hit 5 of 19 HP · hostiles in view 3 · best plan wins ~75%
+Threat: DANGEROUS · death before your next action under 0.1% · worst hit 4 of 19 HP · hostiles in view 3 · best plan wins ~84%
 Can act before your next action:
 - jackal · 2 squares away
 - jackal · 1 square away
+In view, can't act before your next action:
 - jackal · 2 squares away
 Attack Plans:
-- Melee: ~75% win, ~63% HP lost
+- Melee: ~84% win, ~58% HP lost
 Ground: In a corridor: 2 sides open
 Ways Out:
 ✕ Escape hatch in the floor · 4 steps — Jackal is in the way; Jackal is faster, and 1 more
 ? Abilities · unknown
 Candidate Actions:
 a1 Hold · The corridor you stand in
-a2 Fight · Melee: ~75% win, ~63% HP lost
+a2 Fight · Melee: ~84% win, ~58% HP lost
 Suggested Action: a1, by the rule "Fall back to a corridor"
 Gaps:
 - Open the ability menu (a) to judge your abilities.

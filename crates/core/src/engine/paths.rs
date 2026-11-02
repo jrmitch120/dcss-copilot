@@ -5,7 +5,7 @@
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BinaryHeap};
 
-use copilot_gk::{MonsterEnergy, Terrain};
+use copilot_gk::{Habitat, ItemUse, Monster, MonsterEnergy, Terrain};
 
 use crate::engine::melee::{BASELINE_DELAY, ENERGY_THRESHOLD, most_starting_energy};
 use crate::visible_state::Position;
@@ -33,11 +33,49 @@ const STEPS: [(i32, i32); 8] = [
 /// Squares beyond them are unexplored, out to one square past the explored ones.
 #[derive(Debug, Clone)]
 pub(crate) struct Level {
-    /// By `(y, x)`.
-    terrain: BTreeMap<(i32, i32), Terrain>,
+    /// Every square the bounds hold, row by row: `None` for an unexplored one.
+    squares: Vec<Option<Terrain>>,
     /// The squares unexplored ones may be on: the explored ones' bounds, one square wider.
     top_left: Position,
     bottom_right: Position,
+}
+
+/// What a monster can cross on its way to the player, of what walls off a walker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Crossing {
+    /// It opens closed doors: crawl's `mons_can_open_doors`, for one that uses at least doors.
+    pub(crate) opens_doors: bool,
+    /// It flies or swims over deep water.
+    pub(crate) deep_water: bool,
+    /// It flies over or wades through lava.
+    pub(crate) lava: bool,
+}
+
+impl Crossing {
+    /// What a monster of `monster`'s kind crosses.
+    pub(crate) fn of(monster: &Monster) -> Self {
+        let habitat = monster.habitat;
+        Self {
+            opens_doors: monster.item_use >= ItemUse::OpenDoors,
+            deep_water: monster.flies
+                || matches!(
+                    habitat,
+                    Habitat::Amphibious
+                        | Habitat::Water
+                        | Habitat::DeepWater
+                        | Habitat::EldritchTentacle
+                ),
+            lava: monster.flies || matches!(habitat, Habitat::Lava | Habitat::AmphibiousLava),
+        }
+    }
+}
+
+/// How many moves a monster that crosses as one [`Crossing`] needs from every square to one it
+/// heads for, round what walls it off: other monsters don't count.
+#[derive(Debug, Clone)]
+pub(crate) struct Field {
+    /// As [`Level`]'s squares: `u16::MAX` for a square it can't stand on or that has no way there.
+    moves: Vec<u16>,
 }
 
 /// Who is walking, which decides the squares they can step onto.
@@ -69,30 +107,153 @@ struct Cost {
 impl Level {
     /// The level with this terrain at each explored square.
     pub(crate) fn new(terrain: impl IntoIterator<Item = (Position, Terrain)>) -> Option<Self> {
-        let terrain: BTreeMap<(i32, i32), Terrain> = terrain
-            .into_iter()
-            .map(|(position, terrain)| ((position.y, position.x), terrain))
-            .collect();
-        let top = terrain.keys().map(|&(y, _)| y).min()?;
-        let bottom = terrain.keys().map(|&(y, _)| y).max()?;
-        let left = terrain.keys().map(|&(_, x)| x).min()?;
-        let right = terrain.keys().map(|&(_, x)| x).max()?;
-        Some(Self {
-            terrain,
-            top_left: Position {
-                x: left - 1,
-                y: top - 1,
-            },
-            bottom_right: Position {
-                x: right + 1,
-                y: bottom + 1,
-            },
-        })
+        let terrain: Vec<(Position, Terrain)> = terrain.into_iter().collect();
+        let top = terrain.iter().map(|(position, _)| position.y).min()?;
+        let bottom = terrain.iter().map(|(position, _)| position.y).max()?;
+        let left = terrain.iter().map(|(position, _)| position.x).min()?;
+        let right = terrain.iter().map(|(position, _)| position.x).max()?;
+        let top_left = Position {
+            x: left - 1,
+            y: top - 1,
+        };
+        let bottom_right = Position {
+            x: right + 1,
+            y: bottom + 1,
+        };
+        let width = usize::try_from(bottom_right.x - top_left.x + 1).ok()?;
+        let height = usize::try_from(bottom_right.y - top_left.y + 1).ok()?;
+        let mut level = Self {
+            squares: vec![None; width.checked_mul(height)?],
+            top_left,
+            bottom_right,
+        };
+        for (position, terrain) in terrain {
+            let index = level.index(position)?;
+            *level.squares.get_mut(index)? = Some(terrain);
+        }
+        Some(level)
+    }
+
+    /// Where `position` is in the squares, `None` beyond the level's bounds.
+    fn index(&self, position: Position) -> Option<usize> {
+        if !self.in_bounds(position) {
+            return None;
+        }
+        let width = self.bottom_right.x - self.top_left.x + 1;
+        let index = (position.y - self.top_left.y) * width + position.x - self.top_left.x;
+        usize::try_from(index).ok()
     }
 
     /// The terrain at `position`, `None` for an unexplored square.
     pub(crate) fn terrain(&self, position: Position) -> Option<Terrain> {
-        self.terrain.get(&(position.y, position.x)).copied()
+        self.squares.get(self.index(position)?).copied().flatten()
+    }
+
+    /// The moves stepping onto `position` costs a monster that crosses as `crossing`: `None` when
+    /// it can't. It crosses an unexplored square as if open.
+    pub(crate) fn moves_onto(&self, crossing: Crossing, position: Position) -> Option<u16> {
+        self.index(position)?;
+        match self.terrain(position) {
+            None | Some(Terrain::Open) => Some(1),
+            Some(Terrain::ClosedDoor) if crossing.opens_doors => Some(DOOR_MOVES as u16),
+            Some(Terrain::DeepWater) if crossing.deep_water => Some(1),
+            Some(Terrain::Lava) if crossing.lava => Some(1),
+            Some(Terrain::ClosedDoor | Terrain::DeepWater | Terrain::Lava | Terrain::Solid) => None,
+        }
+    }
+
+    /// The moves from every square to `to` for a monster that crosses as `crossing`: wherever it
+    /// heads for, even a square it couldn't stand on itself, such as the player's in deep water.
+    pub(crate) fn field_to(&self, crossing: Crossing, to: Position) -> Field {
+        let mut moves = vec![u16::MAX; self.squares.len()];
+        let Some(start) = self.index(to) else {
+            return Field { moves };
+        };
+        if let Some(square) = moves.get_mut(start) {
+            *square = 0;
+        }
+        // Moves come in ones and twos, so a frontier for each number of moves is enough.
+        let mut now: Vec<Position> = vec![to];
+        let mut next: Vec<Position> = Vec::new();
+        let mut after: Vec<Position> = Vec::new();
+        let mut so_far: u16 = 0;
+        while !now.is_empty() || !next.is_empty() || !after.is_empty() {
+            for &here in &now {
+                let settled = self
+                    .index(here)
+                    .and_then(|index| moves.get(index))
+                    .is_some_and(|&moves| moves == so_far);
+                if !settled {
+                    continue;
+                }
+                // A step from a square onto `here` costs what stepping onto `here` does, and
+                // onto the square it heads for it is the attack, which costs one.
+                let onto = if here == to {
+                    1
+                } else {
+                    self.moves_onto(crossing, here).unwrap_or(1)
+                };
+                let total = so_far.saturating_add(onto);
+                for square in self.around(here) {
+                    if self.moves_onto(crossing, square).is_none() {
+                        continue;
+                    }
+                    let Some(best) = self.index(square).and_then(|index| moves.get_mut(index))
+                    else {
+                        continue;
+                    };
+                    if total < *best {
+                        *best = total;
+                        if onto == 1 {
+                            next.push(square);
+                        } else {
+                            after.push(square);
+                        }
+                    }
+                }
+            }
+            now.clear();
+            std::mem::swap(&mut now, &mut next);
+            std::mem::swap(&mut next, &mut after);
+            so_far = so_far.saturating_add(1);
+        }
+        Field { moves }
+    }
+
+    /// Whether a line from `from` to `to` crosses nothing but what a monster that crosses as
+    /// `crossing` can step onto: crawl's `can_go_straight` (`mon-movetarget.cc`), as a line drawn
+    /// by rounding where crawl finds a ray.
+    pub(crate) fn clear_line(&self, crossing: Crossing, from: Position, to: Position) -> bool {
+        line_between(from, to).all(|square| self.moves_onto(crossing, square).is_some())
+    }
+
+    /// Whether `from` sees `to` past what is solid, on a line between them rounded either way: as
+    /// crawl's `cell_see_cell` (`los.cc`), which finds any ray it can.
+    pub(crate) fn sees(&self, from: Position, to: Position) -> bool {
+        let clear = |square| !matches!(self.terrain(square), Some(Terrain::Solid));
+        line_between(from, to).all(clear) || line_between(to, from).all(clear)
+    }
+
+    /// Whether nothing solid stands on every line of a reaching attack from `from` to `to`, two
+    /// squares away: `can_reach_attack_between` (`fight.cc:1639`), which looks at the terrain
+    /// alone, so a monster between doesn't stop it. Either square a knight's move passes will do.
+    pub(crate) fn reach_clear(&self, from: Position, to: Position) -> bool {
+        let (dx, dy) = (to.x - from.x, to.y - from.y);
+        let first = Position {
+            x: from.x + dx / 2,
+            y: from.y + dy / 2,
+        };
+        let second = Position {
+            x: to.x - dx / 2,
+            y: to.y - dy / 2,
+        };
+        let past = |square| {
+            !matches!(
+                self.terrain(square),
+                Some(Terrain::Solid | Terrain::ClosedDoor)
+            )
+        };
+        past(first) || past(second)
     }
 
     /// The squares around `position`, explored or not, within the level's bounds.
@@ -202,6 +363,31 @@ impl Level {
         }
         Moves { from, best }
     }
+}
+
+impl Field {
+    /// The moves from `position` to the square it heads for on `level`, `None` when there is no
+    /// way there.
+    pub(crate) fn moves(&self, level: &Level, position: Position) -> Option<u16> {
+        let moves = *self.moves.get(level.index(position)?)?;
+        (moves != u16::MAX).then_some(moves)
+    }
+}
+
+/// The squares strictly between `from` and `to`, nearest `from` first, along the straight line
+/// between them, a square for each step of the longer way, rounded.
+pub(crate) fn line_between(from: Position, to: Position) -> impl Iterator<Item = Position> {
+    let (dx, dy) = (to.x - from.x, to.y - from.y);
+    let steps = dx.abs().max(dy.abs());
+    (1..steps).map(move |step| Position {
+        x: from.x + rounded_share(dx, step, steps),
+        y: from.y + rounded_share(dy, step, steps),
+    })
+}
+
+/// `whole * part / of`, rounded to the nearest whole number, away from zero at a half.
+pub(crate) fn rounded_share(whole: i32, part: i32, of: i32) -> i32 {
+    (2 * whole * part + whole.signum() * of) / (2 * of)
 }
 
 /// The cheapest path a walker has from where it starts to each square it can reach.
@@ -328,6 +514,94 @@ mod tests {
     use super::*;
 
     const ENERGY: MonsterEnergy = MonsterEnergy::Crawl034;
+
+    /// A level from `rows`, its first row and column at 0: `#` is solid, `+` a closed door, `~`
+    /// deep water, ` ` unexplored and anything else open.
+    fn level(rows: &[&str]) -> Level {
+        let squares = rows.iter().zip(0..).flat_map(|(row, y)| {
+            row.chars().zip(0..).filter_map(move |(square, x)| {
+                let terrain = match square {
+                    ' ' => return None,
+                    '#' => Terrain::Solid,
+                    '+' => Terrain::ClosedDoor,
+                    '~' => Terrain::DeepWater,
+                    _ => Terrain::Open,
+                };
+                Some((Position { x, y }, terrain))
+            })
+        });
+        Level::new(squares).unwrap()
+    }
+
+    const WALKS: Crossing = Crossing {
+        opens_doors: true,
+        deep_water: false,
+        lava: false,
+    };
+
+    #[test]
+    fn the_moves_to_a_square_go_round_what_walls_it_off() {
+        let level = level(&["#####", "#.#.#", "#.#.#", "#...#", "#####"]);
+        let field = level.field_to(WALKS, Position { x: 1, y: 1 });
+        assert_eq!(field.moves(&level, Position { x: 1, y: 2 }), Some(1));
+        assert_eq!(field.moves(&level, Position { x: 3, y: 1 }), Some(4));
+        assert_eq!(field.moves(&level, Position { x: 2, y: 1 }), None);
+    }
+
+    #[test]
+    fn a_closed_door_costs_two_moves_to_one_that_opens_it_and_stops_one_that_doesnt() {
+        let level = level(&["#####", "#.+.#", "#####"]);
+        let to = Position { x: 1, y: 1 };
+        let far = Position { x: 3, y: 1 };
+        assert_eq!(level.field_to(WALKS, to).moves(&level, far), Some(3));
+        let shut_out = Crossing {
+            opens_doors: false,
+            ..WALKS
+        };
+        assert_eq!(level.field_to(shut_out, to).moves(&level, far), None);
+    }
+
+    #[test]
+    fn water_stops_a_walker_but_not_a_swimmer_and_the_square_headed_for_needs_no_footing() {
+        let level = level(&["#####", "#.~.#", "#####"]);
+        let far = Position { x: 3, y: 1 };
+        let to = Position { x: 1, y: 1 };
+        assert_eq!(level.field_to(WALKS, to).moves(&level, far), None);
+        let swims = Crossing {
+            deep_water: true,
+            ..WALKS
+        };
+        assert_eq!(level.field_to(swims, to).moves(&level, far), Some(2));
+        let in_water = Position { x: 2, y: 1 };
+        assert_eq!(level.field_to(WALKS, in_water).moves(&level, far), Some(1));
+    }
+
+    #[test]
+    fn a_reaching_attack_passes_a_monster_but_not_a_wall() {
+        let walled = level(&["#####", "#.#.#", "#####"]);
+        let from = Position { x: 1, y: 1 };
+        let to = Position { x: 3, y: 1 };
+        assert!(!walled.reach_clear(from, to));
+        let open = level(&["#####", "#...#", "#####"]);
+        assert!(open.reach_clear(from, to));
+    }
+
+    #[test]
+    fn a_line_crosses_only_what_stands_between() {
+        let level = level(&["#####", "#.#.#", "#...#", "#####"]);
+        assert!(!level.clear_line(WALKS, Position { x: 1, y: 1 }, Position { x: 3, y: 1 }));
+        assert!(level.clear_line(WALKS, Position { x: 1, y: 2 }, Position { x: 3, y: 2 }));
+        let line: Vec<Position> =
+            line_between(Position { x: 0, y: 0 }, Position { x: 4, y: 2 }).collect();
+        assert_eq!(
+            line,
+            [
+                Position { x: 1, y: 1 },
+                Position { x: 2, y: 1 },
+                Position { x: 3, y: 2 }
+            ]
+        );
+    }
 
     #[test]
     fn a_monster_as_fast_as_the_player_moves_once_each_action() {

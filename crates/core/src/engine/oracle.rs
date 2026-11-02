@@ -6,15 +6,18 @@
 
 use std::collections::BTreeMap;
 
-use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells};
+use copilot_gk::{Bundle, EnumId, Formulas, Monster, MonsterSpells, Terrain};
 
 use crate::accumulated_state::{MutationsRead, Shield};
 
 use crate::crawl_ids::monster_types;
 
 use super::brands::{Brand, Necromancy};
-use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
+use super::melee::{
+    self, Attack, BASELINE_DELAY, Defences, Fighter, Hands, Swing, Target, Wielded,
+};
 use super::missiles::{self, Missile, Missiles, Shooter};
+use super::paths::Level;
 use super::player_attacks::{
     self, AttackSpell, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Striker,
 };
@@ -22,11 +25,13 @@ use super::player_move::{self, Unread};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
+use super::stage::{Battleground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use super::step::Offset;
-use super::threat::{self, Attacker, Draw};
-use super::{torment, wands};
+use super::threat::{self, Attacker, Draw, Engaged};
+use super::tracer;
+use super::{PLAYER_VISION, torment, wands};
 use crate::screen::{Resistance, Resistances, Screen, ScreenRead};
-use crate::visible_state::{Religion, Status};
+use crate::visible_state::{Position, Religion, Status};
 
 pub use super::lighting::Lighting;
 pub use super::melee::AUTOMATIC_HIT;
@@ -562,6 +567,10 @@ pub struct GearTally {
     pub missile: BTreeMap<Option<EnumId>, u32>,
     /// The wand it will zap.
     pub wand: BTreeMap<Option<EnumId>, u32>,
+    /// The melee weapon in its main hand.
+    pub melee: BTreeMap<Option<EnumId>, u32>,
+    /// The melee weapon in its off hand.
+    pub off: BTreeMap<Option<EnumId>, u32>,
 }
 
 /// Draws the gear of a monster of the kind numbered `monster` `trials` times, by the odds its
@@ -580,6 +589,7 @@ pub fn gear(
         .ok_or(CaseError::NoMonster(monster))?;
     let missiles = Draw::new(&known.gear.missile, Some);
     let wands = Draw::new(&known.gear.wand, Some);
+    let melee = Draw::new(&known.gear.melee, Some);
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = GearTally::default();
     for _ in 0..trials {
@@ -588,6 +598,15 @@ pub fn gear(
             .entry(missiles.draw(&mut rng).cloned())
             .or_default() += 1;
         *tally.wand.entry(wands.draw(&mut rng).cloned()).or_default() += 1;
+        let first = melee.draw(&mut rng).cloned();
+        let second = match (known.two_weapons, known.gear.twin_weapons) {
+            (false, _) => None,
+            (true, false) => melee.draw(&mut rng).cloned(),
+            (true, true) => first.clone(),
+        };
+        let off = first.as_ref().and(second.as_ref()).cloned();
+        *tally.melee.entry(first.or(second)).or_default() += 1;
+        *tally.off.entry(off).or_default() += 1;
     }
     Ok(tally)
 }
@@ -885,8 +904,8 @@ pub fn melee_reach(
 }
 
 /// A monster some squares from the player, carrying nothing, as the player starts a
-/// standard-speed action.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// standard-speed action, on floor all round but for any walls and other monsters.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TurnCase {
     /// The monster's `monster_type` value.
     pub monster: u16,
@@ -903,7 +922,20 @@ pub struct TurnCase {
     pub lighting: Lighting,
     /// The player's hit points.
     pub hp: i32,
+    /// The monster's book is taken from it, as the harness takes it for a path case.
+    pub no_book: bool,
+    /// Where the monster stands, `(east, south)` of the player: `None` for `distance` squares
+    /// east of them.
+    pub at: Option<(i32, i32)>,
+    /// The walls around, `(east, south)` of the player.
+    pub walls: Vec<(i32, i32)>,
+    /// The other monsters, each its `monster_type` value and where it stands, `(east, south)` of
+    /// the player: awake but taking no action.
+    pub others: Vec<(u16, i32, i32)>,
 }
+
+/// How far around the player a turn case's floor is laid: as far as the harness lays it.
+const TURN_FLOOR: i32 = PLAYER_VISION + 1;
 
 /// What a monster did before the player's next standard-speed action, over many trials: how
 /// many trials it did each thing in each number of times.
@@ -944,6 +976,7 @@ pub fn turn(
         .monster(case.book)
         .ok_or(CaseError::NoMonster(case.book))?;
     monster.spells = match &book.spells {
+        _ if case.no_book => MonsterSpells::Book { spells: Vec::new() },
         MonsterSpells::Book { spells } => MonsterSpells::Book {
             spells: spells
                 .iter()
@@ -957,7 +990,29 @@ pub fn turn(
         },
         MonsterSpells::PerMonster => MonsterSpells::PerMonster,
     };
-    let attacker = Attacker::new(bundle, &monster, Offset::east(case.distance)).without_gear();
+    let offset = case
+        .at
+        .map_or(Offset::east(case.distance), |(x, y)| Offset { x, y });
+    let attacker = Attacker::new(bundle, &monster, offset).without_gear();
+    let others = case
+        .others
+        .iter()
+        .map(|&(other, x, y)| {
+            let known = bundle.monster(other).ok_or(CaseError::NoMonster(other))?;
+            Ok((known, Offset { x, y }))
+        })
+        .collect::<Result<Vec<_>, CaseError>>()?;
+    let scene = turn_scene(&case.walls);
+    let ground = Battleground::new(
+        &scene,
+        scene.player,
+        std::iter::once(&monster).chain(others.iter().map(|&(known, _)| known)),
+        &[],
+    );
+    let on_stage = Stage::new(
+        &ground,
+        std::iter::once((&monster, offset)).chain(others.iter().copied()),
+    );
     // Undefended, so whatever strikes the player deals damage.
     let target = Target {
         defences: Defences::exact(0, 0, 0),
@@ -966,19 +1021,19 @@ pub fn turn(
     };
     let mut rng = Rng::new(seed.0, seed.1);
     let mut tally = TurnTally {
-        can_attack: threat::can_attack(formulas, &attacker),
+        can_attack: threat::can_attack(formulas, &attacker, &on_stage, 0),
         ..TurnTally::default()
     };
     for _ in 0..trials {
         // The undefended player has no shield to block with.
         let mut blocks_left = 0;
-        let turn = threat::turn(
+        let turn = Engaged::new(formulas, &mut rng, &attacker, BASELINE_DELAY, 0).act(
             formulas,
             &mut rng,
-            &attacker,
             target,
             case.hp,
             &mut blocks_left,
+            &mut on_stage.clone(),
         );
         *tally.melee.entry(turn.melee).or_default() += 1;
         *tally.casts.entry(turn.casts).or_default() += 1;
@@ -986,6 +1041,102 @@ pub fn turn(
         tally.struck |= turn.damage > 0;
     }
     Ok(tally)
+}
+
+/// The floor a turn case is played on, with `walls`, the player at its centre.
+fn turn_scene(walls: &[(i32, i32)]) -> Scene {
+    let player = Position { x: 0, y: 0 };
+    let squares = (-TURN_FLOOR..=TURN_FLOOR).flat_map(|y| {
+        (-TURN_FLOOR..=TURN_FLOOR).map(move |x| {
+            let terrain = if walls.contains(&(x, y)) {
+                Terrain::Solid
+            } else {
+                Terrain::Open
+            };
+            (Position { x, y }, terrain)
+        })
+    });
+    Scene {
+        player,
+        level: Level::new(squares),
+        bystanders: Vec::new(),
+        experience_level: MOST_EXPERIENCE_LEVEL,
+    }
+}
+
+/// A monster deciding whether to cast a spell at the player, with others about.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TracerCase {
+    /// The caster's `monster_type` value.
+    pub monster: u16,
+    /// Its hit dice.
+    pub hit_dice: i32,
+    /// The spell's `spell_type` value.
+    pub spell: u16,
+    /// Squares east of the player it stands.
+    pub distance: i32,
+    /// The player's experience level.
+    pub experience_level: i32,
+    /// The others, each its `monster_type` value and where it stands, `(east, south)` of the
+    /// player.
+    pub others: Vec<(u16, i32, i32)>,
+}
+
+/// How many of `trials` tries `case`'s monster finds it good to fire its spell at the player,
+/// from a generator seeded with `seed`: [`tracer::fires`].
+///
+/// # Errors
+/// If the bundle lacks the monster, an other, the spell, or the engine doesn't port the spell.
+pub fn tracer(
+    bundle: &Bundle,
+    case: &TracerCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<u32, CaseError> {
+    let formulas = bundle.formulas;
+    let monster = bundle
+        .monster(case.monster)
+        .ok_or(CaseError::NoMonster(case.monster))?;
+    let known = bundle
+        .spells
+        .get(&case.spell)
+        .ok_or(CaseError::NoSpell(case.spell))?;
+    let spell =
+        spells::damaging(formulas.monster_spell_beam, known).ok_or(CaseError::NotPorted {
+            monster: case.monster,
+            spell: case.spell,
+        })?;
+    let power = spells::power(formulas.monster_spell_power, &spell.spell.id, case.hit_dice);
+    let range = spell.spell.range.ok_or(CaseError::NoSpell(case.spell))?;
+    let range = spells::range(formulas.monster_spell_power, range, power);
+    let reach = spells::reach(formulas.monster_spell_beam, &spell, range);
+    let others = case
+        .others
+        .iter()
+        .map(|&(other, x, y)| {
+            let known = bundle.monster(other).ok_or(CaseError::NoMonster(other))?;
+            Ok((known, Offset { x, y }))
+        })
+        .collect::<Result<Vec<_>, CaseError>>()?;
+    let scene = Scene {
+        player: Position { x: 0, y: 0 },
+        level: None,
+        bystanders: Vec::new(),
+        experience_level: case.experience_level,
+    };
+    let ground = Battleground::new(&scene, scene.player, [monster], &[]);
+    let from = Offset::east(case.distance);
+    let stage = Stage::new(
+        &ground,
+        std::iter::once((monster, from)).chain(others.iter().copied()),
+    );
+    let mut rng = Rng::new(seed.0, seed.1);
+    Ok((0..trials)
+        .map(|_| {
+            let shot = tracer::TracedShot::spell(formulas, &mut rng, &spell, power, reach);
+            u32::from(tracer::fires(formulas, &stage, 0, from, shot))
+        })
+        .sum())
 }
 
 /// A player torment meets, as a harness made them: their resistances, species and god, the

@@ -123,7 +123,7 @@ One stretch of a monster in view, from when it comes into view until it leaves. 
 _Avoid_: Encounter (which is a stretch of danger), visit
 
 **Possible Gear**:
-What a monster of its kind may be made with to shoot, throw or zap, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read. It holds no melee weapons: a monster whose weapon hasn't been read fights as if it wields nothing.
+What a monster of its kind may be made with to fight, shoot, throw or zap, and how likely each item is, from crawl's own tables. The Advisor falls back on it for a monster whose Carried Gear it hasn't read, drawing what it holds afresh for each trial: a monster whose melee weapon hasn't been read fights with one drawn by those odds, with the reach, accuracy and damage it brings, and what a listing rules out stays ruled out.
 _Avoid_: Kind gear, starting equipment
 
 **Game Knowledge**:
@@ -153,7 +153,7 @@ Everything the Advisor has computed about one moment of a Game Situation, such a
 _Avoid_: Situation, snapshot, context, prompt data
 
 **Threat Level**:
-How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit, and how likely the best Attack Plan is to win the fight in view.
+How dangerous the current moment is, as one of LETHAL, DANGEROUS or CALM, judged from the chance of dying before the player's next action and the worst-case hit, played out with each monster walking its own path and holding its fire for the allies in its way, and, looking past that action, how likely the best Attack Plan is to win the fight in view.
 _Avoid_: Danger score, threat score
 
 **Worst-Case Hit**:
@@ -225,8 +225,16 @@ A fixed way for the player to fight what is in view: open with one attack, a spe
 _Avoid_: Strategy, tactic, build
 
 **Fight Outcome**:
-Each Attack Plan played out many times against the hostiles in view, in a small fight of about three monsters or fewer: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them. A best plan likely to lose makes the moment DANGEROUS.
+Each Attack Plan played out many times against the hostiles in view, whatever their number, but for one shut off from the player, such as in a sealed vault, that can't strike them either: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them, each walking its own path round walls and other monsters. It is how the Threat Level looks past the player's next action: a best plan that wins under 90% of the time makes the moment DANGEROUS.
 _Avoid_: Fight odds, combat sim, win rate
+
+**Stage**:
+Who stands where in one trial of a moment, on the level as the player knows it, as monsters walk their paths and the player acts. Monsters walk round walls and each other on it, and hold their fire for the allies in their way.
+_Avoid_: Board, grid
+
+**Stair Walk**:
+The player walking their path to a staircase, a step at a time, with the hostiles coming after them, played out many times. At DANGEROUS, a staircase is fallen back to only if at least 90% of walks are survived.
+_Avoid_: Retreat sim
 
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is. An ability is stopped by the statuses that stop it in particular as soon as the status pane shows them; one the ability menu greyed out for a reason the Advisor couldn't see stays stopped as of the turn the menu was read, and approximate once the ability list is Stale. A Way Out is trusted when it can be used now and its verdict isn't approximate: not judged over remembered squares, nor from a Stale menu.
@@ -257,7 +265,7 @@ What every answer from an LLM passes before the player sees it: each sentence ma
 _Avoid_: Validation, fact-check, filter
 
 **Suggested Action**:
-The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor no more than 15 steps away among several hostiles, falling back to stairs, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, or a last-resort fight could be traded for a Way Out. At Coach, a Tactical Alert also asks the Quick Model to pick among the Candidate Actions, with a short reason quoting only what its prompt said; its pick shows beside the Suggested Action until the rules pick anew or it can no longer be taken, marked with the turn it was asked on once that has passed.
+The Candidate Action the Advisor's own rules pick for a DANGEROUS or LETHAL moment, shown before (and without) any LLM judgment, with the rule that picked it. At LETHAL the rules try, in order, leaving by stairs, healing, the best escape (one that works at once before one that works after a delay) and, as a last resort, fighting; at DANGEROUS, fighting on when the best Attack Plan wins at least 90% and leaves 30% of hit points, holding a Corridor no more than 15 steps away among several hostiles, falling back to stairs the player survives at least 90% of walks to, whatever the length of the walk, and fighting carefully with the Way Out to take should it turn LETHAL. The pick holds through the Encounter until it can no longer be done, a rule higher in the order applies, an Attack Plan wins 10 points more often, a fight on falls clearly short of the odds it was picked at, a walk to stairs is no longer one the player would survive, or a last-resort fight could be traded for a Way Out. At Coach, a Tactical Alert also asks the Quick Model to pick among the Candidate Actions, with a short reason quoting only what its prompt said; its pick shows beside the Suggested Action until the rules pick anew or it can no longer be taken, marked with the turn it was asked on once that has passed.
 _Avoid_: Default action, rule pick
 
 **Encounter**:

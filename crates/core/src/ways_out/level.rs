@@ -13,6 +13,7 @@ use super::{
 };
 use crate::engine::paths::{self, Level, Moves, Walker};
 use crate::engine::step;
+use crate::engine::walk::WalkAction;
 use crate::fact_sheet::attacks_player;
 use crate::gaps::Gap;
 use crate::visible_state::{Attitude, LevelMap, Position, VisibleMonster, VisibleState};
@@ -58,6 +59,29 @@ pub(super) struct OnTheLevel<'a> {
     features: Vec<(Position, &'a Feature)>,
 }
 
+/// Every feature of `bundle`, by its identifier.
+fn features_by_id(bundle: &Bundle) -> HashMap<&EnumId, &Feature> {
+    bundle
+        .features
+        .values()
+        .map(|feature| (&feature.id, feature))
+        .collect()
+}
+
+/// The level as `visible` shows it, read through `bundle`: `None` until the game has sent its map.
+pub(crate) fn known(visible: &VisibleState, bundle: &Bundle) -> Option<Level> {
+    let by_id = features_by_id(bundle);
+    Level::new(
+        visible
+            .map
+            .as_ref()?
+            .cells()
+            .filter_map(|(position, cell)| {
+                Some((position, by_id.get(cell.feature.as_ref()?)?.terrain))
+            }),
+    )
+}
+
 /// The level as the player knows it, or the Gaps that keep the Advisor from knowing it.
 pub(super) fn on_the_level<'a>(
     visible: &'a VisibleState,
@@ -77,11 +101,7 @@ pub(super) fn on_the_level<'a>(
         }
         return Err(gaps);
     };
-    let by_id: HashMap<&EnumId, &Feature> = bundle
-        .features
-        .values()
-        .map(|feature| (&feature.id, feature))
-        .collect();
+    let by_id = features_by_id(bundle);
     let features: Vec<(Position, &Feature)> = map
         .cells()
         .filter_map(|(position, cell)| Some((position, *by_id.get(cell.feature.as_ref()?)?)))
@@ -422,6 +442,25 @@ impl<'a> OnTheLevel<'a> {
             times.push(pace.step(self.water.contains(&square)));
         }
         times
+    }
+
+    /// The player's actions on the way to the staircase at `stairs`, at their `pace`, one for each
+    /// door opened and each step.
+    pub(super) fn walk_to(&self, stairs: Position, pace: &Pace<'_>) -> Vec<WalkAction> {
+        let mut actions = Vec::new();
+        for square in self.walks.path_to(stairs) {
+            if self.level.terrain(square) == Some(Terrain::ClosedDoor) {
+                actions.push(WalkAction {
+                    to: None,
+                    time: i32::try_from(pace.action()).unwrap_or(i32::MAX),
+                });
+            }
+            actions.push(WalkAction {
+                to: Some(square),
+                time: i32::try_from(pace.step(self.water.contains(&square))).unwrap_or(i32::MAX),
+            });
+        }
+        actions
     }
 
     /// The chasers that can stand beside the staircase at `stairs` by the time the player has

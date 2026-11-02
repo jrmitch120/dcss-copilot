@@ -2,8 +2,8 @@
 //! action by action, and the hostiles fighting back as the Threat Level plays them, through
 //! crawl's own dice, until one side falls, many times over.
 //!
-//! The player stands where they are: they attack the nearest hostile, wait for one that walks up
-//! to come into reach, and step toward one that never moves or keeps its range. Each of their
+//! The player stands where they are: they attack the nearest hostile, wait for one that comes along
+//! its path into reach, and step toward one that never moves or keeps its range. Each of their
 //! actions takes as long as crawl makes it take, and every hostile then gains the energy that
 //! time gives it and acts.
 
@@ -15,6 +15,7 @@ use super::player_attacks::{
     self, AttackSpell, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Skill, Striker,
 };
 use super::rng::Rng;
+use super::stage::{Battleground, Stage};
 use super::threat::{Attacker, Defender, Engaged};
 use super::{spells, step};
 
@@ -177,10 +178,31 @@ pub(crate) fn simulate(
     fighter: &Fighter<'_>,
     opening: Option<&Opening<'_>>,
     foes: &[Foe<'_>],
+    ground: &Battleground<'_>,
 ) -> Outcome {
-    // A monster that torments plays first, as in the Threat Level's trial.
-    let mut order: Vec<&Foe<'_>> = foes.iter().collect();
-    order.sort_by_key(|foe| !foe.attacker.monster.torments_as_it_dies);
+    // As in the Threat Level's trial, without one that can never come to the player nor strike
+    // them from where it stands: it stands apart from the fight, and the player from it.
+    let everyone = Stage::new(
+        ground,
+        foes.iter()
+            .map(|foe| (foe.attacker.monster, foe.attacker.offset)),
+    );
+    let mut order: Vec<&Foe<'_>> = foes
+        .iter()
+        .enumerate()
+        .filter(|&(place, foe)| {
+            !foe.attacker
+                .apart_from_the_fight(formulas, &everyone, place)
+        })
+        .map(|(_, foe)| foe)
+        .collect();
+    order.sort_by_key(|foe| foe.attacker.play_order());
+    let stage = Stage::new(
+        ground,
+        order
+            .iter()
+            .map(|foe| (foe.attacker.monster, foe.attacker.offset)),
+    );
     let mut rng = Rng::new(SEED.0, SEED.1);
     let mut outcome = Outcome {
         wins: 0,
@@ -189,7 +211,15 @@ pub(crate) fn simulate(
         hp_lost: 0,
     };
     for _ in 0..TRIALS {
-        let fight = one_fight(formulas, &mut rng, defender, fighter, opening, &order);
+        let fight = one_fight(
+            formulas,
+            &mut rng,
+            defender,
+            fighter,
+            opening,
+            &order,
+            stage.clone(),
+        );
         outcome.wins += u32::from(fight.won);
         outcome.deaths += u32::from(fight.hp_left <= 0);
         let lost = fighter.hp - fight.hp_left.max(0);
@@ -243,14 +273,16 @@ fn one_fight<'a>(
     fighter: &Fighter<'a>,
     opening: Option<&Opening<'a>>,
     foes: &[&Foe<'a>],
+    mut stage: Stage<'_, '_>,
 ) -> Ending {
     let target = defender.target(rng);
     let mut side = Side::drawn(formulas, rng, fighter, opening.copied());
     let mut hostiles: Vec<Hostile<'_, 'a>> = foes
         .iter()
-        .map(|foe| Hostile {
+        .enumerate()
+        .map(|(place, foe)| Hostile {
             // A monster starts with the energy it has left, and gains more as the player acts.
-            engaged: Engaged::new(formulas, rng, &foe.attacker, 0),
+            engaged: Engaged::new(formulas, rng, &foe.attacker, 0, place),
             defence: foe.defence,
             hp: player_attacks::monster_hit_points(
                 formulas.monster_hit_points,
@@ -266,13 +298,22 @@ fn one_fight<'a>(
                 hp_left: side.hp,
             };
         }
-        let time = side.act(formulas, rng, &mut hostiles);
+        for hostile in &mut hostiles {
+            hostile.engaged.sync(&stage);
+        }
+        let time = side.act(formulas, rng, &mut hostiles, &mut stage);
+        for (place, hostile) in hostiles.iter().enumerate() {
+            if !hostile.alive() {
+                stage.leave(place);
+            }
+        }
         let mut blocks_left = defender.shield_blocks;
         for hostile in hostiles.iter_mut().filter(|hostile| hostile.alive()) {
             hostile.engaged.gain(formulas, rng, time);
-            let turn = hostile
-                .engaged
-                .act(formulas, rng, target, side.hp, &mut blocks_left);
+            let turn =
+                hostile
+                    .engaged
+                    .act(formulas, rng, target, side.hp, &mut blocks_left, &mut stage);
             side.hp -= turn.damage;
             if side.hp <= 0 {
                 return Ending {
@@ -332,7 +373,13 @@ impl<'f, 'a> Side<'f, 'a> {
     }
 
     /// Takes the player's next action against the nearest hostile, and returns how long it took.
-    fn act(&mut self, formulas: Formulas, rng: &mut Rng, hostiles: &mut [Hostile<'_, '_>]) -> i32 {
+    fn act(
+        &mut self,
+        formulas: Formulas,
+        rng: &mut Rng,
+        hostiles: &mut [Hostile<'_, '_>],
+        stage: &mut Stage<'_, '_>,
+    ) -> i32 {
         let Some(hostile) = hostiles
             .iter_mut()
             .filter(|hostile| hostile.alive())
@@ -354,7 +401,7 @@ impl<'f, 'a> Side<'f, 'a> {
             && !monster.keeps_range
             && step::may_step(formulas.monster_step, monster.watched_step, distance);
         if !comes && distance > 1 {
-            hostile.engaged.approached();
+            hostile.engaged.approached(formulas, rng, stage);
         }
         BASELINE_DELAY
     }
@@ -543,7 +590,14 @@ mod tests {
                 skill: Skill::shown(150),
             },
         };
-        let outcome = simulate(formulas, defender, &fighter, None, &[foe]);
+        let outcome = simulate(
+            formulas,
+            defender,
+            &fighter,
+            None,
+            &[foe],
+            &Battleground::open_floor(),
+        );
         assert!(outcome.wins > outcome.trials / 2, "{outcome:?}");
         assert_eq!(outcome.hp_lost, 0, "{outcome:?}");
     }

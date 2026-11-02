@@ -1,7 +1,7 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
-//! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
-//! block and reach cases with 126 turn cases and its torment cases; and 45 cases of the player
+//! random species, gods and resistances, 20,000 attacks each, 80 spell and 40 tracer cases, 60 missile, gear and wand cases, and the turn harness's
+//! block and reach cases with 126 turn cases, 21 path cases and its torment cases; and 45 cases of the player
 //! attacking monsters in melee, with launchers and thrown missiles, with spells' beams and with
 //! Freeze, and of the hit points monsters are made with; and 48 players of random species, form, mutations,
 //! statuses, god, gear and footing, timing their actions and moves (all seed 34).
@@ -166,15 +166,15 @@ fn a_dump_for_a_crawl_without_a_bundle_is_refused() {
     assert!(error.contains("0.12.0"), "{error}");
 }
 
-/// What the spell harness printed from the same crawl build: 24 cases, alternating a monster
+/// What the spell harness printed from the same crawl build: 80 cases, alternating a monster
 /// casting one spell at a randomised player and a monster choosing among its spells, 20,000
-/// times each (seed 34).
+/// times each, then 40 of a monster deciding 1,000 times whether to fire past others (seed 34).
 const SPELLS: &str = include_str!("fixtures/spells-0.34.1.jsonl");
 
 #[test]
 fn the_engine_agrees_with_crawl_on_every_spell_case() {
     let report = diff(SPELLS).unwrap();
-    assert_eq!(report.cases, 24);
+    assert_eq!(report.cases, 120);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -250,6 +250,25 @@ fn a_spell_chosen_as_often_as_another_is_caught() {
     assert_eq!(caught(&dump), [(9, Measure::SpellChosen)]);
 }
 
+#[test]
+fn a_monster_firing_past_an_ally_crawl_holds_its_fire_for_is_caught() {
+    // Case 82, a merfolk aquamancer's icicle at a player of level 5, past an ice beast beside it:
+    // counted as fired.
+    let dump = with_changed(SPELLS, 82, |case| {
+        let trials = case["trials"].as_u64().unwrap();
+        case["fires"] = trials.into();
+    });
+    assert_eq!(caught(&dump), [(82, Measure::HoldsFire)]);
+}
+
+#[test]
+fn a_foe_ratio_left_at_its_default_is_caught() {
+    // Case 94, a swamp drake's orb of electricity, with a goblin in its blast, which a foe ratio
+    // drawn from 40 to 55 lets it fire seven times in ten at a player of level 1: counted as held.
+    let dump = with_changed(SPELLS, 94, |case| case["fires"] = 0.into());
+    assert_eq!(caught(&dump), [(94, Measure::HoldsFire)]);
+}
+
 /// What the missile harness printed from the same crawl build: 60 cases, taking turns at a kind
 /// of monster made with its gear, a monster shooting or throwing at a randomised player, deciding
 /// whether to fire, zapping a wand at the player and deciding whether to zap, 20,000 times each
@@ -314,15 +333,29 @@ fn a_missile_damage_off_by_one_is_caught() {
 }
 
 #[test]
-fn a_kind_made_with_its_nets_less_often_than_crawl_makes_it_is_caught() {
-    // Case 15, Harold, always made with throwing nets: a tenth counted as made with nothing.
-    let dump = with_changed(MISSILES, 15, |case| {
+fn a_kind_made_with_its_launcher_less_often_than_crawl_makes_it_is_caught() {
+    // Case 10, a vault warden, made with an arbalest one time in nine: half of them counted as
+    // made with nothing.
+    let dump = with_changed(MISSILES, 10, |case| {
         let missile = case["missile"].as_object_mut().unwrap();
-        let nets = missile["1:8"].as_u64().unwrap();
-        missile.insert("1:8".to_owned(), (nets - nets / 10).into());
-        missile.insert("none".to_owned(), (nets / 10).into());
+        let arbalests = missile["0:29"].as_u64().unwrap();
+        let none = missile["none"].as_u64().unwrap();
+        missile.insert("0:29".to_owned(), (arbalests / 2).into());
+        missile.insert("none".to_owned(), (none + arbalests - arbalests / 2).into());
     });
-    assert_eq!(caught(&dump), [(15, Measure::MissileMade)]);
+    assert_eq!(caught(&dump), [(10, Measure::MissileMade)]);
+}
+
+#[test]
+fn a_kind_made_with_its_melee_weapon_less_often_than_crawl_makes_it_is_caught() {
+    // Case 25, Cerebov, always made with his great sword: a tenth counted as made with nothing.
+    let dump = with_changed(MISSILES, 25, |case| {
+        let melee = case["melee"].as_object_mut().unwrap();
+        let swords = melee["0:17"].as_u64().unwrap();
+        melee.insert("0:17".to_owned(), (swords - swords / 10).into());
+        melee.insert("none".to_owned(), (swords / 10).into());
+    });
+    assert_eq!(caught(&dump), [(25, Measure::MeleeMade)]);
 }
 
 #[test]
@@ -341,23 +374,24 @@ fn a_launcher_fired_as_often_as_a_master_archer_fires_it_is_caught() {
 /// What the turn harness printed from the same crawl build: how many attacks each shield blocks,
 /// how far every kind of monster with a damaging attack reaches in melee and with which attacks,
 /// unarmed and, for a kind that hits, holding a spear, 126 monsters playing out the player's next
-/// action 20,000 times each, taking turns at the rules they exercise (seed 34), and the hit
+/// action 20,000 times each, taking turns at the rules they exercise (seed 34), 21 more that come
+/// for the player round a wall or another monster, and the hit
 /// points a lurking horror's torment takes from 51 players.
 const TURNS: &str = include_str!("fixtures/turns-0.34.1.jsonl");
 
 #[test]
 fn the_engine_agrees_with_crawl_on_every_block_reach_turn_and_torment_case() {
     let report = diff(TURNS).unwrap();
-    assert_eq!(report.cases, 922);
+    assert_eq!(report.cases, 943);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
 #[test]
 fn torment_taking_one_hit_point_more_is_caught() {
-    // Case 889, a human in statue form with rNeg 1, whom torment takes 8 from on 40 HP: half
+    // Case 910, a human in statue form with rNeg 1, whom torment takes 8 from on 40 HP: half
     // of 40 * 45 / 100 - 1.
-    let dump = with_changed(TURNS, 889, |case| case["lost"]["40"] = 9.into());
-    assert_eq!(caught(&dump), [(889, Measure::Torment)]);
+    let dump = with_changed(TURNS, 910, |case| case["lost"]["40"] = 9.into());
+    assert_eq!(caught(&dump), [(910, Measure::Torment)]);
 }
 
 #[test]

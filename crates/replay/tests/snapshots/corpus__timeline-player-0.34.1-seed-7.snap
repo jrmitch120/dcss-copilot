@@ -16,6 +16,13 @@ expression: detections
     "line": "HP 9 of 19: below half."
   },
   {
+    "envelope": 121,
+    "turn": 19,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 5 steps away"
+  },
+  {
     "envelope": 135,
     "turn": 22,
     "event": "allClear"
@@ -120,6 +127,20 @@ expression: detections
     "alone": "calm"
   },
   {
+    "envelope": 977,
+    "turn": 721,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 977,
+    "turn": 721,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: no Way Out left"
+  },
+  {
     "envelope": 1011,
     "turn": 727,
     "event": "alert",
@@ -138,7 +159,7 @@ expression: detections
     "envelope": 1036,
     "turn": 728,
     "event": "alert",
-    "cause": "last-way-out-lost",
-    "line": "No Way Out is left that you can use."
+    "cause": "hit-points-below-quarter",
+    "line": "HP 4 of 27: below a quarter."
   }
 ]

@@ -184,5 +184,16 @@ enum monster_type                      // env.mons[].type
     MONS_HAROLD,
     // (trimmed for the extractor test) The monsters the population tables name.
     MONS_HELLION,
+    // (trimmed for the extractor test) The monsters the gear rules name for melee weapons.
+    MONS_JORGRUN,
+    MONS_FANNAR,
+    MONS_JOSEPHINA,
+    MONS_ARACHNE,
+    MONS_GERYON,
+    MONS_XAKKRIXIS,
+    MONS_CEREBOV,
+    MONS_ASMODEUS,
+    MONS_DEEP_ELF_BLADEMASTER,
+    MONS_IRONBOUND_MECHANIST,
 };
 COMPILE_CHECK(NUM_MONSTERS < MONS_NO_MONSTER);

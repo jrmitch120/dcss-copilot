@@ -10,6 +10,12 @@ use copilot_gk::crawl_identifiers;
 crawl_identifiers! {
     /// `monster_type` identifiers.
     monster_types {
+        /// Never push past another monster (`monster_shover`, `mon-util.cc`): each leaves
+        /// something behind it, or fights better for what follows it.
+        FIRE_ELEMENTAL = "MONS_FIRE_ELEMENTAL";
+        CURSE_TOE = "MONS_CURSE_TOE";
+        GERYON = "MONS_GERYON";
+        ROBIN = "MONS_ROBIN";
         /// Made with a tier and facets its Game Knowledge entry doesn't carry:
         /// `_mutant_beast_facet_attack` and `init_mutant_beast` in `mon-util.cc`.
         MUTANT_BEAST = "MONS_MUTANT_BEAST";
@@ -34,6 +40,10 @@ crawl_identifiers! {
         /// Draconians, which breathe by their colour, a breath outside their book: `drac_breath`
         /// in `mon-util.cc`.
         DRACONIAN = "MONS_DRACONIAN";
+        /// Efreet never push past another monster, for the clouds they leave, and jellies do,
+        /// though brainless (`monster_shover`, `mon-util.cc`).
+        EFREET = "MONS_EFREET";
+        JELLY = "MONS_JELLY";
     }
 }
 
@@ -80,6 +90,7 @@ crawl_identifiers! {
     /// `spell_type` identifiers the engine treats on their own.
     spell_types {
         STICKY_FLAME = "SPELL_STICKY_FLAME";
+        /// Sets its own `foe_ratio` too (`setup_mons_cast`, `mon-cast.cc:2303`).
         ORB_OF_ELECTRICITY = "SPELL_ORB_OF_ELECTRICITY";
         MIASMA_BREATH = "SPELL_MIASMA_BREATH";
         FREEZING_GUST = "SPELL_FREEZING_GUST";

@@ -8,23 +8,26 @@ use serde::Serialize;
 use specta::Type;
 
 use crate::accumulated_state::{AccumulatedState, GearSource, Remembered, Source};
+use crate::candidate_action::usable;
 use crate::carried_gear::{Unlisted, Unplayed};
 use crate::crawl_ids::{attack_flavours, genera, monster_types};
 use crate::dangerous_status::{self, DangerousStatus};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
-use crate::engine::spells::{DamagingSpell, Reach};
+use crate::engine::stage::{Battleground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
+use crate::engine::walk;
 use crate::exceptional::{self, ExceptionalMonster};
 use crate::fight_outcome::{self, Fight};
 use crate::gaps::{Gap, ScreenFact};
 use crate::screen::Resistances;
+use crate::suggested_action::SuggestedAction;
 use crate::visible_state::{
     Attitude, Position, Religion, SquareLight, VisibleMonster, VisibleState,
 };
-use crate::ways_out::WaysOut;
+use crate::ways_out::{self, Escape, WaysOut, level};
 
 /// LETHAL from this chance of death before the player's next action, per mille: 5%. A starting
 /// threshold from the spec (#24, "Engine (ADR 0003)"), to be tuned on the corpus.
@@ -51,7 +54,11 @@ pub struct FactSheet {
     pub threat: Threat,
     /// The player's escapes and emergency options, and the ground they stand on.
     pub ways_out: WaysOut,
-    /// Each Attack Plan played out against the hostiles in view, in a small fight.
+    /// How walking to each staircase they can use comes out, with the hostiles coming after them:
+    /// played only at a DANGEROUS moment whose rules get as far as the stairs.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub stair_walks: Vec<StairWalk>,
+    /// Each Attack Plan played out against the hostiles in view.
     pub fight: Fight,
     /// The hostiles in view that are uniques or out of depth, in map order.
     pub exceptional: Vec<ExceptionalMonster>,
@@ -61,6 +68,16 @@ pub struct FactSheet {
     /// The Gaps that affected this moment: what kept the Threat Level, the Fight Outcome or the
     /// Ways Out from being judged, or was played around, as its own part names it.
     pub gaps: Vec<Gap>,
+}
+
+/// The walk to one staircase, played out many times.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StairWalk {
+    /// The staircase's square.
+    pub position: Position,
+    /// The chance the player gets there alive.
+    pub survived: Chance,
 }
 
 /// How dangerous this moment is, or why the Advisor can't tell.
@@ -334,9 +351,9 @@ pub enum NotModelled {
     /// A monster in view that can fight in melee may wield a weapon the Advisor hasn't read: its
     /// Carried Gear isn't read, its listing may leave out a plain weapon in its main hand, it
     /// holds something the Advisor can't name as a weapon, or it is an animated object, such as a
-    /// dancing weapon, which fights as the item it is. It fights as if it wields nothing, with no
-    /// weapon's damage, accuracy, brand or reach, and still makes the attacks only a weapon
-    /// makes. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it. Monsters' armour
+    /// dancing weapon, which fights as the item it is. It fights with a weapon drawn by the odds
+    /// crawl makes its kind with, +0 and unbranded, or, holding what can't be played, as if it
+    /// wields nothing, still making the attacks only a weapon makes. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it. Monsters' armour
     /// and shields aren't counted either, which matters only to the player's own attacks.
     MonsterEquipment,
     /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
@@ -345,10 +362,11 @@ pub enum NotModelled {
     /// Statuses on either side, such as haste, might or confusion, beyond those that backlight
     /// the player.
     Statuses,
-    /// Monsters walk straight at the player, through walls and each other, and a batty one flits
-    /// as on open floor, which errs low for one hemmed in beside the player, as in a corridor,
-    /// where it more often flits back into them. A monster's own opaque clouds hide the player
-    /// from it only along a row, column or diagonal through them.
+    /// Monsters walk their own paths, but by one line to the player and without band leaders'
+    /// say, in an order of play of their nearest first. A batty one flits as if every square
+    /// nearby could be picked, which errs low for one hemmed in beside the player, as in a
+    /// corridor, where it more often flits back into them. A monster's own opaque clouds hide the
+    /// player from it only along a row, column or diagonal through them.
     Paths,
     /// Monsters are assumed awake and hunting the player, and a batty one not already flitting
     /// away.
@@ -372,8 +390,8 @@ pub enum NotModelled {
     /// it needs the player's holiness or god, which the Advisor can't tell, as their species,
     /// statuses or god haven't been reported.
     PlayerResistances,
-    /// Monsters are assumed to cast explosions and clouds even when they'd catch themselves;
-    /// crawl's casters weigh that, and often hold off up close.
+    /// Monsters are assumed to cast clouds even when they'd catch themselves; crawl's casters
+    /// weigh that, and often hold off up close. An explosion's tracer is played.
     CasterSafety,
     /// A monster in view whose kind may carry a launcher, missiles or a wand is judged by its
     /// kind's Possible Gear, the odds crawl makes its kind with, +0 and unbranded, as the Advisor
@@ -529,9 +547,13 @@ impl FactSheet {
         species: Option<&str>,
         knowledge: Option<&Bundle>,
     ) -> Self {
-        let (threat, fight) = judge(visible, remembered, species, knowledge);
+        let Judged {
+            threat,
+            fight,
+            walkers,
+        } = judge(visible, remembered, species, knowledge);
         let exceptional = exceptional::in_view(visible, knowledge, threat.level(), |alone| {
-            judge(alone, remembered, species, knowledge).0.level()
+            judge(alone, remembered, species, knowledge).threat.level()
         });
         let ways_out = WaysOut::compute(visible, remembered, species, knowledge);
         let gaps: BTreeSet<Gap> = threat
@@ -541,30 +563,112 @@ impl FactSheet {
             .chain(&ways_out.gaps)
             .cloned()
             .collect();
-        Self {
+        let mut sheet = Self {
             threat,
             ways_out,
+            stair_walks: Vec::new(),
             fight,
             exceptional,
             dangerous_statuses: dangerous_status::on_the_player(visible, knowledge),
             gaps: gaps.into_iter().collect(),
+        };
+        if let (Some(walkers), Some(bundle)) = (walkers, knowledge)
+            && SuggestedAction::weighs_the_stairs(&sheet, visible.stats.hp_max)
+        {
+            sheet.stair_walks = stair_walks(
+                &sheet.ways_out,
+                &walkers,
+                bundle,
+                visible,
+                remembered,
+                species,
+            );
         }
+        sheet
     }
 }
 
-/// The Threat Level of `visible`, with the Fight Outcome it is judged by.
-fn judge(
+/// The walks to the staircases the player can use, with `walkers` coming after them.
+fn stair_walks(
+    ways_out: &WaysOut,
+    walkers: &Walkers<'_>,
+    bundle: &Bundle,
     visible: &VisibleState,
     remembered: Option<&AccumulatedState>,
     species: Option<&str>,
-    knowledge: Option<&Bundle>,
-) -> (Threat, Fight) {
+) -> Vec<StairWalk> {
+    let stairs: Vec<Position> = usable(ways_out)
+        .filter_map(|way_out| match way_out.option {
+            Escape::Stairs { position, .. } => Some(position),
+            _ => None,
+        })
+        .collect();
+    let (firewood, foes): (Vec<Attacker<'_>>, Vec<Attacker<'_>>) = walkers
+        .hostiles
+        .iter()
+        .cloned()
+        .partition(|attacker| attacker.monster.firewood);
+    let firewood: Vec<Position> = firewood
+        .iter()
+        .map(|attacker| walkers.scene.square_of(attacker.offset))
+        .collect();
+    let walks = ways_out::walks_to(&stairs, visible, remembered, species, Some(bundle));
+    walks
+        .into_iter()
+        .map(|(position, actions)| StairWalk {
+            position,
+            survived: Chance {
+                times: walk::survived(
+                    bundle.formulas,
+                    walkers.defender,
+                    &actions,
+                    &foes,
+                    &firewood,
+                    &walkers.scene,
+                ),
+                trials: walk::TRIALS,
+            },
+        })
+        .collect()
+}
+
+/// What judging a moment comes to.
+struct Judged<'a> {
+    threat: Threat,
+    fight: Fight,
+    /// What the walks to the stairs are played with, with a hostile in view.
+    walkers: Option<Walkers<'a>>,
+}
+
+/// What the walks to the stairs are played with.
+struct Walkers<'a> {
+    defender: Defender,
+    hostiles: Vec<Attacker<'a>>,
+    scene: Scene,
+}
+
+/// The Threat Level of `visible`, with the Fight Outcome it is judged by.
+fn judge<'a>(
+    visible: &VisibleState,
+    remembered: Option<&AccumulatedState>,
+    species: Option<&str>,
+    knowledge: Option<&'a Bundle>,
+) -> Judged<'a> {
     let Assessed {
         mut threat,
         defender,
         hostiles,
+        scene,
     } = threat(visible, remembered, species, knowledge);
-    let fight = fight_outcome::judge(visible, remembered, knowledge, defender, hostiles);
+    let walker = defender.as_ref().ok().copied().flatten();
+    let fight = fight_outcome::judge(
+        visible,
+        remembered,
+        knowledge,
+        defender,
+        hostiles.clone(),
+        scene.as_ref(),
+    );
     if let (Threat::Rated(assessment), Some(best)) = (&mut threat, fight.best()) {
         assessment.best_plan_win = Some(best.win);
         assessment.level = level(
@@ -574,7 +678,19 @@ fn judge(
             assessment.best_plan_win,
         );
     }
-    (threat, fight)
+    let walkers = match (walker, scene) {
+        (Some(defender), Some(scene)) => Some(Walkers {
+            defender,
+            hostiles,
+            scene,
+        }),
+        _ => None,
+    };
+    Judged {
+        threat,
+        fight,
+        walkers,
+    }
 }
 
 /// Monsters on these sides attack the player: crawl's `mons_att_wont_attack` (`mon-util.cc`)
@@ -592,6 +708,8 @@ struct Assessed<'a> {
     defender: Result<Option<Defender>, Vec<Gap>>,
     /// Every hostile in view, with the gear it is played with, in map order.
     hostiles: Vec<Attacker<'a>>,
+    /// What they are played on, once a hostile is in view.
+    scene: Option<Scene>,
 }
 
 impl Assessed<'_> {
@@ -602,6 +720,7 @@ impl Assessed<'_> {
             threat: Threat::Unrated { gaps: gaps.clone() },
             defender: Err(gaps),
             hostiles: Vec::new(),
+            scene: None,
         }
     }
 }
@@ -686,6 +805,7 @@ fn threat<'a>(
             threat,
             defender: Ok(None),
             hostiles: Vec::new(),
+            scene: None,
         };
     };
 
@@ -735,11 +855,31 @@ fn threat<'a>(
         resists: resists.resists,
     };
     let hostiles_in_view = u32::try_from(hostile.len()).unwrap_or(u32::MAX);
+    let scene = Scene {
+        player,
+        level: level::known(visible, bundle),
+        bystanders: monsters
+            .iter()
+            .filter(|monster| {
+                !hostile
+                    .iter()
+                    .any(|(seen, _)| seen.position == monster.position)
+            })
+            .map(|monster| monster.position)
+            .collect(),
+        experience_level: visible
+            .stats
+            .xl
+            .and_then(|xl| i32::try_from(xl).ok())
+            .unwrap_or(MOST_EXPERIENCE_LEVEL),
+    };
     // Each monster with the gear it is played with, and the monsters that can attack, each with
     // its row.
     let mut gear: Vec<GearPlayed> = Vec::new();
     let mut acting: Vec<ActingMonster> = Vec::new();
     let mut attackers: Vec<Attacker<'a>> = Vec::new();
+    // The hostiles in view that can't attack, which still stand in the way of those that can.
+    let mut standing_by: Vec<Attacker<'a>> = Vec::new();
     // Every hostile in view, for the Fight Outcome.
     let mut hostiles: Vec<Attacker<'a>> = Vec::new();
     // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
@@ -749,7 +889,7 @@ fn threat<'a>(
     let mut weapons_unread = false;
     // Whether a monster in view that can't attack has spells the simulation doesn't play out.
     let mut other_spells_out_of_reach = false;
-    for (seen, monster) in hostile {
+    for (seen, monster) in &hostile {
         let offset = Offset::between(player, seen.position);
         let distance = offset.distance();
         let attacker = Attacker::new(bundle, monster, offset);
@@ -786,9 +926,23 @@ fn threat<'a>(
             unplayed,
         });
         weapons_unread |= attacker.weapons_unread(formulas);
-        hostiles.push(attacker.clone());
+        hostiles.push(attacker);
+    }
+    let ground = Battleground::new(
+        &scene,
+        player,
+        hostiles.iter().map(|attacker| attacker.monster),
+        &[],
+    );
+    let stage = Stage::new(
+        &ground,
+        hostiles
+            .iter()
+            .map(|attacker| (attacker.monster, attacker.offset)),
+    );
+    for (place, (attacker, (seen, monster))) in hostiles.iter().zip(&hostile).enumerate() {
         let its_moves = moves_not_modelled(monster);
-        if threat::can_attack(formulas, &attacker) {
+        if threat::can_attack(formulas, attacker, &stage, place) {
             moves.extend(its_moves.iter().copied());
             acting.push(ActingMonster {
                 name: seen.name.clone(),
@@ -799,18 +953,19 @@ fn threat<'a>(
                     .iter()
                     .map(|cast| cast.spell.spell.name.clone())
                     .collect(),
-                spells_not_modelled: spells_not_modelled(bundle, &attacker),
+                spells_not_modelled: spells_not_modelled(bundle, attacker),
                 moves_not_modelled: its_moves,
                 shoots: attacker.shoots.clone(),
             });
-            attackers.push(attacker);
+            attackers.push(attacker.clone());
         } else {
+            standing_by.push(attacker.clone());
             moves.extend(
                 its_moves
                     .into_iter()
                     .filter(|variant| variant.strikes_from_out_of_reach()),
             );
-            other_spells_out_of_reach |= !spells_not_modelled(bundle, &attacker).is_empty();
+            other_spells_out_of_reach |= !spells_not_modelled(bundle, attacker).is_empty();
         }
     }
     not_modelled.extend(moves);
@@ -843,17 +998,12 @@ fn threat<'a>(
         gaps.extend(ScreenFact::Resistances.gap_in(remembered, |state| &state.resistances));
     }
     if attackers.iter().any(|attacker| {
-        let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
-            reach.casts > reach.strikes || spell.zap.explodes
-        };
         attacker
             .spells
             .iter()
-            .any(|cast| unsafe_reach(cast.reach, &cast.spell))
-            || attacker
-                .wands
-                .items()
-                .any(|zap| unsafe_reach(zap.reach, &zap.spell))
+            .map(|cast| cast.spell)
+            .chain(attacker.wands.items().map(|zap| zap.spell))
+            .any(|spell| spell.spell.cloud.is_some())
     }) {
         not_modelled.push(NotModelled::CasterSafety);
     }
@@ -864,7 +1014,7 @@ fn threat<'a>(
             worst_hit: 0,
         }
     } else {
-        threat::simulate(formulas, defender, &attackers)
+        threat::simulate(formulas, defender, &attackers, &standing_by, &ground)
     };
     let death = Chance {
         times: outcome.deaths,
@@ -884,10 +1034,13 @@ fn threat<'a>(
         not_modelled,
         gaps: gaps.into_iter().collect(),
     }));
+    drop(stage);
+    drop(ground);
     Assessed {
         threat,
         defender: Ok(Some(defender)),
         hostiles,
+        scene: Some(scene),
     }
 }
 

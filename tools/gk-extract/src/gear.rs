@@ -1,4 +1,4 @@
-//! What monsters are made with to shoot, throw or zap, from crawl's `mon-gear.cc`: the weapon
+//! What monsters are made with to fight, shoot, throw or zap, from crawl's `mon-gear.cc`: the weapon
 //! specs `make_mons_weapon` draws from, read from its tables, and the code around them, ported by
 //! hand for each release series ([`GearRules`]). Also the launchers and missiles themselves, from
 //! `Weapon_prop` and `Missile_prop` in `item-prop.cc`, the melee weapons monsters fight with,
@@ -47,6 +47,11 @@ pub struct GearRules {
     /// The cases of `make_mons_weapon`'s `switch (type)` that change whether a monster is made
     /// with a launcher or a throwing missile, overriding what its weapon specs gave.
     weapon_cases: &'static [WeaponCase],
+    /// The cases of `make_mons_weapon`'s `switch (type)` that change which melee weapon a monster
+    /// is made with, overriding what its weapon specs gave, whichever call asks.
+    melee_cases: &'static [MeleeCase],
+    /// `_give_weapon`: the kinds whose second weapon is a copy of their first.
+    twin_weapons: &'static [&'static str],
     /// `_give_ammo`: the throwing missiles a monster without a launcher is given, by monster,
     /// each with its chance. A monster's chances are of one outcome each, so they sum to at
     /// most 1.
@@ -60,6 +65,15 @@ pub struct GearRules {
 struct WeaponCase {
     monster: &'static str,
     item: Option<&'static str>,
+    chance: Chance,
+}
+
+/// One case of `make_mons_weapon`'s `switch (type)` for melee weapons: with `chance`, the monster
+/// holds one of `weapons`, by weight, instead of what its specs gave: nothing a melee weapon, when
+/// there are none, as a magical staff or a large rock isn't.
+struct MeleeCase {
+    monster: &'static str,
+    weapons: &'static [(&'static str, u64)],
     chance: Chance,
 }
 
@@ -102,6 +116,15 @@ enum WandPick {
 /// A chance as a fraction, `.0` in `.1`.
 type Chance = (u64, u64);
 
+/// The melee weapons `make_mons_weapon` gives a kobold: `random_choose` of two daggers, two short
+/// swords, a club and a whip.
+const KOBOLD_WEAPONS: &[(&str, u64)] = &[
+    ("WPN_DAGGER", 2),
+    ("WPN_SHORT_SWORD", 2),
+    ("WPN_CLUB", 1),
+    ("WPN_WHIP", 1),
+];
+
 /// Crawl 0.34's gear code, ported from 0.34.1.
 pub const GEAR_RULES_0_34: GearRules = GearRules {
     weapon_cases: &[
@@ -143,6 +166,97 @@ pub const GEAR_RULES_0_34: GearRules = GearRules {
             chance: (1, 1),
         },
     ],
+    melee_cases: &[
+        MeleeCase {
+            monster: "MONS_KOBOLD",
+            weapons: KOBOLD_WEAPONS,
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_KOBOLD_BRIGAND",
+            weapons: KOBOLD_WEAPONS,
+            chance: (1, 1),
+        },
+        // Its first weapon is a large rock, and the melee weapon asked for next is too.
+        MeleeCase {
+            monster: "MONS_CYCLOPS",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_STONE_GIANT",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_TAINTED_LEVIATHAN",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_PARGHIT",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        // A staff one time in three.
+        MeleeCase {
+            monster: "MONS_JORGRUN",
+            weapons: &[("WPN_QUARTERSTAFF", 1)],
+            chance: (2, 3),
+        },
+        MeleeCase {
+            monster: "MONS_JORGRUN",
+            weapons: &[],
+            chance: (1, 3),
+        },
+        MeleeCase {
+            monster: "MONS_FANNAR",
+            weapons: &[("WPN_QUARTERSTAFF", 1)],
+            chance: (2, 3),
+        },
+        MeleeCase {
+            monster: "MONS_FANNAR",
+            weapons: &[],
+            chance: (1, 3),
+        },
+        MeleeCase {
+            monster: "MONS_JOSEPHINA",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_ARACHNE",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_GERYON",
+            weapons: &[],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_XAKKRIXIS",
+            weapons: &[
+                ("WPN_GREAT_MACE", 15),
+                ("WPN_LAJATANG", 10),
+                ("WPN_QUARTERSTAFF", 10),
+                ("WPN_GLAIVE", 5),
+            ],
+            chance: (1, 1),
+        },
+        // Their unrandarts, `UNRAND_CEREBOV` and `UNRAND_ASMODEUS` (`art-data.txt`).
+        MeleeCase {
+            monster: "MONS_CEREBOV",
+            weapons: &[("WPN_GREAT_SWORD", 1)],
+            chance: (1, 1),
+        },
+        MeleeCase {
+            monster: "MONS_ASMODEUS",
+            weapons: &[("WPN_EVENINGSTAR", 1)],
+            chance: (1, 1),
+        },
+    ],
+    twin_weapons: &["MONS_DEEP_ELF_BLADEMASTER", "MONS_IRONBOUND_MECHANIST"],
     ammo: &[
         // Darts `one_chance_in(10) && level > 1`, else stones `x_chance_in_y(2, 5)`.
         (
@@ -216,8 +330,21 @@ impl GearRules {
     /// The `monster_type` identifiers the rules name.
     pub fn monsters(&self) -> Vec<&'static str> {
         let cases = self.weapon_cases.iter().map(|case| case.monster);
+        let melee = self.melee_cases.iter().map(|case| case.monster);
         let ammo = self.ammo.iter().map(|&(monster, _)| monster);
-        cases.chain(ammo).collect()
+        cases
+            .chain(melee)
+            .chain(self.twin_weapons.iter().copied())
+            .chain(ammo)
+            .collect()
+    }
+
+    /// The melee weapons the rules name, by `weapon_type` identifier.
+    pub fn melee_weapons(&self) -> Vec<&'static str> {
+        self.melee_cases
+            .iter()
+            .flat_map(|case| case.weapons.iter().map(|&(weapon, _)| weapon))
+            .collect()
     }
 
     /// The launchers and throwing missiles the rules name, by `weapon_type` or `missile_type`
@@ -296,12 +423,103 @@ impl Gear {
             return Ok(MonsterGear {
                 missile: Odds::none(),
                 wand: Odds::none(),
+                melee: Odds::none(),
+                twin_weapons: false,
             });
         }
         Ok(MonsterGear {
             missile: self.missile(monster.id)?,
             wand: self.wand(monster)?,
+            melee: self.melee(monster.id),
+            twin_weapons: self.rules.twin_weapons.contains(&monster.id),
         })
+    }
+
+    /// The melee weapon `_give_weapon` leaves a monster with: its first weapon if that is a melee
+    /// one, or else, its first weapon having been a launcher or a throwing missile, the one
+    /// `make_mons_weapon` makes when asked for melee only, which draws from the primary spec alone
+    /// and destroys anything else it draws.
+    fn melee(&self, id: &str) -> Odds {
+        let mut odds: BTreeMap<String, Ratio> = BTreeMap::new();
+        // How often its first weapon sends it back for a melee one.
+        let mut asks_again = Ratio::new(0, 1);
+        let mut primary_share = Ratio::ONE;
+        if let Some(types) = self.secondary.get(id) {
+            let total: u64 = types.iter().map(|(_, weight)| weight).sum();
+            primary_share = Ratio::new(0, 1);
+            for (weapon, weight) in types {
+                let share = Ratio::new(*weight, total);
+                if weapon == NO_WEAPON {
+                    primary_share = primary_share.add(share);
+                } else if self.is_missile_weapon(weapon) {
+                    asks_again = asks_again.add(share);
+                } else {
+                    add(&mut odds, weapon, share);
+                }
+            }
+        }
+        let primary = self.primary.get(id).map_or(&[][..], Vec::as_slice);
+        let total: u64 = primary.iter().map(|(_, weight)| weight).sum();
+        for (weapon, weight) in primary {
+            let share = primary_share.mul(Ratio::new(*weight, total));
+            if self.is_missile_weapon(weapon) {
+                asks_again = asks_again.add(share);
+            } else if weapon != NO_WEAPON {
+                add(&mut odds, weapon, share);
+            }
+        }
+        for case in self
+            .rules
+            .weapon_cases
+            .iter()
+            .filter(|case| case.monster == id)
+        {
+            let chance = Ratio::new(case.chance.0, case.chance.1);
+            let kept = Ratio::ONE.sub(chance);
+            for share in odds.values_mut() {
+                *share = share.mul(kept);
+            }
+            asks_again = asks_again.mul(kept);
+            if case.item.is_some() {
+                asks_again = asks_again.add(chance);
+            }
+        }
+        for (weapon, weight) in primary {
+            if weapon != NO_WEAPON && !self.is_missile_weapon(weapon) {
+                add(
+                    &mut odds,
+                    weapon,
+                    asks_again.mul(Ratio::new(*weight, total)),
+                );
+            }
+        }
+        let cases: Vec<&MeleeCase> = self
+            .rules
+            .melee_cases
+            .iter()
+            .filter(|case| case.monster == id)
+            .collect();
+        if !cases.is_empty() {
+            let chance = cases.iter().fold(Ratio::new(0, 1), |sum, case| {
+                sum.add(Ratio::new(case.chance.0, case.chance.1))
+            });
+            let kept = Ratio::ONE.sub(chance);
+            for share in odds.values_mut() {
+                *share = share.mul(kept);
+            }
+            for case in cases {
+                let total: u64 = case.weapons.iter().map(|&(_, weight)| weight).sum();
+                for &(weapon, weight) in case.weapons {
+                    let share = Ratio::new(weight, total);
+                    add(
+                        &mut odds,
+                        weapon,
+                        share.mul(Ratio::new(case.chance.0, case.chance.1)),
+                    );
+                }
+            }
+        }
+        odds_of(odds)
     }
 
     /// `_give_weapon`'s first weapon, when it is a launcher or throwing missile, then

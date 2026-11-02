@@ -72,7 +72,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -147,7 +152,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -222,7 +232,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -297,7 +312,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -372,7 +392,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -447,7 +472,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -522,7 +552,17 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": [
+            {
+              "item": "WPN_SPEAR",
+              "weight": 1
+            }
+          ]
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -626,7 +666,17 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": [
+            {
+              "item": "WPN_DAGGER",
+              "weight": 1
+            }
+          ]
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -701,7 +751,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -785,7 +840,29 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 6,
+          "items": [
+            {
+              "item": "WPN_CLUB",
+              "weight": 1
+            },
+            {
+              "item": "WPN_DAGGER",
+              "weight": 2
+            },
+            {
+              "item": "WPN_SHORT_SWORD",
+              "weight": 2
+            },
+            {
+              "item": "WPN_WHIP",
+              "weight": 1
+            }
+          ]
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -874,7 +951,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -999,7 +1081,12 @@ expression: bundle
               "weight": 14
             }
           ]
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1066,7 +1153,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1133,7 +1225,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1202,7 +1299,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1277,7 +1379,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1352,7 +1459,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1427,7 +1539,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1502,7 +1619,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1577,7 +1699,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -1652,7 +1779,12 @@ expression: bundle
         "wand": {
           "outOf": 1,
           "items": []
-        }
+        },
+        "melee": {
+          "outOf": 1,
+          "items": []
+        },
+        "twinWeapons": false
       },
       "energy": {
         "walk": 10,
@@ -3873,6 +4005,8 @@ expression: bundle
     "resistDamage": "crawl-0.34",
     "monsterStep": "crawl-0.34",
     "firingPosition": "crawl-0.34",
+    "monsterPaths": "crawl-0.34",
+    "fireTracer": "crawl-0.34",
     "battyFlight": "crawl-0.34",
     "monsterClouds": "crawl-0.34",
     "torment": "crawl-0.34",

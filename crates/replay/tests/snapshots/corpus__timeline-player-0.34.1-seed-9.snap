@@ -162,16 +162,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1865,
-    "turn": 1148,
+    "envelope": 1844,
+    "turn": 1147,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 1865,
-    "turn": 1148,
+    "envelope": 1844,
+    "turn": 1147,
     "event": "suggestedAction",
     "rule": "fall-back-to-stairs",
     "line": "Fall back to stairs — Stone staircase leading up · ~22 steps · partly out of view"
@@ -297,6 +297,13 @@ expression: detections
     "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
+    "envelope": 3501,
+    "turn": 1886,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
     "envelope": 3612,
     "turn": 1986,
     "event": "allClear"
@@ -418,7 +425,7 @@ expression: detections
     "turn": 2843,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~85% win, ~53% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~86% win, ~53% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 5222,

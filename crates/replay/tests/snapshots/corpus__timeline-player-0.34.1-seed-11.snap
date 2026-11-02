@@ -77,12 +77,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1620,
-    "turn": 1308,
+    "envelope": 1599,
+    "turn": 1307,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1599,
+    "turn": 1307,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · underfoot"
   },
   {
     "envelope": 1620,
@@ -102,6 +109,20 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 1647,
+    "turn": 1361,
+    "event": "alert",
+    "cause": "last-way-out-lost",
+    "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 1647,
+    "turn": 1361,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
+  },
+  {
     "envelope": 1673,
     "turn": 1362,
     "event": "alert",
@@ -114,6 +135,6 @@ expression: detections
     "turn": 1362,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — The Advisor can't judge this fight"
+    "line": "Last resort: fight — Melee: ~0% win, ~100% HP lost"
   }
 ]

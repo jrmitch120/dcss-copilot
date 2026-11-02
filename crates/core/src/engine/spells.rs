@@ -106,9 +106,9 @@ pub(crate) enum Landing {
 ///
 /// A blinkbolt blinks its caster to the farthest square of the bolt's path it can stand on
 /// (`bolt::affect_endpoint`, `beam.cc:2700`): beside the player when something stops the bolt
-/// behind them, and past them on open floor, as the bolt pierces. The engine has no map
-/// (`NotModelled::Paths`), so it lands the caster beside the player wherever it cast from: the
-/// most dangerous landing, and the one that keeps the Threat Level erring high (#85).
+/// behind them, and past them on open floor, as the bolt pierces. The engine doesn't follow the
+/// bolt's path (`NotModelled::Paths`), so it lands the caster beside the player wherever it cast
+/// from: the most dangerous landing, and the one that keeps the Threat Level erring high (#85).
 fn landing(variant: MonsterSpellBeam, spell: &Spell) -> Landing {
     match variant {
         MonsterSpellBeam::Crawl034 if spell.id.0 == spell_types::BLINKBOLT => {
@@ -268,19 +268,14 @@ pub(crate) struct Reach {
 /// where the cloud lands (`bolt::affect_endpoint`, `beam.cc:2583`, and `targeter_cloud`), though
 /// its beam stops at its range.
 ///
-/// The tracer also weighs harm to the caster against harm to the player (`mons_should_fire`),
-/// which isn't ported: a monster is assumed to set off a blast or cloud even with itself inside.
+/// What the tracer weighs of harm to others, the caster among them (`mons_should_fire`), is
+/// [`super::tracer::fires`].
 pub(crate) fn reach(variant: MonsterSpellBeam, spell: &DamagingSpell<'_>, range: i32) -> Reach {
     match variant {
         MonsterSpellBeam::Crawl034 => {
             let id = spell.spell.id.0.as_str();
             if spell.zap.explodes {
-                // `bolt::refine_for_explosion`: a radius of 1 unless the spell sets another.
-                let radius = if id == spell_types::ORB_OF_ELECTRICITY {
-                    2
-                } else {
-                    1
-                };
+                let radius = spell.blast_radius();
                 return Reach {
                     casts: range + radius,
                     strikes: range + radius,
@@ -405,6 +400,30 @@ pub(crate) fn dice(rng: &mut Rng, damage: ZapDamage, power: i32) -> (i32, i32) {
         (total, 1)
     } else {
         (damage.dice, rng.div_rand_round(total, damage.dice))
+    }
+}
+
+impl DamagingSpell<'_> {
+    /// How far its blast reaches from where it goes off, if it explodes
+    /// (`bolt::refine_for_explosion`, `beam.cc:6859`): one square unless the spell sets another.
+    pub(crate) fn blast_radius(&self) -> i32 {
+        if self.spell.id.0 == spell_types::ORB_OF_ELECTRICITY {
+            2
+        } else {
+            1
+        }
+    }
+
+    /// The most damage its beam deals at `power`, before armour: `preac_max_damage`, as many dice
+    /// as it rolls, of as many sides. Dice that share a total are taken to reach it.
+    pub(crate) fn most_damage(&self, power: i32) -> i32 {
+        let damage = self.damage;
+        let total = damage.adder + power * damage.per_power / damage.per.max(1);
+        if damage.spread {
+            total
+        } else {
+            damage.dice * total
+        }
     }
 }
 

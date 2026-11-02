@@ -192,9 +192,6 @@ impl TacticalMoment<'_> {
                         .map(|plan| format!("- {}", plan.summary(outcome.hp))),
                 )
                 .collect(),
-            Fight::TooMany { hostiles } => vec![format!(
-                "Attack Plans: unknown, as {hostiles} hostiles are more than the Advisor plays out"
-            )],
             Fight::Unjudged { .. } => {
                 vec!["Attack Plans: unknown".to_owned()]
             }
@@ -564,7 +561,8 @@ mod tests {
                     .collect(),
                 ..WaysOut::default()
             },
-            fight: Fight::TooMany { hostiles: 11 },
+            stair_walks: Vec::new(),
+            fight: Fight::Unjudged { gaps: Vec::new() },
             exceptional: Vec::new(),
             dangerous_statuses: Vec::new(),
             gaps: Vec::new(),

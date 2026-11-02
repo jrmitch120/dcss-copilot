@@ -869,6 +869,12 @@ pub struct Formulas {
     /// Where a monster that keeps its range steps, rather than into its foe:
     /// `_set_firing_pos` and `monster::threat_range`.
     pub firing_position: FiringPosition,
+    /// How a monster gets to its foe round walls and other monsters: `_find_best_step`,
+    /// `_find_good_alternate_move`, `_mons_can_displace` and `monster_senior`.
+    pub monster_paths: MonsterPaths,
+    /// Whether a monster holds its fire for the allies in the way: `fire_tracer`,
+    /// `targeting_tracer::good_to_fire` and the spells that set their own `foe_ratio`.
+    pub fire_tracer: FireTracer,
     /// How a batty monster flits after it attacks or casts, and for how long, before it hunts
     /// its foe again: `_handle_battiness`, `set_random_target`, `_find_best_step` and
     /// `BATTY_TURNS_KEY` in `_post_monster_move`.
@@ -1052,6 +1058,22 @@ pub enum FiringPosition {
     Crawl034,
 }
 
+/// The variants of how a monster gets to its foe round walls and other monsters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MonsterPaths {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
+/// The variants of whether a monster holds its fire for the allies in the way.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FireTracer {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of how a batty monster flits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BattyFlight {
@@ -1147,6 +1169,8 @@ impl Formulas {
         resist_damage: ResistDamage::Crawl034,
         monster_step: MonsterStep::Crawl034,
         firing_position: FiringPosition::Crawl034,
+        monster_paths: MonsterPaths::Crawl034,
+        fire_tracer: FireTracer::Crawl034,
         batty_flight: BattyFlight::Crawl034,
         monster_clouds: MonsterClouds::Crawl034,
         torment: Torment::Crawl034,
@@ -1385,7 +1409,7 @@ pub enum ItemUse {
     WeaponsArmour,
 }
 
-/// What a kind of monster may be made with to shoot, throw or zap: crawl's `give_item`
+/// What a kind of monster may be made with to fight, shoot, throw or zap: crawl's `give_item`
 /// (`mon-gear.cc`), as it gives items to a monster made on D:3 or deeper, outside the Orcish
 /// Mines and not in a band.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1397,6 +1421,12 @@ pub struct MonsterGear {
     /// The wand it is made with, from [`Bundle::wands`], when it will zap it
     /// (`monster::likes_wand`).
     pub wand: Odds,
+    /// The melee weapon it is made with, from [`Bundle::melee_weapons`], whatever else it is given.
+    /// One that wields two weapons is given it twice over, each drawn alike.
+    pub melee: Odds,
+    /// One that wields two weapons is given a copy of its first as its second
+    /// (`_give_weapon`).
+    pub twin_weapons: bool,
 }
 
 impl MonsterGear {

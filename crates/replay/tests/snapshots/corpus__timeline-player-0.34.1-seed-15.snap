@@ -105,6 +105,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 1155,
+    "turn": 859,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 1155,
+    "turn": 859,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 5 steps away"
+  },
+  {
     "envelope": 1295,
     "turn": 890,
     "event": "allClear"
@@ -249,6 +264,21 @@ expression: detections
     "alone": "calm"
   },
   {
+    "envelope": 2859,
+    "turn": 2239,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2859,
+    "turn": 2239,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 10 steps away"
+  },
+  {
     "envelope": 2898,
     "turn": 2260,
     "event": "allClear"
@@ -299,12 +329,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 3717,
-    "turn": 2510,
+    "envelope": 3641,
+    "turn": 2502,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3641,
+    "turn": 2502,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of iceblast, then melee: ~88% win, ~51% HP lost. If it turns LETHAL: Teleportation ×2 · escapes after a delay"
   },
   {
     "envelope": 3717,
@@ -378,6 +415,21 @@ expression: detections
       "is": "unique"
     },
     "alone": "calm"
+  },
+  {
+    "envelope": 4610,
+    "turn": 2836,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 4610,
+    "turn": 2836,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of iceblast, then melee: ~0% win, ~82% HP lost. If it turns LETHAL: Teleportation ×2 · escapes after a delay"
   },
   {
     "envelope": 4706,
@@ -459,6 +511,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 5616,
+    "turn": 3505,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5616,
+    "turn": 3505,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
+  },
+  {
     "envelope": 5674,
     "turn": 3516,
     "event": "alert",
@@ -473,21 +540,6 @@ expression: detections
     "line": "HP 14 of 62: below a quarter."
   },
   {
-    "envelope": 5723,
-    "turn": 3519,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
-  },
-  {
-    "envelope": 5723,
-    "turn": 3519,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 4 steps away"
-  },
-  {
     "envelope": 5798,
     "turn": 3542,
     "event": "allClear"
@@ -498,6 +550,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 5806,
+    "turn": 3571,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 5806,
+    "turn": 3571,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · underfoot"
+  },
+  {
     "envelope": 5913,
     "turn": 3606,
     "event": "allClear"
@@ -506,6 +573,21 @@ expression: detections
     "envelope": 5943,
     "turn": 3675,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 6022,
+    "turn": 3715,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 6022,
+    "turn": 3715,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor you stand in"
   },
   {
     "envelope": 6114,
@@ -520,13 +602,6 @@ expression: detections
     "event": "alert",
     "cause": "hit-points-below-quarter",
     "line": "HP 17 of 70: below a quarter."
-  },
-  {
-    "envelope": 6123,
-    "turn": 3731,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor you stand in"
   },
   {
     "envelope": 6143,
@@ -559,19 +634,26 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 6593,
-    "turn": 4244,
+    "envelope": 6533,
+    "turn": 4207,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 6593,
-    "turn": 4244,
+    "envelope": 6533,
+    "turn": 4207,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 8 steps away"
+  },
+  {
+    "envelope": 6625,
+    "turn": 4248,
     "event": "suggestedAction",
     "rule": "fall-back-to-stairs",
-    "line": "Fall back to stairs — Stone staircase leading down · 3 steps"
+    "line": "Fall back to stairs — Stone staircase leading down · 7 steps"
   },
   {
     "envelope": 6771,
@@ -584,6 +666,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 6947,
+    "turn": 4518,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 6947,
+    "turn": 4518,
+    "event": "suggestedAction",
+    "rule": "fight-on",
+    "line": "Fight on — Melee: ~99% win, ~16% HP lost"
+  },
+  {
     "envelope": 6972,
     "turn": 4533,
     "event": "allClear"
@@ -592,6 +689,21 @@ expression: detections
     "envelope": 7013,
     "turn": 4665,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 7101,
+    "turn": 4678,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 7101,
+    "turn": 4678,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 7230,
@@ -644,6 +756,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 7727,
+    "turn": 5190,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 7727,
+    "turn": 5190,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 2 steps away"
+  },
+  {
     "envelope": 7833,
     "turn": 5215,
     "event": "allClear"
@@ -664,16 +791,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 8046,
-    "turn": 5308,
+    "envelope": 7993,
+    "turn": 5300,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 8046,
-    "turn": 5308,
+    "envelope": 7993,
+    "turn": 5300,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 3 steps away"
@@ -689,23 +816,23 @@ expression: detections
     "envelope": 8103,
     "turn": 5317,
     "event": "alert",
-    "cause": "hit-points-below-quarter",
-    "line": "HP 14 of 77: below a quarter."
-  },
-  {
-    "envelope": 8108,
-    "turn": 5318,
-    "event": "alert",
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
   },
   {
-    "envelope": 8108,
-    "turn": 5318,
+    "envelope": 8103,
+    "turn": 5317,
     "event": "suggestedAction",
     "rule": "heal-out-of-it",
     "line": "Heal out of it — Curing ×2 · heals"
+  },
+  {
+    "envelope": 8108,
+    "turn": 5318,
+    "event": "alert",
+    "cause": "hit-points-below-quarter",
+    "line": "HP 13 of 77: below a quarter."
   },
   {
     "envelope": 8197,
@@ -718,6 +845,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 8226,
+    "turn": 5385,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8226,
+    "turn": 5385,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
+  },
+  {
     "envelope": 8275,
     "turn": 5403,
     "event": "allClear"
@@ -726,6 +868,21 @@ expression: detections
     "envelope": 8279,
     "turn": 5405,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 8279,
+    "turn": 5405,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 8279,
+    "turn": 5405,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
   },
   {
     "envelope": 8326,
@@ -836,7 +993,7 @@ expression: detections
     "turn": 6122,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~74% win, ~70% HP lost. If it turns LETHAL: Curing ×2 · heals"
+    "line": "Fight carefully — Wand of flame, then melee: ~89% win, ~54% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 9349,
@@ -849,12 +1006,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 9382,
-    "turn": 6168,
+    "envelope": 9353,
+    "turn": 6161,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 9353,
+    "turn": 6161,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of flame, then melee: ~67% win, ~79% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 9382,
@@ -874,19 +1038,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 9479,
-    "turn": 6308,
+    "envelope": 9432,
+    "turn": 6289,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 9479,
-    "turn": 6308,
+    "envelope": 9432,
+    "turn": 6289,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — The Advisor can't judge this fight. If it turns LETHAL: Curing ×2 · heals"
+    "line": "Fight carefully — Melee: ~72% win, ~71% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 9527,
@@ -924,8 +1088,8 @@ expression: detections
     "line": "Fight on — Melee: ~96% win, ~38% HP lost"
   },
   {
-    "envelope": 9724,
-    "turn": 6395,
+    "envelope": 9738,
+    "turn": 6397,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 6 steps away"
@@ -986,16 +1150,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 10125,
-    "turn": 6679,
+    "envelope": 10130,
+    "turn": 6680,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 10125,
-    "turn": 6679,
+    "envelope": 10130,
+    "turn": 6680,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor you stand in"
@@ -1120,6 +1284,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 10992,
+    "turn": 6953,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 10992,
+    "turn": 6953,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 4 steps away"
+  },
+  {
     "envelope": 11409,
     "turn": 7149,
     "event": "allClear"
@@ -1130,19 +1309,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 11442,
-    "turn": 7157,
+    "envelope": 11413,
+    "turn": 7151,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 11442,
-    "turn": 7157,
+    "envelope": 11413,
+    "turn": 7151,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 6 steps away"
+    "line": "Fall back to a corridor — The corridor 3 steps away"
   },
   {
     "envelope": 11457,
@@ -1172,26 +1351,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 11716,
-    "turn": 7364,
+    "envelope": 11771,
+    "turn": 7374,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 11716,
-    "turn": 7364,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-stairs",
-    "line": "Fall back to stairs — Escape hatch in the ceiling · ~34 steps · partly out of view"
-  },
-  {
-    "envelope": 11751,
-    "turn": 7370,
+    "envelope": 11771,
+    "turn": 7374,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~77% win, ~73% HP lost. If it turns LETHAL: Teleportation ×5 · escapes after a delay"
+    "line": "Fight carefully — Melee: ~89% win, ~65% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 11851,
@@ -1214,16 +1386,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 12019,
-    "turn": 7643,
+    "envelope": 12029,
+    "turn": 7645,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 12019,
-    "turn": 7643,
+    "envelope": 12029,
+    "turn": 7645,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 4 steps away"
@@ -1243,19 +1415,19 @@ expression: detections
     "line": "HP 18 of 91: below a quarter."
   },
   {
-    "envelope": 12183,
-    "turn": 7675,
+    "envelope": 12217,
+    "turn": 7678,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "lethal",
     "line": "Threat rose to LETHAL."
   },
   {
-    "envelope": 12183,
-    "turn": 7675,
+    "envelope": 12217,
+    "turn": 7678,
     "event": "suggestedAction",
     "rule": "heal-out-of-it",
-    "line": "Heal out of it — Curing ×2 · heals"
+    "line": "Heal out of it — Curing · heals"
   },
   {
     "envelope": 12280,
@@ -1268,19 +1440,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 12327,
-    "turn": 7820,
+    "envelope": 12322,
+    "turn": 7819,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 12327,
-    "turn": 7820,
+    "envelope": 12322,
+    "turn": 7819,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~90% win, ~46% HP lost. If it turns LETHAL: Curing · heals"
+    "line": "Fight carefully — Melee: ~90% win, ~48% HP lost. If it turns LETHAL: Curing · heals"
   },
   {
     "envelope": 12379,
@@ -1417,6 +1589,21 @@ expression: detections
     "event": "encounterStarted"
   },
   {
+    "envelope": 13204,
+    "turn": 8560,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 13204,
+    "turn": 8560,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of flame, then melee: ~72% win, ~59% HP lost. If it turns LETHAL: Curing ×2 · heals"
+  },
+  {
     "envelope": 13308,
     "turn": 8575,
     "event": "allClear"
@@ -1448,22 +1635,22 @@ expression: detections
     "why": {
       "is": "unique"
     },
-    "alone": "calm"
+    "alone": "dangerous"
   },
   {
-    "envelope": 13503,
-    "turn": 8800,
+    "envelope": 13486,
+    "turn": 8799,
     "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
+    "cause": "unique-in-view",
+    "monster": "Urug",
+    "line": "Urug, a unique, alone makes this DANGEROUS."
   },
   {
-    "envelope": 13503,
-    "turn": 8800,
+    "envelope": 13486,
+    "turn": 8799,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~26% win, ~92% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
+    "line": "Fight carefully — Wand of flame, then melee: ~67% win, ~73% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13549,
@@ -1505,7 +1692,7 @@ expression: detections
     "turn": 8976,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~7% win, ~99% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
+    "line": "Fight carefully — Wand of flame, then melee: ~25% win, ~95% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13767,
@@ -1520,6 +1707,20 @@ expression: detections
     "event": "alert",
     "cause": "hit-points-below-half",
     "line": "HP 43 of 99: below half."
+  },
+  {
+    "envelope": 13775,
+    "turn": 8985,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of flame, then melee: ~2% win, ~100% HP lost. If it turns LETHAL: Stone staircase leading up · ~8 steps · partly out of view"
+  },
+  {
+    "envelope": 13779,
+    "turn": 8986,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · 7 steps"
   },
   {
     "envelope": 13790,

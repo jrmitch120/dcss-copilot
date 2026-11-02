@@ -29,10 +29,10 @@ expression: replay
             "times": 0,
             "trials": 10000
           },
-          "worstHit": 5,
+          "worstHit": 4,
           "hostilesInView": 3,
           "bestPlanWin": {
-            "times": 1498,
+            "times": 1677,
             "trials": 2000
           },
           "acting": [
@@ -55,18 +55,6 @@ expression: replay
                 "y": -5
               },
               "distance": 1,
-              "casts": [],
-              "spellsNotModelled": [],
-              "movesNotModelled": [],
-              "shoots": []
-            },
-            {
-              "name": "jackal",
-              "position": {
-                "x": -2,
-                "y": -4
-              },
-              "distance": 2,
               "casts": [],
               "spellsNotModelled": [],
               "movesNotModelled": [],
@@ -288,14 +276,14 @@ expression: replay
                 }
               },
               "win": {
-                "times": 1498,
+                "times": 1677,
                 "trials": 2000
               },
               "death": {
-                "times": 502,
+                "times": 323,
                 "trials": 2000
               },
-              "hpLost": 12
+              "hpLost": 11
             }
           ],
           "notPlayed": [],
@@ -338,9 +326,9 @@ expression: replay
           "state": "rated",
           "level": "dangerous",
           "alert": "No Way Out is left that you can use.",
-          "line": "3 monsters can attack before your next action. Your best plan wins only ~75% of fights.",
+          "line": "2 monsters can attack before your next action. Your best plan wins only ~84% of fights.",
           "detail": {
-            "text": "Death under 0.1% · worst hit 5 of 19 HP",
+            "text": "Death under 0.1% · worst hit 4 of 19 HP",
             "gap": null
           }
         },
@@ -371,7 +359,7 @@ expression: replay
             }
           ],
           "line": {
-            "text": "Best plan (melee): ~75% win, ~63% HP lost",
+            "text": "Best plan (melee): ~84% win, ~58% HP lost",
             "gap": null
           },
           "others": [],
@@ -499,10 +487,10 @@ expression: replay
           "times": 0,
           "trials": 10000
         },
-        "worstHit": 6,
+        "worstHit": 5,
         "hostilesInView": 3,
         "bestPlanWin": {
-          "times": 1290,
+          "times": 1714,
           "trials": 2000
         },
         "acting": [
@@ -525,18 +513,6 @@ expression: replay
               "y": -5
             },
             "distance": 1,
-            "casts": [],
-            "spellsNotModelled": [],
-            "movesNotModelled": [],
-            "shoots": []
-          },
-          {
-            "name": "jackal",
-            "position": {
-              "x": -1,
-              "y": -4
-            },
-            "distance": 2,
             "casts": [],
             "spellsNotModelled": [],
             "movesNotModelled": [],
@@ -758,14 +734,14 @@ expression: replay
               }
             },
             "win": {
-              "times": 1290,
+              "times": 1714,
               "trials": 2000
             },
             "death": {
-              "times": 710,
+              "times": 286,
               "trials": 2000
             },
-            "hpLost": 11
+            "hpLost": 9
           }
         ],
         "notPlayed": [],
@@ -808,9 +784,9 @@ expression: replay
         "state": "rated",
         "level": "dangerous",
         "alert": null,
-        "line": "3 monsters can attack before your next action. Your best plan wins only ~64% of fights.",
+        "line": "2 monsters can attack before your next action. Your best plan wins only ~86% of fights.",
         "detail": {
-          "text": "Death under 0.1% · worst hit 6 of 16 HP",
+          "text": "Death under 0.1% · worst hit 5 of 16 HP",
           "gap": null
         }
       },
@@ -841,7 +817,7 @@ expression: replay
           }
         ],
         "line": {
-          "text": "Best plan (melee): ~64% win, ~69% HP lost",
+          "text": "Best plan (melee): ~86% win, ~56% HP lost",
           "gap": null
         },
         "others": [],

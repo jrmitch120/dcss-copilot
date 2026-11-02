@@ -486,6 +486,28 @@ expression: replay
             "monstersOutOfView"
           ]
         },
+        "stairWalks": [
+          {
+            "position": {
+              "x": -1,
+              "y": -2
+            },
+            "survived": {
+              "times": 2000,
+              "trials": 2000
+            }
+          },
+          {
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "survived": {
+              "times": 2000,
+              "trials": 2000
+            }
+          }
+        ],
         "fight": {
           "state": "unjudged",
           "gaps": [
@@ -823,6 +845,28 @@ expression: replay
             "monstersOutOfView"
           ]
         },
+        "stairWalks": [
+          {
+            "position": {
+              "x": -1,
+              "y": -2
+            },
+            "survived": {
+              "times": 2000,
+              "trials": 2000
+            }
+          },
+          {
+            "position": {
+              "x": -1,
+              "y": 0
+            },
+            "survived": {
+              "times": 1959,
+              "trials": 2000
+            }
+          }
+        ],
         "fight": {
           "state": "unjudged",
           "gaps": [

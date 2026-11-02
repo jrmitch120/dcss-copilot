@@ -1,0 +1,36 @@
+description = "A Merfolk Berserker of level 3 walks into a one-wide corridor on D:1, walls it off behind them, and an orc wizard and three orcs queue up in it, as at T 1513 of the game that raised #156: only the front orc can attack before their next action, the others blocked or holding their fire, and the fight stays DANGEROUS for what comes next"
+recording = "orcs-queue-in-a-corridor.dcssrec"
+crawl_version = "0.34.1"
+snapshot_turns = [8]
+
+[setup]
+rc = """
+combo = MfBe.spear
+game_seed = 1
+"""
+keys = [
+  # Northwest, then five squares north, into the corridor.
+  "y", "k", "k", "k", "k", "k",
+  # Enter wizard mode, confirming with "wiz"; crawl then asks for a wizard command. Set level 3.
+  "&", "wiz\r", "l", "3\r",
+  # Wall the square south of them, with the cursor moved there, so all comes from the north.
+  "&", "(", "rock wall\r", "k", ".",
+  # Create them by name, the orc wizard second so it comes up behind an orc.
+  "&", "m", "orc\r",
+  "&", "m", "orc wizard\r",
+  "&", "m", "orc\r",
+  "&", "m", "orc\r",
+  "\u001b",
+  # Open the skills screen, then close it, so the fight can be judged.
+  "m", "\u001b",
+  # Wait while they come at them; Escape clears any --more--.
+  ".", "\u001b", ".", "\u001b", ".", "\u001b",
+]
+
+[[alerts]]
+turn = 8
+cause = "threat-level-rose"
+
+[[suggested_actions]]
+turn = 8
+rule = "fall-back-to-a-corridor"

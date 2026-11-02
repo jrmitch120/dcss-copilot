@@ -207,26 +207,18 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 2303,
-    "turn": 1946,
-    "event": "alert",
-    "cause": "threat-level-rose",
-    "to": "dangerous",
-    "line": "Threat rose to DANGEROUS."
-  },
-  {
-    "envelope": 2303,
-    "turn": 1946,
-    "event": "suggestedAction",
-    "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor you stand in"
-  },
-  {
     "envelope": 2307,
     "turn": 1947,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
+  },
+  {
+    "envelope": 2307,
+    "turn": 1947,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 1 step away"
   },
   {
     "envelope": 2458,
@@ -241,7 +233,7 @@ expression: detections
     "turn": 1957,
     "event": "suggestedAction",
     "rule": "fight",
-    "line": "Last resort: fight — Melee: ~8% win, ~100% HP lost"
+    "line": "Last resort: fight — Melee: ~10% win, ~100% HP lost"
   },
   {
     "envelope": 2470,
@@ -293,18 +285,18 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 2769,
-    "turn": 2096,
+    "envelope": 2723,
+    "turn": 2089,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 2769,
-    "turn": 2096,
+    "envelope": 2723,
+    "turn": 2089,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 3 steps away"
+    "line": "Fall back to a corridor — The corridor 5 steps away"
   },
   {
     "envelope": 2898,
@@ -324,18 +316,33 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 2972,
-    "turn": 2202,
+    "envelope": 2948,
+    "turn": 2200,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 2948,
+    "turn": 2200,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · underfoot"
+  },
+  {
+    "envelope": 2954,
+    "turn": 2201,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 2972,
-    "turn": 2202,
+    "envelope": 2954,
+    "turn": 2201,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~68% win, ~64% HP lost. If it turns LETHAL: no Way Out left"
+    "line": "Fight carefully — Melee: ~82% win, ~55% HP lost. If it turns LETHAL: no Way Out left"
   },
   {
     "envelope": 2990,
@@ -353,6 +360,21 @@ expression: detections
     "envelope": 3094,
     "turn": 2271,
     "event": "encounterStarted"
+  },
+  {
+    "envelope": 3126,
+    "turn": 2278,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3126,
+    "turn": 2278,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · 1 step"
   },
   {
     "envelope": 3157,
@@ -379,15 +401,30 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 3324,
-    "turn": 2339,
+    "envelope": 3269,
+    "turn": 2333,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "dangerous",
+    "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 3269,
+    "turn": 2333,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-stairs",
+    "line": "Fall back to stairs — Stone staircase leading up · ~11 steps · partly out of view"
+  },
+  {
+    "envelope": 3298,
+    "turn": 2337,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 3324,
-    "turn": 2339,
+    "envelope": 3298,
+    "turn": 2337,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 1 step away"
@@ -403,15 +440,15 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 3499,
-    "turn": 2454,
+    "envelope": 3480,
+    "turn": 2453,
     "event": "alert",
     "cause": "last-way-out-lost",
     "line": "No Way Out is left that you can use."
   },
   {
-    "envelope": 3499,
-    "turn": 2454,
+    "envelope": 3480,
+    "turn": 2453,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 5 steps away"
@@ -514,7 +551,7 @@ expression: detections
     "turn": 3577,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Wand of light, then melee: ~100% win, ~9% HP lost"
+    "line": "Fight on — Wand of light, then melee: ~100% win, ~7% HP lost"
   },
   {
     "envelope": 5500,
@@ -768,6 +805,21 @@ expression: detections
     "line": "Threat rose to DANGEROUS."
   },
   {
+    "envelope": 7580,
+    "turn": 5092,
+    "event": "alert",
+    "cause": "threat-level-rose",
+    "to": "lethal",
+    "line": "Threat rose to LETHAL."
+  },
+  {
+    "envelope": 7580,
+    "turn": 5092,
+    "event": "suggestedAction",
+    "rule": "best-escape",
+    "line": "Escape — Teleportation · escapes after a delay"
+  },
+  {
     "envelope": 7763,
     "turn": 5122,
     "event": "allClear"
@@ -877,12 +929,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 9333,
-    "turn": 6807,
+    "envelope": 9189,
+    "turn": 6751,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
+  },
+  {
+    "envelope": 9189,
+    "turn": 6751,
+    "event": "suggestedAction",
+    "rule": "fall-back-to-a-corridor",
+    "line": "Fall back to a corridor — The corridor 12 steps away"
   },
   {
     "envelope": 9333,
@@ -890,6 +949,13 @@ expression: detections
     "event": "suggestedAction",
     "rule": "fight-on",
     "line": "Fight on — Wand of light, then melee: ~100% win, ~10% HP lost"
+  },
+  {
+    "envelope": 9382,
+    "turn": 6814,
+    "event": "suggestedAction",
+    "rule": "fight-carefully",
+    "line": "Fight carefully — Wand of light, then melee: ~77% win, ~60% HP lost. If it turns LETHAL: Teleportation · escapes after a delay"
   },
   {
     "envelope": 9397,
