@@ -4,9 +4,9 @@
 
 use copilot_gk::Formulas;
 
-use super::melee::BASELINE_DELAY;
+use super::melee::{BASELINE_DELAY, Target};
 use super::rng::Rng;
-use super::stage::{Ground, Scene, Stage};
+use super::stage::{Battleground, Scene, Stage};
 use super::step::Offset;
 use super::threat::{self, Attacker, Defender, Engaged};
 use crate::visible_state::Position;
@@ -32,90 +32,105 @@ pub(crate) struct WalkAction {
     pub(crate) time: i32,
 }
 
-/// Plays out the player, defended as `defender`, walking `actions` from `start`, with `attackers`
-/// coming after them on `scene`, [`TRIALS`] times: how many walks they survive to the end.
+/// Plays out the player, defended as `defender`, walking `actions` from where they stand on
+/// `scene`, with `attackers` coming after them and `firewood` standing in the way, [`TRIALS`]
+/// times: how many walks they survive to the end.
 pub(crate) fn survived(
     formulas: Formulas,
     defender: Defender,
-    start: Position,
     actions: &[WalkAction],
     attackers: &[Attacker<'_>],
+    firewood: &[Position],
     scene: &Scene,
 ) -> u32 {
     let order = threat::in_order_of_play(attackers);
     let kinds = || order.iter().map(|attacker| attacker.monster);
     // Where the player stands decides every monster's path, so each square has its own ground.
-    let start_ground = Ground::new(scene, start, kinds(), &[]);
-    let grounds: Vec<Option<Ground<'_>>> = actions
+    let start = Battleground::new(scene, scene.player, kinds(), firewood);
+    let legs: Vec<Leg<'_>> = actions
         .iter()
-        .map(|action| action.to.map(|to| Ground::new(scene, to, kinds(), &[])))
+        .map(|action| Leg {
+            time: action.time,
+            to: action
+                .to
+                .map(|to| (to, Battleground::new(scene, to, kinds(), firewood))),
+        })
         .collect();
     let stage = Stage::new(
-        &start_ground,
+        &start,
         order
             .iter()
             .map(|attacker| (attacker.monster, attacker.offset)),
     );
     let mut rng = Rng::new(SEED.0, SEED.1);
-    let walk = Walk {
-        formulas,
-        defender,
-        start,
-        actions,
-        grounds: &grounds,
-    };
     (0..TRIALS)
-        .map(|_| u32::from(walk.one(&mut rng, &order, stage.clone())))
+        .map(|_| {
+            let target = defender.target(&mut rng);
+            let walk = Walk {
+                formulas,
+                defender,
+                target,
+                legs: &legs,
+            };
+            u32::from(walk.one(&mut rng, scene.player, &order, stage.clone()))
+        })
         .sum()
 }
 
-/// What every trial of one walk shares.
+/// One of the player's actions on a walk, with the ground it brings them to, if it moves them.
+struct Leg<'s> {
+    time: i32,
+    to: Option<(Position, Battleground<'s>)>,
+}
+
+/// One trial of a walk.
 struct Walk<'w, 's> {
     formulas: Formulas,
     defender: Defender,
-    start: Position,
-    actions: &'w [WalkAction],
-    grounds: &'w [Option<Ground<'s>>],
+    target: Target,
+    legs: &'w [Leg<'s>],
 }
 
-impl<'s> Walk<'_, 's> {
-    /// Plays out one walk: whether the player gets there alive.
-    fn one<'g>(&'g self, rng: &mut Rng, order: &[&Attacker<'_>], mut stage: Stage<'g, '_>) -> bool
-    where
-        's: 'g,
-    {
+impl<'w, 's: 'w> Walk<'w, 's> {
+    /// Plays it out from `start`: whether the player gets there alive.
+    fn one(
+        &self,
+        rng: &mut Rng,
+        start: Position,
+        order: &[&Attacker<'_>],
+        mut stage: Stage<'w, '_>,
+    ) -> bool {
         let formulas = self.formulas;
-        let target = self.defender.target(rng);
         let mut engaged: Vec<Engaged<'_, '_>> = order
             .iter()
             .enumerate()
             .map(|(place, attacker)| Engaged::new(formulas, rng, attacker, 0, place))
             .collect();
         let mut hp = self.defender.hp;
-        let mut at = self.start;
+        let mut at = start;
         let mut waits = 0;
-        let mut next = self.actions.iter().zip(self.grounds).peekable();
-        while let Some(&(action, ground)) = next.peek() {
-            let time = match (action.to, ground) {
-                (Some(to), Some(ground)) => {
-                    let step = Offset::between(at, to);
-                    if stage.taken_by_a_monster(step) {
-                        // Someone stands in the way: they wait a moment, and try again.
-                        waits += 1;
-                        if waits > MOST_WAITING_ACTIONS {
-                            return false;
-                        }
-                        BASELINE_DELAY
-                    } else {
-                        stage.player_stepped(ground, step);
-                        at = to;
-                        next.next();
-                        action.time
-                    }
+        let mut legs = self.legs.iter().peekable();
+        while let Some(leg) = legs.peek() {
+            let time = match &leg.to {
+                Some((to, ground)) if !stage.taken_by_a_monster(Offset::between(at, *to)) => {
+                    stage.player_stepped(ground, Offset::between(at, *to));
+                    at = *to;
+                    let time = leg.time;
+                    legs.next();
+                    time
                 }
-                _ => {
-                    next.next();
-                    action.time
+                // Someone stands in the way: they wait a moment, and try again.
+                Some(_) => {
+                    waits += 1;
+                    if waits > MOST_WAITING_ACTIONS {
+                        return false;
+                    }
+                    BASELINE_DELAY
+                }
+                None => {
+                    let time = leg.time;
+                    legs.next();
+                    time
                 }
             };
             let mut blocks_left = self.defender.shield_blocks;
@@ -125,7 +140,7 @@ impl<'s> Walk<'_, 's> {
                 }
                 hostile.gain(formulas, rng, time);
                 hp -= hostile
-                    .act(formulas, rng, target, hp, &mut blocks_left, &mut stage)
+                    .act(formulas, rng, self.target, hp, &mut blocks_left, &mut stage)
                     .damage;
                 if hp <= 0 {
                     return false;
@@ -171,7 +186,6 @@ mod tests {
     /// An open corridor along row 0, its first square the player's, and the actions walking
     /// `squares` west along it, each taking a standard action.
     fn corridor(squares: i32) -> (Scene, Vec<WalkAction>) {
-        let width = squares + 12;
         let terrain = (-squares..=12).flat_map(|x| {
             (-1..=1).map(move |y| {
                 let terrain = if y == 0 {
@@ -188,7 +202,6 @@ mod tests {
             bystanders: Vec::new(),
             experience_level: 1,
         };
-        assert!(width > 0);
         let actions = (1..=squares)
             .map(|x| WalkAction {
                 to: Some(Position { x: -x, y: 0 }),
@@ -206,9 +219,9 @@ mod tests {
         survived(
             bundle().formulas,
             defender(hp),
-            scene.player,
             &actions,
             &[chaser],
+            &[],
             &scene,
         )
     }
@@ -233,6 +246,27 @@ mod tests {
     }
 
     #[test]
+    fn firewood_on_the_way_holds_up_what_comes_after_the_player() {
+        // A jackal that would catch the player stays behind the plant across the corridor.
+        let (scene, actions) = corridor(40);
+        let jackal = bundle()
+            .monsters
+            .values()
+            .find(|m| m.name == "jackal")
+            .unwrap();
+        let chaser = Attacker::new(bundle(), jackal, Offset::east(3)).without_gear();
+        let made = survived(
+            bundle().formulas,
+            defender(6),
+            &actions,
+            &[chaser],
+            &[Position { x: 1, y: 0 }],
+            &scene,
+        );
+        assert_eq!(made, TRIALS);
+    }
+
+    #[test]
     fn a_monster_on_the_path_ends_a_walk_it_never_leaves() {
         let (scene, actions) = corridor(6);
         let plant = bundle()
@@ -244,9 +278,9 @@ mod tests {
         let made = survived(
             bundle().formulas,
             defender(50),
-            scene.player,
             &actions,
             &[in_the_way],
+            &[],
             &scene,
         );
         assert_eq!(made, 0);

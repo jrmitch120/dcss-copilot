@@ -122,7 +122,7 @@ The `Crawl oracle` workflow runs this for each stable bundle whenever the engine
 ```sh
 /tmp/crawl/crawl-ref/source/crawl-oracle-melee 34 24 20000 > tools/crawl-oracle/tests/fixtures/melee-0.34.1.jsonl
 cargo run -q -p crawl-oracle -- ported-spells 0.34.1 > /tmp/ported-spells
-/tmp/crawl/crawl-ref/source/crawl-oracle-spells 34 24 20000 /tmp/ported-spells > tools/crawl-oracle/tests/fixtures/spells-0.34.1.jsonl
+/tmp/crawl/crawl-ref/source/crawl-oracle-spells 34 80 20000 /tmp/ported-spells > tools/crawl-oracle/tests/fixtures/spells-0.34.1.jsonl
 /tmp/crawl/crawl-ref/source/crawl-oracle-missiles 34 60 20000 /tmp/ported-spells > tools/crawl-oracle/tests/fixtures/missiles-0.34.1.jsonl
 /tmp/crawl/crawl-ref/source/crawl-oracle-turns 34 126 20000 /tmp/ported-spells > tools/crawl-oracle/tests/fixtures/turns-0.34.1.jsonl
 cargo run -q -p crawl-oracle -- player-zaps 0.34.1 > /tmp/player-zaps

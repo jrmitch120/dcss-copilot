@@ -15,6 +15,7 @@
 
 use copilot_gk::{FireTracer, Formulas};
 
+use super::paths::rounded_share;
 use super::player_attacks::Defence;
 use super::resists;
 use super::rng::Rng;
@@ -27,9 +28,10 @@ use crate::crawl_ids::spell_types;
 /// its own: `fire_tracer` (`beam.cc:2223`).
 const DEFAULT_FOE_RATIO: i32 = 80;
 
-/// How far an explosion's blast reaches from where it goes off, `ex_size`, unless the spell sets
-/// its own: `bolt::refine_for_explosion` (`beam.cc:6866`).
-const BLAST_RADIUS: i32 = 1;
+/// The lowest `foe_ratio` Orb of Electricity is set up with, and how many it may be from there:
+/// `random_range(40, 55)` (`mon-cast.cc:2303`).
+const ORB_LOWEST_FOE_RATIO: i32 = 40;
+const ORB_FOE_RATIOS: i32 = 16;
 
 /// What a shot does as it flies.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,23 +42,26 @@ enum Flight {
     Pierces,
     /// It goes off at the first monster it meets, or at the player.
     Explodes,
+    /// It leaves a cloud, whose tracer has rules of its own that aren't ported: it is fired
+    /// (`NotModelled::CasterSafety`).
+    Cloud,
 }
 
 /// A beam or missile whose tracer a monster fires.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Shot<'a> {
+pub(crate) struct TracedShot<'a> {
     flight: Flight,
     /// The share the player must make up, as a percentage.
     foe_ratio: i32,
     /// The most damage it deals before armour: `preac_max_damage`.
     most_damage: i32,
-    /// The farthest it flies.
+    /// The farthest it flies, where an explosion goes off if it meets no one sooner.
     range: i32,
     /// Its spell, for how an ally resists it: `None` for a missile, which none does.
     spell: Option<&'a DamagingSpell<'a>>,
 }
 
-impl<'a> Shot<'a> {
+impl<'a> TracedShot<'a> {
     /// `spell`, cast or zapped at `power` with `reach`, as its tracer flies. Some spells draw
     /// their own `foe_ratio` each time they are set up (`setup_mons_cast`).
     pub(crate) fn spell(
@@ -82,7 +87,9 @@ impl<'a> Shot<'a> {
     }
 
     fn of_spell(spell: &'a DamagingSpell<'a>, power: i32, reach: Reach, foe_ratio: i32) -> Self {
-        let flight = if spell.zap.explodes {
+        let flight = if spell.spell.cloud.is_some() {
+            Flight::Cloud
+        } else if spell.zap.explodes {
             Flight::Explodes
         } else if spell.zap.pierces {
             Flight::Pierces
@@ -93,7 +100,12 @@ impl<'a> Shot<'a> {
             flight,
             foe_ratio,
             most_damage: spell.most_damage(power),
-            range: reach.casts,
+            // An explosion's reach counts its blast; it flies only so far.
+            range: if flight == Flight::Explodes {
+                reach.strikes - spell.blast_radius()
+            } else {
+                reach.strikes
+            },
             spell: Some(spell),
         }
     }
@@ -115,26 +127,12 @@ impl<'a> Shot<'a> {
     }
 }
 
-/// How far the blast of `spell`, a `spell_type` identifier, reaches.
-fn blast_radius(variant: FireTracer, spell: Option<&str>) -> i32 {
-    match variant {
-        FireTracer::Crawl034 => {
-            if spell == Some(spell_types::ORB_OF_ELECTRICITY) {
-                2
-            } else {
-                BLAST_RADIUS
-            }
-        }
-    }
-}
-
 /// The `foe_ratio` `spell`, a `spell_type` identifier, is set up with this time.
 fn foe_ratio(variant: FireTracer, rng: &mut Rng, spell: &str) -> i32 {
     match variant {
         FireTracer::Crawl034 => {
             if spell == spell_types::ORB_OF_ELECTRICITY {
-                // `random_range(40, 55)` (`mon-cast.cc:2303`).
-                40 + rng.random2(16)
+                ORB_LOWEST_FOE_RATIO + rng.random2(ORB_FOE_RATIOS)
             } else {
                 DEFAULT_FOE_RATIO
             }
@@ -147,7 +145,7 @@ fn lowest_foe_ratio(variant: FireTracer, spell: &str) -> i32 {
     match variant {
         FireTracer::Crawl034 => {
             if spell == spell_types::ORB_OF_ELECTRICITY {
-                40
+                ORB_LOWEST_FOE_RATIO
             } else {
                 DEFAULT_FOE_RATIO
             }
@@ -155,7 +153,7 @@ fn lowest_foe_ratio(variant: FireTracer, spell: &str) -> i32 {
     }
 }
 
-/// The share of `whole` that `part` of a hundred makes, rounded up: `div_round_up`.
+/// `whole` divided `by`, rounded up: crawl's `div_round_up`.
 fn div_round_up(whole: i32, by: i32) -> i32 {
     (whole + by - 1) / by.max(1)
 }
@@ -175,11 +173,11 @@ pub(crate) fn fires(
     stage: &Stage<'_, '_>,
     place: usize,
     from: Offset,
-    shot: Shot<'_>,
+    shot: TracedShot<'_>,
 ) -> bool {
     let variant = formulas.fire_tracer;
     let steps = from.distance();
-    if steps == 0 {
+    if steps == 0 || shot.flight == Flight::Cloud {
         return true;
     }
     let toward = -from;
@@ -188,37 +186,36 @@ pub(crate) fn fires(
         y: from.y + rounded_share(toward.y, step, steps),
     };
     let foe = stage.player_experience_level();
+    let radius = shot.spell.map_or(0, DamagingSpell::blast_radius);
     let mut friend = 0;
     let mut finds_player = false;
-    let radius = blast_radius(variant, shot.spell.map(|spell| spell.spell.id.0.as_str()));
+    // An explosion goes off where its flight ends, if it meets no one sooner.
+    let mut goes_off_at = (shot.flight == Flight::Explodes).then(|| square(shot.range));
     for step in 1..=shot.range {
         let here = square(step);
         if here == Offset::PLAYER {
             finds_player = true;
-            match shot.flight {
-                Flight::Pierces => continue,
-                Flight::Stops => break,
-                Flight::Explodes => {
-                    friend += blast(formulas, stage, here, radius, shot);
-                    break;
+        }
+        let other = stage.occupant(place, here);
+        if here != Offset::PLAYER && other.is_none() {
+            continue;
+        }
+        match shot.flight {
+            Flight::Pierces => {
+                if let Some(other) = other {
+                    friend += power_of(formulas, stage, other, shot);
                 }
             }
-        }
-        let Some(other) = stage.occupant(place, here) else {
-            continue;
-        };
-        match shot.flight {
-            Flight::Pierces => friend += power_of(formulas, stage, other, shot),
-            Flight::Stops => {
-                // It stops short of the player unless they are past it already.
-                break;
-            }
+            Flight::Stops | Flight::Cloud => break,
             Flight::Explodes => {
-                finds_player |= here.distance() <= radius;
-                friend += blast(formulas, stage, here, radius, shot);
+                goes_off_at = Some(here);
                 break;
             }
         }
+    }
+    if let Some(centre) = goes_off_at {
+        finds_player |= centre.distance() <= radius;
+        friend += blast(formulas, stage, centre, radius, shot);
     }
     finds_player && good_to_fire(variant, foe, friend, shot.foe_ratio)
 }
@@ -229,7 +226,7 @@ fn blast(
     stage: &Stage<'_, '_>,
     centre: Offset,
     radius: i32,
-    shot: Shot<'_>,
+    shot: TracedShot<'_>,
 ) -> i32 {
     stage
         .within(centre, radius)
@@ -241,7 +238,7 @@ fn blast(
 /// half what it wouldn't resist of the most the shot deals, rounded up (`bolt::determine_damage`,
 /// `beam.cc:4690`). One it wouldn't hurt counts for nothing, as does firewood, which isn't worth
 /// caring about (`mons_is_threatening`).
-fn power_of(formulas: Formulas, stage: &Stage<'_, '_>, place: usize, shot: Shot<'_>) -> i32 {
+fn power_of(formulas: Formulas, stage: &Stage<'_, '_>, place: usize, shot: TracedShot<'_>) -> i32 {
     let Some(monster) = stage.monster(place) else {
         return 0;
     };
@@ -264,11 +261,6 @@ fn power_of(formulas: Formulas, stage: &Stage<'_, '_>, place: usize, shot: Shot<
     2 * finished * i32::try_from(monster.hd).unwrap_or(i32::MAX) / shot.most_damage
 }
 
-/// `whole * part / of`, rounded to the nearest whole number, away from zero at a half.
-fn rounded_share(whole: i32, part: i32, of: i32) -> i32 {
-    (2 * whole * part + whole.signum() * of) / (2 * of)
-}
-
 #[cfg(test)]
 mod tests {
     use std::sync::OnceLock;
@@ -277,7 +269,7 @@ mod tests {
 
     use super::*;
     use crate::engine::spells;
-    use crate::engine::stage::Ground;
+    use crate::engine::stage::Battleground;
 
     fn bundle() -> &'static Bundle {
         static LIBRARY: OnceLock<Library> = OnceLock::new();
@@ -304,11 +296,11 @@ mod tests {
             casts: 8,
             strikes: 8,
         };
-        let ground = Ground::open_floor().with_experience_level(level);
+        let ground = Battleground::open_floor().with_experience_level(level);
         let on_stage = std::iter::once((monster("orc wizard"), Offset::east(distance)))
             .chain(orcs.iter().map(|&at| (monster("orc"), at)));
         let stage = Stage::new(&ground, on_stage);
-        let shot = Shot::boldest_spell(bundle().formulas, &spell, 36, reach);
+        let shot = TracedShot::boldest_spell(bundle().formulas, &spell, 36, reach);
         fires(bundle().formulas, &stage, 0, Offset::east(distance), shot)
     }
 
@@ -348,15 +340,36 @@ mod tests {
             .find(|known| known.id.0 == BEAM)
             .unwrap();
         let spell = spells::damaging(bundle().formulas.monster_spell_beam, known).unwrap();
-        let ground = Ground::open_floor();
+        let ground = Battleground::open_floor();
         let from = Offset::east(6);
         let stage = Stage::new(&ground, [(monster("orc wizard"), from)]);
         let reach = Reach {
             casts: 5,
             strikes: 5,
         };
-        let shot = Shot::boldest_spell(bundle().formulas, &spell, 36, reach);
+        let shot = TracedShot::boldest_spell(bundle().formulas, &spell, 36, reach);
         assert!(!fires(bundle().formulas, &stage, 0, from, shot));
+    }
+
+    #[test]
+    fn a_blast_that_runs_out_of_range_beside_the_player_still_finds_them() {
+        let known = bundle()
+            .spells
+            .values()
+            .find(|known| known.id.0 == BLAST)
+            .unwrap();
+        let spell = spells::damaging(bundle().formulas.monster_spell_beam, known).unwrap();
+        let ground = Battleground::open_floor();
+        let from = Offset::east(6);
+        let stage = Stage::new(&ground, [(monster("orc wizard"), from)]);
+        // Its reach counts the blast's square, so 6 is a flight of 5, ending beside the player.
+        let reach = |strikes| Reach { casts: 8, strikes };
+        let fired = |strikes| {
+            let shot = TracedShot::boldest_spell(bundle().formulas, &spell, 36, reach(strikes));
+            fires(bundle().formulas, &stage, 0, from, shot)
+        };
+        assert!(fired(6));
+        assert!(!fired(5));
     }
 
     #[test]
@@ -371,6 +384,47 @@ mod tests {
         // Beside them, it catches both, and level decides it.
         assert!(!fired(BLAST, 5, &[Offset::east(1)], 3));
         assert!(fired(BLAST, 5, &[Offset::east(1)], 9));
+    }
+
+    /// Whether an orc four squares east of the player fires a missile that `pierces` or doesn't,
+    /// with an orc beside the player, at `level`.
+    fn missile_fired(pierces: bool, level: i32) -> bool {
+        let ground = Battleground::open_floor().with_experience_level(level);
+        let from = Offset::east(4);
+        let stage = Stage::new(
+            &ground,
+            [(monster("orc"), from), (monster("orc"), Offset::east(1))],
+        );
+        fires(
+            bundle().formulas,
+            &stage,
+            0,
+            from,
+            TracedShot::missile(pierces, 10, 6),
+        )
+    }
+
+    #[test]
+    fn a_missile_stops_at_an_ally_and_only_a_javelin_flies_on_past_it() {
+        assert!(!missile_fired(false, 27));
+        assert!(!missile_fired(true, 3));
+        assert!(missile_fired(true, 9));
+    }
+
+    #[test]
+    fn orb_of_electricity_draws_its_foe_ratio() {
+        let variant = FireTracer::Crawl034;
+        let mut rng = Rng::new(1, 2);
+        let drawn: Vec<i32> = (0..500)
+            .map(|_| foe_ratio(variant, &mut rng, spell_types::ORB_OF_ELECTRICITY))
+            .collect();
+        assert_eq!(drawn.iter().min(), Some(&40));
+        assert_eq!(drawn.iter().max(), Some(&55));
+        assert_eq!(
+            lowest_foe_ratio(variant, spell_types::ORB_OF_ELECTRICITY),
+            40
+        );
+        assert_eq!(foe_ratio(variant, &mut rng, BOLT), DEFAULT_FOE_RATIO);
     }
 
     #[test]

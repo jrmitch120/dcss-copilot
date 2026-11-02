@@ -1,6 +1,6 @@
 //! The crawl oracle's diff, run on what its harnesses printed from a crawl 0.34.1 build: 24
 //! randomised monster attackers, every other one holding a melee weapon, and player defenders of
-//! random species, gods and resistances, 20,000 attacks each, 24 spell cases, 60 missile, gear and wand cases, and the turn harness's
+//! random species, gods and resistances, 20,000 attacks each, 80 spell and 40 tracer cases, 60 missile, gear and wand cases, and the turn harness's
 //! block and reach cases with 126 turn cases, 21 path cases and its torment cases; and 45 cases of the player
 //! attacking monsters in melee, with launchers and thrown missiles, with spells' beams and with
 //! Freeze, and of the hit points monsters are made with; and 48 players of random species, form, mutations,
@@ -166,15 +166,15 @@ fn a_dump_for_a_crawl_without_a_bundle_is_refused() {
     assert!(error.contains("0.12.0"), "{error}");
 }
 
-/// What the spell harness printed from the same crawl build: 24 cases, alternating a monster
+/// What the spell harness printed from the same crawl build: 80 cases, alternating a monster
 /// casting one spell at a randomised player and a monster choosing among its spells, 20,000
-/// times each (seed 34).
+/// times each, then 40 of a monster deciding 1,000 times whether to fire past others (seed 34).
 const SPELLS: &str = include_str!("fixtures/spells-0.34.1.jsonl");
 
 #[test]
 fn the_engine_agrees_with_crawl_on_every_spell_case() {
     let report = diff(SPELLS).unwrap();
-    assert_eq!(report.cases, 36);
+    assert_eq!(report.cases, 120);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -252,21 +252,21 @@ fn a_spell_chosen_as_often_as_another_is_caught() {
 
 #[test]
 fn a_monster_firing_past_an_ally_crawl_holds_its_fire_for_is_caught() {
-    // Case 25, a molten gargoyle's bolt of magma at a player of level 2, past an orc beside it:
+    // Case 82, a merfolk aquamancer's icicle at a player of level 5, past an ice beast beside it:
     // counted as fired.
-    let dump = with_changed(SPELLS, 25, |case| {
+    let dump = with_changed(SPELLS, 82, |case| {
         let trials = case["trials"].as_u64().unwrap();
         case["fires"] = trials.into();
     });
-    assert_eq!(caught(&dump), [(25, Measure::HoldsFire)]);
+    assert_eq!(caught(&dump), [(82, Measure::HoldsFire)]);
 }
 
 #[test]
 fn a_foe_ratio_left_at_its_default_is_caught() {
-    // Case 27, an occultist's orb of electricity, with an orc in its blast, which the foe ratio
-    // of 40 to 55 lets it fire: counted as held.
-    let dump = with_changed(SPELLS, 27, |case| case["fires"] = 0.into());
-    assert_eq!(caught(&dump), [(27, Measure::HoldsFire)]);
+    // Case 94, a swamp drake's orb of electricity, with a goblin in its blast, which a foe ratio
+    // drawn from 40 to 55 lets it fire seven times in ten at a player of level 1: counted as held.
+    let dump = with_changed(SPELLS, 94, |case| case["fires"] = 0.into());
+    assert_eq!(caught(&dump), [(94, Measure::HoldsFire)]);
 }
 
 /// What the missile harness printed from the same crawl build: 60 cases, taking turns at a kind

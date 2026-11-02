@@ -13,7 +13,9 @@ use crate::accumulated_state::{MutationsRead, Shield};
 use crate::crawl_ids::monster_types;
 
 use super::brands::{Brand, Necromancy};
-use super::melee::{self, Attack, Defences, Fighter, Hands, Swing, Target, Wielded};
+use super::melee::{
+    self, Attack, BASELINE_DELAY, Defences, Fighter, Hands, Swing, Target, Wielded,
+};
 use super::missiles::{self, Missile, Missiles, Shooter};
 use super::paths::Level;
 use super::player_attacks::{
@@ -23,9 +25,9 @@ use super::player_move::{self, Unread};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
-use super::stage::{Ground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
+use super::stage::{Battleground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use super::step::Offset;
-use super::threat::{self, Attacker, Draw};
+use super::threat::{self, Attacker, Draw, Engaged};
 use super::tracer;
 use super::{PLAYER_VISION, torment, wands};
 use crate::screen::{Resistance, Resistances, Screen, ScreenRead};
@@ -1001,7 +1003,7 @@ pub fn turn(
         })
         .collect::<Result<Vec<_>, CaseError>>()?;
     let scene = turn_scene(&case.walls);
-    let ground = Ground::new(
+    let ground = Battleground::new(
         &scene,
         scene.player,
         std::iter::once(&monster).chain(others.iter().map(|&(known, _)| known)),
@@ -1025,15 +1027,13 @@ pub fn turn(
     for _ in 0..trials {
         // The undefended player has no shield to block with.
         let mut blocks_left = 0;
-        let turn = threat::turn(
+        let turn = Engaged::new(formulas, &mut rng, &attacker, BASELINE_DELAY, 0).act(
             formulas,
             &mut rng,
-            &attacker,
             target,
             case.hp,
             &mut blocks_left,
             &mut on_stage.clone(),
-            0,
         );
         *tally.melee.entry(turn.melee).or_default() += 1;
         *tally.casts.entry(turn.casts).or_default() += 1;
@@ -1124,7 +1124,7 @@ pub fn tracer(
         bystanders: Vec::new(),
         experience_level: case.experience_level,
     };
-    let ground = Ground::new(&scene, scene.player, [monster], &[]);
+    let ground = Battleground::new(&scene, scene.player, [monster], &[]);
     let from = Offset::east(case.distance);
     let stage = Stage::new(
         &ground,
@@ -1133,7 +1133,7 @@ pub fn tracer(
     let mut rng = Rng::new(seed.0, seed.1);
     Ok((0..trials)
         .map(|_| {
-            let shot = tracer::Shot::spell(formulas, &mut rng, &spell, power, reach);
+            let shot = tracer::TracedShot::spell(formulas, &mut rng, &spell, power, reach);
             u32::from(tracer::fires(formulas, &stage, 0, from, shot))
         })
         .sum())

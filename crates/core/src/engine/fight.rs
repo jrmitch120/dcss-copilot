@@ -15,7 +15,7 @@ use super::player_attacks::{
     self, AttackSpell, Defence, DrawnSkill, Hand, Heft, PlayerZap, Shot, Skill, Striker,
 };
 use super::rng::Rng;
-use super::stage::{Ground, Stage};
+use super::stage::{Battleground, Stage};
 use super::threat::{Attacker, Defender, Engaged};
 use super::{spells, step};
 
@@ -178,7 +178,7 @@ pub(crate) fn simulate(
     fighter: &Fighter<'_>,
     opening: Option<&Opening<'_>>,
     foes: &[Foe<'_>],
-    ground: &Ground<'_>,
+    ground: &Battleground<'_>,
 ) -> Outcome {
     // As in the Threat Level's trial, without one that can never come to the player nor strike
     // them from where it stands: it stands apart from the fight, and the player from it.
@@ -196,12 +196,7 @@ pub(crate) fn simulate(
         })
         .map(|(_, foe)| foe)
         .collect();
-    order.sort_by_key(|foe| {
-        (
-            !foe.attacker.monster.torments_as_it_dies,
-            foe.attacker.distance(),
-        )
-    });
+    order.sort_by_key(|foe| foe.attacker.play_order());
     let stage = Stage::new(
         ground,
         order
@@ -601,7 +596,7 @@ mod tests {
             &fighter,
             None,
             &[foe],
-            &Ground::open_floor(),
+            &Battleground::open_floor(),
         );
         assert!(outcome.wins > outcome.trials / 2, "{outcome:?}");
         assert_eq!(outcome.hp_lost, 0, "{outcome:?}");

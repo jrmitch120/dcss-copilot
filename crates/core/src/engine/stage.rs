@@ -72,6 +72,16 @@ pub(crate) struct Scene {
     pub(crate) experience_level: i32,
 }
 
+impl Scene {
+    /// The square `offset` from where the player stands now.
+    pub(crate) fn square_of(&self, offset: Offset) -> Position {
+        Position {
+            x: self.player.x + offset.x,
+            y: self.player.y + offset.y,
+        }
+    }
+}
+
 /// The highest experience level there is, `MAX_EXP_LEVEL`.
 pub(crate) const MOST_EXPERIENCE_LEVEL: i32 = 27;
 
@@ -79,7 +89,7 @@ pub(crate) const MOST_EXPERIENCE_LEVEL: i32 = 27;
 /// monster of each [`Crossing`] among those playing gets to them. It doesn't change from trial to
 /// trial.
 #[derive(Debug, Clone)]
-pub(crate) struct Ground<'s> {
+pub(crate) struct Battleground<'s> {
     level: Option<&'s Level>,
     player: Position,
     fields: Vec<(Crossing, Field)>,
@@ -87,7 +97,7 @@ pub(crate) struct Ground<'s> {
     experience_level: i32,
 }
 
-impl<'s> Ground<'s> {
+impl<'s> Battleground<'s> {
     /// `scene` with the player standing at `player`, for monsters of `kinds`, with `fixed` more
     /// squares that stay taken.
     pub(crate) fn new<'m>(
@@ -239,7 +249,7 @@ impl<'s> Ground<'s> {
 /// Who stands where in one trial, as the player acts and the monsters move.
 #[derive(Debug, Clone)]
 pub(crate) struct Stage<'g, 'm> {
-    ground: &'g Ground<'g>,
+    ground: &'g Battleground<'g>,
     /// Each monster playing, by its place.
     monsters: Vec<&'m Monster>,
     /// Where each stands from the player, by its place: `None` once it is gone.
@@ -250,7 +260,7 @@ impl<'g, 'm> Stage<'g, 'm> {
     /// `monsters`, each with where it stands from the player, on `ground`. Each one's place among
     /// them is how it is known.
     pub(crate) fn new(
-        ground: &'g Ground<'g>,
+        ground: &'g Battleground<'g>,
         monsters: impl IntoIterator<Item = (&'m Monster, Offset)>,
     ) -> Self {
         let (monsters, standing) = monsters
@@ -270,7 +280,7 @@ impl<'g, 'm> Stage<'g, 'm> {
     }
 
     /// The ground it is played on.
-    pub(crate) fn ground(&self) -> &'g Ground<'g> {
+    pub(crate) fn ground(&self) -> &'g Battleground<'g> {
         self.ground
     }
 
@@ -290,7 +300,7 @@ impl<'g, 'm> Stage<'g, 'm> {
 
     /// The player has stepped by `step` onto the square `ground` has them on: everyone stands that
     /// much otherwise from them.
-    pub(crate) fn player_stepped(&mut self, ground: &'g Ground<'g>, step: Offset) {
+    pub(crate) fn player_stepped(&mut self, ground: &'g Battleground<'g>, step: Offset) {
         self.ground = ground;
         for standing in self.standing.iter_mut().flatten() {
             *standing = *standing + -step;
@@ -566,7 +576,7 @@ mod tests {
         rounds: usize,
     ) -> Vec<Option<Offset>> {
         let kinds: Vec<&Monster> = standing.iter().map(|&(name, _)| monster(name)).collect();
-        let ground = Ground::new(scene, scene.player, kinds.iter().copied(), &[]);
+        let ground = Battleground::new(scene, scene.player, kinds.iter().copied(), &[]);
         let mut stage = Stage::new(
             &ground,
             standing
@@ -625,7 +635,7 @@ mod tests {
         // The orc wizard, of more hit dice, swaps places with the orc in its way.
         let queue = [("orc", Offset::east(1)), ("orc wizard", Offset::east(2))];
         let kinds = [monster("orc"), monster("orc wizard")];
-        let ground = Ground::new(&scene, scene.player, kinds, &[]);
+        let ground = Battleground::new(&scene, scene.player, kinds, &[]);
         let mut stage = Stage::new(
             &ground,
             queue.iter().map(|&(name, offset)| (monster(name), offset)),
@@ -663,10 +673,10 @@ mod tests {
     #[test]
     fn a_reach_attack_needs_no_wall_between() {
         let scene = scene(&["#####", "@.#.#", "#####"]);
-        let ground = Ground::new(&scene, scene.player, [monster("orc")], &[]);
+        let ground = Battleground::new(&scene, scene.player, [monster("orc")], &[]);
         assert!(ground.reach_clear(Offset::east(2)));
         let walled = self::scene(&["#####", "@#..#", "#####"]);
-        let ground = Ground::new(&walled, walled.player, [monster("orc")], &[]);
+        let ground = Battleground::new(&walled, walled.player, [monster("orc")], &[]);
         assert!(!ground.reach_clear(Offset::east(2)));
     }
 }

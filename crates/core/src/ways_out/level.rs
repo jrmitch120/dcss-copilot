@@ -59,13 +59,18 @@ pub(super) struct OnTheLevel<'a> {
     features: Vec<(Position, &'a Feature)>,
 }
 
-/// The level as `visible` shows it, read through `bundle`: `None` until the game has sent its map.
-pub(crate) fn known(visible: &VisibleState, bundle: &Bundle) -> Option<Level> {
-    let by_id: HashMap<&EnumId, &Feature> = bundle
+/// Every feature of `bundle`, by its identifier.
+fn features_by_id(bundle: &Bundle) -> HashMap<&EnumId, &Feature> {
+    bundle
         .features
         .values()
         .map(|feature| (&feature.id, feature))
-        .collect();
+        .collect()
+}
+
+/// The level as `visible` shows it, read through `bundle`: `None` until the game has sent its map.
+pub(crate) fn known(visible: &VisibleState, bundle: &Bundle) -> Option<Level> {
+    let by_id = features_by_id(bundle);
     Level::new(
         visible
             .map
@@ -96,11 +101,7 @@ pub(super) fn on_the_level<'a>(
         }
         return Err(gaps);
     };
-    let by_id: HashMap<&EnumId, &Feature> = bundle
-        .features
-        .values()
-        .map(|feature| (&feature.id, feature))
-        .collect();
+    let by_id = features_by_id(bundle);
     let features: Vec<(Position, &Feature)> = map
         .cells()
         .filter_map(|(position, cell)| Some((position, *by_id.get(cell.feature.as_ref()?)?)))

@@ -16,7 +16,7 @@ use copilot_gk::{
 use super::brands::{self, Brand, Necromancy};
 use super::melee::{self, Aim, RolledDamage, Swing, Target, Weapon};
 use super::rng::Rng;
-use super::tracer::Shot;
+use super::tracer::TracedShot;
 use crate::crawl_ids::missile_types;
 
 /// How far a missile flies: the player's sight (`ranged_attack_beam::initialise_beam`,
@@ -88,8 +88,8 @@ impl<'a> Missile<'a> {
 impl Missile<'_> {
     /// Its tracer as it flies past what it meets, and the most it deals before armour: its
     /// weapon's damage and, as far as the tracer weighs it, its enchantment.
-    pub(crate) fn shot(&self) -> Shot<'static> {
-        Shot::missile(
+    pub(crate) fn shot(&self) -> TracedShot<'static> {
+        TracedShot::missile(
             self.pierces,
             (self.weapon.damage + self.plus).max(1),
             MISSILE_RANGE,

@@ -24,9 +24,9 @@ use super::paths::Crossing;
 use super::resists::{self, BeamResist, Needs, Resists};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
-use super::stage::{Ground, Stage};
+use super::stage::{Battleground, Stage};
 use super::step::{self, Offset};
-use super::tracer::{self, Shot};
+use super::tracer::{self, TracedShot};
 use super::{PLAYER_VISION, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
@@ -371,6 +371,11 @@ impl<'a> Attacker<'a> {
         self.offset.distance()
     }
 
+    /// Where it comes in the order of play, lowest first ([`in_order_of_play`]).
+    pub(crate) fn play_order(&self) -> (bool, i32) {
+        (!self.monster.torments_as_it_dies, self.distance())
+    }
+
     /// It fighting in melee in one trial: with what its Carried Gear shows, or, while that doesn't
     /// show what it holds, with what it draws by its kind's odds. It keeps fighting as if it
     /// wields nothing, but makes the attacks only a weapon makes, when nothing can be drawn.
@@ -533,7 +538,7 @@ impl<'a> Attacker<'a> {
             && (fights
                 || self.spells.iter().any(|cast| {
                     cast.reach.strikes >= distance
-                        && fires(Shot::boldest_spell(
+                        && fires(TracedShot::boldest_spell(
                             formulas,
                             &cast.spell,
                             cast.power,
@@ -542,7 +547,7 @@ impl<'a> Attacker<'a> {
                 })
                 || self.wands.items().any(|zap| {
                     zap.reach.strikes >= distance
-                        && fires(Shot::boldest_spell(
+                        && fires(TracedShot::boldest_spell(
                             formulas, &zap.spell, zap.power, zap.reach,
                         ))
                 })
@@ -930,7 +935,8 @@ pub(crate) fn can_attack(
     false
 }
 
-/// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`. Each
+/// Plays out the player's next standard-speed action [`TRIALS`] times against `attackers`, with
+/// `standing_by`, the hostiles that can't attack, standing where they are in the way. Each
 /// trial draws the fraction of the player's defences the display drops: it is fixed for the
 /// player at any moment, and crawl rounds it afresh on every roll.
 ///
@@ -941,13 +947,16 @@ pub(crate) fn simulate(
     formulas: Formulas,
     defender: Defender,
     attackers: &[Attacker<'_>],
-    ground: &Ground<'_>,
+    standing_by: &[Attacker<'_>],
+    ground: &Battleground<'_>,
 ) -> Outcome {
     let attackers = in_order_of_play(attackers);
     let stage = Stage::new(
         ground,
         attackers
             .iter()
+            .copied()
+            .chain(standing_by)
             .map(|attacker| (attacker.monster, attacker.offset)),
     );
     let mut rng = Rng::new(SEED.0, SEED.1);
@@ -985,7 +994,7 @@ pub(crate) fn simulate(
 /// Crawl's order, by energy and the monsters' order on the level, isn't modelled.
 pub(crate) fn in_order_of_play<'r, 'a>(attackers: &'r [Attacker<'a>]) -> Vec<&'r Attacker<'a>> {
     let mut order: Vec<&Attacker<'a>> = attackers.iter().collect();
-    order.sort_by_key(|attacker| (!attacker.monster.torments_as_it_dies, attacker.distance()));
+    order.sort_by_key(|attacker| attacker.play_order());
     order
 }
 
@@ -1006,17 +1015,16 @@ fn one_action(
         .enumerate()
         .fold(0, |taken, (place, attacker)| {
             taken
-                + turn(
-                    formulas,
-                    rng,
-                    attacker,
-                    target,
-                    hp - taken,
-                    &mut blocks_left,
-                    &mut stage,
-                    place,
-                )
-                .damage
+                + Engaged::new(formulas, rng, attacker, BASELINE_DELAY, place)
+                    .act(
+                        formulas,
+                        rng,
+                        target,
+                        hp - taken,
+                        &mut blocks_left,
+                        &mut stage,
+                    )
+                    .damage
         })
 }
 
@@ -1031,30 +1039,6 @@ pub(crate) struct Turn {
     pub(crate) casts: i32,
     /// The squares it closed on the player, less those it backed off.
     pub(crate) closed: i32,
-}
-
-/// Plays out `attacker`'s actions, at `place` on `stage`, before the player's next standard-speed
-/// action against `target`, on `hp` as it starts, whose shield has `blocks_left` blocks left this
-/// action.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn turn(
-    formulas: Formulas,
-    rng: &mut Rng,
-    attacker: &Attacker<'_>,
-    target: Target,
-    hp: i32,
-    blocks_left: &mut u32,
-    stage: &mut Stage<'_, '_>,
-    place: usize,
-) -> Turn {
-    Engaged::new(formulas, rng, attacker, BASELINE_DELAY, place).act(
-        formulas,
-        rng,
-        target,
-        hp,
-        blocks_left,
-        stage,
-    )
 }
 
 /// A monster played out over one player action after another, in one trial: where it stands,
@@ -1180,18 +1164,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
         let attacker = self.attacker;
         let monster = attacker.monster;
         let (missiles, wand) = (self.missiles, self.wand);
-        let can_breathe = self.breath_timeout == 0;
-        if let Some(cast) = choose_cast(
-            formulas,
-            rng,
-            &attacker.spells,
-            self.distance(),
-            can_breathe,
-            &self.clouds,
-            stage,
-            self.place,
-            self.offset,
-        ) {
+        if let Some(cast) = self.choose_cast(formulas, rng, stage) {
             turn.casts += 1;
             self.clouds.note_cast(
                 formulas.monster_clouds,
@@ -1229,7 +1202,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 stage,
                 self.place,
                 self.offset,
-                Shot::spell(formulas, rng, &zap.spell, zap.power, zap.reach),
+                TracedShot::spell(formulas, rng, &zap.spell, zap.power, zap.reach),
             )
             && self.clouds.tracer_finds_player(
                 formulas.monster_clouds,
@@ -1280,6 +1253,54 @@ impl<'r, 'a> Engaged<'r, 'a> {
             return true;
         }
         false
+    }
+
+    /// The spell it casts this action, if any. A breath can't be cast while it is catching its
+    /// breath: crawl drops it from the usable spells (`_find_usable_spells`). A spell is in range
+    /// when it reaches the player and its tracer finds them past the clouds it left
+    /// ([`CloudsLeft::tracer_finds_player`]) and finds it good to fire past the others on `stage`
+    /// ([`tracer::fires`]).
+    fn choose_cast(
+        &self,
+        formulas: Formulas,
+        rng: &mut Rng,
+        stage: &Stage<'_, '_>,
+    ) -> Option<&'r Cast<'a>> {
+        let distance = self.distance();
+        let can_breathe = self.breath_timeout == 0;
+        let usable: Vec<&'r Cast<'a>> = self
+            .attacker
+            .spells
+            .iter()
+            .filter(|cast| can_breathe || !cast.slot.breath)
+            .collect();
+        // With no usable spell, crawl rolls for none (`handle_mon_spell`).
+        if usable.is_empty() {
+            return None;
+        }
+        let prospects: Vec<Prospect> = usable
+            .iter()
+            .map(|cast| Prospect {
+                frequency: cast.slot.frequency,
+                when: cast.slot.when,
+                in_range: cast.reach.casts >= distance
+                    && self.clouds.tracer_finds_player(
+                        formulas.monster_clouds,
+                        &cast.spell,
+                        cast.reach,
+                        distance,
+                    )
+                    && tracer::fires(
+                        formulas,
+                        stage,
+                        self.place,
+                        self.offset,
+                        TracedShot::spell(formulas, rng, &cast.spell, cast.power, cast.reach),
+                    ),
+            })
+            .collect();
+        spells::choose(formulas.monster_spell_choice, rng, &prospects, distance)
+            .and_then(|i| usable.get(i).copied())
     }
 
     /// It has attacked the player or cast a spell: a batty monster starts to flit
@@ -1485,56 +1506,6 @@ fn fire_beam(
     shot.damage
 }
 
-/// The spell `attacker` casts this action, if any, `distance` squares from the player. A breath
-/// can't be cast while it is catching its breath: crawl drops it from the usable spells
-/// (`_find_usable_spells`). A spell is in range when it reaches the player and its tracer finds
-/// them past the clouds `clouds` it left ([`CloudsLeft::tracer_finds_player`]) and finds it good
-/// to fire past the others on `stage`, for the caster at `place`, at `from` ([`tracer::fires`]).
-#[allow(clippy::too_many_arguments)]
-fn choose_cast<'c, 'a>(
-    formulas: Formulas,
-    rng: &mut Rng,
-    casts: &'c [Cast<'a>],
-    distance: i32,
-    can_breathe: bool,
-    clouds: &CloudsLeft,
-    stage: &Stage<'_, '_>,
-    place: usize,
-    from: Offset,
-) -> Option<&'c Cast<'a>> {
-    let usable: Vec<&Cast<'a>> = casts
-        .iter()
-        .filter(|cast| can_breathe || !cast.slot.breath)
-        .collect();
-    // With no usable spell, crawl rolls for none (`handle_mon_spell`).
-    if usable.is_empty() {
-        return None;
-    }
-    let prospects: Vec<Prospect> = usable
-        .iter()
-        .map(|cast| Prospect {
-            frequency: cast.slot.frequency,
-            when: cast.slot.when,
-            in_range: cast.reach.casts >= distance
-                && clouds.tracer_finds_player(
-                    formulas.monster_clouds,
-                    &cast.spell,
-                    cast.reach,
-                    distance,
-                )
-                && tracer::fires(
-                    formulas,
-                    stage,
-                    place,
-                    from,
-                    Shot::spell(formulas, rng, &cast.spell, cast.power, cast.reach),
-                ),
-        })
-        .collect();
-    spells::choose(formulas.monster_spell_choice, rng, &prospects, distance)
-        .and_then(|i| usable.get(i).copied())
-}
-
 /// How far `monster`'s melee reaches, fighting as `fighter`: its farthest-reaching attack that
 /// deals damage, or the weapon of its first attack if that reaches farther, as
 /// `monster::reach_range` (`monster.cc:6224`). 0 when it has no melee attack.
@@ -1621,7 +1592,7 @@ mod tests {
         let ogre = bundle.monsters.values().find(|m| m.name == "ogre").unwrap();
         let attackers = vec![Attacker::new(bundle, ogre, Offset::east(1)).without_gear(); 2];
         let playing: Vec<&Attacker<'_>> = attackers.iter().collect();
-        let ground = Ground::open_floor();
+        let ground = Battleground::open_floor();
         let hp = 15;
         let exact_deaths = |ac, ev, sh| {
             let mut rng = Rng::new(SEED.0, SEED.1);
@@ -1661,7 +1632,7 @@ mod tests {
             resists: Resists::NONE,
         };
         let displayed =
-            usize::try_from(simulate(formulas, defender, &attackers, &ground).deaths).unwrap();
+            usize::try_from(simulate(formulas, defender, &attackers, &[], &ground).deaths).unwrap();
         let (most, fewest) = (exact_deaths(6, 8, 4), exact_deaths(7, 9, 5));
         assert!(
             fewest < displayed && displayed < most,
@@ -1918,7 +1889,7 @@ mod tests {
         };
         let mut rng = Rng::new(SEED.0, SEED.1);
         for _ in 0..1_000 {
-            let ground = Ground::open_floor();
+            let ground = Battleground::open_floor();
             let mut stage = Stage::new(&ground, [(beside.monster, beside.offset)]);
             let mut engaged = Engaged::new(formulas, &mut rng, &beside, BASELINE_DELAY, 0);
             let first = engaged.act(formulas, &mut rng, target, 400, &mut 0, &mut stage);
@@ -1937,23 +1908,21 @@ mod tests {
         hp: i32,
         blocks_left: &mut u32,
     ) -> Turn {
-        let ground = Ground::open_floor();
+        let ground = Battleground::open_floor();
         let mut stage = Stage::new(&ground, [(attacker.monster, attacker.offset)]);
-        turn(
+        Engaged::new(formulas, rng, attacker, BASELINE_DELAY, 0).act(
             formulas,
             rng,
-            attacker,
             target,
             hp,
             blocks_left,
             &mut stage,
-            0,
         )
     }
 
     /// Whether `attacker`, alone on open floor, can attack.
     fn attacks_alone(formulas: Formulas, attacker: &Attacker<'_>) -> bool {
-        let ground = Ground::open_floor();
+        let ground = Battleground::open_floor();
         let stage = Stage::new(&ground, [(attacker.monster, attacker.offset)]);
         can_attack(formulas, attacker, &stage, 0)
     }
@@ -2094,9 +2063,16 @@ mod tests {
                 formulas,
                 defender,
                 &[ogre.clone(), horror.clone()],
-                &Ground::open_floor()
+                &[],
+                &Battleground::open_floor()
             ),
-            simulate(formulas, defender, &[horror, ogre], &Ground::open_floor())
+            simulate(
+                formulas,
+                defender,
+                &[horror, ogre],
+                &[],
+                &Battleground::open_floor()
+            )
         );
     }
 
@@ -2278,7 +2254,12 @@ mod tests {
 
     /// Whether an orc seen as `listing`, at `distance` east of the player, counts as able to
     /// attack with `blockers` orcs standing at those offsets, on `ground`.
-    fn counts_past(listing: &str, distance: i32, blockers: &[Offset], ground: &Ground<'_>) -> bool {
+    fn counts_past(
+        listing: &str,
+        distance: i32,
+        blockers: &[Offset],
+        ground: &Battleground<'_>,
+    ) -> bool {
         let orc = monster("orc");
         let (attacker, _) = seen(orc, distance, listing);
         let stage = Stage::new(
@@ -2289,8 +2270,38 @@ mod tests {
     }
 
     #[test]
+    fn a_hostile_that_cant_attack_still_stands_in_the_way_of_one_that_can() {
+        // An orc wizard's bolts stop at the plant in its way, so it casts nothing past it.
+        let formulas = Formulas::CRAWL_0_34;
+        let wizard = Attacker::new(bundle(), monster("orc wizard"), Offset::east(3)).without_gear();
+        let plant = Attacker::new(bundle(), monster("plant"), Offset::east(1)).without_gear();
+        let defender = Defender {
+            hp: 100,
+            defences: DisplayedDefences {
+                ac: 0,
+                ev: 0,
+                sh: 0,
+            },
+            lighting: Lighting::Plain,
+            shield_blocks: 1,
+            resists: Resists::NONE,
+        };
+        let ground = Battleground::open_floor();
+        let alone = simulate(
+            formulas,
+            defender,
+            std::slice::from_ref(&wizard),
+            &[],
+            &ground,
+        );
+        assert!(alone.worst_hit > 0, "{alone:?}");
+        let behind = simulate(formulas, defender, &[wizard], &[plant], &ground);
+        assert_eq!(behind.worst_hit, 0, "{behind:?}");
+    }
+
+    #[test]
     fn an_orc_holding_a_reach_weapon_behind_an_ally_still_counts_as_able_to_attack() {
-        let ground = Ground::open_floor();
+        let ground = Battleground::open_floor();
         let in_front = [Offset::east(1)];
         assert!(counts_past(
             "Here: an orc, wielding a +0 spear",
@@ -2316,7 +2327,7 @@ mod tests {
             bystanders: Vec::new(),
             experience_level: 3,
         };
-        let corridor = Ground::new(&scene, scene.player, [monster("orc")], &[]);
+        let corridor = Battleground::new(&scene, scene.player, [monster("orc")], &[]);
         assert!(counts_past(
             "Here: an orc, wielding a +0 spear",
             2,

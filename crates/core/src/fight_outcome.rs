@@ -12,7 +12,7 @@ use crate::crawl_ids::{missile_types, object_classes, skill_types};
 use crate::engine::fight::{self, Base, Fighter, Foe, Opening, Power};
 pub use crate::engine::player_attacks::NotPlayedReason;
 use crate::engine::player_attacks::{AttackSpell, Defence, Heft, PlayerZap, Skill};
-use crate::engine::stage::{Ground, Scene};
+use crate::engine::stage::{Battleground, Scene};
 use crate::engine::step::Offset;
 use crate::engine::threat::{Attacker, Defender};
 use crate::fact_sheet::{Chance, NotModelled};
@@ -316,17 +316,14 @@ pub(crate) fn judge<'a>(
         })
         .collect();
     let formulas = bundle.formulas;
-    let open_floor = Ground::open_floor();
+    let open_floor = Battleground::open_floor();
     let on_the_map = scene.map(|scene| {
         let firewood: Vec<Position> = firewood
             .iter()
-            .map(|attacker| Position {
-                x: scene.player.x + attacker.offset.x,
-                y: scene.player.y + attacker.offset.y,
-            })
+            .map(|attacker| scene.square_of(attacker.offset))
             .collect();
         let kinds = foes.iter().map(|foe| foe.attacker.monster);
-        Ground::new(scene, scene.player, kinds, &firewood)
+        Battleground::new(scene, scene.player, kinds, &firewood)
     });
     let ground = on_the_map.as_ref().unwrap_or(&open_floor);
     let plan_outcome = |opening: Option<PlanOpening>, played: Option<&Opening<'_>>| {

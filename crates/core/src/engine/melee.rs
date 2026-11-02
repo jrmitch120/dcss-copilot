@@ -311,8 +311,8 @@ pub(crate) struct Fighter {
     pub(crate) necromancy: Necromancy,
     /// It is a draugr, which fights with its weapon only in its first attack.
     pub(crate) draugr: bool,
-    /// The melee weapons it holds, when they are known; when they aren't, it fights as if it
-    /// wields nothing, but makes the attacks only a weapon makes.
+    /// The melee weapons it holds, when they are known or drawn for a trial; when they aren't, it
+    /// fights as if it wields nothing, but makes the attacks only a weapon makes.
     pub(crate) hands: Option<Hands>,
 }
 

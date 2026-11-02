@@ -15,8 +15,7 @@ use crate::dangerous_status::{self, DangerousStatus};
 use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
-use crate::engine::spells::{DamagingSpell, Reach};
-use crate::engine::stage::{Ground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
+use crate::engine::stage::{Battleground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::engine::walk;
@@ -352,9 +351,9 @@ pub enum NotModelled {
     /// A monster in view that can fight in melee may wield a weapon the Advisor hasn't read: its
     /// Carried Gear isn't read, its listing may leave out a plain weapon in its main hand, it
     /// holds something the Advisor can't name as a weapon, or it is an animated object, such as a
-    /// dancing weapon, which fights as the item it is. It fights as if it wields nothing, with no
-    /// weapon's damage, accuracy, brand or reach, and still makes the attacks only a weapon
-    /// makes. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it. Monsters' armour
+    /// dancing weapon, which fights as the item it is. It fights with a weapon drawn by the odds
+    /// crawl makes its kind with, +0 and unbranded, or, holding what can't be played, as if it
+    /// wields nothing, still making the attacks only a weapon makes. Its look text (`x`) or the full-view list (`Ctrl-X`) tells it. Monsters' armour
     /// and shields aren't counted either, which matters only to the player's own attacks.
     MonsterEquipment,
     /// Attacks, spells and missiles count only their damage as they land: no poison, burning,
@@ -604,11 +603,14 @@ fn stair_walks(
             _ => None,
         })
         .collect();
-    let foes: Vec<Attacker<'_>> = walkers
+    let (firewood, foes): (Vec<Attacker<'_>>, Vec<Attacker<'_>>) = walkers
         .hostiles
         .iter()
-        .filter(|attacker| !attacker.monster.firewood)
         .cloned()
+        .partition(|attacker| attacker.monster.firewood);
+    let firewood: Vec<Position> = firewood
+        .iter()
+        .map(|attacker| walkers.scene.square_of(attacker.offset))
         .collect();
     let walks = ways_out::walks_to(&stairs, visible, remembered, species, Some(bundle));
     walks
@@ -619,9 +621,9 @@ fn stair_walks(
                 times: walk::survived(
                     bundle.formulas,
                     walkers.defender,
-                    walkers.scene.player,
                     &actions,
                     &foes,
+                    &firewood,
                     &walkers.scene,
                 ),
                 trials: walk::TRIALS,
@@ -876,6 +878,8 @@ fn threat<'a>(
     let mut gear: Vec<GearPlayed> = Vec::new();
     let mut acting: Vec<ActingMonster> = Vec::new();
     let mut attackers: Vec<Attacker<'a>> = Vec::new();
+    // The hostiles in view that can't attack, which still stand in the way of those that can.
+    let mut standing_by: Vec<Attacker<'a>> = Vec::new();
     // Every hostile in view, for the Fight Outcome.
     let mut hostiles: Vec<Attacker<'a>> = Vec::new();
     // The ways crawl moves a monster that the Fact Sheet names, in the order `NotModelled` lists
@@ -924,7 +928,7 @@ fn threat<'a>(
         weapons_unread |= attacker.weapons_unread(formulas);
         hostiles.push(attacker);
     }
-    let ground = Ground::new(
+    let ground = Battleground::new(
         &scene,
         player,
         hostiles.iter().map(|attacker| attacker.monster),
@@ -955,6 +959,7 @@ fn threat<'a>(
             });
             attackers.push(attacker.clone());
         } else {
+            standing_by.push(attacker.clone());
             moves.extend(
                 its_moves
                     .into_iter()
@@ -993,17 +998,12 @@ fn threat<'a>(
         gaps.extend(ScreenFact::Resistances.gap_in(remembered, |state| &state.resistances));
     }
     if attackers.iter().any(|attacker| {
-        let unsafe_reach = |reach: Reach, spell: &DamagingSpell<'_>| {
-            reach.casts > reach.strikes || spell.zap.explodes
-        };
         attacker
             .spells
             .iter()
-            .any(|cast| unsafe_reach(cast.reach, &cast.spell))
-            || attacker
-                .wands
-                .items()
-                .any(|zap| unsafe_reach(zap.reach, &zap.spell))
+            .map(|cast| cast.spell)
+            .chain(attacker.wands.items().map(|zap| zap.spell))
+            .any(|spell| spell.spell.cloud.is_some())
     }) {
         not_modelled.push(NotModelled::CasterSafety);
     }
@@ -1014,7 +1014,7 @@ fn threat<'a>(
             worst_hit: 0,
         }
     } else {
-        threat::simulate(formulas, defender, &attackers, &ground)
+        threat::simulate(formulas, defender, &attackers, &standing_by, &ground)
     };
     let death = Chance {
         times: outcome.deaths,

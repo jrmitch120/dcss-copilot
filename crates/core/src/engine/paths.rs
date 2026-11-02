@@ -386,7 +386,7 @@ pub(crate) fn line_between(from: Position, to: Position) -> impl Iterator<Item =
 }
 
 /// `whole * part / of`, rounded to the nearest whole number, away from zero at a half.
-fn rounded_share(whole: i32, part: i32, of: i32) -> i32 {
+pub(crate) fn rounded_share(whole: i32, part: i32, of: i32) -> i32 {
     (2 * whole * part + whole.signum() * of) / (2 * of)
 }
 

@@ -225,8 +225,16 @@ A fixed way for the player to fight what is in view: open with one attack, a spe
 _Avoid_: Strategy, tactic, build
 
 **Fight Outcome**:
-Each Attack Plan played out many times against the hostiles in view, whatever their number: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them, each walking its own path round walls and other monsters. It is how the Threat Level looks past the player's next action: a best plan that wins under 90% of the time makes the moment DANGEROUS.
+Each Attack Plan played out many times against the hostiles in view, whatever their number, but for one shut off from the player, such as in a sealed vault, that can't strike them either: its chance to win, that every hostile falls before the player does, and the hit points it costs on average. The player stands their ground, and the hostiles fight as the Threat Level plays them, each walking its own path round walls and other monsters. It is how the Threat Level looks past the player's next action: a best plan that wins under 90% of the time makes the moment DANGEROUS.
 _Avoid_: Fight odds, combat sim, win rate
+
+**Stage**:
+Who stands where in one trial of a moment, on the level as the player knows it, as monsters walk their paths and the player acts. Monsters walk round walls and each other on it, and hold their fire for the allies in their way.
+_Avoid_: Board, grid
+
+**Stair Walk**:
+The player walking their path to a staircase, a step at a time, with the hostiles coming after them, played out many times. At DANGEROUS, a staircase is fallen back to only if at least 90% of walks are survived.
+_Avoid_: Retreat sim
 
 **Way Out**:
 An escape or emergency option, such as a consumable, ability, spell or staircase, together with whether it can be used right now and why not. A staircase whose square, or a square on the player's path to it, is out of view is judged over remembered squares, where a door may have closed or a monster may stand now, and is shown as approximate (`~`); one the player stands on never is. An ability is stopped by the statuses that stop it in particular as soon as the status pane shows them; one the ability menu greyed out for a reason the Advisor couldn't see stays stopped as of the turn the menu was read, and approximate once the ability list is Stale. A Way Out is trusted when it can be used now and its verdict isn't approximate: not judged over remembered squares, nor from a Stale menu.
