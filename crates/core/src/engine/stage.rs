@@ -67,7 +67,13 @@ pub(crate) struct Scene {
     /// The monsters in view that aren't played, such as the player's allies: they stand where
     /// they are, in the way.
     pub(crate) bystanders: Vec<Position>,
+    /// The player's experience level, which a tracer weighs them by: the highest there is while
+    /// the game hasn't shown it, so no monster holds its fire for not knowing it.
+    pub(crate) experience_level: i32,
 }
+
+/// The highest experience level there is, `MAX_EXP_LEVEL`.
+pub(crate) const MOST_EXPERIENCE_LEVEL: i32 = 27;
 
 /// The ground under one play of a moment, with the player standing on one square of it: how a
 /// monster of each [`Crossing`] among those playing gets to them. It doesn't change from trial to
@@ -78,6 +84,7 @@ pub(crate) struct Ground<'s> {
     player: Position,
     fields: Vec<(Crossing, Field)>,
     fixed: Vec<Position>,
+    experience_level: i32,
 }
 
 impl<'s> Ground<'s> {
@@ -103,6 +110,7 @@ impl<'s> Ground<'s> {
             player,
             fields,
             fixed: scene.bystanders.iter().chain(fixed).copied().collect(),
+            experience_level: scene.experience_level,
         }
     }
 
@@ -113,6 +121,16 @@ impl<'s> Ground<'s> {
             player: Position { x: 0, y: 0 },
             fields: Vec::new(),
             fixed: Vec::new(),
+            experience_level: MOST_EXPERIENCE_LEVEL,
+        }
+    }
+
+    /// The same ground, with a player of `experience_level`.
+    #[cfg(test)]
+    pub(crate) fn with_experience_level(self, experience_level: i32) -> Self {
+        Self {
+            experience_level,
+            ..self
         }
     }
 
@@ -284,8 +302,35 @@ impl<'g, 'm> Stage<'g, 'm> {
         self.standing.contains(&Some(offset))
     }
 
+    /// The player's experience level.
+    pub(crate) fn player_experience_level(&self) -> i32 {
+        self.ground.experience_level
+    }
+
+    /// The monster at `place`.
+    pub(crate) fn monster(&self, place: usize) -> Option<&'m Monster> {
+        self.monsters.get(place).copied()
+    }
+
+    /// The places of the monsters within `radius` squares of `centre`.
+    pub(crate) fn within(&self, centre: Offset, radius: i32) -> impl Iterator<Item = usize> + '_ {
+        self.standing
+            .iter()
+            .enumerate()
+            .filter(move |&(_, standing)| {
+                standing.is_some_and(|at| {
+                    let from_centre = Offset {
+                        x: at.x - centre.x,
+                        y: at.y - centre.y,
+                    };
+                    from_centre.distance() <= radius
+                })
+            })
+            .map(|(place, _)| place)
+    }
+
     /// The monster playing at `offset`, other than the one at `place`.
-    fn occupant(&self, place: usize, offset: Offset) -> Option<usize> {
+    pub(crate) fn occupant(&self, place: usize, offset: Offset) -> Option<usize> {
         self.standing
             .iter()
             .enumerate()
@@ -510,6 +555,7 @@ mod tests {
             player,
             level: Level::new(squares),
             bystanders: Vec::new(),
+            experience_level: MOST_EXPERIENCE_LEVEL,
         }
     }
 

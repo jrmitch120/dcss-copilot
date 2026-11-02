@@ -16,7 +16,7 @@ use crate::engine::lighting::Lighting;
 use crate::engine::melee::DisplayedDefences;
 use crate::engine::resists::{self, Needs, Resists, Seen};
 use crate::engine::spells::{DamagingSpell, Reach};
-use crate::engine::stage::{Ground, Scene, Stage};
+use crate::engine::stage::{Ground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use crate::engine::step::Offset;
 use crate::engine::threat::{self, Attacker, Defender, Outcome};
 use crate::engine::walk;
@@ -864,6 +864,11 @@ fn threat<'a>(
             })
             .map(|monster| monster.position)
             .collect(),
+        experience_level: visible
+            .stats
+            .xl
+            .and_then(|xl| i32::try_from(xl).ok())
+            .unwrap_or(MOST_EXPERIENCE_LEVEL),
     };
     // Each monster with the gear it is played with, and the monsters that can attack, each with
     // its row.

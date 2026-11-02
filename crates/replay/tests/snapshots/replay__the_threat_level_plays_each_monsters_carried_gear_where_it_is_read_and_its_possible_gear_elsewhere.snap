@@ -198,38 +198,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 20,
+      "worstHit": 13,
       "hostilesInView": 5,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 6,
-            "y": -1
-          },
-          "distance": 6,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -243,27 +215,6 @@ expression: threats
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
-            "wand of flame"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
             "wand of flame"
           ]
         }
@@ -355,7 +306,6 @@ expression: threats
         "defenceFractions",
         "carriedGear",
         "otherSpells",
-        "otherWands",
         "playerResistances"
       ],
       "gaps": [
@@ -376,24 +326,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 20,
+      "worstHit": 13,
       "hostilesInView": 5,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -407,27 +343,6 @@ expression: threats
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
-            "wand of flame"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
             "wand of flame"
           ]
         }
@@ -527,7 +442,6 @@ expression: threats
         "defenceFractions",
         "carriedGear",
         "otherSpells",
-        "otherWands",
         "playerResistances"
       ],
       "gaps": [
@@ -548,24 +462,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 20,
+      "worstHit": 13,
       "hostilesInView": 5,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -579,27 +479,6 @@ expression: threats
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
-            "wand of flame"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
             "wand of flame"
           ]
         }
@@ -699,7 +578,6 @@ expression: threats
         "defenceFractions",
         "carriedGear",
         "otherSpells",
-        "otherWands",
         "playerResistances"
       ],
       "gaps": [
@@ -720,24 +598,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 20,
+      "worstHit": 13,
       "hostilesInView": 5,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -751,27 +615,6 @@ expression: threats
           "shoots": [
             "+3 shortbow of flaming",
             "arrows",
-            "wand of flame"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
             "wand of flame"
           ]
         }
@@ -871,7 +714,6 @@ expression: threats
         "defenceFractions",
         "carriedGear",
         "otherSpells",
-        "otherWands",
         "playerResistances"
       ],
       "gaps": [
@@ -890,27 +732,12 @@ expression: threats
       "hp": 60,
       "death": {
         "times": 0,
-        "trials": 10000
+        "trials": 0
       },
       "worstHit": 0,
       "hostilesInView": 3,
       "bestPlanWin": null,
-      "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        }
-      ],
+      "acting": [],
       "gear": [
         {
           "name": "orc",
@@ -987,24 +814,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 12,
+      "worstHit": 0,
       "hostilesInView": 5,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -1017,27 +830,6 @@ expression: threats
           "movesNotModelled": [],
           "shoots": [
             "boomerang"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
-            "wand of flame"
           ]
         }
       ],
@@ -1132,16 +924,9 @@ expression: threats
         "awareness",
         "defenceFractions",
         "carriedGear",
-        "otherSpells",
-        "otherWands",
-        "playerResistances"
+        "otherSpells"
       ],
-      "gaps": [
-        {
-          "gap": "unread",
-          "fact": "resistances"
-        }
-      ]
+      "gaps": []
     }
   },
   {
@@ -1154,24 +939,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 12,
+      "worstHit": 0,
       "hostilesInView": 6,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -1184,27 +955,6 @@ expression: threats
           "movesNotModelled": [],
           "shoots": [
             "boomerang"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
-            "wand of flame"
           ]
         }
       ],
@@ -1324,16 +1074,9 @@ expression: threats
         "awareness",
         "defenceFractions",
         "carriedGear",
-        "otherSpells",
-        "otherWands",
-        "playerResistances"
+        "otherSpells"
       ],
-      "gaps": [
-        {
-          "gap": "unread",
-          "fact": "resistances"
-        }
-      ]
+      "gaps": []
     }
   },
   {
@@ -1346,24 +1089,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 12,
+      "worstHit": 0,
       "hostilesInView": 7,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -1376,27 +1105,6 @@ expression: threats
           "movesNotModelled": [],
           "shoots": [
             "boomerang"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
-            "wand of flame"
           ]
         }
       ],
@@ -1532,16 +1240,9 @@ expression: threats
         "awareness",
         "defenceFractions",
         "carriedGear",
-        "otherSpells",
-        "otherWands",
-        "playerResistances"
+        "otherSpells"
       ],
-      "gaps": [
-        {
-          "gap": "unread",
-          "fact": "resistances"
-        }
-      ]
+      "gaps": []
     }
   },
   {
@@ -1554,24 +1255,10 @@ expression: threats
         "times": 0,
         "trials": 10000
       },
-      "worstHit": 12,
+      "worstHit": 0,
       "hostilesInView": 8,
       "bestPlanWin": null,
       "acting": [
-        {
-          "name": "orc",
-          "position": {
-            "x": 7,
-            "y": -1
-          },
-          "distance": 7,
-          "casts": [],
-          "spellsNotModelled": [],
-          "movesNotModelled": [],
-          "shoots": [
-            "boomerang"
-          ]
-        },
         {
           "name": "orc",
           "position": {
@@ -1584,27 +1271,6 @@ expression: threats
           "movesNotModelled": [],
           "shoots": [
             "boomerang"
-          ]
-        },
-        {
-          "name": "Sigmund",
-          "position": {
-            "x": 5,
-            "y": 0
-          },
-          "distance": 5,
-          "casts": [
-            "Magic Dart",
-            "Throw Flame"
-          ],
-          "spellsNotModelled": [
-            "Confuse",
-            "Invisibility"
-          ],
-          "movesNotModelled": [],
-          "shoots": [
-            "+1 heavy sling",
-            "wand of flame"
           ]
         }
       ],
@@ -1766,16 +1432,9 @@ expression: threats
         "awareness",
         "defenceFractions",
         "carriedGear",
-        "otherSpells",
-        "otherWands",
-        "playerResistances"
+        "otherSpells"
       ],
-      "gaps": [
-        {
-          "gap": "unread",
-          "fact": "resistances"
-        }
-      ]
+      "gaps": []
     }
   }
 ]

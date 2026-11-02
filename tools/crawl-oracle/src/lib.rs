@@ -12,6 +12,8 @@
 //!   through [`copilot_core::oracle::spell`];
 //! - a choice case (`"kind":"choice"`): a monster picking a spell many times, run through
 //!   [`copilot_core::oracle::spell_choice`];
+//! - a tracer case (`"kind":"tracer"`): a monster with others about deciding many times whether
+//!   to fire a spell, against [`copilot_core::oracle::tracer`];
 //! - a gear case (`"kind":"gear"`): a kind of monster made many times, against
 //!   [`copilot_core::oracle::gear`];
 //! - a missile case (`"kind":"missile"`): a monster shooting or throwing at the player many
@@ -54,7 +56,7 @@ use copilot_core::oracle::{
     self, AUTOMATIC_HIT, AttackTally, CaseError, ExactDefences, FireCase, HandsCase, Lighting,
     MeleeCase, MeleeTally, MissileCase, MoverCase, PlayerBeamCase, PlayerFreezeCase,
     PlayerMeleeCase, PlayerResists, PlayerShotCase, PlayerTally, SpellCase, SpellChoiceCase,
-    SpellTally, StrikerCase, TormentCase, TurnCase, WandCase, WeaponCase, ZapCase,
+    SpellTally, StrikerCase, TormentCase, TracerCase, TurnCase, WandCase, WeaponCase, ZapCase,
 };
 use copilot_gk::{Bundle, BundleError, EnumId, Library};
 use serde::Deserialize;
@@ -134,6 +136,8 @@ pub enum Measure {
     MissileMade,
     /// Which wand a monster was made with.
     WandMade,
+    /// How often a monster's tracer finds it good to fire past the others about.
+    HoldsFire,
     /// Which melee weapon a monster was made with, in its main hand.
     MeleeMade,
     /// Which melee weapon a monster was made with, in its off hand.
@@ -191,6 +195,7 @@ impl fmt::Display for Measure {
             Self::SpellChosen => "spell chosen",
             Self::MissileMade => "missile weapon made with",
             Self::WandMade => "wand made with",
+            Self::HoldsFire => "good to fire",
             Self::MeleeMade => "melee weapon made with",
             Self::OffHandMade => "off-hand melee weapon made with",
             Self::Energy => "energy spent",
@@ -399,6 +404,24 @@ struct ChoiceLine {
 }
 
 #[derive(Deserialize)]
+struct TracerLine {
+    #[serde(rename = "case")]
+    index: u64,
+    monster: u16,
+    name: String,
+    #[serde(rename = "hd")]
+    hit_dice: i32,
+    spell: u16,
+    distance: i32,
+    xl: i32,
+    /// The others, `[monster_type, east, south]`.
+    others: Vec<(u16, i32, i32)>,
+    trials: u32,
+    /// How many tries found it good to fire.
+    fires: u32,
+}
+
+#[derive(Deserialize)]
 struct GearLine {
     #[serde(rename = "case")]
     index: u64,
@@ -583,6 +606,10 @@ pub fn diff(dump: &str) -> Result<Report, DiffError> {
             Some("choice") => {
                 let case: ChoiceLine = serde_json::from_value(value).map_err(read)?;
                 mismatches.extend(compare_choice(bundle, seed, &case)?);
+            }
+            Some("tracer") => {
+                let case: TracerLine = serde_json::from_value(value).map_err(read)?;
+                mismatches.extend(compare_tracer(bundle, seed, &case)?);
             }
             Some("gear") => {
                 let case: GearLine = serde_json::from_value(value).map_err(read)?;
@@ -845,6 +872,39 @@ fn beam_mismatches(
     ];
     mismatches.extend(differing(case.index, who, measures));
     Ok(mismatches)
+}
+
+/// Whether crawl and the engine differ on how often a tracer `case` finds it good to fire.
+fn compare_tracer(
+    bundle: &Bundle,
+    seed: u64,
+    case: &TracerLine,
+) -> Result<Vec<Mismatch>, DiffError> {
+    let input = TracerCase {
+        monster: case.monster,
+        hit_dice: case.hit_dice,
+        spell: case.spell,
+        distance: case.distance,
+        experience_level: case.xl,
+        others: case.others.clone(),
+    };
+    let fires =
+        oracle::tracer(bundle, &input, (seed, case.index), case.trials).map_err(|source| {
+            DiffError::Case {
+                case: case.index,
+                source,
+            }
+        })?;
+    let tally = |fires: u32| BTreeMap::from([(1, fires), (0, case.trials - fires)]);
+    let who = format!(
+        "{} casting {} at XL {} from {} squares, with {:?}",
+        case.name, case.spell, case.xl, case.distance, case.others
+    );
+    Ok(differing(
+        case.index,
+        &who,
+        [(Measure::HoldsFire, tally(case.fires), tally(fires))],
+    ))
 }
 
 /// Every measure of a gear `case` on which crawl and the engine differ.

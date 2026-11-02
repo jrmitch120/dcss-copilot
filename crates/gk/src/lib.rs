@@ -872,6 +872,9 @@ pub struct Formulas {
     /// How a monster gets to its foe round walls and other monsters: `_find_best_step`,
     /// `_find_good_alternate_move`, `_mons_can_displace` and `monster_senior`.
     pub monster_paths: MonsterPaths,
+    /// Whether a monster holds its fire for the allies in the way: `fire_tracer`,
+    /// `targeting_tracer::good_to_fire` and the spells that set their own `foe_ratio`.
+    pub fire_tracer: FireTracer,
     /// How a batty monster flits after it attacks or casts, and for how long, before it hunts
     /// its foe again: `_handle_battiness`, `set_random_target`, `_find_best_step` and
     /// `BATTY_TURNS_KEY` in `_post_monster_move`.
@@ -1063,6 +1066,14 @@ pub enum MonsterPaths {
     Crawl034,
 }
 
+/// The variants of whether a monster holds its fire for the allies in the way.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FireTracer {
+    /// As in crawl 0.34.
+    #[serde(rename = "crawl-0.34")]
+    Crawl034,
+}
+
 /// The variants of how a batty monster flits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BattyFlight {
@@ -1159,6 +1170,7 @@ impl Formulas {
         monster_step: MonsterStep::Crawl034,
         firing_position: FiringPosition::Crawl034,
         monster_paths: MonsterPaths::Crawl034,
+        fire_tracer: FireTracer::Crawl034,
         batty_flight: BattyFlight::Crawl034,
         monster_clouds: MonsterClouds::Crawl034,
         torment: Torment::Crawl034,

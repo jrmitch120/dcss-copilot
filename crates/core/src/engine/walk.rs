@@ -186,6 +186,7 @@ mod tests {
             player: Position { x: 0, y: 0 },
             level: Level::new(terrain),
             bystanders: Vec::new(),
+            experience_level: 1,
         };
         assert!(width > 0);
         let actions = (1..=squares)

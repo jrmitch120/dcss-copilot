@@ -90,6 +90,7 @@ crawl_identifiers! {
     /// `spell_type` identifiers the engine treats on their own.
     spell_types {
         STICKY_FLAME = "SPELL_STICKY_FLAME";
+        /// Sets its own `foe_ratio` too (`setup_mons_cast`, `mon-cast.cc:2303`).
         ORB_OF_ELECTRICITY = "SPELL_ORB_OF_ELECTRICITY";
         MIASMA_BREATH = "SPELL_MIASMA_BREATH";
         FREEZING_GUST = "SPELL_FREEZING_GUST";

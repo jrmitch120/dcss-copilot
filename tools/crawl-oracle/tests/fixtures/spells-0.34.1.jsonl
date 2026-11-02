@@ -23,3 +23,15 @@
 {"case":21,"kind":"choice","monster":216,"name":"deep elf annihilator","hd":15,"distance":4,"trials":20000,"chosen":{"-1":16444,"12":1241,"65":1184,"81":1131}}
 {"case":22,"kind":"beam","monster":194,"name":"orc wizard","hd":3,"spell":3,"spell_name":"Magic Dart","nightvision":false,"player":{"ac":0,"ev":10,"sh":15},"resists":{"fire":2,"cold":3,"negative":0,"poison":-1,"electricity":-1,"corrosion":1,"species":"Demonspawn","god":"the Shining One"},"lighting":"plain","power":36,"range":7,"to_hit":null,"trials":20000,"hits":20000,"blocks":0,"damage":{"3":317,"4":930,"5":1846,"6":3058,"7":3856,"8":3701,"9":3108,"10":1906,"11":978,"12":300}}
 {"case":23,"kind":"choice","monster":265,"name":"necromancer","hd":10,"distance":2,"trials":20000,"chosen":{"-1":18368,"37":1632}}
+{"case":24,"kind":"tracer","monster":756,"name":"wyrmhole","hd":18,"spell":265,"distance":6,"xl":2,"others":[[181,-2,0]],"trials":1000,"fires":1000}
+{"case":25,"kind":"tracer","monster":137,"name":"molten gargoyle","hd":7,"spell":13,"distance":5,"xl":2,"others":[[140,1,0],[247,-1,-1]],"trials":1000,"fires":0}
+{"case":26,"kind":"tracer","monster":28,"name":"hell hog","hd":11,"spell":4,"distance":6,"xl":18,"others":[[154,-2,0],[140,-3,0]],"trials":1000,"fires":1000}
+{"case":27,"kind":"tracer","monster":266,"name":"occultist","hd":13,"spell":265,"distance":4,"xl":26,"others":[[140,-1,0]],"trials":1000,"fires":1000}
+{"case":28,"kind":"tracer","monster":389,"name":"ancient lich","hd":27,"spell":296,"distance":4,"xl":1,"others":[[140,2,0],[181,-1,1]],"trials":1000,"fires":0}
+{"case":29,"kind":"tracer","monster":723,"name":"thermic dynamo","hd":10,"spell":283,"distance":3,"xl":2,"others":[[190,-1,1],[154,-3,0]],"trials":1000,"fires":0}
+{"case":30,"kind":"tracer","monster":345,"name":"efreet","hd":7,"spell":265,"distance":5,"xl":4,"others":[[181,1,1]],"trials":1000,"fires":1000}
+{"case":31,"kind":"tracer","monster":260,"name":"frost giant","hd":16,"spell":11,"distance":3,"xl":17,"others":[[140,-2,0],[247,0,-1]],"trials":1000,"fires":1000}
+{"case":32,"kind":"tracer","monster":367,"name":"bog body","hd":10,"spell":11,"distance":3,"xl":2,"others":[[154,-1,0]],"trials":1000,"fires":0}
+{"case":33,"kind":"tracer","monster":409,"name":"ophan","hd":15,"spell":265,"distance":6,"xl":25,"others":[[140,5,0]],"trials":1000,"fires":0}
+{"case":34,"kind":"tracer","monster":249,"name":"ogre mage","hd":10,"spell":13,"distance":5,"xl":9,"others":[[140,4,0]],"trials":1000,"fires":0}
+{"case":35,"kind":"tracer","monster":216,"name":"deep elf annihilator","hd":15,"spell":38,"distance":6,"xl":9,"others":[[190,-1,-1]],"trials":1000,"fires":0}

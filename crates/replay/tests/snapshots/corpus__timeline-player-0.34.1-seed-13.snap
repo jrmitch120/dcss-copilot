@@ -225,16 +225,16 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 1834,
-    "turn": 916,
+    "envelope": 1829,
+    "turn": 915,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 1834,
-    "turn": 916,
+    "envelope": 1829,
+    "turn": 915,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
     "line": "Fall back to a corridor — The corridor 10 steps away"
@@ -485,7 +485,7 @@ expression: detections
     "turn": 2060,
     "event": "suggestedAction",
     "rule": "fight-on",
-    "line": "Fight on — Melee: ~92% win, ~36% HP lost"
+    "line": "Fight on — Melee: ~91% win, ~36% HP lost"
   },
   {
     "envelope": 3687,
@@ -875,19 +875,19 @@ expression: detections
     "event": "encounterStarted"
   },
   {
-    "envelope": 6515,
-    "turn": 4087,
+    "envelope": 6510,
+    "turn": 4086,
     "event": "alert",
     "cause": "threat-level-rose",
     "to": "dangerous",
     "line": "Threat rose to DANGEROUS."
   },
   {
-    "envelope": 6515,
-    "turn": 4087,
+    "envelope": 6510,
+    "turn": 4086,
     "event": "suggestedAction",
     "rule": "fall-back-to-a-corridor",
-    "line": "Fall back to a corridor — The corridor 3 steps away"
+    "line": "Fall back to a corridor — The corridor 4 steps away"
   },
   {
     "envelope": 6540,
@@ -1125,7 +1125,7 @@ expression: detections
     "turn": 5201,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~77% win, ~63% HP lost. If it turns LETHAL: Teleportation · escapes after a delay"
+    "line": "Fight carefully — Melee: ~78% win, ~63% HP lost. If it turns LETHAL: Teleportation · escapes after a delay"
   },
   {
     "envelope": 8601,

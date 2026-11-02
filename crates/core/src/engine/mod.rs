@@ -17,6 +17,7 @@ pub(crate) mod stage;
 pub(crate) mod step;
 pub(crate) mod threat;
 pub(crate) mod torment;
+pub(crate) mod tracer;
 pub(crate) mod walk;
 pub(crate) mod wands;
 

@@ -408,6 +408,20 @@ pub(crate) fn dice(rng: &mut Rng, damage: ZapDamage, power: i32) -> (i32, i32) {
     }
 }
 
+impl DamagingSpell<'_> {
+    /// The most damage its beam deals at `power`, before armour: `preac_max_damage`, as many dice
+    /// as it rolls, of as many sides. Dice that share a total are taken to reach it.
+    pub(crate) fn most_damage(&self, power: i32) -> i32 {
+        let damage = self.damage;
+        let total = damage.adder + power * damage.per_power / damage.per.max(1);
+        if damage.spread {
+            total
+        } else {
+            damage.dice * total
+        }
+    }
+}
+
 /// A zap's accuracy at `power`: `zap_to_hit` (`beam.cc:385`), `None` when it never misses.
 pub(crate) fn accuracy(to_hit: ZapToHit, power: i32) -> Option<i32> {
     match to_hit {

@@ -174,7 +174,7 @@ const SPELLS: &str = include_str!("fixtures/spells-0.34.1.jsonl");
 #[test]
 fn the_engine_agrees_with_crawl_on_every_spell_case() {
     let report = diff(SPELLS).unwrap();
-    assert_eq!(report.cases, 24);
+    assert_eq!(report.cases, 36);
     assert!(report.mismatches.is_empty(), "{report}");
 }
 
@@ -248,6 +248,25 @@ fn a_spell_chosen_as_often_as_another_is_caught() {
         chosen.insert("-1".to_owned(), (none + fire - fire / 2).into());
     });
     assert_eq!(caught(&dump), [(9, Measure::SpellChosen)]);
+}
+
+#[test]
+fn a_monster_firing_past_an_ally_crawl_holds_its_fire_for_is_caught() {
+    // Case 25, a molten gargoyle's bolt of magma at a player of level 2, past an orc beside it:
+    // counted as fired.
+    let dump = with_changed(SPELLS, 25, |case| {
+        let trials = case["trials"].as_u64().unwrap();
+        case["fires"] = trials.into();
+    });
+    assert_eq!(caught(&dump), [(25, Measure::HoldsFire)]);
+}
+
+#[test]
+fn a_foe_ratio_left_at_its_default_is_caught() {
+    // Case 27, an occultist's orb of electricity, with an orc in its blast, which the foe ratio
+    // of 40 to 55 lets it fire: counted as held.
+    let dump = with_changed(SPELLS, 27, |case| case["fires"] = 0.into());
+    assert_eq!(caught(&dump), [(27, Measure::HoldsFire)]);
 }
 
 /// What the missile harness printed from the same crawl build: 60 cases, taking turns at a kind

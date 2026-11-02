@@ -993,7 +993,7 @@ expression: detections
     "turn": 6122,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~78% win, ~67% HP lost. If it turns LETHAL: Curing ×2 · heals"
+    "line": "Fight carefully — Wand of flame, then melee: ~89% win, ~54% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 9349,
@@ -1601,7 +1601,7 @@ expression: detections
     "turn": 8560,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~72% win, ~60% HP lost. If it turns LETHAL: Curing ×2 · heals"
+    "line": "Fight carefully — Wand of flame, then melee: ~72% win, ~59% HP lost. If it turns LETHAL: Curing ×2 · heals"
   },
   {
     "envelope": 13308,
@@ -1692,7 +1692,7 @@ expression: detections
     "turn": 8976,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~8% win, ~99% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
+    "line": "Fight carefully — Wand of flame, then melee: ~25% win, ~95% HP lost. If it turns LETHAL: Teleportation ×6 · escapes after a delay"
   },
   {
     "envelope": 13767,
@@ -1713,7 +1713,7 @@ expression: detections
     "turn": 8985,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Wand of flame, then melee: ~0% win, ~100% HP lost. If it turns LETHAL: Stone staircase leading up · ~8 steps · partly out of view"
+    "line": "Fight carefully — Wand of flame, then melee: ~2% win, ~100% HP lost. If it turns LETHAL: Stone staircase leading up · ~8 steps · partly out of view"
   },
   {
     "envelope": 13779,

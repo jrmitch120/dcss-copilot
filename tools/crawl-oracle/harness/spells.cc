@@ -172,6 +172,77 @@ static void _choice_case(int index, int trials, const set<spell_type> &ported)
     _remove(*mon);
 }
 
+// Whether the harness plays `spell` in a tracer case: not a cloud, whose tracer has rules of its
+// own, nor a spell whose beam has a side effect that counts for more than its damage.
+static bool _plain_tracer(spell_type spell)
+{
+    return !(get_spell_flags(spell) & spflag::cloud);
+}
+
+// A monster with a ported spell, some squares east of the player, decides many times whether to
+// fire it, with others about: on its line, past the player or beside them. A spell that sets its
+// own foe_ratio is drawn a case in three, and the player is of a low or a high experience level.
+static void _tracer_case(int index, int trials, const set<spell_type> &ported)
+{
+    static const vector<monster_type> OTHERS
+        = { MONS_ORC, MONS_GOBLIN, MONS_OGRE, MONS_FIRE_ELEMENTAL, MONS_ICE_BEAST };
+    const int distance = 3 + random2(4);
+    monster *mon = _random_caster(ported, distance);
+    vector<spell_type> spells;
+    for (const mon_spell_slot &slot : mon->spells)
+        if (_plain_tracer(slot.spell))
+            spells.push_back(slot.spell);
+    if (spells.empty() || index % 3 == 0)
+        spells = { SPELL_ORB_OF_ELECTRICITY };
+    const spell_type spell = spells[random2(spells.size())];
+    you.experience_level = coinflip() ? 1 + random2(5) : 9 + random2(19);
+
+    string others = "[";
+    vector<monster *> placed;
+    const int count = 1 + random2(2);
+    for (int i = 0; i < count; ++i)
+    {
+        coord_def way;
+        switch (random2(3))
+        {
+        case 0: way = coord_def(1 + random2(distance - 1), 0); break;
+        case 1: way = coord_def(-1 - random2(3), 0); break;
+        default: way = coord_def(random2(3) - 1, coinflip() ? 1 : -1); break;
+        }
+        if (monster_at(you.pos() + way))
+            continue;
+        mons_spec spec(OTHERS[random2(OTHERS.size())]);
+        monster *other = dgn_place_monster(spec, you.pos() + way, true, true, false);
+        if (!other)
+            continue;
+        placed.push_back(other);
+        others += make_stringf("%s[%d,%d,%d]", others.size() > 1 ? "," : "", other->type, way.x,
+                               way.y);
+    }
+    others += "]";
+
+    int fires = 0;
+    for (int t = 0; t < trials; ++t)
+    {
+        bolt beam = setup_targeting_beam(*mon);
+        if (!setup_mons_cast(mon, beam, spell, true))
+            break;
+        targeting_tracer tracer;
+        fire_tracer(mon, tracer, beam);
+        fires += mons_should_fire(beam, tracer);
+    }
+
+    printf("{\"case\":%d,\"kind\":\"tracer\",\"monster\":%d,\"name\":\"%s\",\"hd\":%d,"
+           "\"spell\":%d,\"distance\":%d,\"xl\":%d,\"others\":%s,\"trials\":%d,\"fires\":%d}\n",
+           index, mon->type, mon->name(DESC_PLAIN, true).c_str(), mon->get_hit_dice(), spell,
+           distance, you.experience_level, others.c_str(), trials, fires);
+
+    for (monster *other : placed)
+        _remove(*other);
+    _remove(*mon);
+    you.experience_level = 1;
+}
+
 int main(int argc, char *argv[])
 {
     const oracle_run run = _read_run(argc, argv, true);
@@ -192,6 +263,16 @@ int main(int argc, char *argv[])
             _beam_case(i, run.trials, ported);
         else
             _choice_case(i, run.trials, ported);
+    }
+    // After the others, which keep their numbers: half as many, each decided a twentieth as often
+    // as its tracer rolls for little.
+    const int tracer_cases = run.cases / 2;
+    for (int i = 0; i < tracer_cases; ++i)
+    {
+        if (!_in_shard(run, i, 1))
+            continue;
+        _start_case(run, run.cases + i);
+        _tracer_case(run.cases + i, run.trials / 20, ported);
     }
     return 0;
 }

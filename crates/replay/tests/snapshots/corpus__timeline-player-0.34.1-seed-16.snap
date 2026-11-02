@@ -455,7 +455,7 @@ expression: detections
     "turn": 3811,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~3% win, ~100% HP lost. If it turns LETHAL: Heal wounds · heals"
+    "line": "Fight carefully — Melee: ~5% win, ~100% HP lost. If it turns LETHAL: Heal wounds · heals"
   },
   {
     "envelope": 4737,
@@ -480,7 +480,7 @@ expression: detections
     "turn": 3878,
     "event": "suggestedAction",
     "rule": "fight-carefully",
-    "line": "Fight carefully — Melee: ~16% win, ~95% HP lost. If it turns LETHAL: Heal wounds · heals"
+    "line": "Fight carefully — Melee: ~15% win, ~95% HP lost. If it turns LETHAL: Heal wounds · heals"
   },
   {
     "envelope": 4803,

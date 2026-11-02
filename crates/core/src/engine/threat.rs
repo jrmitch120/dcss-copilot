@@ -26,6 +26,7 @@ use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing, Landing, Prospect, Reach, Slot};
 use super::stage::{Ground, Stage};
 use super::step::{self, Offset};
+use super::tracer::{self, Shot};
 use super::{PLAYER_VISION, torment, wands};
 
 /// How many times the next standard-speed action is played out. At 10,000 the chance of death
@@ -489,33 +490,62 @@ impl<'a> Attacker<'a> {
         Some(step::firing_range(formulas.firing_position, threat_range))
     }
 
-    /// Whether it can neither come to the player nor strike them from where it stands, such as a
-    /// monster shut in a vault: it takes no part in a fight, as the player can't come to it
-    /// either.
-    pub(crate) fn apart_from_the_fight(&self, formulas: Formulas, ground: &Ground<'_>) -> bool {
-        ground.cut_off(Crossing::of(self.monster), self.offset)
-            && !self.strikes_from(formulas, ground, self.offset)
+    /// Whether it can neither come to the player nor strike them from where it stands, at `place`
+    /// on `stage`, such as a monster shut in a vault: it takes no part in a fight, as the player
+    /// can't come to it either.
+    pub(crate) fn apart_from_the_fight(
+        &self,
+        formulas: Formulas,
+        stage: &Stage<'_, '_>,
+        place: usize,
+    ) -> bool {
+        stage
+            .ground()
+            .cut_off(Crossing::of(self.monster), self.offset)
+            && !self.strikes_from(formulas, stage, place, self.offset)
     }
 
-    /// Whether it can strike the player from `distance` squares in melee, with a spell, a wand
-    /// or a missile, if it may carry them. One that keeps its range fights in melee only with a
-    /// reaching attack, from farther than beside them.
-    fn strikes_from(&self, formulas: Formulas, ground: &Ground<'_>, offset: Offset) -> bool {
+    /// Whether it can strike the player from `offset`, at `place` on `stage`, in melee, with a
+    /// spell, a wand or a missile, if it may carry them, and if its tracer finds it good to fire
+    /// at its boldest. One that keeps its range fights in melee only with a reaching attack, from
+    /// farther than beside them, which no ally between stops.
+    fn strikes_from(
+        &self,
+        formulas: Formulas,
+        stage: &Stage<'_, '_>,
+        place: usize,
+        offset: Offset,
+    ) -> bool {
         let monster = self.monster;
         let distance = offset.distance();
-        let shoots = !self.missiles.is_empty()
-            && distance <= MISSILE_RANGE
-            && (distance > 1 || monster.prefers_ranged);
+        let fires = |shot| tracer::fires(formulas, stage, place, offset, shot);
+        let shoots = distance <= MISSILE_RANGE
+            && (distance > 1 || monster.prefers_ranged)
+            && self
+                .missiles
+                .items()
+                .flat_map(|missiles| missiles.each())
+                .any(|missile| fires(missile.shot()));
         let fights = distance <= self.farthest_melee_reach(formulas)
-            && (distance > 1 && ground.reach_clear(offset)
+            && (distance > 1 && stage.ground().reach_clear(offset)
                 || distance == 1 && !monster.keeps_range);
         distance >= 1
             && (fights
-                || self
-                    .spells
-                    .iter()
-                    .any(|cast| cast.reach.strikes >= distance)
-                || self.wands.items().any(|zap| zap.reach.strikes >= distance)
+                || self.spells.iter().any(|cast| {
+                    cast.reach.strikes >= distance
+                        && fires(Shot::boldest_spell(
+                            formulas,
+                            &cast.spell,
+                            cast.power,
+                            cast.reach,
+                        ))
+                })
+                || self.wands.items().any(|zap| {
+                    zap.reach.strikes >= distance
+                        && fires(Shot::boldest_spell(
+                            formulas, &zap.spell, zap.power, zap.reach,
+                        ))
+                })
                 || shoots)
     }
 }
@@ -873,7 +903,7 @@ pub(crate) fn can_attack(
     let mut offset = attacker.offset;
     while energy >= ENERGY_THRESHOLD {
         let distance = offset.distance();
-        if attacker.strikes_from(formulas, stage.ground(), offset) {
+        if attacker.strikes_from(formulas, &stage, place, offset) {
             return true;
         }
         if monster.stationary
@@ -1158,6 +1188,9 @@ impl<'r, 'a> Engaged<'r, 'a> {
             self.distance(),
             can_breathe,
             &self.clouds,
+            stage,
+            self.place,
+            self.offset,
         ) {
             turn.casts += 1;
             self.clouds.note_cast(
@@ -1187,10 +1220,17 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 return true;
             }
         }
-        // Its tracer must find the player (`_handle_wand`).
+        // Its tracer must find the player (`_handle_wand`), past any ally.
         if let Some(zap) = wand
             && wands::zaps(formulas.monster_wand, rng)
             && zap.reach.casts >= self.distance()
+            && tracer::fires(
+                formulas,
+                stage,
+                self.place,
+                self.offset,
+                Shot::spell(formulas, rng, &zap.spell, zap.power, zap.reach),
+            )
             && self.clouds.tracer_finds_player(
                 formulas.monster_clouds,
                 &zap.spell,
@@ -1221,6 +1261,7 @@ impl<'r, 'a> Engaged<'r, 'a> {
                 monster.prefers_ranged,
                 self.distance(),
             )
+            && tracer::fires(formulas, stage, self.place, self.offset, missile.shot())
         {
             let shot = missiles::shoot(
                 formulas,
@@ -1447,7 +1488,9 @@ fn fire_beam(
 /// The spell `attacker` casts this action, if any, `distance` squares from the player. A breath
 /// can't be cast while it is catching its breath: crawl drops it from the usable spells
 /// (`_find_usable_spells`). A spell is in range when it reaches the player and its tracer finds
-/// them past the clouds `clouds` it left ([`CloudsLeft::tracer_finds_player`]).
+/// them past the clouds `clouds` it left ([`CloudsLeft::tracer_finds_player`]) and finds it good
+/// to fire past the others on `stage`, for the caster at `place`, at `from` ([`tracer::fires`]).
+#[allow(clippy::too_many_arguments)]
 fn choose_cast<'c, 'a>(
     formulas: Formulas,
     rng: &mut Rng,
@@ -1455,6 +1498,9 @@ fn choose_cast<'c, 'a>(
     distance: i32,
     can_breathe: bool,
     clouds: &CloudsLeft,
+    stage: &Stage<'_, '_>,
+    place: usize,
+    from: Offset,
 ) -> Option<&'c Cast<'a>> {
     let usable: Vec<&Cast<'a>> = casts
         .iter()
@@ -1475,6 +1521,13 @@ fn choose_cast<'c, 'a>(
                     &cast.spell,
                     cast.reach,
                     distance,
+                )
+                && tracer::fires(
+                    formulas,
+                    stage,
+                    place,
+                    from,
+                    Shot::spell(formulas, rng, &cast.spell, cast.power, cast.reach),
                 ),
         })
         .collect();

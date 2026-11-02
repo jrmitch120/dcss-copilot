@@ -4006,6 +4006,7 @@ expression: bundle
     "monsterStep": "crawl-0.34",
     "firingPosition": "crawl-0.34",
     "monsterPaths": "crawl-0.34",
+    "fireTracer": "crawl-0.34",
     "battyFlight": "crawl-0.34",
     "monsterClouds": "crawl-0.34",
     "torment": "crawl-0.34",

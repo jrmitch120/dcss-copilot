@@ -23,9 +23,10 @@ use super::player_move::{self, Unread};
 use super::resists::{self, Resists, Seen};
 use super::rng::Rng;
 use super::spells::{self, DamagingSpell, Firing};
-use super::stage::{Ground, Scene, Stage};
+use super::stage::{Ground, MOST_EXPERIENCE_LEVEL, Scene, Stage};
 use super::step::Offset;
 use super::threat::{self, Attacker, Draw};
+use super::tracer;
 use super::{PLAYER_VISION, torment, wands};
 use crate::screen::{Resistance, Resistances, Screen, ScreenRead};
 use crate::visible_state::{Position, Religion, Status};
@@ -1059,7 +1060,83 @@ fn turn_scene(walls: &[(i32, i32)]) -> Scene {
         player,
         level: Level::new(squares),
         bystanders: Vec::new(),
+        experience_level: MOST_EXPERIENCE_LEVEL,
     }
+}
+
+/// A monster deciding whether to cast a spell at the player, with others about.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TracerCase {
+    /// The caster's `monster_type` value.
+    pub monster: u16,
+    /// Its hit dice.
+    pub hit_dice: i32,
+    /// The spell's `spell_type` value.
+    pub spell: u16,
+    /// Squares east of the player it stands.
+    pub distance: i32,
+    /// The player's experience level.
+    pub experience_level: i32,
+    /// The others, each its `monster_type` value and where it stands, `(east, south)` of the
+    /// player.
+    pub others: Vec<(u16, i32, i32)>,
+}
+
+/// How many of `trials` tries `case`'s monster finds it good to fire its spell at the player,
+/// from a generator seeded with `seed`: [`tracer::fires`].
+///
+/// # Errors
+/// If the bundle lacks the monster, an other, the spell, or the engine doesn't port the spell.
+pub fn tracer(
+    bundle: &Bundle,
+    case: &TracerCase,
+    seed: (u64, u64),
+    trials: u32,
+) -> Result<u32, CaseError> {
+    let formulas = bundle.formulas;
+    let monster = bundle
+        .monster(case.monster)
+        .ok_or(CaseError::NoMonster(case.monster))?;
+    let known = bundle
+        .spells
+        .get(&case.spell)
+        .ok_or(CaseError::NoSpell(case.spell))?;
+    let spell =
+        spells::damaging(formulas.monster_spell_beam, known).ok_or(CaseError::NotPorted {
+            monster: case.monster,
+            spell: case.spell,
+        })?;
+    let power = spells::power(formulas.monster_spell_power, &spell.spell.id, case.hit_dice);
+    let range = spell.spell.range.ok_or(CaseError::NoSpell(case.spell))?;
+    let range = spells::range(formulas.monster_spell_power, range, power);
+    let reach = spells::reach(formulas.monster_spell_beam, &spell, range);
+    let others = case
+        .others
+        .iter()
+        .map(|&(other, x, y)| {
+            let known = bundle.monster(other).ok_or(CaseError::NoMonster(other))?;
+            Ok((known, Offset { x, y }))
+        })
+        .collect::<Result<Vec<_>, CaseError>>()?;
+    let scene = Scene {
+        player: Position { x: 0, y: 0 },
+        level: None,
+        bystanders: Vec::new(),
+        experience_level: case.experience_level,
+    };
+    let ground = Ground::new(&scene, scene.player, [monster], &[]);
+    let from = Offset::east(case.distance);
+    let stage = Stage::new(
+        &ground,
+        std::iter::once((monster, from)).chain(others.iter().copied()),
+    );
+    let mut rng = Rng::new(seed.0, seed.1);
+    Ok((0..trials)
+        .map(|_| {
+            let shot = tracer::Shot::spell(formulas, &mut rng, &spell, power, reach);
+            u32::from(tracer::fires(formulas, &stage, 0, from, shot))
+        })
+        .sum())
 }
 
 /// A player torment meets, as a harness made them: their resistances, species and god, the

@@ -182,9 +182,19 @@ pub(crate) fn simulate(
 ) -> Outcome {
     // As in the Threat Level's trial, without one that can never come to the player nor strike
     // them from where it stands: it stands apart from the fight, and the player from it.
+    let everyone = Stage::new(
+        ground,
+        foes.iter()
+            .map(|foe| (foe.attacker.monster, foe.attacker.offset)),
+    );
     let mut order: Vec<&Foe<'_>> = foes
         .iter()
-        .filter(|foe| !foe.attacker.apart_from_the_fight(formulas, ground))
+        .enumerate()
+        .filter(|&(place, foe)| {
+            !foe.attacker
+                .apart_from_the_fight(formulas, &everyone, place)
+        })
+        .map(|(_, foe)| foe)
         .collect();
     order.sort_by_key(|foe| {
         (
